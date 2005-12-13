@@ -3,6 +3,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
+#include <R_ext/Utils.h>
 
 /* compiling:
 gcc -shared -fPIC -I/usr/lib/R/include/ -I/projects/mice/share/arch/linux64/include -L/projects/mice/share/arch/linux64/lib -o minc_reader.so minc_reader.c -lminc2 -lhdf5 -lnetcdf -lz -lm
@@ -138,6 +139,62 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
   return(slab);
 }
 
+/* wilcoxon_rank_test: wilcoxon rank test (Mann-Whitney U test)
+ * voxel: 1D array of doubles
+ * grouping: 1D array of doubles
+ * the test is against grouping == 0
+ * NOTES:
+ * does not handle ties in rankings correctly.
+ * assumes that the data is sorted by grouping.
+ */
+
+SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
+  double *xvoxel, *voxel_copy, *xgrouping, rank_sum, expected_rank_sum, *xW;
+  int    *xindices;
+  int *index;
+  unsigned long    n, i;
+  SEXP   indices, output;
+
+  xgrouping = REAL(grouping);
+
+  PROTECT(output=allocVector(REALSXP, 1));
+  xW = REAL(output);
+
+  n = LENGTH(voxel);
+  xvoxel = REAL(voxel);
+  voxel_copy = malloc(n * sizeof(double));
+  index = malloc(n * sizeof(int));
+  for (i=0; i < n; i++) {
+    voxel_copy[i] = xvoxel[i];
+    index[i] = i;
+  }
+
+  PROTECT(indices=allocVector(INTSXP, n));
+  xindices = INTEGER(indices);
+
+  rsort_with_index(voxel_copy, (int*) index, n);
+  rank_sum = 0;
+  expected_rank_sum = 0;
+  for (i=0; i < n; i++) {
+    //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
+    xindices[index[i]] = i+1;
+    if (xgrouping[i] == 0) 
+      expected_rank_sum += i+1;
+  }
+  for (i=0;  i< n; i++) {
+    if (xgrouping[i] == 0)
+      rank_sum += xindices[i];
+  }
+  //Rprintf("RANK SUM: %f\nEXPECTED SUM: %f\nW: %f\n", 
+  //	  rank_sum, expected_rank_sum, rank_sum - expected_rank_sum);
+  xW[0] = rank_sum - expected_rank_sum;
+  free(voxel_copy);
+  free(index);
+  UNPROTECT(2);
+  return(output);
+}
+  
+
 /* minc2_apply: evaluate a function at every voxel of a series of files
  * filenames: character array of filenames. Have to have identical sampling.
  * fn: string representing a function call to be evaluated. The variable "x"
@@ -149,8 +206,8 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
 SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
   int                result;
   mihandle_t         *hvol;
-  int                i, v0, v1, v2, index;
-  unsigned long      start[3];
+  int                i, v0, v1, v2, output_index, buffer_index;
+  unsigned long      start[3], count[3];
   unsigned long      location[3];
   int                num_files;
   double             *xbuffer, *xoutput, **full_buffer;
@@ -192,29 +249,37 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
   //PROTECT(R_fcall = lang2(fn, R_NilValue));
 
 
-  /* allocate the buffer */
-  start[0] = 0; start[1] = 0; start[2] = 0;
+  /* allocate first dimension of the buffer */
   full_buffer = malloc(num_files * sizeof(double));
 
-  /* fill the buffer */
+  /* allocate second dimension of the buffer 
+     - big enough to hold one slice per subject at a time */
   for (i=0; i < num_files; i++) {
-    full_buffer[i] = malloc(sizes[0] * sizes[1] * sizes[2] * sizeof(double));
-    if (miget_real_value_hyperslab(hvol[i], 
-				   MI_TYPE_DOUBLE, 
-				   (unsigned long *) start, 
-				   (unsigned long *) sizes, 
-				   full_buffer[i]) )
-	error("Error opening buffer.\n");
+    full_buffer[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
   }
 	
+  /* set start and count. start[0] will change during the loop */
+  start[0] = 0; start[1] = 0; start[2] = 0;
+  count[0] = 1; count[1] = sizes[1]; count[2] = sizes[2];
 
   /* loop across all files and voxels */
   Rprintf("In slice \n");
   for (v0=0; v0 < sizes[0]; v0++) {
+    start[0] = v0;
+    for (i=0; i < num_files; i++) {
+      if (miget_real_value_hyperslab(hvol[i], 
+				     MI_TYPE_DOUBLE, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
+				     full_buffer[i]) )
+	error("Error opening buffer.\n");
+    }
+
     Rprintf(" %d ", v0);
     for (v1=0; v1 < sizes[1]; v1++) {
       for (v2=0; v2 < sizes[2]; v2++) {
-	index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
+	output_index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
+	buffer_index = sizes[2] * v1 + v2;
 
 	for (i=0; i < num_files; i++) {
 	  location[0] = v0;
@@ -222,7 +287,7 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
 	  location[2] = v2;
 	  //SET_VECTOR_ELT(buffer, i, full_buffer[i][index]);
 	  //result = miget_real_value(hvol[i], location, 3, &xbuffer[i]);
-	  xbuffer[i] = full_buffer[i][index];
+	  xbuffer[i] = full_buffer[i][buffer_index];
 	  
 	  //Rprintf("V%i: %f\n", i, full_buffer[i][index]);
 
@@ -233,7 +298,7 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
 	//SET_VECTOR_ELT(output, index, eval(R_fcall, rho));
 	//SET_VECTOR_ELT(output, index, test);
 	/* evaluate the function */
-	xoutput[index] = REAL(eval(fn, rho))[0]; 
+	xoutput[output_index] = REAL(eval(fn, rho))[0]; 
       }
     }
   }
@@ -245,7 +310,7 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
     free(full_buffer[i]);
   }
   free(full_buffer);
-  UNPROTECT(3);
+  UNPROTECT(2);
 
   /* return the results */
   return(output);
@@ -307,3 +372,4 @@ void write_minc2_volume(char **output, char **like_filename,
   miclose_volume(hvol_new);
   return;
 }
+
