@@ -102,6 +102,48 @@ minc.get.hyperslab2 <- function(filename, start, count, buffer=NA) {
                as.integer(count), hs=buffer, DUP=FALSE)
   #return(output)
 }
+
+wilcox.permutation <- function(filenames, groupings, mask, n.permute=10) {
+  results <- data.frame(greater50=vector(length=n.permute),
+                        less5=vector(length=n.permute),
+                        equal55=vector(length=n.permute),
+                        equal0=vector(length=n.permute),
+                        percent5=vector(length=n.permute),
+                        percent95=vector(length=n.permute))
+  mask.volume <- minc.get.volume(mask)
+  for (i in 1:n.permute) {
+    new.order <- sample(groupings)
+    cat("N: ", as.double(new.order), "\n")
+    w <- minc.wilcoxon.test(filenames, new.order, mask)
+    w2 <- w[mask.volume == 1]
+    ws <- sort(w2)
+    #minc.write.volume(paste("p", i, ".mnc", sep=""), mask, w)
+    results$greater50[i] <- sum(w2 > 50)
+    results$less5[i] <- sum(w2 < 5)
+    results$equal55[i] <- sum(w2 == 55)
+    results$equal0[i] <- sum(w2 == 0)
+    results$percent5[i] <- ws[round(length(ws) * 0.05)]
+    results$percent95[i] <- ws[round(length(ws) * 0.95)]
+  }
+  return(results)
+}
+
+minc.wilcoxon.test <- function(filenames, groupings, mask=NULL) {
+  voxel.wilcoxon.test <- function(x) {
+    .Call("wilcoxon_rank_test", as.double(x),
+          as.double(tmp.groupings),
+          as.double(sum(tmp.groupings==0)),
+          as.double(sum(tmp.groupings==1)))
+  }
+
+  groupings <- as.double(groupings)
+  assign("tmp.groupings", groupings, env=.GlobalEnv)
+  cat("TMP: ", as.double(tmp.groupings), "\n")
+  assign("voxel.wilcoxon.test", voxel.wilcoxon.test, env=.GlobalEnv)
+  w <- minc.apply(filenames, quote(voxel.wilcoxon.test(x)), mask)
+  return(w)
+}
+
 minc.read.volumes <- function(filenames) {
   sizes <- minc.dimensions.sizes(filenames[1])
   n.files <- length(filenames)
@@ -111,7 +153,15 @@ minc.read.volumes <- function(filenames) {
   }
   return(output)
 }
-                   
+
+# efficient way of applying an R function to every voxel
+minc.apply <- function(filenames, function.string, mask=NULL) {
+  .Call("minc2_apply", as.character(filenames),
+        function.string,
+        as.double(! is.null(mask)),
+        as.character(mask),
+        parent.env(environment()))
+}
 
 # perform specified function across all voxels of all volumes
 minc.slice.loop <- function(filenames, n.slices, output.dims, func, ...) {

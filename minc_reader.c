@@ -145,11 +145,11 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
  * the test is against grouping == 0
  * NOTES:
  * does not handle ties in rankings correctly.
- * assumes that the data is sorted by grouping.
  */
 
-SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
+SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping, SEXP na, SEXP nb) {
   double *xvoxel, *voxel_copy, *xgrouping, rank_sum, expected_rank_sum, *xW;
+  double *xna, *xnb;
   int    *xindices;
   int *index;
   unsigned long    n, i;
@@ -159,6 +159,11 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
 
   PROTECT(output=allocVector(REALSXP, 1));
   xW = REAL(output);
+  xna = REAL(na);
+  xnb = REAL(nb);
+
+  //Rprintf("NA: %f NB: %f\n", *xna, *xnb);
+  expected_rank_sum = *xna * *xnb + ((*xna * (*xna + 1)) / 2);
 
   n = LENGTH(voxel);
   xvoxel = REAL(voxel);
@@ -174,20 +179,20 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
 
   rsort_with_index(voxel_copy, (int*) index, n);
   rank_sum = 0;
-  expected_rank_sum = 0;
+  
   for (i=0; i < n; i++) {
     //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
     xindices[index[i]] = i+1;
-    if (xgrouping[i] == 0) 
-      expected_rank_sum += i+1;
+    //if (xgrouping[i] == 0) 
+    //expected_rank_sum += i+1;
   }
   for (i=0;  i< n; i++) {
     if (xgrouping[i] == 0)
       rank_sum += xindices[i];
   }
   //Rprintf("RANK SUM: %f\nEXPECTED SUM: %f\nW: %f\n", 
-  //	  rank_sum, expected_rank_sum, rank_sum - expected_rank_sum);
-  xW[0] = rank_sum - expected_rank_sum;
+  //  rank_sum, expected_rank_sum, expected_rank_sum - rank_sum);
+  xW[0] = expected_rank_sum - rank_sum;
   free(voxel_copy);
   free(index);
   UNPROTECT(2);
@@ -203,14 +208,16 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
  * rho: the R environment.
  */
      
-SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
+SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask, 
+		 SEXP mask, SEXP rho) {
   int                result;
-  mihandle_t         *hvol;
+  mihandle_t         *hvol, hmask;
   int                i, v0, v1, v2, output_index, buffer_index;
   unsigned long      start[3], count[3];
   unsigned long      location[3];
   int                num_files;
-  double             *xbuffer, *xoutput, **full_buffer;
+  double             *xbuffer, *xoutput, **full_buffer, *xhave_mask;
+  double             *mask_buffer;
   midimhandle_t      dimensions[3];
   unsigned long      sizes[3];
   SEXP               output, buffer, R_fcall;
@@ -221,6 +228,17 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
   hvol = malloc(num_files * sizeof(mihandle_t));
 
   Rprintf("Number of volumes: %i\n", num_files);
+
+  /* open the mask - if so desired */
+  xhave_mask = REAL(have_mask);
+  if (xhave_mask[0] == 1) {
+    result = miopen_volume(CHAR(STRING_ELT(mask, 0)),
+			   MI2_OPEN_READ, &hmask);
+    if (result != MI_NOERROR) {
+      error("Error opening mask: %s.\n", CHAR(STRING_ELT(mask, 0)));
+    }
+  }
+  
 
   /* open each volume */
   for(i=0; i < num_files; i++) {
@@ -257,6 +275,11 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
   for (i=0; i < num_files; i++) {
     full_buffer[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
   }
+  
+  /* allocate buffer for mask - if necessary */
+  if (xhave_mask[0] == 1) {
+    mask_buffer = malloc(sizes[1] * sizes[2] * sizeof(double));
+  }
 	
   /* set start and count. start[0] will change during the loop */
   start[0] = 0; start[1] = 0; start[2] = 0;
@@ -274,6 +297,15 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
 				     full_buffer[i]) )
 	error("Error opening buffer.\n");
     }
+    /* get mask - if desired */
+    if (xhave_mask[0] == 1) {
+      if (miget_real_value_hyperslab(hmask, 
+				     MI_TYPE_DOUBLE, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
+				     mask_buffer) )
+	error("Error opening mask buffer.\n");
+    }
 
     Rprintf(" %d ", v0);
     for (v1=0; v1 < sizes[1]; v1++) {
@@ -281,24 +313,32 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP rho) {
 	output_index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
 	buffer_index = sizes[2] * v1 + v2;
 
-	for (i=0; i < num_files; i++) {
-	  location[0] = v0;
-	  location[1] = v1;
-	  location[2] = v2;
-	  //SET_VECTOR_ELT(buffer, i, full_buffer[i][index]);
-	  //result = miget_real_value(hvol[i], location, 3, &xbuffer[i]);
-	  xbuffer[i] = full_buffer[i][buffer_index];
-	  
-	  //Rprintf("V%i: %f\n", i, full_buffer[i][index]);
+	/* only perform operation if not masked */
+	if(xhave_mask[0] == 0 
+	   || (xhave_mask[0] == 1 && mask_buffer[buffer_index] == 1)) {
+	
+	  for (i=0; i < num_files; i++) {
+	    location[0] = v0;
+	    location[1] = v1;
+	    location[2] = v2;
+	    //SET_VECTOR_ELT(buffer, i, full_buffer[i][index]);
+	    //result = miget_real_value(hvol[i], location, 3, &xbuffer[i]);
+	    xbuffer[i] = full_buffer[i][buffer_index];
+	    
+	    //Rprintf("V%i: %f\n", i, full_buffer[i][index]);
 
+	  }
+	  /* install the variable "x" into environment */
+	  defineVar(install("x"), buffer, rho);
+	  //SETCADDR(R_fcall, buffer);
+	  //SET_VECTOR_ELT(output, index, eval(R_fcall, rho));
+	  //SET_VECTOR_ELT(output, index, test);
+	  /* evaluate the function */
+	  xoutput[output_index] = REAL(eval(fn, rho))[0]; 
 	}
-	/* install the variable "x" into environment */
-	defineVar(install("x"), buffer, rho);
-	//SETCADDR(R_fcall, buffer);
-	//SET_VECTOR_ELT(output, index, eval(R_fcall, rho));
-	//SET_VECTOR_ELT(output, index, test);
-	/* evaluate the function */
-	xoutput[output_index] = REAL(eval(fn, rho))[0]; 
+	else {
+	  xoutput[output_index] = 0;
+	}
       }
     }
   }
