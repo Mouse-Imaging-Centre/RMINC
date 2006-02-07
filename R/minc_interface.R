@@ -103,6 +103,18 @@ minc.get.hyperslab2 <- function(filename, start, count, buffer=NA) {
   #return(output)
 }
 
+wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
+  results <- matrix(nrow=n.permute, ncol=55)
+  mask.volume <- minc.get.volume(mask)
+  for (i in 1:n.permute) {
+    new.order <- sample(groupings)
+    cat("N: ", as.double(new.order), "\n")
+    w <- minc.wilcoxon.test(filenames, new.order, mask)
+    w2 <- w[mask.volume == 1]
+    results[i,] <- tabulate(round(w2),55)
+  }
+  return(results)
+}
 wilcox.permutation <- function(filenames, groupings, mask, n.permute=10) {
   results <- data.frame(greater50=vector(length=n.permute),
                         less5=vector(length=n.permute),
