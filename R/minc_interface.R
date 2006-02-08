@@ -140,6 +140,16 @@ wilcox.permutation <- function(filenames, groupings, mask, n.permute=10) {
   return(results)
 }
 
+minc.t.test <- function(filenames, groupings, mask=NULL) {
+  voxel.t.test <- function(x) {
+    .Call("t_test", as.double(x), as.double(tmp.groupings),
+          as.double(length(x)))
+  }
+  assign("tmp.groupings", groupings, env=.GlobalEnv)
+  assign("voxel.t.test", voxel.t.test, env=.GlobalEnv);
+  t <- minc.apply(filenames, quote(voxel.t.test(x)), mask)
+}
+
 minc.wilcoxon.test <- function(filenames, groupings, mask=NULL) {
   voxel.wilcoxon.test <- function(x) {
     .Call("wilcoxon_rank_test", as.double(x),
