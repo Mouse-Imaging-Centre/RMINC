@@ -126,3 +126,166 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping, SEXP na, SEXP nb) {
   UNPROTECT(2);
   return(output);
 }
+
+     
+SEXP minc2_group_comparison(SEXP filenames, SEXP groupings, SEXP na, SEXP nb,
+			    SEXP have_mask, SEXP mask, SEXP method) {
+  int                result;
+  mihandle_t         *hvol, hmask;
+  char               *method_name;
+  int                i, v0, v1, v2, output_index, buffer_index;
+  unsigned long      start[3], count[3];
+  unsigned long      location[3];
+  int                num_files;
+  double             *xbuffer, *xoutput, **full_buffer, *xhave_mask, *xn;
+  double             *mask_buffer;
+  midimhandle_t      dimensions[3];
+  unsigned long      sizes[3];
+  SEXP               output, buffer, R_fcall, n;
+  
+
+  /* allocate memory for volume handles */
+
+  /* allocate the output buffer */
+  PROTECT(n=allocVector(REALSXP, 1));
+  xn = REAL(n);
+  *xn = LENGTH(filenames);
+
+  num_files = (int) *xn;
+
+  method_name = CHAR(STRING_ELT(method, 0));
+  Rprintf("Method: %s\n", method_name);
+
+  hvol = malloc(num_files * sizeof(mihandle_t));
+
+  Rprintf("Number of volumes: %i\n", num_files);
+
+  /* open the mask - if so desired */
+  xhave_mask = REAL(have_mask);
+  if (xhave_mask[0] == 1) {
+    result = miopen_volume(CHAR(STRING_ELT(mask, 0)),
+			   MI2_OPEN_READ, &hmask);
+    if (result != MI_NOERROR) {
+      error("Error opening mask: %s.\n", CHAR(STRING_ELT(mask, 0)));
+    }
+  }
+  
+
+  /* open each volume */
+  for(i=0; i < num_files; i++) {
+    result = miopen_volume(CHAR(STRING_ELT(filenames, i)),
+      MI2_OPEN_READ, &hvol[i]);
+    if (result != MI_NOERROR) {
+      error("Error opening input file: %s.\n", CHAR(STRING_ELT(filenames,i)));
+    }
+  }
+
+  /* get the file dimensions and their sizes - assume they are the same*/
+  miget_volume_dimensions( hvol[0], MI_DIMCLASS_SPATIAL,
+			   MI_DIMATTR_ALL, MI_DIMORDER_FILE,
+			   3, dimensions);
+  result = miget_dimension_sizes( dimensions, 3, sizes );
+  Rprintf("Volume sizes: %i %i %i\n", sizes[0], sizes[1], sizes[2]);
+
+  /* allocate the output buffer */
+  PROTECT(output=allocVector(REALSXP, (sizes[0] * sizes[1] * sizes[2])));
+  xoutput = REAL(output);
+
+  /* allocate the local buffer that will be passed to the function */
+  PROTECT(buffer=allocVector(REALSXP, num_files));
+  xbuffer = REAL(buffer); 
+
+  //PROTECT(R_fcall = lang2(fn, R_NilValue));
+
+
+  /* allocate first dimension of the buffer */
+  full_buffer = malloc(num_files * sizeof(double));
+
+  /* allocate second dimension of the buffer 
+     - big enough to hold one slice per subject at a time */
+  for (i=0; i < num_files; i++) {
+    full_buffer[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
+  }
+  
+  /* allocate buffer for mask - if necessary */
+  if (xhave_mask[0] == 1) {
+    mask_buffer = malloc(sizes[1] * sizes[2] * sizeof(double));
+  }
+	
+  /* set start and count. start[0] will change during the loop */
+  start[0] = 0; start[1] = 0; start[2] = 0;
+  count[0] = 1; count[1] = sizes[1]; count[2] = sizes[2];
+
+  /* loop across all files and voxels */
+  Rprintf("In slice \n");
+  for (v0=0; v0 < sizes[0]; v0++) {
+    start[0] = v0;
+    for (i=0; i < num_files; i++) {
+      if (miget_real_value_hyperslab(hvol[i], 
+				     MI_TYPE_DOUBLE, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
+				     full_buffer[i]) )
+	error("Error opening buffer.\n");
+    }
+    /* get mask - if desired */
+    if (xhave_mask[0] == 1) {
+      if (miget_real_value_hyperslab(hmask, 
+				     MI_TYPE_DOUBLE, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
+				     mask_buffer) )
+	error("Error opening mask buffer.\n");
+    }
+
+    Rprintf(" %d ", v0);
+    for (v1=0; v1 < sizes[1]; v1++) {
+      for (v2=0; v2 < sizes[2]; v2++) {
+	output_index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
+	buffer_index = sizes[2] * v1 + v2;
+
+	/* only perform operation if not masked */
+	if(xhave_mask[0] == 0 
+	   || (xhave_mask[0] == 1 && mask_buffer[buffer_index] == 1)) {
+	
+	  for (i=0; i < num_files; i++) {
+	    location[0] = v0;
+	    location[1] = v1;
+	    location[2] = v2;
+	    //SET_VECTOR_ELT(buffer, i, full_buffer[i][index]);
+	    //result = miget_real_value(hvol[i], location, 3, &xbuffer[i]);
+	    xbuffer[i] = full_buffer[i][buffer_index];
+	    
+	    //Rprintf("V%i: %f\n", i, full_buffer[i][index]);
+
+	  }
+	  /* install the variable "x" into environment */
+	  //defineVar(install("x"), buffer, rho);
+	  //SETCADDR(R_fcall, buffer);
+	  //SET_VECTOR_ELT(output, index, eval(R_fcall, rho));
+	  //SET_VECTOR_ELT(output, index, test);
+	  /* evaluate the function */
+	  if (strcmp(method_name, "t-test") == 0)
+	    xoutput[output_index] = REAL(t_test(buffer, groupings, n))[0]; 
+	  else if (strcmp(method_name, "wilcoxon") == 0)
+	    xoutput[output_index] = REAL(wilcoxon_rank_test(buffer, groupings, na, nb))[0];
+	}
+	else {
+	  xoutput[output_index] = 0;
+	}
+      }
+    }
+  }
+  Rprintf("\nDone\n");
+
+  /* free memory */
+  for (i=0; i<num_files; i++) {
+    miclose_volume(hvol[i]);
+    free(full_buffer[i]);
+  }
+  free(full_buffer);
+  UNPROTECT(2);
+
+  /* return the results */
+  return(output);
+}

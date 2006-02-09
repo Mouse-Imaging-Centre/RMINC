@@ -1,5 +1,3 @@
-#include <minc2.h>
-#include <stdio.h>
 #include "minc_reader.h"
 
 /* compiling:

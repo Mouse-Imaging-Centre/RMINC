@@ -82,6 +82,28 @@ wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
   return(results)
 }
 
+minc.group.comparison <- function(filenames, groupings, method="t-test",
+                                  mask=NULL) {
+  groupings <- as.double(groupings)
+  na <- sum(groupings == 0)
+  nb <- sum(groupings == 1)
+
+  if (method == "t-test" || method == "wilcoxon") {
+    # do nothing
+  }
+  else {
+    stop("Method must be one of t-test or wilcoxon")
+  }
+  .Call("minc2_group_comparison",
+        as.character(filenames),
+        as.double(groupings),
+        as.double(na),
+        as.double(nb),
+        as.double(! is.null(mask)),
+        as.character(mask),
+        as.character(method))
+}
+
 # run a t-test at every voxel. Only two groups allowed.
 minc.t.test <- function(filenames, groupings, mask=NULL) {
   voxel.t.test <- function(x) {

@@ -1,6 +1,9 @@
 #ifndef __MINC_READER_H__
 #define __MINC_READER_H__
 
+#include <minc2.h>
+#include <stdio.h>
+
 #include <R.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
