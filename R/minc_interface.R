@@ -82,11 +82,16 @@ wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
   return(results)
 }
 
+# run either a t-test or wilcoxon test at every voxel
 minc.group.comparison <- function(filenames, groupings, method="t-test",
                                   mask=NULL) {
   groupings <- as.double(groupings)
   na <- sum(groupings == 0)
   nb <- sum(groupings == 1)
+
+  if (na == 0 || nb == 0) {
+    stop("Must contain two groups with at least one subject each.")
+  }
 
   if (method == "t-test" || method == "wilcoxon") {
     # do nothing
@@ -102,35 +107,6 @@ minc.group.comparison <- function(filenames, groupings, method="t-test",
         as.double(! is.null(mask)),
         as.character(mask),
         as.character(method))
-}
-
-# run a t-test at every voxel. Only two groups allowed.
-minc.t.test <- function(filenames, groupings, mask=NULL) {
-  voxel.t.test <- function(x) {
-    .Call("t_test", as.double(x), as.double(tmp.groupings),
-          as.double(length(x)))
-  }
-  assign("tmp.groupings", groupings, env=.GlobalEnv)
-  assign("voxel.t.test", voxel.t.test, env=.GlobalEnv);
-  t <- minc.apply(filenames, quote(voxel.t.test(x)), mask)
-}
-
-# run a non-parametric wilcoxon test at every voxel. Only two groups
-# are allowed.
-minc.wilcoxon.test <- function(filenames, groupings, mask=NULL) {
-  voxel.wilcoxon.test <- function(x) {
-    .Call("wilcoxon_rank_test", as.double(x),
-          as.double(tmp.groupings),
-          as.double(sum(tmp.groupings==0)),
-          as.double(sum(tmp.groupings==1)))
-  }
-
-  groupings <- as.double(groupings)
-  assign("tmp.groupings", groupings, env=.GlobalEnv)
-  cat("TMP: ", as.double(tmp.groupings), "\n")
-  assign("voxel.wilcoxon.test", voxel.wilcoxon.test, env=.GlobalEnv)
-  w <- minc.apply(filenames, quote(voxel.wilcoxon.test(x)), mask)
-  return(w)
 }
 
 # create a 2D array of full volumes of all files specified.

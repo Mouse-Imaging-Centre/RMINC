@@ -129,6 +129,42 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping, SEXP na, SEXP nb) {
   return(output);
 }
 
+SEXP voxel_correlation(SEXP Sx, SEXP Sy, SEXP Sn) {
+  double *x, *y, *n, *r;
+  double sum_x, sum_y, sum_xy, sum_x2, sum_y2, numerator, denominator;
+  int i;
+  SEXP output;
+
+  PROTECT(output=allocVector(REALSXP, 1));
+  
+  r = REAL(output);
+  x = REAL(Sx);
+  y = REAL(Sy);
+  n = REAL(Sn);
+
+  /* compute sums for x and y */
+  sum_x = 0;
+  sum_y = 0;
+  sum_xy = 0;
+  sum_y2 = 0;
+  sum_x2 = 0;
+  for (i=0; i < *n; i++) {
+    sum_x += x[i];
+    sum_y += y[i];
+    sum_xy += x[i] * y[i];
+    sum_x2 += pow(x[i], 2);
+    sum_y2 += pow(y[i], 2);
+  }
+
+  numerator = *n * sum_xy - sum_x * sum_y;
+  denominator = sqrt( (*n * sum_x2 - pow(sum_x, 2)) * 
+		      (*n * sum_y2 - pow(sum_y, 2)) );
+  *r = numerator / denominator;
+  UNPROTECT(1);
+  return(output);
+}
+
+  
      
 SEXP minc2_group_comparison(SEXP filenames, SEXP groupings, SEXP na, SEXP nb,
 			    SEXP have_mask, SEXP mask, SEXP method) {

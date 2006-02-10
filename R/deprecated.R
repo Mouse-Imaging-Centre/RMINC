@@ -1,6 +1,35 @@
 # R code which I don't think is necessary anymore but which I'll
 # include just in case I was wrong ...
 
+# run a t-test at every voxel. Only two groups allowed.
+minc.t.test <- function(filenames, groupings, mask=NULL) {
+  voxel.t.test <- function(x) {
+    .Call("t_test", as.double(x), as.double(tmp.groupings),
+          as.double(length(x)))
+  }
+  assign("tmp.groupings", groupings, env=.GlobalEnv)
+  assign("voxel.t.test", voxel.t.test, env=.GlobalEnv);
+  t <- minc.apply(filenames, quote(voxel.t.test(x)), mask)
+}
+
+# run a non-parametric wilcoxon test at every voxel. Only two groups
+# are allowed.
+minc.wilcoxon.test <- function(filenames, groupings, mask=NULL) {
+  voxel.wilcoxon.test <- function(x) {
+    .Call("wilcoxon_rank_test", as.double(x),
+          as.double(tmp.groupings),
+          as.double(sum(tmp.groupings==0)),
+          as.double(sum(tmp.groupings==1)))
+  }
+
+  groupings <- as.double(groupings)
+  assign("tmp.groupings", groupings, env=.GlobalEnv)
+  cat("TMP: ", as.double(tmp.groupings), "\n")
+  assign("voxel.wilcoxon.test", voxel.wilcoxon.test, env=.GlobalEnv)
+  w <- minc.apply(filenames, quote(voxel.wilcoxon.test(x)), mask)
+  return(w)
+}
+
 minc.slice.loop <- function(filenames, n.slices, output.dims, func, ...) {
   sizes <- minc.dimensions.sizes(filenames[1])
   slice.dim.size <- sizes[1]
