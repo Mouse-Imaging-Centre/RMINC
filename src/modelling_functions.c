@@ -1,5 +1,7 @@
 #include "minc_reader.h"
 
+
+/* compute a  t test given a voxel and grouping */
 SEXP t_test(SEXP voxel, SEXP grouping, SEXP n) {
   double *xvoxel, *xgrouping, *xn, *t;
   double x_mean, x_var, y_mean, y_var, x_sum, y_sum, x_n, y_n, s_p;
@@ -144,18 +146,18 @@ SEXP minc2_group_comparison(SEXP filenames, SEXP groupings, SEXP na, SEXP nb,
   SEXP               output, buffer, R_fcall, n;
   
 
-  /* allocate memory for volume handles */
-
-  /* allocate the output buffer */
+  /* determine the number of files */
   PROTECT(n=allocVector(REALSXP, 1));
   xn = REAL(n);
   *xn = LENGTH(filenames);
 
   num_files = (int) *xn;
 
+  /* get the method that should be used at each voxel */
   method_name = CHAR(STRING_ELT(method, 0));
   Rprintf("Method: %s\n", method_name);
 
+  /* allocate memory for the volume handles */
   hvol = malloc(num_files * sizeof(mihandle_t));
 
   Rprintf("Number of volumes: %i\n", num_files);
@@ -252,23 +254,21 @@ SEXP minc2_group_comparison(SEXP filenames, SEXP groupings, SEXP na, SEXP nb,
 	    location[0] = v0;
 	    location[1] = v1;
 	    location[2] = v2;
-	    //SET_VECTOR_ELT(buffer, i, full_buffer[i][index]);
-	    //result = miget_real_value(hvol[i], location, 3, &xbuffer[i]);
+
 	    xbuffer[i] = full_buffer[i][buffer_index];
 	    
 	    //Rprintf("V%i: %f\n", i, full_buffer[i][index]);
 
 	  }
-	  /* install the variable "x" into environment */
-	  //defineVar(install("x"), buffer, rho);
-	  //SETCADDR(R_fcall, buffer);
-	  //SET_VECTOR_ELT(output, index, eval(R_fcall, rho));
-	  //SET_VECTOR_ELT(output, index, test);
-	  /* evaluate the function */
-	  if (strcmp(method_name, "t-test") == 0)
+
+	  /* compute either a t test of wilcoxon rank sum test */
+	  if (strcmp(method_name, "t-test") == 0) {
 	    xoutput[output_index] = REAL(t_test(buffer, groupings, n))[0]; 
-	  else if (strcmp(method_name, "wilcoxon") == 0)
-	    xoutput[output_index] = REAL(wilcoxon_rank_test(buffer, groupings, na, nb))[0];
+	  }
+	  else if (strcmp(method_name, "wilcoxon") == 0) {
+	    xoutput[output_index] = 
+	      REAL(wilcoxon_rank_test(buffer, groupings, na, nb))[0];
+	  }
 	}
 	else {
 	  xoutput[output_index] = 0;
@@ -284,7 +284,7 @@ SEXP minc2_group_comparison(SEXP filenames, SEXP groupings, SEXP na, SEXP nb,
     free(full_buffer[i]);
   }
   free(full_buffer);
-  UNPROTECT(2);
+  UNPROTECT(3);
 
   /* return the results */
   return(output);
