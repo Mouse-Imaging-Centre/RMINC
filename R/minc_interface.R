@@ -83,27 +83,20 @@ wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
 }
 
 # run either a t-test or wilcoxon test at every voxel
-minc.group.comparison <- function(filenames, groupings, method="t-test",
-                                  mask=NULL) {
+minc.model <- function(filenames, groupings, method="t-test",
+                       mask=NULL) {
   groupings <- as.double(groupings)
-  na <- sum(groupings == 0)
-  nb <- sum(groupings == 1)
 
-  if (na == 0 || nb == 0) {
-    stop("Must contain two groups with at least one subject each.")
-  }
-
-  if (method == "t-test" || method == "wilcoxon") {
+  if (method == "t-test" || method == "wilcoxon"
+      || method == "correlation") {
     # do nothing
   }
   else {
     stop("Method must be one of t-test or wilcoxon")
   }
-  .Call("minc2_group_comparison",
+  .Call("minc2_model",
         as.character(filenames),
         as.double(groupings),
-        as.double(na),
-        as.double(nb),
         as.double(! is.null(mask)),
         as.character(mask),
         as.character(method))

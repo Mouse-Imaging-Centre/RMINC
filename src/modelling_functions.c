@@ -2,15 +2,15 @@
 
 
 /* compute a  t test given a voxel and grouping */
-SEXP t_test(SEXP voxel, SEXP grouping, SEXP n) {
-  double *xvoxel, *xgrouping, *xn, *t;
+SEXP t_test(SEXP voxel, SEXP grouping) {
+  double *xvoxel, *xgrouping, *t;
   double x_mean, x_var, y_mean, y_var, x_sum, y_sum, x_n, y_n, s_p;
-  int i;
+  int i, n;
   SEXP output;
 
+  n = LENGTH(grouping);
   xgrouping = REAL(grouping);
   xvoxel = REAL(voxel);
-  xn = REAL(n);
 
   PROTECT(output=allocVector(REALSXP, 1));
   t = REAL(output);
@@ -20,7 +20,7 @@ SEXP t_test(SEXP voxel, SEXP grouping, SEXP n) {
   y_sum = 0;
   x_n = 0;
   y_n = 0;
-  for (i=0; i < xn[0]; i++) {
+  for (i=0; i < n; i++) {
     if (xgrouping[i] == 0) {
       x_n++;
       x_sum += xvoxel[i];
@@ -45,7 +45,7 @@ SEXP t_test(SEXP voxel, SEXP grouping, SEXP n) {
   y_var = 0;
 
   /* compute the variances */
-  for (i=0; i < xn[0]; i++) {
+  for (i=0; i < n; i++) {
     if (xgrouping[i] == 0) {
       x_var += pow(xvoxel[i] - x_mean, 2);
     }
@@ -77,23 +77,32 @@ SEXP t_test(SEXP voxel, SEXP grouping, SEXP n) {
  * does not handle ties in rankings correctly.
  */
 
-SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping, SEXP na, SEXP nb) {
+SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
   double *xvoxel, *voxel_copy, *xgrouping, rank_sum, expected_rank_sum, *xW;
-  double *xna, *xnb;
   int    *xindices;
   int *index;
-  unsigned long    n, i;
+  unsigned long    n, i, na, nb;
   SEXP   indices, output;
 
+  n = LENGTH(grouping);
   xgrouping = REAL(grouping);
 
   PROTECT(output=allocVector(REALSXP, 1));
   xW = REAL(output);
-  xna = REAL(na);
-  xnb = REAL(nb);
 
-  //Rprintf("NA: %f NB: %f\n", *xna, *xnb);
-  expected_rank_sum = *xna * *xnb + ((*xna * (*xna + 1)) / 2);
+  na = 0;
+  nb = 0;
+  for (i=0; i<n; i++) {
+    if (xgrouping[i] == 0)
+      na++;
+    else if (xgrouping[i] == 1)
+      nb++;
+    else
+      error("Each element in grouping must be either 0 or 1\n");
+  }
+
+  //Rprintf("NA: %f NB: %f\n", na, nb);
+  expected_rank_sum = na * nb + ((na * (na + 1)) / 2);
 
   n = LENGTH(voxel);
   xvoxel = REAL(voxel);
@@ -129,18 +138,18 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping, SEXP na, SEXP nb) {
   return(output);
 }
 
-SEXP voxel_correlation(SEXP Sx, SEXP Sy, SEXP Sn) {
-  double *x, *y, *n, *r;
-  double sum_x, sum_y, sum_xy, sum_x2, sum_y2, numerator, denominator;
+SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
+  double *x, *y,*r;
+  double sum_x, sum_y, sum_xy, sum_x2, sum_y2, numerator, denominator, n;
   int i;
   SEXP output;
 
+  n = LENGTH(Sy);
   PROTECT(output=allocVector(REALSXP, 1));
   
   r = REAL(output);
   x = REAL(Sx);
   y = REAL(Sy);
-  n = REAL(Sn);
 
   /* compute sums for x and y */
   sum_x = 0;
@@ -148,7 +157,7 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy, SEXP Sn) {
   sum_xy = 0;
   sum_y2 = 0;
   sum_x2 = 0;
-  for (i=0; i < *n; i++) {
+  for (i=0; i < n; i++) {
     sum_x += x[i];
     sum_y += y[i];
     sum_xy += x[i] * y[i];
@@ -156,17 +165,26 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy, SEXP Sn) {
     sum_y2 += pow(y[i], 2);
   }
 
-  numerator = *n * sum_xy - sum_x * sum_y;
-  denominator = sqrt( (*n * sum_x2 - pow(sum_x, 2)) * 
-		      (*n * sum_y2 - pow(sum_y, 2)) );
+  numerator = n * sum_xy - sum_x * sum_y;
+  denominator = sqrt( (n * sum_x2 - pow(sum_x, 2)) * 
+		      (n * sum_y2 - pow(sum_y, 2)) );
   *r = numerator / denominator;
   UNPROTECT(1);
   return(output);
 }
 
   
-     
-SEXP minc2_group_comparison(SEXP filenames, SEXP groupings, SEXP na, SEXP nb,
+/* minc2_model: run one of a set of modelling function at every voxel
+ * filenames: character list of minc2 volumes.
+ * y: the variable to model each voxel with. For t-stats and wilcoxon this
+ *    is a grouping variable, for correlations it is the correlate. Should
+ *    be passed in as a an array of doubles.
+ * have_mask: a double of either 0 or 1 depending on whether a mask should
+ *            be used.
+ * mask: a string containing the mask filename.
+ * method: a string containing one of "t-test", "wilcoxon", or "correlation"
+ */
+SEXP minc2_model(SEXP filenames, SEXP y,
 			    SEXP have_mask, SEXP mask, SEXP method) {
   int                result;
   mihandle_t         *hvol, hmask;
@@ -299,11 +317,15 @@ SEXP minc2_group_comparison(SEXP filenames, SEXP groupings, SEXP na, SEXP nb,
 
 	  /* compute either a t test of wilcoxon rank sum test */
 	  if (strcmp(method_name, "t-test") == 0) {
-	    xoutput[output_index] = REAL(t_test(buffer, groupings, n))[0]; 
+	    xoutput[output_index] = REAL(t_test(buffer, y))[0]; 
 	  }
 	  else if (strcmp(method_name, "wilcoxon") == 0) {
 	    xoutput[output_index] = 
-	      REAL(wilcoxon_rank_test(buffer, groupings, na, nb))[0];
+	      REAL(wilcoxon_rank_test(buffer, y))[0];
+	  }
+	  else if (strcmp(method_name, "correlation") == 0) {
+	    xoutput[output_index] = 
+	      REAL(voxel_correlation(buffer, y))[0];
 	  }
 	}
 	else {
