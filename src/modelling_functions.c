@@ -1,6 +1,5 @@
 #include "minc_reader.h"
 
-
 /* compute a  t test given a voxel and grouping */
 SEXP t_test(SEXP voxel, SEXP grouping) {
   double *xvoxel, *xgrouping, *t;
@@ -173,6 +172,80 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
   return(output);
 }
 
+SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients, 
+	      double *residuals, double *effects, 
+	      double *work, 
+	      double *qraux, double *v, int *pivot, double *se, double *t) {
+
+  double tol, rss, resvar;
+  double *x, *y, *xoutput;
+  int n, p, ny, rank, i, j, rdf, index;
+  SEXP new_x, output;
+
+
+  n = nrows(Sx);
+  p = ncols(Sx);
+
+  PROTECT(output=allocVector(REALSXP, p));
+  xoutput = REAL(output);
+
+  /* since x is destroyed in dqrls, create a copy here */
+  PROTECT(new_x=allocMatrix(REALSXP, n, p));
+  for (i=0; i < n; i++) {
+    for (j=0; j < p; j++) {
+      REAL(new_x)[i+j*n] = REAL(Sx)[i+j*n];
+    }
+  }
+
+  x = REAL(new_x);
+  y = REAL(Sy);
+  ny = ncols(Sy);
+  rank = 1;
+  tol = 1e-07;
+
+  F77_NAME(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
+	&rank, pivot, qraux, work);
+
+  //Rprintf("N: %d P: %d NY: %d\n", n,p,ny);
+  //Rprintf("Coefficients: ");
+
+  rss = 0;
+  rdf = 0;
+  for (i=0; i < n; i++) {
+    rss += pow(residuals[i], 2);
+    //Rprintf("%f\n", residuals[i]);
+  }
+  rdf = n - p;
+  resvar = rss/rdf;
+  /*
+  for (i=0; i < p; i++) {
+    Rprintf("%f  ", coefficients[i]);
+  }
+  Rprintf("\n");
+  Rprintf("RSS: %f   RDF: %d\n", rss, rdf);
+  */
+
+  F77_NAME(ch2inv)(x, &n, &p, v);
+
+  //Rprintf("T-stats: ");
+  for (i=0; i < p; i++) {
+    index = (i * p) + i; /* erm? is this correct for matrix diagonals? */
+    se[i] = sqrt(v[index] *resvar);
+    //Rprintf("Diag: %f\n", v[index]);
+    //Rprintf("SE: %f\n", sqrt(v[index] *resvar));
+    xoutput[i] = coefficients[i] / se[i];
+    //    Rprintf("%f ", xoutput[i]);
+  }
+  //Rprintf("\n");
+
+  //Rprintf("R: %f\n", v[0]);
+
+
+  UNPROTECT(2);
+  return(output);
+}
+  
+
   
 /* minc2_model: run one of a set of modelling function at every voxel
  * filenames: character list of minc2 volumes.
@@ -184,7 +257,7 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
  * mask: a string containing the mask filename.
  * method: a string containing one of "t-test", "wilcoxon", or "correlation"
  */
-SEXP minc2_model(SEXP filenames, SEXP y,
+SEXP minc2_model(SEXP filenames, SEXP Sx,
 			    SEXP have_mask, SEXP mask, SEXP method) {
   int                result;
   mihandle_t         *hvol, hmask;
@@ -197,15 +270,15 @@ SEXP minc2_model(SEXP filenames, SEXP y,
   double             *mask_buffer;
   midimhandle_t      dimensions[3];
   unsigned long      sizes[3];
-  SEXP               output, buffer, R_fcall, n;
-  
+  SEXP               output, buffer, R_fcall, t_sexp;
+  /* stuff for linear models only */
+  double             *y, *x, *coefficients, *residuals, *effects; 
+  double             *diag, *se, *t, *work, *qraux, *v;
+  double             tol, rss, resvar;
+  int                n, p, ny, rank, j, rdf, index;
+  int                *pivot;
 
-  /* determine the number of files */
-  PROTECT(n=allocVector(REALSXP, 1));
-  xn = REAL(n);
-  *xn = LENGTH(filenames);
-
-  num_files = (int) *xn;
+  num_files = LENGTH(filenames);
 
   /* get the method that should be used at each voxel */
   method_name = CHAR(STRING_ELT(method, 0));
@@ -243,14 +316,41 @@ SEXP minc2_model(SEXP filenames, SEXP y,
   result = miget_dimension_sizes( dimensions, 3, sizes );
   Rprintf("Volume sizes: %i %i %i\n", sizes[0], sizes[1], sizes[2]);
 
-  /* allocate the output buffer */
-  PROTECT(output=allocVector(REALSXP, (sizes[0] * sizes[1] * sizes[2])));
-  xoutput = REAL(output);
 
   /* allocate the local buffer that will be passed to the function */
   PROTECT(buffer=allocVector(REALSXP, num_files));
   xbuffer = REAL(buffer); 
 
+  /* allocate stuff necessary for fitting linear models */
+  if (strcmp(method_name, "lm") == 0) {
+    n = nrows(Sx);
+    p = ncols(Sx);
+    
+    coefficients = malloc(sizeof(double) * p);
+    residuals = malloc(sizeof(double) * n);
+    effects = malloc(sizeof(double) * n);
+    pivot = malloc(sizeof(int) * p);
+    work = malloc(sizeof(double) * (2*p));
+    qraux = malloc(sizeof(double) * p);
+    v = malloc(sizeof(double) * p * p);
+    diag = malloc(sizeof(double) * p);
+    se = malloc(sizeof(double) * p);
+    t = malloc(sizeof(double) * p);
+    
+    Rprintf("N: %d P: %d\n", n,p);
+
+    PROTECT(t_sexp = allocVector(REALSXP, p));
+
+    /* allocate the output buffer */
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), p));
+
+  }
+  else {    
+    /* allocate the output buffer */
+    PROTECT(output=allocVector(REALSXP, (sizes[0] * sizes[1] * sizes[2])));
+  }
+  xoutput = REAL(output);
+    
   //PROTECT(R_fcall = lang2(fn, R_NilValue));
 
 
@@ -317,15 +417,23 @@ SEXP minc2_model(SEXP filenames, SEXP y,
 
 	  /* compute either a t test of wilcoxon rank sum test */
 	  if (strcmp(method_name, "t-test") == 0) {
-	    xoutput[output_index] = REAL(t_test(buffer, y))[0]; 
+	    xoutput[output_index] = REAL(t_test(buffer, Sx))[0]; 
 	  }
 	  else if (strcmp(method_name, "wilcoxon") == 0) {
 	    xoutput[output_index] = 
-	      REAL(wilcoxon_rank_test(buffer, y))[0];
+	      REAL(wilcoxon_rank_test(buffer, Sx))[0];
 	  }
 	  else if (strcmp(method_name, "correlation") == 0) {
 	    xoutput[output_index] = 
-	      REAL(voxel_correlation(buffer, y))[0];
+	      REAL(voxel_correlation(buffer, Sx))[0];
+	  }
+	  else if (strcmp(method_name, "lm") == 0) {
+	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
+			      work, qraux, v, pivot, se, t);
+	    for(i=0; i < p; i++) {
+	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
+		      = REAL(t_sexp)[i];
+	    }
 	  }
 	}
 	else {
@@ -341,8 +449,23 @@ SEXP minc2_model(SEXP filenames, SEXP y,
     miclose_volume(hvol[i]);
     free(full_buffer[i]);
   }
-  free(full_buffer);
-  UNPROTECT(3);
+  if (strcmp(method_name, "lm")==0) {
+    free(full_buffer);
+    free(coefficients);
+    free(residuals);
+    free(effects);
+    free(pivot);
+    free(work);
+    free(qraux);
+    free(v);
+    free(diag);
+    free(se);
+    free(t);
+    UNPROTECT(3);
+  }
+  else {
+    UNPROTECT(2);
+  }
 
   /* return the results */
   return(output);

@@ -85,21 +85,32 @@ wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
 # run either a t-test or wilcoxon test at every voxel
 minc.model <- function(filenames, groupings, method="t-test",
                        mask=NULL) {
-  groupings <- as.double(groupings)
 
   if (method == "t-test" || method == "wilcoxon"
-      || method == "correlation") {
+      || method == "correlation" || method == "lm") {
     # do nothing
   }
   else {
-    stop("Method must be one of t-test or wilcoxon")
+    stop("Method must be one of t-test, wilcoxon, correlation or lm")
   }
-  .Call("minc2_model",
-        as.character(filenames),
-        as.double(groupings),
-        as.double(! is.null(mask)),
-        as.character(mask),
-        as.character(method))
+
+  if (method == "lm") {
+    .Call("minc2_model",
+          as.character(filenames),
+          as.matrix(groupings),
+          as.double(! is.null(mask)),
+          as.character(mask),
+          as.character(method))
+  }
+  else {
+    groupings <- as.double(groupings)
+    .Call("minc2_model",
+          as.character(filenames),
+          as.double(groupings),
+          as.double(! is.null(mask)),
+          as.character(mask),
+          as.character(method))
+  }
 }
 
 # create a 2D array of full volumes of all files specified.
