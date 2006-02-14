@@ -82,7 +82,7 @@ wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
   return(results)
 }
 
-# run either a t-test or wilcoxon test at every voxel
+# run a t-test, wilcoxon test, correlation, or linear model at every voxel
 minc.model <- function(filenames, groupings, method="t-test",
                        mask=NULL) {
 
