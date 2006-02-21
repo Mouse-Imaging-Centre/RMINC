@@ -151,12 +151,12 @@ A slightly more complex example involves using the built in
 \texttt{t.test} function to compute a t.test at every voxel.
 
 \begin{Sinput}
-mask <- "/projects/mice/jlerch/male-female/all/analysis/mask.mnc"
-f <- function(x) {
-  t.test(x ~ gf$gender)$statistic
-}
-t <- minc.apply(gf$file, quote(f(x)), mask)
-minc.write.volume("/tmp/t-test.mnc", gf$file[1], t)
+> mask <- "/projects/mice/jlerch/male-female/all/analysis/mask.mnc"
+> f <- function(x) {
+>   t.test(x ~ gf$gender)$statistic
+> }
+> t <- minc.apply(gf$file, quote(f(x)), mask)
+> minc.write.volume("/tmp/t-test.mnc", gf$file[1], t)
 \end{Sinput}
 
 Here a function is created, which simply calls \texttt{t.test}
@@ -172,7 +172,7 @@ function to be used, though a little work might be necessary to coerce
 it to only output a single scalar. It can be, however, excruciatingly
 slow. The most common useful functions have thus been entirely
 rewritten in C. The difference is noticeable. For a t-test, for
-example, the above bit of code takes X seconds to complete. The
+example, the above bit of code takes over half an hour to complete. The
 equivalent using the C functions (explained below), takes less than 7
 seconds~\footnote{These numbers using the same 40 volumes of size 141
 by 274 by 210, performed on an AMD 2.6 Ghz 64-bit processor.}
@@ -239,6 +239,38 @@ a list of filenames, and the voxel coordinates to get. Note that these
 coordinates are in the dimension order of the volumes - in other
 words, if they are ordered Z-Y-X, then the arguments should be ordered
 in Z-Y-X as well.
+
+\section{Thresholding}
+
+Thresholding is a great example of why performing these voxel wise
+analyses inside R is a good thing. Take, for example, the following
+code, which generates p-values from the earlier created t-statistics
+and then adjusts them based on the False Discovery Rate:
+
+<<>>=
+p.values <- pt(t2, 38)
+min(p.values)
+p.fdr <- p.adjust(p.values, "fdr")
+min(p.fdr)
+@ 
+
+Two R functions are used - the first to generate p-values from the
+t-statistics (given 38 degrees of freedom), the second to adjust them
+for multiple comparisons using the FDR technique. The above is a bit
+misleading, however, since controlling for multiple comparisons is
+best done inside a mask (i.e. just the brain) rather than the whole
+volume. This too is easily done:
+
+<<>>=
+mask <- "/projects/mice/jlerch/male-female/all/analysis/mask.mnc"
+mask.volume <- minc.get.volume(mask)
+p.fdr.mask <- vector(length=length(p.fdr), mode="numeric")
+p.fdr.mask[mask.volume > 0.5] <- p.adjust(p.values[mask.volume > 0.5], "fdr")
+minc.write.volume("/tmp/fdr-corrected-p-values.mnc", gf$file[1], p.fdr.mask)
+@ 
+
+The key difference to the above is just the array indexing used to
+restrict the thresholding operation.
 
 \section{Misc.}
 
