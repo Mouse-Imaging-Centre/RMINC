@@ -1,5 +1,67 @@
 #include "minc_reader.h"
 
+/* compute a paired t test given a voxel and grouping
+ *
+ * Key assumption: that the first voxel belonging to group 0 is to be
+ * matched with the first voxel belonging to group 1, etc.
+ */
+
+SEXP paired_t_test(SEXP voxel, SEXP grouping) {
+  double *xvoxel, *xgrouping, *t;
+  double *group0, *group1;
+  double mean_difference, sd;
+  int i, n, n2, count0, count1;
+  SEXP output;
+
+  xvoxel = REAL(voxel);
+  xgrouping = REAL(grouping);
+
+  n = LENGTH(grouping);
+  n2 = n/2;
+
+  PROTECT(output=allocVector(REALSXP, 1));
+  t = REAL(output);
+
+  group0 = malloc(sizeof(double) * n2);
+  group1 = malloc(sizeof(double) * n2);
+
+  count0 = 0;
+  count1 = 0;
+
+  /* assign voxels to each groups vector */
+  for (i=0; i < n; i++) {
+    if (xgrouping[i] == 0) {
+      group0[count0] = xvoxel[i];
+      count0++;
+    }
+    else if (xgrouping[i] == 1) {
+      group1[count1] = xvoxel[i];
+      count1++;
+    }
+  }
+  
+
+  mean_difference = 0;
+  for (i=0; i < n2; i++) {
+    mean_difference += group0[i] - group1[i];
+  }
+  mean_difference = mean_difference / n2;
+  
+  sd = 0;
+  for (i=0; i < n2; i++) {
+    sd += pow((group0[i] - group1[i]) - mean_difference, 2);
+  }
+  sd = sqrt(sd/(n2-1));
+
+  t[0] = mean_difference / (sd / sqrt(n2));
+
+  free(group0);
+  free(group1);
+  UNPROTECT(1);
+  return(output);
+}
+  
+
 /* compute a  t test given a voxel and grouping */
 SEXP t_test(SEXP voxel, SEXP grouping) {
   double *xvoxel, *xgrouping, *t;
@@ -418,6 +480,9 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 	  /* compute either a t test of wilcoxon rank sum test */
 	  if (strcmp(method_name, "t-test") == 0) {
 	    xoutput[output_index] = REAL(t_test(buffer, Sx))[0]; 
+	  }
+	  else if (strcmp(method_name, "paired-t-test") == 0) {
+	    xoutput[output_index] = REAL(paired_t_test(buffer, Sx))[0];
 	  }
 	  else if (strcmp(method_name, "wilcoxon") == 0) {
 	    xoutput[output_index] = 

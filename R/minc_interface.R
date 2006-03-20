@@ -86,12 +86,15 @@ wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
 minc.model <- function(filenames, groupings, method="t-test",
                        mask=NULL) {
 
-  if (method == "t-test" || method == "wilcoxon"
-      || method == "correlation" || method == "lm") {
+  if (method == "t-test"
+      || method == "wilcoxon"
+      || method == "correlation"
+      || method == "lm"
+      || method == "paired-t-test") {
     # do nothing
   }
   else {
-    stop("Method must be one of t-test, wilcoxon, correlation or lm")
+    stop("Method must be one of t-test, paired-t-test, wilcoxon, correlation or lm")
   }
 
   if (method == "lm") {

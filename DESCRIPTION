@@ -1,5 +1,5 @@
 Package: RMINC
-Version: 0.1
+Version: 0.1.1
 Date: 2006-01-24
 Title: Package for reading and analyzing MINC2 files
 Author: Jason Lerch <jason@sickkids.ca>

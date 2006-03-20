@@ -298,11 +298,14 @@ void write_minc2_volume(char **output, char **like_filename,
 			int *start, int *count, double *max_range,
 			double *min_range, double *slab) {
   mihandle_t hvol_like, hvol_new;
-  midimhandle_t dimensions_like[3], dimensions_new[3];
+  midimhandle_t *dimensions_like, *dimensions_new;
   unsigned long tmp_count[3];
   unsigned long tmp_start[3];
-  mivolumeprops_t props;
   int i;
+
+  /* allocate the dimension handles */
+  dimensions_like = malloc(sizeof(midimhandle_t) * 3);
+  dimensions_new = malloc(sizeof(midimhandle_t) * 3);
 
   /* read the like volume */
   if (miopen_volume(like_filename[0], MI2_OPEN_READ, &hvol_like) < 0 ) {
@@ -310,12 +313,16 @@ void write_minc2_volume(char **output, char **like_filename,
   }
   
   /* get dimensions */
-  miget_volume_dimensions( hvol_like, MI_DIMCLASS_SPATIAL, MI_DIMATTR_ALL,
-			   MI_DIMORDER_FILE, 3, dimensions_like );
+  if (miget_volume_dimensions( hvol_like, MI_DIMCLASS_SPATIAL, MI_DIMATTR_ALL,
+			       MI_DIMORDER_FILE, 3, dimensions_like ) < 0 ) {
+    error("Error getting volume dimensions\n");
+  }
 
   /* copy the dimensions to the new file */
   for (i=0; i < 3; i++) {
-    micopy_dimension(dimensions_like[i], &dimensions_new[i]);
+    if (micopy_dimension(dimensions_like[i], &dimensions_new[i]) < 0) {
+      error ("Error copying dimension %d\n", i);
+    }
   }
 
   /* create the new volume */
@@ -344,8 +351,22 @@ void write_minc2_volume(char **output, char **like_filename,
 				 slab) < 0) {
     error("Error writing buffer to volume\n");
   }
-  miclose_volume(hvol_like);
-  miclose_volume(hvol_new);
+  if (miclose_volume(hvol_like) < 0) {
+    error("Error closing like volume\n");
+  }
+  if (miclose_volume(hvol_new) < 0) {
+    error("Error closing new volume\n");
+  }
+  for (i=0; i < 3; i++) {
+    if (mifree_dimension_handle(dimensions_new[i]) == MI_ERROR) {
+      Rprintf("Error deleting dimension %d\n", i);
+    }
+    if (mifree_dimension_handle(dimensions_like[i]) == MI_ERROR) {
+      Rprintf("Error deleting dimension %d\n", i);
+    }
+  }
+  free(dimensions_new);
+  free(dimensions_like);
   return;
 }
 
