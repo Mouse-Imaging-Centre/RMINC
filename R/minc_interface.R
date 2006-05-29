@@ -182,6 +182,20 @@ minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
   return(output)
 }
 
-  
-  
+
+# use the eval interface to run mixed effect models at every vertex.
+# NOTE: since it uses the eval interface it suffers from several
+# important flaws:
+# * can only return one statistical test
+# * is numbingly, dreadfully, stupifyingly slow.
+
+minc.slow.lme <- function(filenames, fixed.effect, random.effect,
+                          column, mask){
+  voxel.slow.lme <- function(x) {
+    summary(lme(fixed.effect, random=random.effect))$tTable[column,4]
+  }
+  output <- minc.apply(filenames, quote(voxel.slow.lme(x)), mask)
+  return(output)
+
+}
   
