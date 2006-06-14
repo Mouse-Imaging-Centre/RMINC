@@ -192,8 +192,9 @@ minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
 minc.slow.lme <- function(filenames, fixed.effect, random.effect,
                           column, mask){
   voxel.slow.lme <- function(x) {
-    summary(lme(fixed.effect, random=random.effect))$tTable[column,4]
+    summary(lme(as.formula(fixed.effect), random=as.formula(random.effect)))$tTable[column,4]
   }
+  assign("voxel.slow.lme", voxel.slow.lme, env=.GlobalEnv)
   output <- minc.apply(filenames, quote(voxel.slow.lme(x)), mask)
   return(output)
 
