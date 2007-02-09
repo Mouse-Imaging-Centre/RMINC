@@ -7,7 +7,7 @@ gcc -shared -fPIC -I/usr/lib/R/include/ -I/projects/mice/share/arch/linux64/incl
 void get_volume_sizes(char **filename, unsigned int *sizes) {
   int result;
   mihandle_t  hvol;
-  unsigned long tmp_sizes[3];
+  unsigned int tmp_sizes[3];
   midimhandle_t dimensions[3];
    /* open the existing volume */
   result = miopen_volume(filename[0],
