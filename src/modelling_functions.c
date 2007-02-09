@@ -331,7 +331,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
   double             *xbuffer, *xoutput, **full_buffer, *xhave_mask, *xn;
   double             *mask_buffer;
   midimhandle_t      dimensions[3];
-  unsigned long      sizes[3];
+  unsigned int      sizes[3];
   SEXP               output, buffer, R_fcall, t_sexp;
   /* stuff for linear models only */
   double             *y, *x, *coefficients, *residuals, *effects; 
