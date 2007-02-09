@@ -149,13 +149,13 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
   int                result;
   mihandle_t         *hvol, hmask;
   int                i, v0, v1, v2, output_index, buffer_index;
-  unsigned long      start[3], count[3];
+  unsigned long     start[3], count[3];
   unsigned long      location[3];
   int                num_files;
   double             *xbuffer, *xoutput, **full_buffer, *xhave_mask;
   double             *mask_buffer;
   midimhandle_t      dimensions[3];
-  unsigned long      sizes[3];
+  unsigned int      sizes[3];
   SEXP               output, buffer, R_fcall;
   
 
