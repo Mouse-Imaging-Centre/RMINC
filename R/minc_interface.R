@@ -11,6 +11,31 @@ minc.get.voxel.from.files <- function(filenames, v1, v2, v3) {
   return(output)
 }
 
+minc.get.vector.from.files <- function(filenames, v1, v2, v3, v.length) {
+  num.files <- length(filenames)
+ .Call("get_vector_from_files",
+       as.character(filenames),
+       as.integer(num.files),
+       as.integer(v.length),
+       as.integer(v1),
+       as.integer(v2),
+       as.integer(v3))
+}
+
+# get the real value of one voxel from all files using world coordinates
+minc.get.world.voxel.from.files <- function(filenames, v1, v2, v3) {
+  num.files <- length(filenames)
+  output <- .C("get_world_voxel_from_files",
+               as.character(filenames),
+               as.integer(num.files),
+               as.double(v1),
+               as.double(v2),
+               as.double(v3),
+               o=double(length=num.files))$o
+  return(output)
+}
+
+
 # return a volume as a 1D array.
 minc.get.volume <- function(filename) {
   sizes <- minc.dimensions.sizes(filename)
@@ -165,16 +190,21 @@ minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
   }
 
   # call ray_trace
+  position <- ""
+  if (slice$axis == "y") {
+    position <- "-back"
+  }
+    
   if (is.null(background)) {
     system(paste("ray_trace -output", output, colourmap, threshold[1],
                  threshold[2], volume, "0 1", slice.obj.name,
-                 "-bg black -crop -size", size[1], size[2]))
+                 "-bg black -crop -size", size[1], size[2], position))
   } else {
     system(paste("ray_trace -output", output, background.colourmap,
                  background.threshold[1], background.threshold[2],
                  background, "0 1 -under transparent", colourmap,
                  threshold[1], threshold[2], volume, "0 0.5", slice.obj.name,
-                 "-bg black -crop -size", size[1], size[2]))
+                 "-bg black -crop -size", size[1], size[2], position))
   }
   if (display) {
     system(paste("display", output))

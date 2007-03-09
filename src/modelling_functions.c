@@ -239,7 +239,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
 	      double *work, 
 	      double *qraux, double *v, int *pivot, double *se, double *t) {
 
-  double tol, rss, resvar;
+  double tol, rss, resvar, mss, mean_fitted, sum_fitted;
   double *x, *y, *xoutput;
   int n, p, ny, rank, i, j, rdf, index;
   SEXP new_x, output;
@@ -248,7 +248,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   n = nrows(Sx);
   p = ncols(Sx);
 
-  PROTECT(output=allocVector(REALSXP, p));
+  PROTECT(output=allocVector(REALSXP, p+1));
   xoutput = REAL(output);
 
   /* since x is destroyed in dqrls, create a copy here */
@@ -271,14 +271,29 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   //Rprintf("N: %d P: %d NY: %d\n", n,p,ny);
   //Rprintf("Coefficients: ");
 
+  
+
   rss = 0;
   rdf = 0;
+  mss = 0;
+  sum_fitted = 0;
   for (i=0; i < n; i++) {
     rss += pow(residuals[i], 2);
+    sum_fitted += (y[i] - residuals[i]);
     //Rprintf("%f\n", residuals[i]);
   }
+  mean_fitted = sum_fitted / n;
+  //Rprintf("Mean effects: %f\n", mean_fitted);
+  for (i=0; i < n; i++) {
+    mss += pow((y[i] - residuals[i]) - mean_fitted, 2);
+  }
+  //Rprintf("%f\n", mss);
   rdf = n - p;
   resvar = rss/rdf;
+  //Rprintf("Fstat: %f\n", (mss/(p - 1))/resvar);
+  /* first output is the f-stat of the whole model */
+  xoutput[0] = (mss/(p - 1))/resvar;
+  //Rprintf("Fitted[25]: %f\n", (y[25] - residuals[25]));
   /*
   for (i=0; i < p; i++) {
     Rprintf("%f  ", coefficients[i]);
@@ -295,7 +310,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
     se[i] = sqrt(v[index] *resvar);
     //Rprintf("Diag: %f\n", v[index]);
     //Rprintf("SE: %f\n", sqrt(v[index] *resvar));
-    xoutput[i] = coefficients[i] / se[i];
+    xoutput[i+1] = coefficients[i] / se[i];
     //    Rprintf("%f ", xoutput[i]);
   }
   //Rprintf("\n");
@@ -331,7 +346,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
   double             *xbuffer, *xoutput, **full_buffer, *xhave_mask, *xn;
   double             *mask_buffer;
   midimhandle_t      dimensions[3];
-  unsigned int      sizes[3];
+  unsigned int       sizes[3];
   SEXP               output, buffer, R_fcall, t_sexp;
   /* stuff for linear models only */
   double             *y, *x, *coefficients, *residuals, *effects; 
@@ -404,7 +419,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
     PROTECT(t_sexp = allocVector(REALSXP, p));
 
     /* allocate the output buffer */
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), p));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), p+1));
 
   }
   else {    
@@ -495,7 +510,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 	  else if (strcmp(method_name, "lm") == 0) {
 	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
 			      work, qraux, v, pivot, se, t);
-	    for(i=0; i < p; i++) {
+	    for(i=0; i < p+1; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		      = REAL(t_sexp)[i];
 	    }

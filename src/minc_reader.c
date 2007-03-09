@@ -28,7 +28,50 @@ void get_volume_sizes(char **filename, unsigned int *sizes) {
   return;
 }
 
-/* get a voxel from all files */
+SEXP get_vector_from_files(SEXP filenames,  SEXP num_files,  SEXP vec_length,
+			  SEXP v1, SEXP v2, SEXP v3) {
+  unsigned long location[4];
+  mihandle_t hvol;
+  int result;
+  int i, j, vector_length, number_files; 
+  SEXP output;
+  double *xoutput;
+
+  vector_length = *INTEGER(vec_length);
+  number_files = *INTEGER(num_files);
+
+  location[1] = *INTEGER(v1);
+  location[2] = *INTEGER(v2);
+  location[3] = *INTEGER(v3);
+
+  Rprintf("NFILES: %d NVEC: %d\n", number_files, vector_length);
+  PROTECT(output=allocMatrix(REALSXP, number_files, vector_length));
+  xoutput = REAL(output);
+
+
+  for(i=0; i < number_files; i++) {
+    /* open the volume */
+    result = miopen_volume(CHAR(STRING_ELT(filenames,i)),
+			   MI2_OPEN_READ, &hvol);
+    if (result != MI_NOERROR) {
+      error("Error opening input file: %s.\n", CHAR(STRING_ELT(filenames, i)));
+    }
+
+    for(j=0; j < vector_length; j++) {
+      location[0] = j;
+      result = miget_real_value(hvol, location, 4, &xoutput[i + number_files*j]);
+
+      if (result != MI_NOERROR) {
+	error("Error getting voxel from: %s.\n", CHAR(STRING_ELT(filenames, i)));
+      }
+    }
+    miclose_volume(hvol);
+  }
+  UNPROTECT(1);
+  return(output);
+}
+
+/* get a voxel from all files, voxel coordinates */
 void get_voxel_from_files(char **filenames, int *num_files,
 			  int *v1, int *v2, int *v3, double *voxel) {
   unsigned long location[3];
@@ -49,6 +92,42 @@ void get_voxel_from_files(char **filenames, int *num_files,
     }
 
     result = miget_real_value(hvol, location, 3, &voxel[i]);
+
+    if (result != MI_NOERROR) {
+      error("Error getting voxel from: %s.\n", filenames[i]);
+    }
+    miclose_volume(hvol);
+  }
+}
+  
+/* get a voxel from all files, world coordinates */
+void get_world_voxel_from_files(char **filenames, int *num_files,
+				double *v1, double *v2, double *v3, 
+				double *voxel) {
+  double location[3], voxel_coord_tmp[3];
+  unsigned long voxel_coord[3];
+  mihandle_t hvol;
+  int result;
+  int i, j;
+
+  location[0] = *v1;
+  location[1] = *v2;
+  location[2] = *v3;
+
+  for(i=0; i < *num_files; i++) {
+    /* open the volume */
+    result = miopen_volume(filenames[i],
+			   MI2_OPEN_READ, &hvol);
+    if (result != MI_NOERROR) {
+      error("Error opening input file: %s.\n", filenames[i]);
+    }
+
+    miconvert_world_to_voxel(hvol, location, voxel_coord_tmp);
+    
+    for (j=0; j < 3; j++) {
+      voxel_coord[j] = (unsigned long) voxel_coord_tmp[j] + 0.5;
+    }
+    result = miget_real_value(hvol, voxel_coord, 3, &voxel[i]);
 
     if (result != MI_NOERROR) {
       error("Error getting voxel from: %s.\n", filenames[i]);
