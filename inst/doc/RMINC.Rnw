@@ -4,7 +4,8 @@
 
 \begin{document}
 
-\title{Voxel-wise morphometry using RMINC}
+\title{Voxel-wise morphometry using RMINC\\Version 0.4}
+
 \author{Jason Lerch}
 \maketitle
 
@@ -12,10 +13,10 @@
 
 This document provides a worked example of voxel-wise morphometry
 using the RMINC library to R. The applications include Voxel Based
-Morphometry (VBM) or any method in which the goal is to produce a
-statistical test at every voxel of a series of files. The assumption
-is that the data of interest at every voxel is a scalar (i.e. a single
-value rather than a vector).
+Morphometry (VBM), Deformation Based Morphometry, or any method in
+which the goal is to produce a statistical test at every voxel of a
+series of files. The assumption is that the data of interest at every
+voxel is a scalar (i.e. a single value rather than a vector).
 
 This document does not talk about preparing the data. For an overview
 of the steps necessary to perform VBM, for example, see
@@ -96,11 +97,12 @@ log Jacobians of deformation fields, not voxel density maps usually
 used in VBM).
 
 <<hist,fig=TRUE>>=
-first.file <- minc.get.volume(gf$file[1])
+first.file <- mincGetVolume(gf$file[1])
+first.file
 hist(first.file)
 @
 
-Two things happened here. The first was a call to
+Three things happened here. The first was a call to
 \texttt{minc.get.volume}, which returns a 1D array of size dimension1
 * dimension2 * dimension3 (notice that the dimension sizes are printed
 out when this command is run). RMINC tends not to care about the 3D
@@ -112,8 +114,9 @@ operations that need this type of neighbourhood information - and thus
 cannot be vectorized by R - then you probably should not be using R in
 the first place.
 
-The second command plots a histogram of the entire volume. Fairly
-self-explanatory.
+The second command prints information about the volume to the
+terminal. The third command plots a histogram of the entire volume.
+Fairly self-explanatory.
 
 \section{Voxel-wise analyses}
 
@@ -125,14 +128,13 @@ illustrate with an example, to get a map of the mean values of all
 subjects, one would execute the following:
 
 <<mean>>=
-mean.map <- minc.apply(gf$file, quote(mean(x)))
-minc.write.volume("/tmp/mean.mnc", gf$file[1], mean.map)
-#hist(mean.map)
+mean.map <- mincApply(gf$file, quote(mean(x)))
+mincWriteVolume(mean.map, "/tmp/mean.mnc")
 @ 
 
 This is what happened: the R function \texttt{mean} was applied at
 every voxel to of all files, producing a 1D array called
-\texttt{mean.map}. The command \texttt{minc.apply} needs two
+\texttt{mean.map}. The command \texttt{mincApply} needs two
 arguments: a list of filenames, and a string to be evaluated at every
 voxel. The string should contain a valid R expression, and should do
 something to the variable \texttt{x}. It should also produce a single
@@ -140,12 +142,9 @@ scalar as output. A third, and optional, argument is a string
 containing the filename of a mask volume, which will result in the
 function only being evaluated where the mask is not 0.
 
-After the mean was computed, it was written to a MINC2
-file. \texttt{minc.write.volume} needs three argumets: a string
-containing the filename to be written to (note that it will produce an
-error if this file exists), a string containing an existing MINC2 file
-which the new output will be like (think dimensions, step sizes,
-etc.), and the variable containing the data.
+After the mean was computed, it was written to a MINC2 file.
+\texttt{mincWriteVolume} needs two argumets: the data to be written
+to volume and the filename to write to.
 
 A slightly more complex example involves using the built in
 \texttt{t.test} function to compute a t.test at every voxel.
@@ -155,8 +154,8 @@ A slightly more complex example involves using the built in
 > f <- function(x) {
 >   t.test(x ~ gf$gender)$statistic
 > }
-> t <- minc.apply(gf$file, quote(f(x)), mask)
-> minc.write.volume("/tmp/t-test.mnc", gf$file[1], t)
+> t <- mincApply(gf$file, quote(f(x)), mask)
+> minc.write.volume(t, "/tmp/t-test.mnc")
 \end{Sinput}
 
 Here a function is created, which simply calls \texttt{t.test}
@@ -167,7 +166,7 @@ file is then output.
 
 \subsection{The need for speed}
 
-\texttt{minc.apply} is tremendously powerful since it allows any R
+\texttt{mincApply} is tremendously powerful since it allows any R
 function to be used, though a little work might be necessary to coerce
 it to only output a single scalar. It can be, however, excruciatingly
 slow. The most common useful functions have thus been entirely

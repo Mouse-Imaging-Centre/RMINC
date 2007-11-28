@@ -1,5 +1,5 @@
 Package: RMINC
-Version: 0.1.1
+Version: 0.4
 Date: 2006-01-24
 Title: Package for reading and analyzing MINC2 files
 Author: Jason Lerch <jason@sickkids.ca>
@@ -7,3 +7,4 @@ Maintainer: Jason lerch <jason@sickkids.ca>
 Description: A package for reading and writing MINC2 files 
 	and running arbitrary R functions at every voxel of a set of files.
 License: BSD
+Suggests: nlme, qvalue

@@ -99,6 +99,49 @@ void get_voxel_from_files(char **filenames, int *num_files,
     miclose_volume(hvol);
   }
 }
+
+/* convert voxel coordinates to a vector of world coords */
+void convert_voxel_to_world(char **filenames, double *v1, double *v2,
+			    double *v3, double *world_coords) {
+  int result;
+  mihandle_t hvol;
+  double voxel_coords[3];
+
+  /* open the volume */
+  result = miopen_volume(filenames[0], MI2_OPEN_READ, &hvol);
+  if (result != MI_NOERROR) {
+    error("Error opening input file: %s.\n", filenames[0]);
+  }
+
+  voxel_coords[0] = *v1;
+  voxel_coords[1] = *v2;
+  voxel_coords[2] = *v3;
+
+  miconvert_voxel_to_world(hvol, voxel_coords, world_coords);
+  miclose_volume(hvol);
+}
+
+/* convert world coordinates to a vector of voxel coords */
+void convert_world_to_voxel(char **filenames, double *v1, double *v2,
+			    double *v3, double *voxel_coords) {
+  int result;
+  mihandle_t hvol;
+  double world_coords[3];
+
+  /* open the volume */
+  result = miopen_volume(filenames[0], MI2_OPEN_READ, &hvol);
+  if (result != MI_NOERROR) {
+    error("Error opening input file: %s.\n", filenames[0]);
+  }
+
+  world_coords[0] = *v1;
+  world_coords[1] = *v2;
+  world_coords[2] = *v3;
+
+  miconvert_world_to_voxel(hvol, world_coords, voxel_coords);
+
+  miclose_volume(hvol);
+}
   
 /* get a voxel from all files, world coordinates */
 void get_world_voxel_from_files(char **filenames, int *num_files,

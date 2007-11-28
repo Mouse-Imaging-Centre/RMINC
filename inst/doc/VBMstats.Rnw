@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage{Sweave}
+\usepackage{url}
+
+\begin{document}
+
+\title{Statistics for voxel-wise morphometry\\using RMINC Version 0.4}
+
+\author{Jason Lerch}
+\maketitle
+
+\section{Introduction}
+
+Purpose of this document. Blah blah.
+
+Worked example: gender differences in 
+
+\section{Image processing}
+
+Won't talk much about image processing.
+
+\section{Input data}
+
+Preparing the spreadsheet.
+
+Reading study information into R.
+
+\section{Descriptive statistics}
+
+Group means and standard deviations.
+
+Writing to file.
+
+\section{First linear model}
+
+mincLm
+
+writing multidimensional MINC volumes to file.
+
+\section{Plotting voxels}
+
+Getting voxels from file.
+
+Some plots.
+
+\section{Covariates and interactions}
+
+Fancier linear models.
+
+\section{Correlations}
+
+\section{non-parametric statistics}
+
+\section{mixed effects models}

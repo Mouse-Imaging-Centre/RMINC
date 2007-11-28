@@ -1,5 +1,5 @@
 # get the real value of one voxel from all files.
-minc.get.voxel.from.files <- function(filenames, v1, v2, v3) {
+mincGetVoxel <- function(filenames, v1, v2, v3) {
   num.files <- length(filenames)
   output <- .C("get_voxel_from_files",
                as.character(filenames),
@@ -8,22 +8,15 @@ minc.get.voxel.from.files <- function(filenames, v1, v2, v3) {
                as.integer(v2),
                as.integer(v3),
                o=double(length=num.files))$o
+  class(output) <- c("mincVoxel", class(output))
+  attr(output, "filenames") <- filenames
+  attr(output, "voxelCoord") <- c(v1,v2,v3)
+  attr(output, "worldCoord") <- mincConvertVoxelToWorld(filenames[1],v1,v2,v3)
   return(output)
 }
 
-minc.get.vector.from.files <- function(filenames, v1, v2, v3, v.length) {
-  num.files <- length(filenames)
- .Call("get_vector_from_files",
-       as.character(filenames),
-       as.integer(num.files),
-       as.integer(v.length),
-       as.integer(v1),
-       as.integer(v2),
-       as.integer(v3))
-}
-
 # get the real value of one voxel from all files using world coordinates
-minc.get.world.voxel.from.files <- function(filenames, v1, v2, v3) {
+mincGetWorldVoxel <- function(filenames, v1, v2, v3) {
   num.files <- length(filenames)
   output <- .C("get_world_voxel_from_files",
                as.character(filenames),
@@ -32,9 +25,61 @@ minc.get.world.voxel.from.files <- function(filenames, v1, v2, v3) {
                as.double(v2),
                as.double(v3),
                o=double(length=num.files))$o
+  class(output) <- c("mincVoxel", class(output))
+  attr(output, "filenames") <- filenames
+  attr(output, "worldCoord") <- c(v1,v2,v3)
+  attr(output, "voxelCoord") <- mincConvertWorldToVoxel(filenames[1],v1,v2,v3)
   return(output)
 }
 
+# the print function for a voxel
+print.mincVoxel <- function(x, filenames=FALSE) {
+  if (filenames == FALSE) {
+    print.table(x)
+  }
+  else {
+    print.table(cbind(x, attr(x,"filenames")))
+  }
+  cat("\nVoxel Coordinates:", attr(x, "voxelCoord"), "\n")
+  cat("World Coordinates:", attr(x, "worldCoord"), "\n")
+}
+
+# gets a vector from a series of 4D minc volumes
+mincGetVector <- function(filenames, v1, v2, v3, v.length) {
+  num.files <- length(filenames)
+  output <- .Call("get_vector_from_files",
+                  as.character(filenames),
+                  as.integer(num.files),
+                  as.integer(v.length),
+                  as.integer(v1),
+                  as.integer(v2),
+                  as.integer(v3))
+  class(output) <- c("mincVector", "mincVoxel", class(output))
+  attr(output, "filenames") <- filenames
+  attr(output, "voxelCoord") <- c(v1,v2,v3)
+  attr(output, "worldCoord") <- mincConvertVoxelToWorld(filenames[1],v1,v2,v3)
+  return(output)
+}
+
+mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
+  output <- .C("convert_voxel_to_world",
+               as.character(filename),
+               as.double(v1),
+               as.double(v2),
+               as.double(v3),
+               o=double(length=3))$o
+  return(output)
+}
+
+mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
+  output <- .C("convert_world_to_voxel",
+               as.character(filename),
+               as.double(v1),
+               as.double(v2),
+               as.double(v3),
+               o=double(length=3))$o
+  return(round(output))
+}
 
 # return a volume as a 1D array.
 minc.get.volume <- function(filename) {
@@ -49,13 +94,37 @@ minc.get.volume <- function(filename) {
   return(output)
 }
 
-# write a 1D buffer into a new file, getting volume info from an
-# existing file.
-minc.write.volume <- function(output.filename, like.filename, buffer) {
+# print function for multidimensional files
+print.mincMultiDim <- function(x) {
+  cat("Multidimensional MINC volume\n")
+  cat("Columns:      ", colnames(x$data), "\n")
+  cat("Like-Volume:  ", x$likeVolume, "\n")
+}
+
+mincWriteVolume <- function(buffer, ...) {
+  UseMethod("mincWriteVolume")
+}
+
+# write out one column of a multidim MINC volume
+mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, like.filename = NULL) {
+  cat("Writing column", column, "to file", output.filename, "\n")
+  if (is.null(like.filename)) {
+    like.filename <- buffer$likeVolume
+  }
+  if (is.na(file.info(like.filename)$size)) {
+    stop(c("File ", like.filename, " cannot be found.\n"))
+  }
+
+  mincWriteVolume.default(buffer$data[,column], output.filename, like.filename)
+}
+
+# the default MINC output function
+# the buffer is a vector in this case
+mincWriteVolume.default <- function(buffer, output.filename, like.filename) {
   sizes <- minc.dimensions.sizes(like.filename)
   start <- c(0,0,0)
   if ((sizes[1] * sizes[2] * sizes[3]) != length(buffer)) {
-    error("Size of like-file not the same as size of buffer")
+    stop("Size of like-file not the same as size of buffer")
   }
   b.min <- min(buffer)
   b.max <- max(buffer)
@@ -68,6 +137,7 @@ minc.write.volume <- function(output.filename, like.filename, buffer) {
                as.double(b.min),
                as.double(buffer))
 }
+
 
 # get the dimension sizes of a particular file.
 minc.dimensions.sizes <- function(filename) {
@@ -107,6 +177,63 @@ wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
   return(results)
 }
 
+f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
+  m <- match.call()
+  mf <- match.call(expand.dots=FALSE)
+  m <- match(c("formula", "data", "subset"), names(mf), 0)
+
+  mf <- mf[c(1, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1]] <- as.name("model.frame")
+  mf <- eval(mf, parent.frame())
+
+  filenames <- mf[,1]
+  mmatrix <- model.matrix(formula, mf)
+  
+  cat("MASK: ", mask, "\n")
+  
+  return(mmatrix)
+}
+
+
+
+mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
+  m <- match.call()
+  mf <- match.call(expand.dots=FALSE)
+  m <- match(c("formula", "data", "subset"), names(mf), 0)
+
+  mf <- mf[c(1, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1]] <- as.name("model.frame")
+  mf <- eval(mf, parent.frame())
+
+  filenames <- as.character(mf[,1])
+  mmatrix <- model.matrix(formula, mf)
+
+  method <- "lm"
+
+  result <- list(method="lm")
+  result$likeVolume <- filenames[1]
+  result$model <- as.matrix(mmatrix)
+  result$filenames <- filenames
+  result$data <- .Call("minc2_model",
+                       as.character(filenames),
+                       as.matrix(mmatrix),
+                       as.double(! is.null(mask)),
+                       as.character(mask),
+                       as.character(method))
+
+  # get the first voxel in order to get the dimension names
+  v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
+  rows <- sub('mmatrix', '',
+              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+
+  colnames(result$data) <- c("F-statistic", rows)
+  class(result) <- "mincMultiDim"
+
+  return(result)
+}
+
 # run a t-test, wilcoxon test, correlation, or linear model at every voxel
 minc.model <- function(filenames, groupings, method="t-test",
                        mask=NULL) {
@@ -123,22 +250,35 @@ minc.model <- function(filenames, groupings, method="t-test",
   }
 
   if (method == "lm") {
-    .Call("minc2_model",
-          as.character(filenames),
-          as.matrix(groupings),
-          as.double(! is.null(mask)),
-          as.character(mask),
-          as.character(method))
+    result <- list(method="lm")
+    result$likeVolume <- filenames[1]
+    result$model <- groupings
+    result$filenames <- filenames
+    result$data <- .Call("minc2_model",
+                         as.character(filenames),
+                         as.matrix(groupings),
+                         as.double(! is.null(mask)),
+                         as.character(mask),
+                         as.character(method))
+
+    # get the first voxel in order to get the dimension names
+    v.firstVoxel <- minc.get.voxel.from.files(filenames, 0,0,0)
+    rows <- sub('mmatrix', '',
+                rownames(summary(lm(v.firstVoxel ~ groupings))$coefficients))
+    colnames(result$data) <- c("F-statistic", rows)
+    class(result) <- "mincMultiDim"
+    
   }
   else {
     groupings <- as.double(groupings)
-    .Call("minc2_model",
-          as.character(filenames),
-          as.double(groupings),
-          as.double(! is.null(mask)),
-          as.character(mask),
-          as.character(method))
+    result <- .Call("minc2_model",
+                    as.character(filenames),
+                    as.double(groupings),
+                    as.double(! is.null(mask)),
+                    as.character(mask),
+                    as.character(method))
   }
+  return(result)
 }
 
 # create a 2D array of full volumes of all files specified.
@@ -152,13 +292,17 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
+
 # efficient way of applying an R function to every voxel
-minc.apply <- function(filenames, function.string, mask=NULL) {
-  .Call("minc2_apply", as.character(filenames),
-        function.string,
-        as.double(! is.null(mask)),
-        as.character(mask),
-        parent.env(environment()))
+mincApply <- function(filenames, function.string, mask=NULL) {
+  result <- list(method=paste("mincApply:", function.string))
+  result$likeVolume <- filenames[1]
+  result$filenames <- filenames
+  result$data <- .Call("minc2_apply", as.character(filenames),
+                       function.string,
+                       as.double(! is.null(mask)),
+                       as.character(mask),
+                       parent.env(environment()))
 }
 
 # calls ray-trace to generate a pretty picture of a slice
