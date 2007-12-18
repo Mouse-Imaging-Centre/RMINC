@@ -1,6 +1,14 @@
 # get the real value of one voxel from all files.
-mincGetVoxel <- function(filenames, v1, v2, v3) {
+mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   num.files <- length(filenames)
+  if (length(v1) == 3){
+    v2 <- v1[2]
+    v3 <- v1[3]
+    v1 <- v1[1]
+  }
+  else if (is.null(v2) || is.null(v3)) {
+    stop("Three elements have to be specified.")
+  }
   output <- .C("get_voxel_from_files",
                as.character(filenames),
                as.integer(num.files),
@@ -16,8 +24,16 @@ mincGetVoxel <- function(filenames, v1, v2, v3) {
 }
 
 # get the real value of one voxel from all files using world coordinates
-mincGetWorldVoxel <- function(filenames, v1, v2, v3) {
+mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   num.files <- length(filenames)
+  if (length(v1) == 3){
+    v2 <- v1[2]
+    v3 <- v1[3]
+    v1 <- v1[1]
+  }
+  else if (is.null(v2) || is.null(v3)) {
+    stop("Three elements have to be specified.")
+  }
   output <- .C("get_world_voxel_from_files",
                as.character(filenames),
                as.integer(num.files),
