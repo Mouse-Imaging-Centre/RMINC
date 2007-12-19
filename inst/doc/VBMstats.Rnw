@@ -25,11 +25,69 @@ Preparing the spreadsheet.
 
 Reading study information into R.
 
+<<>>=
+gf <- read.csv("control-file.glim")
+@ 
+
 \section{Descriptive statistics}
 
 Group means and standard deviations.
 
+<<>>=
+library(RMINC)
+overall.mean <- mincMean(gf$jacobians)
+overall.mean
+@ 
+
 Writing to file.
+<<>>=
+mincWriteVolume(overall.mean, "overall-mean.mnc")
+@ 
+
+Most often we are more interested in how the means break down by the
+grouping in this dataset. This can be done by adding another variable
+to the mincMean call:
+
+<<>>=
+group.means <- mincMean(gf$jacobians, gf$Genotype)
+group.means
+@ 
+
+The {\em Genotype} variable has two levels in it: {\em +} and {\em
+  -}. So it will take the mean for all subjects in each group. These
+can then be written to file by specifiying the column.
+
+<<>>=
+mincWriteVolume(group.means, "group1.mnc", "+")
+mincWriteVolume(group.means, "group2.mnc", "-")
+@ 
+
+If the difference between the two columns is of interest, one can just
+subtract the two data columns:
+
+<<>>=
+difference <- group.means$data[,"+"] - group.means$data[,"-"]
+mean(difference)
+mincWriteVolume(difference, "diff.mnc", gf$jacobians[1])
+@ 
+
+Notice how {\em mincWriteVolume} now needs a third argument: the name
+of a minc-file which has the same dimensions as the data. By default
+commands such as {\em mincMean} will store that information; after the
+subtraction above, however, the result is just a series of numbers
+with all metadata removed, so it has to be specified when writing the
+data to file.
+
+Of course means are not the only items of interest. Also computable
+are the standard-deviations, variances, and sums, as illustrated
+below. Just like {\em mincMean} a column of filenames is required and
+a grouping variable is optional.
+
+<<>>=
+#v <- mincVar(gf$jacobians, gf$Genotype)
+#s <- mincSd(gf$jacobians)
+#s2 <- mincSum(gf$jacobians, gf$Genotype).
+@ 
 
 \section{First linear model}
 
@@ -52,3 +110,5 @@ Fancier linear models.
 \section{non-parametric statistics}
 
 \section{mixed effects models}
+
+\end{document}

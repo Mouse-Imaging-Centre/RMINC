@@ -199,6 +199,47 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
   return(output);
 }
 
+SEXP voxel_mean(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
+  double *voxel, *groupings, *n_groups, *means;
+  double *sum_voxel;
+  int *subjects_per_group;
+  int n_subjects, i;
+  SEXP Soutput;
+
+
+  voxel = REAL(Svoxel);
+  n_groups = REAL(Sn_groups);
+  groupings = REAL(Sgroupings);
+
+  n_subjects = LENGTH(Svoxel);
+
+  PROTECT(Soutput=allocVector(REALSXP, *n_groups));
+  means = REAL(Soutput);
+
+  subjects_per_group = malloc(sizeof(int) * *n_groups);
+  sum_voxel = malloc(sizeof(double) * *n_groups);
+
+  /* init variables */
+  for(i=0; i < *n_groups; i++) {
+    subjects_per_group[i] = 0;
+    sum_voxel[i] = 0;
+  }
+
+  for(i=0; i < n_subjects; i++) {
+    subjects_per_group[(int) groupings[i]]++;
+    sum_voxel[(int) groupings[i]] += voxel[i];
+  }
+
+  for(i=0; i< *n_groups; i++) {
+    means[i] = sum_voxel[i] / subjects_per_group[i];
+  }
+
+  free(sum_voxel);
+  free(subjects_per_group);
+  UNPROTECT(1);
+  return(Soutput);
+}
+
 SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
   double *x, *y,*r;
   double sum_x, sum_y, sum_xy, sum_x2, sum_y2, numerator, denominator, n;
@@ -343,11 +384,13 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
   unsigned long      start[3], count[3];
   unsigned long      location[3];
   int                num_files;
+  double             *xn_groups;
   double             *xbuffer, *xoutput, **full_buffer, *xhave_mask, *xn;
   double             *mask_buffer;
+  double             *groupings;
   midimhandle_t      dimensions[3];
   unsigned int       sizes[3];
-  SEXP               output, buffer, R_fcall, t_sexp;
+  SEXP               output, buffer, R_fcall, t_sexp, n_groups;
   /* stuff for linear models only */
   double             *y, *x, *coefficients, *residuals, *effects; 
   double             *diag, *se, *t, *work, *qraux, *v;
@@ -398,8 +441,34 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
   PROTECT(buffer=allocVector(REALSXP, num_files));
   xbuffer = REAL(buffer); 
 
+  /* allocate stuff for means and standard deviations */
+  if (strcmp(method_name, "mean") == 0) {
+    PROTECT(n_groups=allocVector(REALSXP, 1));
+    xn_groups = REAL(n_groups);
+    groupings = REAL(Sx);
+
+    xn_groups[0] = 0;
+
+    /* determine the number of groups. Here we assume that the input
+       will contain integers corresponding to the group number, so we need
+       but take the max of that to get the number of groups. Note that we
+       have to add 1 to the number of groups, as the first group will have 
+       a value of 0 */
+    for(i=0; i < LENGTH(Sx); i++) {
+      if (groupings[i] > xn_groups[0]) {
+	xn_groups[0]++;
+      }
+    }
+    xn_groups[0]++;
+
+    Rprintf("N GROUPS: %f\n", xn_groups[0]);
+    PROTECT(t_sexp = allocVector(REALSXP, xn_groups[0]));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 
+			       xn_groups[0]));
+
+  }
   /* allocate stuff necessary for fitting linear models */
-  if (strcmp(method_name, "lm") == 0) {
+  else if (strcmp(method_name, "lm") == 0) {
     n = nrows(Sx);
     p = ncols(Sx);
     
@@ -507,6 +576,14 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 	    xoutput[output_index] = 
 	      REAL(voxel_correlation(buffer, Sx))[0];
 	  }
+	  else if (strcmp(method_name, "mean") == 0) {
+	    t_sexp = voxel_mean(buffer, n_groups, Sx);
+	    for(i=0; i < xn_groups[0]; i++) {
+	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
+		= REAL(t_sexp)[i];
+	    }
+	  }
+
 	  else if (strcmp(method_name, "lm") == 0) {
 	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
 			      work, qraux, v, pivot, se, t);
@@ -542,6 +619,9 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
     free(se);
     free(t);
     UNPROTECT(3);
+  }
+  else if (strcmp(method_name, "mean") == 0) {
+    UNPROTECT(4);
   }
   else {
     UNPROTECT(2);

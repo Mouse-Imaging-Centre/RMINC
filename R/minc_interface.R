@@ -121,6 +121,10 @@ mincWriteVolume <- function(buffer, ...) {
   UseMethod("mincWriteVolume")
 }
 
+mincWriteVolume.mincSingleDim <- function(buffer, output.filename) {
+  mincWriteVolume.mincMultiDim(buffer, output.filename)
+}
+
 # write out one column of a multidim MINC volume
 mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, like.filename = NULL) {
   cat("Writing column", column, "to file", output.filename, "\n")
@@ -250,6 +254,32 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
+
+mincMean <- function(filenames, grouping=NULL, mask=NULL) {
+  if (is.null(grouping)) {
+    grouping <- rep(1, length(filenames))
+  }
+
+  result <- list(method="mean")
+  result$likeVolume <- as.character(filenames[1])
+  result$filenames <- as.character(filenames)
+  result$data <- .Call("minc2_model",
+                       as.character(filenames),
+                       as.double(grouping)-1,
+                       as.double(! is.null(mask)),
+                       as.character(mask),
+                       as.character("mean"))
+
+  if (is.null(grouping)) {
+    class(result) <- "mincSingleDim"
+  }
+  else {
+    class(result) <- "mincMultiDim"
+    colnames(result$data) <- levels(grouping)
+  }
+  return(result)
+}
+  
 # run a t-test, wilcoxon test, correlation, or linear model at every voxel
 minc.model <- function(filenames, groupings, method="t-test",
                        mask=NULL) {
