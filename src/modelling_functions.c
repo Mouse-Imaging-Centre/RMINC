@@ -199,6 +199,37 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
   return(output);
 }
 
+SEXP voxel_sum(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
+  double *voxel, *groupings, *n_groups;
+  double *sum_voxel;
+  int *subjects_per_group;
+  int n_subjects, i;
+  SEXP Soutput;
+
+
+  voxel = REAL(Svoxel);
+  n_groups = REAL(Sn_groups);
+  groupings = REAL(Sgroupings);
+
+  n_subjects = LENGTH(Svoxel);
+
+  PROTECT(Soutput=allocVector(REALSXP, *n_groups));
+  sum_voxel = REAL(Soutput);
+
+
+  /* init variables */
+  for(i=0; i < *n_groups; i++) {
+    sum_voxel[i] = 0;
+  }
+
+  for(i=0; i < n_subjects; i++) {
+    sum_voxel[(int) groupings[i]] += voxel[i];
+  }
+
+  UNPROTECT(1);
+  return(Soutput);
+}
+
 SEXP voxel_mean(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
   double *voxel, *groupings, *n_groups, *means;
   double *sum_voxel;
@@ -239,6 +270,54 @@ SEXP voxel_mean(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
   UNPROTECT(1);
   return(Soutput);
 }
+
+SEXP voxel_var(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
+  double *voxel, *groupings, *n_groups, *means;
+  double *var, *sum_voxel;
+  int *subjects_per_group;
+  int n_subjects, i;
+  SEXP Soutput;
+  SEXP Smean;
+
+
+  voxel = REAL(Svoxel);
+  n_groups = REAL(Sn_groups);
+  groupings = REAL(Sgroupings);
+
+  n_subjects = LENGTH(Svoxel);
+
+  PROTECT(Soutput=allocVector(REALSXP, *n_groups));
+  var = REAL(Soutput);
+
+  subjects_per_group = malloc(sizeof(int) * *n_groups);
+  sum_voxel = malloc(sizeof(double) * *n_groups);
+
+  Smean = voxel_mean(Svoxel, Sn_groups, Sgroupings);
+  means = REAL(Smean);
+
+  /* init variables */
+  for(i=0; i < *n_groups; i++) {
+    subjects_per_group[i] = 0;
+    sum_voxel[i] = 0;
+  }
+
+  for(i=0; i < n_subjects; i++) {
+    subjects_per_group[(int) groupings[i]]++;
+    sum_voxel[(int) groupings[i]] 
+      += pow(voxel[i] - means[(int) groupings[i]], 2);
+  }
+
+
+
+  for(i=0; i< *n_groups; i++) {
+    var[i] = sum_voxel[i] / (subjects_per_group[i]-1);
+  }
+  free(sum_voxel);
+  free(subjects_per_group);
+  UNPROTECT(1);
+  return(Soutput);
+}
+
 
 SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
   double *x, *y,*r;
@@ -442,7 +521,9 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
   xbuffer = REAL(buffer); 
 
   /* allocate stuff for means and standard deviations */
-  if (strcmp(method_name, "mean") == 0) {
+  if (strcmp(method_name, "mean") == 0 ||
+      strcmp(method_name, "sum") == 0 ||
+      strcmp(method_name, "var") == 0) {
     PROTECT(n_groups=allocVector(REALSXP, 1));
     xn_groups = REAL(n_groups);
     groupings = REAL(Sx);
@@ -583,6 +664,20 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 		= REAL(t_sexp)[i];
 	    }
 	  }
+	  else if (strcmp(method_name, "sum") == 0) {
+	    t_sexp = voxel_sum(buffer, n_groups, Sx);
+	    for(i=0; i < xn_groups[0]; i++) {
+	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
+		= REAL(t_sexp)[i];
+	    }
+	  }
+	  else if (strcmp(method_name, "var") == 0) {
+	    t_sexp = voxel_var(buffer, n_groups, Sx);
+	    for(i=0; i < xn_groups[0]; i++) {
+	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
+		= REAL(t_sexp)[i];
+	    }
+	  }
 
 	  else if (strcmp(method_name, "lm") == 0) {
 	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
@@ -620,7 +715,9 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
     free(t);
     UNPROTECT(3);
   }
-  else if (strcmp(method_name, "mean") == 0) {
+  else if (strcmp(method_name, "mean") == 0 ||
+	   strcmp(method_name, "var") == 0 ||
+	   strcmp(method_name, "sum") == 0) {
     UNPROTECT(4);
   }
   else {

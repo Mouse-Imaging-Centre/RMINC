@@ -254,13 +254,34 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
-
 mincMean <- function(filenames, grouping=NULL, mask=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="mean")
+  return(result)
+}
+
+mincVar <- function(filenames, grouping=NULL, mask=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="var")
+  return(result)
+}
+
+mincSum <- function(filenames, grouping=NULL, mask=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="sum")
+  return(result)
+}
+
+mincSd <- function(filenames, grouping=NULL, mask=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="var")
+  result$data <- sqrt(result$data)
+  return(result)
+}
+
+
+mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }
 
-  result <- list(method="mean")
+  result <- list(method=method)
   result$likeVolume <- as.character(filenames[1])
   result$filenames <- as.character(filenames)
   result$data <- .Call("minc2_model",
@@ -268,7 +289,7 @@ mincMean <- function(filenames, grouping=NULL, mask=NULL) {
                        as.double(grouping)-1,
                        as.double(! is.null(mask)),
                        as.character(mask),
-                       as.character("mean"))
+                       as.character(method))
 
   if (is.null(grouping)) {
     class(result) <- "mincSingleDim"
