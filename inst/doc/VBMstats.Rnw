@@ -1,135 +1,25 @@
-\documentclass{article}
+\documentclass{report}
 \usepackage{Sweave}
 \usepackage{url}
+\usepackage{makeidx}
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\makeindex
 
 \begin{document}
 
-\title{Statistics for voxel-wise morphometry\\using RMINC Version 0.4}
 
-\author{Jason Lerch}
-\maketitle
+\input{title.tex}
 
-\section{Introduction}
+\input{introduction.tex}
 
-Purpose of this document. Blah blah.
+\input{input_data.tex}
 
-Worked example: gender differences in 
-
-\section{Image processing}
-
-Won't talk much about image processing.
-
-\section{Input data}
-
-Preparing the spreadsheet.
-
-Reading study information into R.
-
-Once the files have been processed, the easiest way to proceed is by
-settting up a text file containing all the necessary information about
-each scan. This file should be comma or space separated, have on row
-per scan, with each column containing info about each scan. One of the
-columns should contain the filename pointing to the MINC volumes to be
-processed. An example might look like the following:
-
-\begin{verbatim}
-file,Genotype,scale
-filename1.mnc,+,0.98
-filename2.mnc,-,0.91
-filename3.mnc,-,0.92
-\end{verbatim}
-
-Notice how the first row contains a header. This is optional, but
-makes later access to the data easier and is therefore recommended.
-
-The next step is to actually load this filename into R. The steps are
-given below:
+\input{descriptive_stats.tex}
 
 
-<<intro>>=
-library(RMINC)
-library(xtable) 
-gf <- read.csv("control-file.glim")
-@
-
-The two library commands load the RMINC and xtable libraries into
-R. xtable is only necessary for display purposes in this manual
-(which, by the way, is being written using Sweave, a tool for
-combining R with latex). The variable \texttt{glim.file} is then assigned the
-location of the input data file, which in turn is read into the \texttt{gf}
-variable.
-
-<<table,results=tex>>=
-xtable(gf[c(1,2,3,22,23,24),c(2,4,5,6)], caption="GLIM File")
-@ 
-
-The little code fragment and table above just shows what a subset of
-the gf variable looks like. To get a feel for the data and some of the
-RMINC functions, the first file is then read and a histogram produced
-(for the curious, the files used in this example actually consist of
-log Jacobians of deformation fields, not voxel density maps usually
-used in VBM).
-
-
-\section{Descriptive statistics}
-
-Group means and standard deviations.
-
-<<>>=
-library(RMINC)
-overall.mean <- mincMean(gf$jacobians)
-overall.mean
-@ 
-
-Writing to file.
-<<>>=
-mincWriteVolume(overall.mean, "overall-mean.mnc")
-@ 
-
-Most often we are more interested in how the means break down by the
-grouping in this dataset. This can be done by adding another variable
-to the mincMean call:
-
-<<>>=
-group.means <- mincMean(gf$jacobians, gf$Genotype)
-group.means
-@ 
-
-The {\em Genotype} variable has two levels in it: {\em +} and {\em
-  -}. So it will take the mean for all subjects in each group. These
-can then be written to file by specifiying the column.
-
-<<>>=
-mincWriteVolume(group.means, "group1.mnc", "+")
-mincWriteVolume(group.means, "group2.mnc", "-")
-@ 
-
-If the difference between the two columns is of interest, one can just
-subtract the two data columns:
-
-<<>>=
-difference <- group.means$data[,"+"] - group.means$data[,"-"]
-mean(difference)
-mincWriteVolume(difference, "diff.mnc", gf$jacobians[1])
-@ 
-
-Notice how {\em mincWriteVolume} now needs a third argument: the name
-of a minc-file which has the same dimensions as the data. By default
-commands such as {\em mincMean} will store that information; after the
-subtraction above, however, the result is just a series of numbers
-with all metadata removed, so it has to be specified when writing the
-data to file.
-
-Of course means are not the only items of interest. Also computable
-are the standard-deviations, variances, and sums, as illustrated
-below. Just like {\em mincMean} a column of filenames is required and
-a grouping variable is optional.
-
-<<>>=
-v <- mincVar(gf$jacobians, gf$Genotype)
-s <- mincSd(gf$jacobians)
-s2 <- mincSum(gf$jacobians, gf$Genotype)
-@ 
 
 \section{First linear model}
 
@@ -155,8 +45,6 @@ Fancier linear models.
 
 \section{Cleaning up}
 
-<<>>=
-rm(v,s,s2,difference,group.means)
-@ 
+\printindex
 
 \end{document}

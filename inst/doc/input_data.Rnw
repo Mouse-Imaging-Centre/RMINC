@@ -1,0 +1,75 @@
+\chapter{Preparing the data}
+
+This chapter will briefly discuss how to generate structural imaging
+data useable for the statistical analyses described in the rest of the
+book.
+
+\section{Types of datasets}
+
+Describe what can be done.
+
+\subsection{Voxel based morphometry}
+
+Some more detail on VBM.
+
+\subsection{Deformation based morphometry}
+
+Some more detail on DBM.
+
+\subsection{Other}
+
+Mention cortical thickness, manual segmentation, etc.
+
+\section{Input data}
+
+Preparing the spreadsheet.
+
+Reading study information into R.
+
+Once the files have been processed, the easiest way to proceed is by
+settting up a text file containing all the necessary information about
+each scan. This file should be comma or space separated, have on row
+per scan, with each column containing info about each scan. One of the
+columns should contain the filename pointing to the MINC volumes to be
+processed. An example might look like the following:
+
+\begin{verbatim}
+file,Genotype,scale
+filename1.mnc,+,0.98
+filename2.mnc,-,0.91
+filename3.mnc,-,0.92
+\end{verbatim}
+
+Notice how the first row contains a header. This is optional, but
+makes later access to the data easier and is therefore recommended.
+
+The next step is to actually load this filename into R. The steps are
+given below:
+
+<<echo=F>>=
+library(xtable)
+@ 
+
+<<intro>>=
+library(RMINC)
+gf <- read.csv("control-file.glim")
+@
+
+The two library commands load the RMINC and xtable libraries into
+R. xtable is only necessary for display purposes in this manual
+(which, by the way, is being written using Sweave, a tool for
+combining R with latex). The variable \texttt{glim.file} is then assigned the
+location of the input data file, which in turn is read into the \texttt{gf}
+variable.
+
+<<table,results=tex>>=
+xtable(gf[c(1,2,3,22,23,24),c(2,4,5,6)], caption="GLIM File")
+@ 
+
+The little code fragment and table above just shows what a subset of
+the gf variable looks like. To get a feel for the data and some of the
+RMINC functions, the first file is then read and a histogram produced
+(for the curious, the files used in this example actually consist of
+log Jacobians of deformation fields, not voxel density maps usually
+used in VBM).
+

@@ -1,0 +1,103 @@
+\chapter*{Preface}
+
+This mini-book attempts to provide a general introduction to the
+statistics side of structural brain imaging, with a heavy emphasis on
+practical worked examples. It also introduces a particular toolkit,
+RMINC, designed to make running these types of statistical analyses
+easier. It is targeted at the general user, who may or may not have
+some statistical background, but does have some data they want
+analysed in a straightforward way. It is not meant to be a complete
+handbook on statistics, but hopefully will provide enough of a primer
+to get by, at least for a little while. 
+
+
+This mini-book exists for a number of reasons. I have over the years
+been asked multiple questions relating to structural brain imaging and
+statistics, and have had the chance to learn answers to those
+questions from countless people. This book thus exists as an attempt
+to put some of those answers down on paper. Secondly, writing this
+book is part and parcel of the development of RMINC; it is easier to
+write code useable by others if one documents it first, and then
+writes code to fit the documentation.
+
+
+\tableofcontents
+%\listoffigures
+%\listoftables
+
+
+\chapter{Introduction}
+
+The process of analysing brain imaging data is typically comprised of
+a series of stages. The study is designed with various choices made
+about the biology question that is to be addressed and the data
+necessary to answer the questions thus posed. Then the data is then
+acquired, and once that is completed, the images are processed in
+various automatic, semi-automatic, or manual ways and then analysed. 
+
+This book deals mainly with the final part, the data analysis, though
+there will be several side-tracks into the other topics. A single
+example will be used throughout: a mouse brain imaging study comparing
+two genotypes. The methods described herein should be easily
+transferable to any other structural imaging study which looks at
+brain shape, tissue classification, or signal intensities. 
+
+\section{Installing the tools}
+
+All the analyses will be performed using RMINC, which is a library
+designed to handle MINC\index{MINC} volumes inside the R\index{R}
+statistical environment. All the tools needed are freely available,
+and should run on just about any computer/operating
+system. Installation and setup is described in some more detail below.
+
+\subsection{R}
+
+Quick background about R.
+
+Installing R.
+
+Where to find further reading.
+
+\subsection{MINC}
+
+Quick background about MINC.
+
+Installing MINC.
+
+Where to find more information.
+
+\subsection{RMINC}
+
+Quick background about RMINC.
+
+Installing RMINC.
+
+\section{Overview of the analysis process}
+
+
+The data analysis process usually proceeds in the following way. First
+the input images are assessed for correctness; any obvious processing
+errors are removed from any subsequent analyses. The question of what
+constitutes an outlier is often a tricky one. In order to avoid the
+temptation to manipulate the data in a biased way it is best if the
+person who reviews the input data is blind about the categorization of
+each particular dataset.
+
+Once all the acceptable datasets are in place a series of descriptive
+statistics can be generated, usually consisting of means and standard
+deviations of all images in the study as well as of all the
+subgroupings. This is followed by generating statistical maps of themain
+variables of interest. These are then thresholded for significance
+while taking multiple comparisons into account. There is then often a
+series of steps in which new statistical models are analyzed and
+thresholded until the results become more understandable. This usually
+involves lots of plotting of individual datapoints.
+
+This book will cover those topics in turn in the following
+chapters. Chapter \ref{chp:input} describes the prepartion of the data
+for analysis, chapter \ref{chp:descriptive} shows how to run
+descriptive statistics, chapter \ref{chp:group} talks about performing
+group comparisons and ANOVAs, chapter \ref{chp:ancova} gets into the topic of
+correlations, regressions, and ANCOVAs, chapter \ref{chp:multiple}
+addresses the issue of multiple comparisons, and chapter
+\ref{chp:plotting} describes how to plot individual datapoints.
