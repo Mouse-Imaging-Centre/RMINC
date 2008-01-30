@@ -38,7 +38,7 @@ If the difference between the two columns is of interest, one can just
 subtract the two data columns:
 
 <<>>=
-difference <- group.means$data[,"+"] - group.means$data[,"-"]
+difference <- group.means[,"+"] - group.means[,"-"]
 mean(difference)
 mincWriteVolume(difference, "diff.mnc", gf$jacobians[1])
 @ 

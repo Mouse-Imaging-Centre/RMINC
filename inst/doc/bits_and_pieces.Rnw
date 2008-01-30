@@ -1,0 +1,9 @@
+\chapter{Bits and Pieces}
+
+\section{Correlations}
+
+\section{non-parametric statistics}
+
+\section{mixed effects models}
+
+\section{Cleaning up}

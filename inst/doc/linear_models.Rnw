@@ -1,0 +1,44 @@
+\chapter{Linear Models}
+
+\section{First linear model}
+
+<<>>=
+vs <- mincLm(jacobians ~ Genotype, gf)
+vs
+mincWriteVolume(vs, "simple-lm.mnc", "Genotype+")
+@ 
+
+mincLm is the command to run linear models in RMINC. Its basic use is
+to provide a formula (same syntax as the R \texttt{lm} command) with
+the left side containing the filenames, the right side the variables
+to be regressed. The output of mincLm depends on the formula. There
+will always be a column of F-statistics, representing the significance
+of the entire model. Then there is one column for each of the terms in
+the mode. The above linear model, relating the Jacobian determinant to
+Genotype, will thus have three columns:
+
+\begin{description}
+\item[F-statistic] representing the significance of the entire model.
+\item[(Intercept)] the intercept term - this term is rarely
+  interesting, as it tests for whether the intercept is 0. There's no
+  reason to believe it should be in most cases, so this value will be
+  highly significant but meaningless.
+\item[Genotype+] the term testing whether the ``+'' level of the
+  Genotype factor is significant. In this case this term is the most
+  interesting and therefore the one written to file.
+\end{description}
+
+The output is placed into a variable that can be written to file in
+the same way as described in the descriptive statistics section. 
+
+
+\section{Plotting voxels}
+
+Getting voxels from file.
+
+Some plots.
+
+\section{Covariates and interactions}
+
+Fancier linear models.
+

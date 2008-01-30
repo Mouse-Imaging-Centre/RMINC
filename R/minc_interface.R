@@ -113,8 +113,15 @@ minc.get.volume <- function(filename) {
 # print function for multidimensional files
 print.mincMultiDim <- function(x) {
   cat("Multidimensional MINC volume\n")
-  cat("Columns:      ", colnames(x$data), "\n")
-  cat("Like-Volume:  ", x$likeVolume, "\n")
+  cat("Columns:      ", colnames(x), "\n")
+  attr(x, "likeVolume")
+}
+
+print.mincQvals <- function(x) {
+  print.mincMultiDim(x)
+  cat("Degrees of Freedom:", attr(x, "DF"), "\n")
+  cat("FDR Thresholds:\n")
+  print(attr(x, "thresholds"))
 }
 
 mincWriteVolume <- function(buffer, ...) {
@@ -129,13 +136,13 @@ mincWriteVolume.mincSingleDim <- function(buffer, output.filename) {
 mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, like.filename = NULL) {
   cat("Writing column", column, "to file", output.filename, "\n")
   if (is.null(like.filename)) {
-    like.filename <- buffer$likeVolume
+    like.filename <- attr(buffer, "likeVolume")
   }
   if (is.na(file.info(like.filename)$size)) {
     stop(c("File ", like.filename, " cannot be found.\n"))
   }
 
-  mincWriteVolume.default(buffer$data[,column], output.filename, like.filename)
+  mincWriteVolume.default(buffer[,column], output.filename, like.filename)
 }
 
 # the default MINC output function
@@ -232,27 +239,105 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 
   method <- "lm"
 
-  result <- list(method="lm")
-  result$likeVolume <- filenames[1]
-  result$model <- as.matrix(mmatrix)
-  result$filenames <- filenames
-  result$data <- .Call("minc2_model",
-                       as.character(filenames),
-                       as.matrix(mmatrix),
-                       as.double(! is.null(mask)),
-                       as.character(mask),
-                       as.character(method))
+  result <- .Call("minc2_model",
+                  as.character(filenames),
+                  as.matrix(mmatrix),
+                  as.double(! is.null(mask)),
+                  as.character(mask),
+                  as.character(method))
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "filenames") <- filenames
 
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
 
-  colnames(result$data) <- c("F-statistic", rows)
-  class(result) <- "mincMultiDim"
+  colnames(result) <- c("F-statistic", rows)
+  class(result) <- c("mincMultiDim", "matrix")
 
   return(result)
 }
+
+pt2 <- function(q, df,log.p=FALSE) {
+  2*pt(-abs(q), df, log.p=log.p)
+}
+
+mincGetMask <- function(mask) {
+  if (class(mask) == "character") {
+    return(mincGetVolume(mask))
+  }
+  else {
+    return(mask)
+  }
+}
+
+mincFDR <- function(buffer, ...) {
+  UseMethod("mincFDR")
+}
+
+mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
+  test <- try(library(qvalue))
+  if (class(test) == "try-error") {
+    stop("The qvalue package must be installed for mincFDR to work")
+  }
+
+  if (is.null(mask)) {
+    mask <- vector(length=nrow(buffer)) + 1
+  }
+  else {
+    mask <- mincGetMask(mask)
+  }
+  
+  if (is.null(df)) {
+    df <- vector(length=2)
+    df[1] <- ncol(attributes(buffer)$model) -1
+    df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
+  }
+
+  if (is.null(columns)) {
+    columns <- colnames(buffer)
+    cat("\nComputing FDR threshold for all columns\n")
+  }
+
+  n.cols <- length(columns)
+  output <- matrix(1, nrow=nrow(buffer), ncol=n.cols)
+  p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
+  thresholds <- matrix(nrow=length(p.thresholds), ncol=n.cols)
+  
+  for (i in 1:n.cols) {
+    cat("  Computing threshold for ", columns[i], "\n")
+    qobj <- 0
+    if (columns[i] == "F-statistic") {
+      qobj <- qvalue(pf(buffer[mask > 0.5, columns[i]],
+                        df[1], df[2], lower.tail=F))
+      for (j in 1:length(p.thresholds)) {
+        thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
+                                  df[1], df[2], lower.tail=F)
+      }
+      output[mask>0.5,i] <- qobj$qvalue
+    }
+                   
+    else {
+      qobj <- qvalue(pt2(buffer[mask>0.5, columns[i]], df[2]))
+      for (j in 1:length(p.thresholds)) {
+        thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]])/2,
+                              df[2], lower.tail=F)
+      }
+      output[mask>0.5,i] <- qobj$qvalue
+    }
+  }
+  rownames(thresholds) <- p.thresholds
+  colnames(thresholds) <- columns
+  attr(output, "thresholds") <- thresholds
+  colnames(output) <- columns
+  attr(output, "likeVolume") <- attr(buffer, "likeVolume")
+  attr(output, "DF") <- df
+  class(output) <- c("mincQvals", "mincMultiDim")
+  return(output)
+}
+   
 
 mincMean <- function(filenames, grouping=NULL, mask=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="mean")
@@ -271,7 +356,7 @@ mincSum <- function(filenames, grouping=NULL, mask=NULL) {
 
 mincSd <- function(filenames, grouping=NULL, mask=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="var")
-  result$data <- sqrt(result$data)
+  result <- sqrt(result)
   return(result)
 }
 
@@ -281,22 +366,22 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
     grouping <- rep(1, length(filenames))
   }
 
-  result <- list(method=method)
-  result$likeVolume <- as.character(filenames[1])
-  result$filenames <- as.character(filenames)
-  result$data <- .Call("minc2_model",
-                       as.character(filenames),
-                       as.double(grouping)-1,
-                       as.double(! is.null(mask)),
-                       as.character(mask),
-                       as.character(method))
+  result <- .Call("minc2_model",
+                  as.character(filenames),
+                  as.double(grouping)-1,
+                  as.double(! is.null(mask)),
+                  as.character(mask),
+                  as.character(method))
+  attr(result, "likeVolume") <- as.character(filenames[1])
+  attr(result, "filenames") <- as.character(filenames)
+
 
   if (is.null(grouping)) {
-    class(result) <- "mincSingleDim"
+    class(result) <- c("mincSingleDim", "numeric")
   }
   else {
-    class(result) <- "mincMultiDim"
-    colnames(result$data) <- levels(grouping)
+    class(result) <- c("mincMultiDim", "matrix")
+    colnames(result) <- levels(grouping)
   }
   return(result)
 }

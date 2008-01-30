@@ -19,31 +19,9 @@
 
 \input{descriptive_stats.tex}
 
+\input{linear_models.tex}
 
-
-\section{First linear model}
-
-mincLm
-
-writing multidimensional MINC volumes to file.
-
-\section{Plotting voxels}
-
-Getting voxels from file.
-
-Some plots.
-
-\section{Covariates and interactions}
-
-Fancier linear models.
-
-\section{Correlations}
-
-\section{non-parametric statistics}
-
-\section{mixed effects models}
-
-\section{Cleaning up}
+\input{bits_and_pieces.tex}
 
 \printindex
 
