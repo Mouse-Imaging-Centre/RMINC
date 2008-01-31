@@ -98,7 +98,7 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
 }
 
 # return a volume as a 1D array.
-minc.get.volume <- function(filename) {
+mincGetVolume <- function(filename) {
   sizes <- minc.dimensions.sizes(filename)
   start <- c(0,0,0)
   total.size <- sizes[1] * sizes[2] * sizes[3]
@@ -107,6 +107,7 @@ minc.get.volume <- function(filename) {
                as.integer(start),
                as.integer(sizes),
                hs=double(total.size))$hs
+  class(output) <- c("mincSingleDim", "numeric")
   return(output)
 }
 
@@ -114,7 +115,12 @@ minc.get.volume <- function(filename) {
 print.mincMultiDim <- function(x) {
   cat("Multidimensional MINC volume\n")
   cat("Columns:      ", colnames(x), "\n")
-  attr(x, "likeVolume")
+  print(attr(x, "likeVolume"))
+}
+
+print.mincSingleDim <- function(x) {
+  cat("MINC volume\n")
+  print(attr(x, "likeVolume"))
 }
 
 print.mincQvals <- function(x) {

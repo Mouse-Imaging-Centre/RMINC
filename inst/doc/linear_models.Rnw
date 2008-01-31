@@ -34,9 +34,73 @@ the same way as described in the descriptive statistics section.
 
 \section{Plotting voxels}
 
-Getting voxels from file.
+<<>>=
+options(show.signif.stars=FALSE)
+voxel <- mincGetVoxel(gf$jacobians,0,0,0)
+summary(lm(voxel ~ Genotype, gf))
+vs[1,]
+@ 
 
-Some plots.
+The code above does the following: it gets the voxel from coordinates
+0,0,0 for all subjects, then computes a linear model relating that
+voxel to Genotype using standard R functions. Lastly it prints the
+results from that same voxel as computed by \texttt{mincLm}. This
+helps illustrate what the output of \texttt{mincLm} stores: the
+F-statistic is the same as can be found in the last line of the
+summary command, and the t-statistics for the Intercept and Genotype
+column can be found under "t-value" when using standard R functions.
+
+\texttt{mincGetVoxel} needs three coordinates, given in voxel space in
+the same order as stored in the file. Just printing the voxel will
+show the corresponding world coordinates:
+
+<<>>=
+voxel
+@ 
+
+If the coordinates are specified in world coordinates then
+\texttt{mincGetWorldVoxel} is what you want - it also takes three
+coordinates, this time in world space in xspace,yspace,zspace order:
+
+<<>>=
+world.voxel <- mincGetWorldVoxel(gf$jacobians, -6.27, -8.19, -4.2)
+world.voxel
+@ 
+
+\section{Using subsets}
+
+It is quite common to want to run a linear model on only a subset of
+the data. This can be quite easily accomplished in \texttt{mincLm}
+using an extra subsetting specification:
+
+<<>>=
+vs <- mincLm(jacobians ~ Genotype, gf, Sex=="M")
+vs
+@ 
+
+This is the same linear model command as executed above, but this time
+using only the male mice for the computation.
+
+\section{Multiple Comparisons}
+
+The example below illustrates the entire process involved in going
+running a linear model and correcting for multiple comparisons using
+the False Discovery Rate:
+
+<<>>=
+vs <- mincLm(jacobians ~ Sex * Genotype, gf)
+qvals <- mincFDR(vs, mask="mask.mnc")
+qvals
+mincWriteVolume(qvals, "Genotype-FDR.mnc", "Genotype+")
+@ 
+
+The first command computes an ANOCA using \texttt{mincLm}. The results
+are then passed on to \texttt{mincFDR}, which computes the False
+Discovery Rate threshold separately for each of the terms in the
+linear model. Only results from within the mask specified as an
+optional argument to \texttt{mincFDR} are considered. The thresholds
+detected at different levels (0.01, 0.05, 0.10, 0.15, and 0.20) are
+then printed out. The ``Genotype+'' column is then written to file.
 
 \section{Covariates and interactions}
 
