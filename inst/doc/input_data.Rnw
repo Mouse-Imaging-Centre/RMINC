@@ -28,7 +28,7 @@ Reading study information into R.
 
 Once the files have been processed, the easiest way to proceed is by
 settting up a text file containing all the necessary information about
-each scan. This file should be comma or space separated, have on row
+each scan. This file should be comma or space separated, have one row
 per scan, with each column containing info about each scan. One of the
 columns should contain the filename pointing to the MINC volumes to be
 processed. An example might look like the following:

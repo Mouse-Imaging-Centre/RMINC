@@ -20,6 +20,10 @@ book is part and parcel of the development of RMINC; it is easier to
 write code useable by others if one documents it first, and then
 writes code to fit the documentation.
 
+The book will likely be an incomplete work in progress for a long
+while yet. The \LaTeX source for this book are packaged along with
+RMINC itself, and contributors are most welcome!
+
 
 \tableofcontents
 %\listoffigures
@@ -86,18 +90,19 @@ each particular dataset.
 Once all the acceptable datasets are in place a series of descriptive
 statistics can be generated, usually consisting of means and standard
 deviations of all images in the study as well as of all the
-subgroupings. This is followed by generating statistical maps of themain
-variables of interest. These are then thresholded for significance
-while taking multiple comparisons into account. There is then often a
-series of steps in which new statistical models are analyzed and
-thresholded until the results become more understandable. This usually
-involves lots of plotting of individual datapoints.
+subgroupings. This is followed by generating statistical maps of the
+main variables of interest. These are then thresholded for
+significance while taking multiple comparisons into account. There is
+then often a series of steps in which new statistical models are
+analyzed and thresholded until the results become more
+understandable. This usually involves lots of plotting of individual
+datapoints.
 
-This book will cover those topics in turn in the following
-chapters. Chapter \ref{chp:input} describes the prepartion of the data
-for analysis, chapter \ref{chp:descriptive} shows how to run
-descriptive statistics, chapter \ref{chp:group} talks about performing
-group comparisons and ANOVAs, chapter \ref{chp:ancova} gets into the topic of
-correlations, regressions, and ANCOVAs, chapter \ref{chp:multiple}
-addresses the issue of multiple comparisons, and chapter
-\ref{chp:plotting} describes how to plot individual datapoints.
+% This book will cover those topics in turn in the following
+% chapters. Chapter \ref{chp:input} describes the prepartion of the data
+% for analysis, chapter \ref{chp:descriptive} shows how to run
+% descriptive statistics, chapter \ref{chp:group} talks about performing
+% group comparisons and ANOVAs, chapter \ref{chp:ancova} gets into the topic of
+% correlations, regressions, and ANCOVAs, chapter \ref{chp:multiple}
+% addresses the issue of multiple comparisons, and chapter
+% \ref{chp:plotting} describes how to plot individual datapoints.
