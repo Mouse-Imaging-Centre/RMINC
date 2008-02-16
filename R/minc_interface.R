@@ -107,7 +107,7 @@ mincGetVolume <- function(filename) {
                as.integer(start),
                as.integer(sizes),
                hs=double(total.size))$hs
-  class(output) <- c("mincSingleDim", "numeric")
+  class(output) <- c("mincSingleDim", "vector")
   return(output)
 }
 
@@ -228,8 +228,7 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
-
-
+# run a linear model at each voxel
 mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -266,10 +265,13 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
+# two tailed version of pt
 pt2 <- function(q, df,log.p=FALSE) {
   2*pt(-abs(q), df, log.p=log.p)
 }
 
+# returns a mask as a vector - either by loading the file
+# or just passing through the vector passed in.
 mincGetMask <- function(mask) {
   if (class(mask) == "character") {
     return(mincGetVolume(mask))
@@ -283,14 +285,41 @@ mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
 
+# mincFDR for data not created in the same R session; i.e. obtained
+# from mincGetVolume
+mincFDR.mincSingleDim <- function(buffer, df, mask=NULL) {
+  if (is.null(df)) {
+    stop("Error: need to specify the degrees of freedom")
+  }
+  if (length(df) == 1) {
+    df <- c(1,df)
+  }
+  mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df)
+}
+
+# mincFDR for a local buffer created by mincLm
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
   test <- try(library(qvalue))
   if (class(test) == "try-error") {
     stop("The qvalue package must be installed for mincFDR to work")
   }
 
+  if (is.null(columns)) {
+    columns <- colnames(buffer)
+    cat("\nComputing FDR threshold for all columns\n")
+  }
+
+  n.cols <- length(columns)
+  n.row <-0
+  if (is.matrix(buffer)) {
+    n.row <- nrow(buffer)
+  }
+  else {
+    n.row <- length(buffer)
+  }
+  
   if (is.null(mask)) {
-    mask <- vector(length=nrow(buffer)) + 1
+    mask <- vector(length=n.row) + 1
   }
   else {
     mask <- mincGetMask(mask)
@@ -302,13 +331,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
   }
 
-  if (is.null(columns)) {
-    columns <- colnames(buffer)
-    cat("\nComputing FDR threshold for all columns\n")
-  }
-
-  n.cols <- length(columns)
-  output <- matrix(1, nrow=nrow(buffer), ncol=n.cols)
+  output <- matrix(1, nrow=n.row, ncol=n.cols)
   p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
   thresholds <- matrix(nrow=length(p.thresholds), ncol=n.cols)
   
@@ -316,8 +339,13 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     cat("  Computing threshold for ", columns[i], "\n")
     qobj <- 0
     if (columns[i] == "F-statistic") {
-      qobj <- qvalue(pf(buffer[mask > 0.5, columns[i]],
-                        df[1], df[2], lower.tail=F))
+      if (is.matrix(buffer)) { 
+        qobj <- qvalue(pf(buffer[mask > 0.5, columns[i]],
+                          df[1], df[2], lower.tail=F))
+      }
+      else {
+        qobj <- qvalue(pf(buffer[mask>0.5], df[1], df[2], lower.tail=F))
+      }
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
                                   df[1], df[2], lower.tail=F)
@@ -326,7 +354,12 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     }
                    
     else {
-      qobj <- qvalue(pt2(buffer[mask>0.5, columns[i]], df[2]))
+      if (is.matrix(buffer)) {
+        qobj <- qvalue(pt2(buffer[mask>0.5, columns[i]], df[2]))
+      }
+      else {
+        qobj <- qvalue(pt2(buffer[mask>0.5], df[2]))
+      }
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]])/2,
                               df[2], lower.tail=F)
