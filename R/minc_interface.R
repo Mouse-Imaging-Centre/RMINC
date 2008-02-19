@@ -287,18 +287,19 @@ mincFDR <- function(buffer, ...) {
 
 # mincFDR for data not created in the same R session; i.e. obtained
 # from mincGetVolume
-mincFDR.mincSingleDim <- function(buffer, df, mask=NULL) {
+mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue") {
   if (is.null(df)) {
     stop("Error: need to specify the degrees of freedom")
   }
   if (length(df) == 1) {
     df <- c(1,df)
   }
-  mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df)
+  mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method)
 }
 
 # mincFDR for a local buffer created by mincLm
-mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
+mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
+                                 method="qvalue") {
   test <- try(library(qvalue))
   if (class(test) == "try-error") {
     stop("The qvalue package must be installed for mincFDR to work")
@@ -337,15 +338,29 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
   
   for (i in 1:n.cols) {
     cat("  Computing threshold for ", columns[i], "\n")
+    pvals <- 0
     qobj <- 0
     if (columns[i] == "F-statistic") {
+      # convert statistics to p-values
       if (is.matrix(buffer)) { 
-        qobj <- qvalue(pf(buffer[mask > 0.5, columns[i]],
-                          df[1], df[2], lower.tail=F))
+        pvals <- pf(buffer[mask > 0.5, columns[i]],
+                          df[1], df[2], lower.tail=F)
       }
       else {
-        qobj <- qvalue(pf(buffer[mask>0.5], df[1], df[2], lower.tail=F))
+        pvals <- pf(buffer[mask>0.5], df[1], df[2], lower.tail=F)
       }
+      # determine corresponding q values
+      if (method=="qvalue") {
+        qobj <- qvalue(pvals)
+      }
+      else if (method == "padjust") {
+        qobj$pvalue <- pvals
+        qobj$qvalue <- p.adjust(pvals, "fdr")
+      }
+      else if (method == "fastqvalue") {
+        qobj <- fast.qvalue(pvals)
+      }
+      # calculate thresholds at different sig levels
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
                                   df[1], df[2], lower.tail=F)
@@ -354,11 +369,23 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     }
                    
     else {
+      # compute p-values
       if (is.matrix(buffer)) {
-        qobj <- qvalue(pt2(buffer[mask>0.5, columns[i]], df[2]))
+        pvals <-pt2(buffer[mask>0.5, columns[i]], df[2])
       }
       else {
-        qobj <- qvalue(pt2(buffer[mask>0.5], df[2]))
+        pvals <- pt2(buffer[mask>0.5], df[2])
+      }
+      # determine corresponding q values
+      if (method == "qvalue") {
+        qobj <- qvalue(pvals)
+      }
+      else if (method == "padjust") {
+        qobj$pvalue <- pvals
+        qobj$qvalue <- p.adjust(pvals, "fdr")
+      }
+      else if (method == "fastqvalue") {
+        qobj <- fast.qvalue(pvals)
       }
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]])/2,
@@ -373,7 +400,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
   colnames(output) <- columns
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- df
-  class(output) <- c("mincQvals", "mincMultiDim")
+  class(output) <- c("mincQvals", "mincMultiDim", "matrix")
   return(output)
 }
    
