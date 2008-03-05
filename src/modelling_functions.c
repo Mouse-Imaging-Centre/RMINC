@@ -482,16 +482,18 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   
 /* minc2_model: run one of a set of modelling function at every voxel
  * filenames: character list of minc2 volumes.
- * y: the variable to model each voxel with. For t-stats and wilcoxon this
- *    is a grouping variable, for correlations it is the correlate. Should
- *    be passed in as a an array of doubles.
+ * Sx: variable that each particular function will work on. The model matrix 
+ *     for method "lm", for example, or the function string for method "eval"
  * have_mask: a double of either 0 or 1 depending on whether a mask should
  *            be used.
  * mask: a string containing the mask filename.
+ * rho: the environment - only used by method "eval"
+ * nresults: the number of columns in the result - only used by method "eval"
  * method: a string containing one of "t-test", "wilcoxon", or "correlation"
  */
 SEXP minc2_model(SEXP filenames, SEXP Sx,
-			    SEXP have_mask, SEXP mask, SEXP method) {
+		 SEXP have_mask, SEXP mask, 
+		 SEXP rho, SEXP nresults, SEXP method) {
   int                result;
   mihandle_t         *hvol, hmask;
   char               *method_name;
@@ -583,6 +585,13 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
     PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 
 			       xn_groups[0]));
 
+  }
+  /* allocate stuff for evaluation arbitrary functions */
+  else if (strcmp(method_name, "eval") == 0) {
+    xn_groups = REAL(nresults);
+    PROTECT(t_sexp = allocVector(REALSXP, xn_groups[0]));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]),
+			       xn_groups[0]));
   }
   /* allocate stuff necessary for fitting linear models */
   else if (strcmp(method_name, "lm") == 0) {
@@ -714,7 +723,15 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 		= REAL(t_sexp)[i];
 	    }
 	  }
-
+	  else if (strcmp(method_name, "eval") == 0) {
+	    /* install the variable "x" into environment */
+	    defineVar(install("x"), buffer, rho);
+	    t_sexp = eval(Sx, rho);
+	    for(i=0; i < xn_groups[0]; i++) {
+	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
+		= REAL(t_sexp)[i];
+	    }
+	  }
 	  else if (strcmp(method_name, "lm") == 0) {
 	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
 			      work, qraux, v, pivot, se, t);
@@ -755,6 +772,9 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 	   strcmp(method_name, "var") == 0 ||
 	   strcmp(method_name, "sum") == 0) {
     UNPROTECT(4);
+  }
+  else if (strcmp(method_name, "eval") == 0) {
+    UNPROTECT(3);
   }
   else {
     UNPROTECT(2);

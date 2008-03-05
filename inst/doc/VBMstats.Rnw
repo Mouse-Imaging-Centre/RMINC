@@ -23,6 +23,8 @@
 
 \input{bits_and_pieces.tex}
 
+\input{arbitrary_methods.tex}
+
 \printindex
 
 \end{document}
