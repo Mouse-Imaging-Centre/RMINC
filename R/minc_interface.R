@@ -107,7 +107,7 @@ mincGetVolume <- function(filename) {
                as.integer(start),
                as.integer(sizes),
                hs=double(total.size))$hs
-  class(output) <- c("mincSingleDim", "vector")
+  class(output) <- c("mincSingleDim", "numeric")
   return(output)
 }
 
@@ -228,7 +228,8 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
-# run a linear model at each voxel
+
+
 mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -265,13 +266,10 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
-# two tailed version of pt
 pt2 <- function(q, df,log.p=FALSE) {
   2*pt(-abs(q), df, log.p=log.p)
 }
 
-# returns a mask as a vector - either by loading the file
-# or just passing through the vector passed in.
 mincGetMask <- function(mask) {
   if (class(mask) == "character") {
     return(mincGetVolume(mask))
@@ -285,41 +283,14 @@ mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
 
-# mincFDR for data not created in the same R session; i.e. obtained
-# from mincGetVolume
-mincFDR.mincSingleDim <- function(buffer, df, mask=NULL) {
-  if (is.null(df)) {
-    stop("Error: need to specify the degrees of freedom")
-  }
-  if (length(df) == 1) {
-    df <- c(1,df)
-  }
-  mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df)
-}
-
-# mincFDR for a local buffer created by mincLm
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
   test <- try(library(qvalue))
   if (class(test) == "try-error") {
     stop("The qvalue package must be installed for mincFDR to work")
   }
 
-  if (is.null(columns)) {
-    columns <- colnames(buffer)
-    cat("\nComputing FDR threshold for all columns\n")
-  }
-
-  n.cols <- length(columns)
-  n.row <-0
-  if (is.matrix(buffer)) {
-    n.row <- nrow(buffer)
-  }
-  else {
-    n.row <- length(buffer)
-  }
-  
   if (is.null(mask)) {
-    mask <- vector(length=n.row) + 1
+    mask <- vector(length=nrow(buffer)) + 1
   }
   else {
     mask <- mincGetMask(mask)
@@ -331,7 +302,13 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
   }
 
-  output <- matrix(1, nrow=n.row, ncol=n.cols)
+  if (is.null(columns)) {
+    columns <- colnames(buffer)
+    cat("\nComputing FDR threshold for all columns\n")
+  }
+
+  n.cols <- length(columns)
+  output <- matrix(1, nrow=nrow(buffer), ncol=n.cols)
   p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
   thresholds <- matrix(nrow=length(p.thresholds), ncol=n.cols)
   
@@ -339,13 +316,8 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     cat("  Computing threshold for ", columns[i], "\n")
     qobj <- 0
     if (columns[i] == "F-statistic") {
-      if (is.matrix(buffer)) { 
-        qobj <- qvalue(pf(buffer[mask > 0.5, columns[i]],
-                          df[1], df[2], lower.tail=F))
-      }
-      else {
-        qobj <- qvalue(pf(buffer[mask>0.5], df[1], df[2], lower.tail=F))
-      }
+      qobj <- qvalue(pf(buffer[mask > 0.5, columns[i]],
+                        df[1], df[2], lower.tail=F))
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
                                   df[1], df[2], lower.tail=F)
@@ -354,12 +326,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     }
                    
     else {
-      if (is.matrix(buffer)) {
-        qobj <- qvalue(pt2(buffer[mask>0.5, columns[i]], df[2]))
-      }
-      else {
-        qobj <- qvalue(pt2(buffer[mask>0.5], df[2]))
-      }
+      qobj <- qvalue(pt2(buffer[mask>0.5, columns[i]], df[2]))
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]])/2,
                               df[2], lower.tail=F)
@@ -565,3 +532,113 @@ minc.slow.lme <- function(filenames, fixed.effect, random.effect,
 
 }
   
+
+# calls ray_trace_crosshair.pl to generate a pretty picture of an anatomical slice
+# with a stats slice overlayed and a crosshair indicating the coordinate (peak)
+# of interest
+mincRayTraceStats <- function(v, anatomy.volume, stats, caption="t-statistic",
+fdr=NULL, slice.direction="transverse",
+outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE) 
+{
+	#check whether ray_trace_crosshair is installed
+	lasterr <- try(system("ray_trace_crosshair", ignore.stderr = TRUE), silent=TRUE)
+	if(lasterr == 32512)
+	{
+		stop("ray_trace_crosshair must be installed for mincRayTraceStats to work.")
+	}
+	
+	#check whether the first argument is a mincVoxel:
+	if(class(v)[1] != "mincVoxel")
+	{
+		stop("Please specify a mincVoxel")
+	}
+	
+	#create a system call for ray_trace_crosshair.pl
+	systemcall <- array()	
+	systemcall[1] <- "ray_trace_crosshair"
+	systemcall[2] <- "-x"
+	systemcall[3] <- attr(v,"worldCoord")[1]
+	systemcall[4] <- "-y"
+	systemcall[5] <- attr(v,"worldCoord")[2]
+	systemcall[6] <- "-z"
+	systemcall[7] <- attr(v,"worldCoord")[3]
+	systemcall[8] <- "-caption"
+	systemcall[9] <- caption
+	
+	i <- 10;
+	if(class(anatomy.volume)[1] == "character")
+	{
+		systemcall[i] <- "-final-nlin"
+		i <- i + 1
+		systemcall[i] <- anatomy.volume
+		i <- i + 1
+	}
+	else #(class(anatomy.volume)[1] == "mincSingleDim")
+	{
+		stop("Please specify the path to the anatomy volume.")
+	}
+	
+	if(class(stats) == "character")
+	{
+		systemcall[i] <- "-jacobian"
+		i <- i + 1
+		systemcall[i] <- stats
+		i <- i + 1
+	}
+	else if(class(stats) == "numeric")
+	{
+		#write buffer to file
+		mincWriteVolume(stats, "/tmp/R-wrapper-ray-trace-stats.mnc", anatomy.volume)
+		systemcall[i] <- "-jacobian"
+		i <- i + 1
+		systemcall[i] <- "/tmp/R-wrapper-ray-trace-stats.mnc"
+		i <- i + 1
+	}
+	
+	if(class(fdr) == "numeric")
+	{
+		systemcall[i] <- "-fdr"
+		i <- i + 1
+		systemcall[i] <- fdr
+		i <- i + 1
+	}
+	
+	systemcall[i] <- "-outputfile"
+	i <- i + 1
+	systemcall[i] <- outputfile
+	i <- i + 1
+	
+	systemcall[i] <- "-slicedirection"
+	i <- i + 1
+	systemcall[i] <- slice.direction
+	i <- i + 1
+	
+	if(show.pos.and.neg == FALSE)
+	{
+		systemcall[i] <- "-no-show-pos-and-neg"
+		i <- i + 1
+	}
+	else
+	{
+		systemcall[i] <- "-show-pos-and-neg"
+		i <- i + 1
+	}
+
+	systemcall[i] <- "-remove-temp"
+	i <- i + 1
+	
+ 	system(paste(systemcall, collapse = " " ))
+ 						
+  if(display) 
+  {
+    system(paste("display", outputfile, "&"))
+  }
+  
+  if(class(stats) ==  "numeric")
+	{
+		#remove the file written to disk
+		system(paste("rm -f /tmp/R-wrapper-ray-trace-stats.mnc"))
+	}
+  
+}
+
