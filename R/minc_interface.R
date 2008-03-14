@@ -535,6 +535,7 @@ mincApply <- function(filenames, function.string, mask=NULL) {
   else {
     class(results) <- c("mincSingleDim", "numeric")
   }
+  return(results)
 }
 
 # efficient way of applying an R function to every voxel
