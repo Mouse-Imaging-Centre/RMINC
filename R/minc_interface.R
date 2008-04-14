@@ -16,7 +16,7 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
                as.integer(v2),
                as.integer(v3),
                o=double(length=num.files))$o
-  class(output) <- c("mincVoxel", class(output))
+  class(output) <- c("mincVoxel", "vector")
   attr(output, "filenames") <- filenames
   attr(output, "voxelCoord") <- c(v1,v2,v3)
   attr(output, "worldCoord") <- mincConvertVoxelToWorld(filenames[1],v1,v2,v3)
@@ -41,7 +41,7 @@ mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
                as.double(v2),
                as.double(v3),
                o=double(length=num.files))$o
-  class(output) <- c("mincVoxel", class(output))
+  class(output) <- c("mincVoxel", "vector")
   attr(output, "filenames") <- filenames
   attr(output, "worldCoord") <- c(v1,v2,v3)
   attr(output, "voxelCoord") <- mincConvertWorldToVoxel(filenames[1],v1,v2,v3)
@@ -49,7 +49,7 @@ mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
 }
 
 # the print function for a voxel
-print.mincVoxel <- function(x, filenames=FALSE) {
+print.mincVoxel <- function(x, filenames=FALSE, digits=NULL) {
   if (filenames == FALSE) {
     print.table(x)
   }
@@ -107,7 +107,8 @@ mincGetVolume <- function(filename) {
                as.integer(start),
                as.integer(sizes),
                hs=double(total.size))$hs
-  class(output) <- c("mincSingleDim", "vector")
+  class(output) <- c("mincSingleDim", "numeric")
+  attr(output, "filename") <- filename
   return(output)
 }
 
@@ -121,6 +122,7 @@ print.mincMultiDim <- function(x) {
 print.mincSingleDim <- function(x) {
   cat("MINC volume\n")
   print(attr(x, "likeVolume"))
+  print(attr(x, "filename"))
 }
 
 print.mincQvals <- function(x) {
@@ -144,7 +146,7 @@ mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, like
   if (is.null(like.filename)) {
     like.filename <- attr(buffer, "likeVolume")
   }
-  if (is.na(file.info(like.filename)$size)) {
+  if (is.na(file.info(as.character(like.filename))$size)) {
     stop(c("File ", like.filename, " cannot be found.\n"))
   }
 
@@ -624,7 +626,13 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
 # calls ray_trace_crosshair.pl to generate a pretty picture of an anatomical slice
 # with a stats slice overlayed and a crosshair indicating the coordinate (peak)
 # of interest
-mincRayTraceStats <- function(v, anatomy.volume, stats, caption="t-statistic",
+mincRayTraceStats <- function(v, anatomy.volume, 
+statsbuffer, column=1, like.filename=NULL, mask=NULL,
+image.min=-1000, image.max=4000,
+output.width=800, output.height=800,
+place.inset=FALSE, inset=NULL,
+stats.largest.pos=NULL, stats.largest.neg=NULL,
+caption="t-statistic",
 fdr=NULL, slice.direction="transverse",
 outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE) 
 {
@@ -634,6 +642,9 @@ outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE)
 	{
 		stop("ray_trace_crosshair must be installed for mincRayTraceStats to work.")
 	}
+	
+	#############################################################################
+	################################# VOXEL #####################################
 	
 	#check whether the first argument is a mincVoxel:
 	if(class(v)[1] != "mincVoxel")
@@ -653,37 +664,154 @@ outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE)
 	systemcall[8] <- "-caption"
 	systemcall[9] <- caption
 	
+	#############################################################################
+	############################## ANATOMY VOLUME ###############################
+	
 	i <- 10;
+	systemcall[i] <- "-final-nlin"
+	i <- i + 1
 	if(class(anatomy.volume)[1] == "character")
 	{
-		systemcall[i] <- "-final-nlin"
-		i <- i + 1
 		systemcall[i] <- anatomy.volume
 		i <- i + 1
 	}
-	else #(class(anatomy.volume)[1] == "mincSingleDim")
+	else if(class(anatomy.volume)[1] == "mincSingleDim")
 	{
-		stop("Please specify the path to the anatomy volume.")
+		systemcall[i] <- attr(anatomy.volume, "filename")
+		i <- i + 1
+	}
+	else
+	{
+		stop("Please specify the path to the anatomy volume, or a mincSingleDim containing the anatomy volume.")
 	}
 	
-	if(class(stats) == "character")
+	#############################################################################
+	################################ STATS VOLUME ###############################
+	
+	systemcall[i] <- "-jacobian"
+	i <- i + 1
+	if(class(statsbuffer)[1] == "character")
 	{
-		systemcall[i] <- "-jacobian"
-		i <- i + 1
-		systemcall[i] <- stats
+		systemcall[i] <- statsbuffer
 		i <- i + 1
 	}
-	else if(class(stats) == "numeric")
+	
+	if(class(statsbuffer)[1] == "numeric")
 	{
+		if (is.na(file.info(as.character(like.filename))$size)) 
+		{
+ 	  	stop(c("File ", like.filename, " cannot be found.\n"))
+		}
 		#write buffer to file
-		mincWriteVolume(stats, "/tmp/R-wrapper-ray-trace-stats.mnc", anatomy.volume)
-		systemcall[i] <- "-jacobian"
-		i <- i + 1
+		mincWriteVolume.default(statsbuffer, "/tmp/R-wrapper-ray-trace-stats.mnc", like.filename)
+		
 		systemcall[i] <- "/tmp/R-wrapper-ray-trace-stats.mnc"
 		i <- i + 1
 	}
 	
-	if(class(fdr) == "numeric")
+	if(class(statsbuffer)[1] == "mincMultiDim")
+	{
+		if (is.null(like.filename)) 
+		{
+    	like.filename <- attr(statsbuffer, "likeVolume")
+  	}
+		if (is.na(file.info(like.filename)$size)) 
+		{
+ 	  	stop(c("File ", like.filename, " cannot be found.\n"))
+		}
+		
+		#write buffer to file
+		mincWriteVolume.default(statsbuffer[,column], "/tmp/R-wrapper-ray-trace-stats.mnc", like.filename)
+		
+		systemcall[i] <- "/tmp/R-wrapper-ray-trace-stats.mnc"
+		i <- i + 1
+	}
+			
+	if(class(mask) != "NULL")
+	{
+		path.to.mask = "init"
+		if(class(mask)[1] == "character")
+		{
+			path.to.mask = mask
+		}
+		else if(class(mask)[1] == "mincSingleDim")
+		{
+			path.to.mask <- attr(mask, "filename")
+		}
+		system(paste("mv /tmp/R-wrapper-ray-trace-stats.mnc /tmp/R-wrapper-ray-trace-stats-full.mnc"))
+		system(paste("mincmask /tmp/R-wrapper-ray-trace-stats.mnc /tmp/R-wrapper-ray-trace-stats-full.mnc", path.to.mask, "/tmp/R-wrapper-ray-trace-stats.mnc"))
+		system(paste("rm -f /tmp/R-wrapper-ray-trace-stats.mnc /tmp/R-wrapper-ray-trace-stats-full.mnc"))
+	}
+	
+	#############################################################################
+	########################### IMAGE INTENSITY EXTREMA #########################
+	
+	systemcall[i] <- "-image-min"
+	i <- i + 1
+	systemcall[i] <- image.min
+	i <- i + 1
+	systemcall[i] <- "-image-max"
+	i <- i + 1
+	systemcall[i] <- image.max
+	i <- i + 1
+	
+	#############################################################################
+	########################### OUTPUT IMAGE DIMENSIONS #########################
+	
+	systemcall[i] <- "-image-width"
+	i <- i + 1
+	systemcall[i] <- output.width
+	i <- i + 1
+	systemcall[i] <- "-image-height"
+	i <- i + 1
+	systemcall[i] <- output.height
+	i <- i + 1
+	
+	#############################################################################
+	################################### INSET ###################################
+	
+	if(place.inset == FALSE)
+	{
+		systemcall[i] <- "-no-place-inset"
+		i <- i + 1
+	}
+	else
+	{
+		systemcall[i] <- "-place-inset"
+		i <- i + 1
+	}
+	
+	if(! is.null(inset))
+	{
+		systemcall[i] <- "-brainsurface"
+		i <- i + 1
+		systemcall[i] <- inset
+		i <- i + 1
+	}
+	
+	#############################################################################
+	########################### STATS EXTREMA ###################################
+	
+	if(! is.null(stats.largest.pos))
+	{
+		systemcall[i] <- "-positive-max"
+		i <- i + 1
+		systemcall[i] <- stats.largest.pos
+		i <- i + 1
+	}
+	
+	if(! is.null(stats.largest.neg))
+	{
+		systemcall[i] <- "-negative-min"
+		i <- i + 1
+		systemcall[i] <- stats.largest.neg
+		i <- i + 1
+	}
+	
+	#############################################################################
+	################################ FDR ########################################
+	
+	if(class(fdr)[1] == "numeric")
 	{
 		systemcall[i] <- "-fdr"
 		i <- i + 1
@@ -691,15 +819,24 @@ outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE)
 		i <- i + 1
 	}
 	
+	#############################################################################
+	########################### OUTPUTFILE ######################################
+	
 	systemcall[i] <- "-outputfile"
 	i <- i + 1
 	systemcall[i] <- outputfile
 	i <- i + 1
 	
+	#############################################################################
+	########################### SLICE DIRECTION #################################
+	
 	systemcall[i] <- "-slicedirection"
 	i <- i + 1
 	systemcall[i] <- slice.direction
 	i <- i + 1
+	
+	#############################################################################
+	#################### SHOW POSITIVE AND NEGATIVE #############################
 	
 	if(show.pos.and.neg == FALSE)
 	{
@@ -712,6 +849,9 @@ outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE)
 		i <- i + 1
 	}
 
+	#############################################################################
+	#############################################################################
+
 	systemcall[i] <- "-remove-temp"
 	i <- i + 1
 	
@@ -722,7 +862,7 @@ outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE)
     system(paste("display", outputfile, "&"))
   }
   
-  if(class(stats) ==  "numeric")
+  if(class(statsbuffer)[1] ==  "numeric")
 	{
 		#remove the file written to disk
 		system(paste("rm -f /tmp/R-wrapper-ray-trace-stats.mnc"))
