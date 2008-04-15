@@ -487,7 +487,7 @@ minc.model <- function(filenames, groupings, method="t-test",
                          as.character(method))
 
     # get the first voxel in order to get the dimension names
-    v.firstVoxel <- minc.get.voxel.from.files(filenames, 0,0,0)
+    v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
     rows <- sub('mmatrix', '',
                 rownames(summary(lm(v.firstVoxel ~ groupings))$coefficients))
     colnames(result$data) <- c("F-statistic", rows)
@@ -506,6 +506,7 @@ minc.model <- function(filenames, groupings, method="t-test",
   }
   return(result)
 }
+
 
 # create a 2D array of full volumes of all files specified.
 minc.get.volumes <- function(filenames) {
@@ -739,8 +740,8 @@ outputfile="ray_trace_crosshair.png", show.pos.and.neg=FALSE, display=TRUE)
 			path.to.mask <- attr(mask, "filename")
 		}
 		system(paste("mv /tmp/R-wrapper-ray-trace-stats.mnc /tmp/R-wrapper-ray-trace-stats-full.mnc"))
-		system(paste("mincmask /tmp/R-wrapper-ray-trace-stats.mnc /tmp/R-wrapper-ray-trace-stats-full.mnc", path.to.mask, "/tmp/R-wrapper-ray-trace-stats.mnc"))
-		system(paste("rm -f /tmp/R-wrapper-ray-trace-stats.mnc /tmp/R-wrapper-ray-trace-stats-full.mnc"))
+		system(paste("mincmask /tmp/R-wrapper-ray-trace-stats-full.mnc", path.to.mask, "/tmp/R-wrapper-ray-trace-stats.mnc"))
+		system(paste("rm -f /tmp/R-wrapper-ray-trace-stats-full.mnc"))
 	}
 	
 	#############################################################################

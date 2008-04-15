@@ -1,11 +1,31 @@
 \chapter{Linear Models}
 
+Linear models represent the mainstay of structural brain
+imaging. Their essence is quite simple: the data at every voxel is
+modelled by a set of terms corresponding to extra information about
+each scan. One can then perform hypothesis tests on each linear model
+to calculate the significance of either the entire model or even the
+marginal significance of each term in the model. This can be used to
+ask the question of, for example, in which voxels the gender of the
+subject predicts the values at that voxel.
+
+This approach is also known as {\em massively univariate statistics} -
+i.e. a separate linear model is calculated at every voxel, resulting
+in thousands or even millions of separate models for every statistical
+test applied to the images. The last step in analysing such data is
+thus often to account for these thousands of comparisons so that the
+results do not occur just by random chance.
+
 \section{First linear model}
 
+Let's start with a simple linear model - lets see where the Jacobian
+determinants contained in the files used in the male-female dataset
+are best modelled by the gender of the mouse.
+
 <<>>=
-vs <- mincLm(jacobians ~ Genotype, gf)
+vs <- mincLm(Filename ~ Gender, gf)
 vs
-mincWriteVolume(vs, "simple-lm.mnc", "Genotype+")
+mincWriteVolume(vs, "simple-lm.mnc", "GenderMale")
 @ 
 
 mincLm is the command to run linear models in RMINC. Its basic use is
@@ -15,7 +35,7 @@ to be regressed. The output of mincLm depends on the formula. There
 will always be a column of F-statistics, representing the significance
 of the entire model. Then there is one column for each of the terms in
 the mode. The above linear model, relating the Jacobian determinant to
-Genotype, will thus have three columns:
+gender, will thus have three columns:
 
 \begin{description}
 \item[F-statistic] representing the significance of the entire model.
@@ -23,8 +43,8 @@ Genotype, will thus have three columns:
   interesting, as it tests for whether the intercept is 0. There's no
   reason to believe it should be in most cases, so this value will be
   highly significant but meaningless.
-\item[Genotype+] the term testing whether the ``+'' level of the
-  Genotype factor is significant. In this case this term is the most
+\item[GenderMale] the term testing whether the ``Male'' level of the
+  Gender factor is significant. In this case this term is the most
   interesting and therefore the one written to file.
 \end{description}
 
@@ -36,19 +56,24 @@ the same way as described in the descriptive statistics section.
 
 <<>>=
 options(show.signif.stars=FALSE)
-voxel <- mincGetVoxel(gf$jacobians,0,0,0)
-summary(lm(voxel ~ Genotype, gf))
-vs[1,]
+voxel <- mincGetVoxel(gf$Filename, 44, 20, 52)
+summary(lm(voxel ~ Gender, gf))
+vs[635093,]
 @ 
 
 The code above does the following: it gets the voxel from coordinates
-0,0,0 for all subjects, then computes a linear model relating that
-voxel to Genotype using standard R functions. Lastly it prints the
-results from that same voxel as computed by \texttt{mincLm}. This
-helps illustrate what the output of \texttt{mincLm} stores: the
-F-statistic is the same as can be found in the last line of the
-summary command, and the t-statistics for the Intercept and Genotype
-column can be found under "t-value" when using standard R functions.
+44, 20, 52 for all subjects, then computes a linear model relating
+that voxel to Genotype using standard R functions. Lastly it prints
+the results from that same voxel as computed by
+\texttt{mincLm}\footnote{The actual number indexed here - 635093 -
+  might appear odd. RMINC treats all MINC volumes as 1-dimensional
+  arrays, so the actual index has to be computed by the following
+  formula: $\left(index_1 * size_2 + index_2\right) + size_3 +
+  index_3$}. This helps illustrate what the output of \texttt{mincLm}
+stores: the F-statistic is the same as can be found in the last line
+of the summary command, and the t-statistics for the Intercept and
+Genotype column can be found under "t-value" when using standard R
+functions.
 
 \texttt{mincGetVoxel} needs three coordinates, given in voxel space in
 the same order as stored in the file. Just printing the voxel will
@@ -63,9 +88,21 @@ If the coordinates are specified in world coordinates then
 coordinates, this time in world space in xspace,yspace,zspace order:
 
 <<>>=
-world.voxel <- mincGetWorldVoxel(gf$jacobians, -6.27, -8.19, -4.2)
+world.voxel <- mincGetWorldVoxel(gf$Filename, -6.27, -8.19, -4.2)
 world.voxel
 @ 
+
+\section{Creating images}
+<<>>=
+mincRayTraceStats(voxel, "volumes/anatomy.mnc",
+                  vs, "GenderMale", image.min=350000, image.max=1.0e+06)
+@ 
+
+\begin{figure}
+\centering
+\includegraphics[width=3in]{ray_trace_crosshair.png}
+\caption{Example figure}
+\end{figure}
 
 \section{Using subsets}
 
@@ -74,7 +111,7 @@ the data. This can be quite easily accomplished in \texttt{mincLm}
 using an extra subsetting specification:
 
 <<>>=
-vs <- mincLm(jacobians ~ Genotype, gf, Sex=="M")
+vs <- mincLm(Filename ~ Gender, gf, coil==1)
 vs
 @ 
 
@@ -88,10 +125,10 @@ running a linear model and correcting for multiple comparisons using
 the False Discovery Rate:
 
 <<>>=
-vs <- mincLm(jacobians ~ Sex * Genotype, gf)
-qvals <- mincFDR(vs, mask="mask.mnc")
+vs <- mincLm(Filename ~ Gender * weight, gf)
+qvals <- mincFDR(vs, mask="volumes/mask.mnc")
 qvals
-mincWriteVolume(qvals, "Genotype-FDR.mnc", "Genotype+")
+mincWriteVolume(qvals, "Gender-FDR.mnc", "GenderMale")
 @ 
 
 The first command computes an ANOCA using \texttt{mincLm}. The results

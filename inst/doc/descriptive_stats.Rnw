@@ -1,46 +1,80 @@
 \chapter{Descriptive statistics}
 
-Introduction to what descriptive statistics are and what they are good for.
+Before going into explicit hypothesis tests it is often useful to get
+a general feel for what the data looks like - this is where
+descriptive statistics come in. The most common functions include
+computing the mean and variance or standard deviation at every
+voxel. If the data is inherently divided into groups, such as patients
+and control, or, in our example dataset, males versus females, then
+the descriptive stats can also be grouped by those variables.
 
-
-Group means and standard deviations.
+To start we can look at the mean Jacobian determinant at every voxel
+of all the data combined:
 
 <<>>=
 library(RMINC)
-overall.mean <- mincMean(gf$jacobians)
+overall.mean <- mincMean(gf$Filename)
 overall.mean
 @ 
 
-Writing to file.
+The \texttt{mincMean} function computes the mean at every voxel of a
+set of filenames specified as an argument. The output is in this case
+assigned to the \texttt{overall.mean} variable. Repeating the variable
+in the R session, as done above, causes a summary to be printed.
+
+One thing to note about the R syntax above: the dollar symbol is used to access a specific column inside a data frame. What this means is that inside the \texttt{gf} variable - which, remember, is the variable that was read in from the comma-separated values file which describes the dataset - each column has a name which can be accessed by that dollar variable. Here are some examples, first showing the entire contents of \texttt{gf} and then two separate columns alone:
+
+<<>>=
+gf
+gf$Filename
+gf$Gender
+@ 
+
+So if, in the text file that describes the dataset, the column
+containing all the filenames was called ``jacobians'', then the
+\texttt{mincMean} command would have been
+\texttt{mincMean(gf\$jacobians)}.
+
+Once the means at every voxel have been computed, they can be written
+to file. This is done with command below:
+
 <<>>=
 mincWriteVolume(overall.mean, "overall-mean.mnc")
 @ 
+
+The \texttt{mincWriteVolume} command takes two arguments in the above
+example - the variable containing the data, and a string giving the
+filename to which the data should be written to. This MINC file can
+then be read and viewed with the standard MINC tools such as mincinfo,
+register, Display, etc.
+
+\section{Creating summaries by group}
 
 Most often we are more interested in how the means break down by the
 grouping in this dataset. This can be done by adding another variable
 to the mincMean call:
 
 <<>>=
-group.means <- mincMean(gf$jacobians, gf$Genotype)
+group.means <- mincMean(gf$Filename, gf$Gender)
 group.means
 @ 
 
-The {\em Genotype} variable has two levels in it: {\em +} and {\em
-  -}. So it will take the mean for all subjects in each group. These
+The {\em Gender} variable has two levels in it: {\em Male} and {\em
+  Female}. So it will take the mean for all subjects in each group. These
 can then be written to file by specifiying the column.
 
 <<>>=
-mincWriteVolume(group.means, "group1.mnc", "+")
-mincWriteVolume(group.means, "group2.mnc", "-")
+mincWriteVolume(group.means, "male-mean.mnc", "Male")
+mincWriteVolume(group.means, "female-mean.mnc", "Female")
 @ 
 
 If the difference between the two columns is of interest, one can just
 subtract the two data columns:
 
 <<>>=
-difference <- group.means[,"+"] - group.means[,"-"]
+difference <- group.means[,"Male"] - group.means[,"Female"]
 mean(difference)
-mincWriteVolume(difference, "diff.mnc", gf$jacobians[1])
+mincWriteVolume(difference, "diff.mnc", gf$Filename[1])
 @ 
 
 Notice how {\em mincWriteVolume} now needs a third argument: the name
@@ -56,7 +90,7 @@ below. Just like {\em mincMean} a column of filenames is required and
 a grouping variable is optional.
 
 <<>>=
-v <- mincVar(gf$jacobians, gf$Genotype)
-s <- mincSd(gf$jacobians)
-s2 <- mincSum(gf$jacobians, gf$Genotype)
+v <- mincVar(gf$Filename, gf$Gender)
+s <- mincSd(gf$Filename)
+s2 <- mincSum(gf$Filename, gf$Gender)
 @ 

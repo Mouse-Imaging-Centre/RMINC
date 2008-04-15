@@ -10,7 +10,6 @@ analysed in a straightforward way. It is not meant to be a complete
 handbook on statistics, but hopefully will provide enough of a primer
 to get by, at least for a little while. 
 
-
 This mini-book exists for a number of reasons. I have over the years
 been asked multiple questions relating to structural brain imaging and
 statistics, and have had the chance to learn answers to those
@@ -111,3 +110,21 @@ datapoints.
 % correlations, regressions, and ANCOVAs, chapter \ref{chp:multiple}
 % addresses the issue of multiple comparisons, and chapter
 % \ref{chp:plotting} describes how to plot individual datapoints.
+
+\section{Data used throughout this book}
+
+This book will consistently work with one dataset consisting of 5 male
+and 5 female C57Bl/6 mice, taken from a larger dataset published in a
+2007 NeuroImage paper by Spring et al. The mice, all 12 weeks old,
+were scanned using an overnight T2-weighted FSE sequence, then all
+aligned into a common space using an automated image registration
+algorithm (i.e. deformation based morphometry). The final metric of
+interest was then the Jacobian determinant of the deformations needed
+to align each mouse to the final common atlas. These details are
+relatively unimportant for this book - the input might as well be
+voxel density maps from VBM - but at least it gives some background
+for those who care. If you want to follow along with the examples used
+in this book you can download the data at
+\url{http://launchpad.net/rminc}. Note that the data has been
+downsampled to 120 micron voxels (from the original 32 micron voxels)
+to keep the download within reasonable limits.
