@@ -2,7 +2,7 @@
 \usepackage{Sweave}
 \usepackage{url}
 \usepackage{makeidx}
-
+\usepackage{subfigure}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 

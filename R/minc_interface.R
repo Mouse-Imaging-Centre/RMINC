@@ -23,6 +23,14 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   return(output)
 }
 
+# test to see whether files exist and are readable
+mincFileCheck <- function(filenames) {
+  if (sum(file.access(as.character(filenames), 4)) != 0
+      || is.null(filenames)) {
+    stop("Not all filenames are readable")
+  }
+}
+
 # get the real value of one voxel from all files using world coordinates
 mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   num.files <- length(filenames)
@@ -99,6 +107,7 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
 
 # return a volume as a 1D array.
 mincGetVolume <- function(filename) {
+  mincFileCheck(filename)
   sizes <- minc.dimensions.sizes(filename)
   start <- c(0,0,0)
   total.size <- sizes[1] * sizes[2] * sizes[3]
@@ -245,6 +254,8 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   mmatrix <- model.matrix(formula, mf)
 
   method <- "lm"
+
+  mincFileCheck(filenames)
 
   result <- .Call("minc2_model",
                   as.character(filenames),
@@ -433,6 +444,7 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL) {
 
 
 mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
+  mincFileCheck(filenames)
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }

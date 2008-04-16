@@ -41,9 +41,9 @@ various automatic, semi-automatic, or manual ways and then analysed.
 This book deals mainly with the final part, the data analysis, though
 there will be several side-tracks into the other topics. A single
 example will be used throughout: a mouse brain imaging study comparing
-two genotypes. The methods described herein should be easily
-transferable to any other structural imaging study which looks at
-brain shape, tissue classification, or signal intensities. 
+male to female mouse brains. The methods described herein should be
+easily transferable to any other structural imaging study which looks
+at brain shape, tissue classification, or signal intensities.
 
 \section{Installing the tools}
 

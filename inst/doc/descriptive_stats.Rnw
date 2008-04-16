@@ -22,7 +22,13 @@ set of filenames specified as an argument. The output is in this case
 assigned to the \texttt{overall.mean} variable. Repeating the variable
 in the R session, as done above, causes a summary to be printed.
 
-One thing to note about the R syntax above: the dollar symbol is used to access a specific column inside a data frame. What this means is that inside the \texttt{gf} variable - which, remember, is the variable that was read in from the comma-separated values file which describes the dataset - each column has a name which can be accessed by that dollar variable. Here are some examples, first showing the entire contents of \texttt{gf} and then two separate columns alone:
+One thing to note about the R syntax above: the dollar symbol is used
+to access a specific column inside a data frame. What this means is
+that inside the \texttt{gf} variable - which, remember, is the
+variable that was read in from the comma-separated values file which
+describes the dataset - each column has a name which can be accessed
+by that dollar variable. Here are some examples, first showing the
+entire contents of \texttt{gf} and then two separate columns alone:
 
 <<>>=
 gf
@@ -34,6 +40,11 @@ So if, in the text file that describes the dataset, the column
 containing all the filenames was called ``jacobians'', then the
 \texttt{mincMean} command would have been
 \texttt{mincMean(gf\$jacobians)}.
+
+If an incorrect column is specified - i.e. something which does not
+contain filenames - then you should receive an error.
+
+\section{Writing results to file}
 
 Once the means at every voxel have been computed, they can be written
 to file. This is done with command below:
