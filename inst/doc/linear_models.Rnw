@@ -94,9 +94,9 @@ world.voxel
 
 \section{Creating images}
 
-RMINC has the ability to call ray_trace to create images of individual
+RMINC has the ability to call ray\_trace to create images of individual
 slices corresponding to a specific voxel. For this to work
-ray_trace\footnote{\url{http://packages.bic.mni.mcgill.ca}} has to be
+ray\_trace\footnote{\url{http://packages.bic.mni.mcgill.ca}} has to be
 installed and present in the path, as does
 MICe-minc-tools\footnote{\url{http://wiki.phenogenomics.ca:8080/display/MICePub/MICe-minc-tools}}. 
 
