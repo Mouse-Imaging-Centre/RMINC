@@ -1,0 +1,9 @@
+New in Version 0.5
+==================
+
+* mincApply can now produce more than one output per voxel.
+* mincFDR can now compute both the False Discovery Rate (default) as
+  well as the positive False Discovery Rate.
+* some more bits of documentation.
+* ability to create pretty pictures through ray-trace.
+* various bug fixes.

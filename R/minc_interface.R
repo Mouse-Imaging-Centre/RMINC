@@ -23,6 +23,14 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   return(output)
 }
 
+# test to see whether files exist and are readable
+mincFileCheck <- function(filenames) {
+  if (sum(file.access(as.character(filenames), 4)) != 0
+      || is.null(filenames)) {
+    stop("Not all filenames are readable")
+  }
+}
+
 # get the real value of one voxel from all files using world coordinates
 mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   num.files <- length(filenames)
@@ -99,6 +107,7 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
 
 # return a volume as a 1D array.
 mincGetVolume <- function(filename) {
+  mincFileCheck(filename)
   sizes <- minc.dimensions.sizes(filename)
   start <- c(0,0,0)
   total.size <- sizes[1] * sizes[2] * sizes[3]
@@ -230,8 +239,7 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
-
-
+# run a linear model at each voxel
 mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -247,11 +255,14 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 
   method <- "lm"
 
+  mincFileCheck(filenames)
+
   result <- .Call("minc2_model",
                   as.character(filenames),
                   as.matrix(mmatrix),
                   as.double(! is.null(mask)),
                   as.character(mask),
+                  NULL, NULL,
                   as.character(method))
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
@@ -268,10 +279,13 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
+# two tailed version of pt
 pt2 <- function(q, df,log.p=FALSE) {
   2*pt(-abs(q), df, log.p=log.p)
 }
 
+# returns a mask as a vector - either by loading the file
+# or just passing through the vector passed in.
 mincGetMask <- function(mask) {
   if (class(mask) == "character") {
     return(mincGetVolume(mask))
@@ -285,14 +299,44 @@ mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
 
-mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
-  test <- try(library(qvalue))
-  if (class(test) == "try-error") {
-    stop("The qvalue package must be installed for mincFDR to work")
+# mincFDR for data not created in the same R session; i.e. obtained
+# from mincGetVolume
+mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue") {
+  if (is.null(df)) {
+    stop("Error: need to specify the degrees of freedom")
+  }
+  if (length(df) == 1) {
+    df <- c(1,df)
+  }
+  mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method)
+}
+
+# mincFDR for a local buffer created by mincLm
+mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
+                                 method="FDR") {
+  if (method == "qvalue") {
+    test <- try(library(qvalue))
+    if (class(test) == "try-error") {
+      stop("The qvalue package must be installed for mincFDR to work")
+    }
   }
 
+  if (is.null(columns)) {
+    columns <- colnames(buffer)
+    cat("\nComputing FDR threshold for all columns\n")
+  }
+
+  n.cols <- length(columns)
+  n.row <-0
+  if (is.matrix(buffer)) {
+    n.row <- nrow(buffer)
+  }
+  else {
+    n.row <- length(buffer)
+  }
+  
   if (is.null(mask)) {
-    mask <- vector(length=nrow(buffer)) + 1
+    mask <- vector(length=n.row) + 1
   }
   else {
     mask <- mincGetMask(mask)
@@ -304,22 +348,35 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
   }
 
-  if (is.null(columns)) {
-    columns <- colnames(buffer)
-    cat("\nComputing FDR threshold for all columns\n")
-  }
-
-  n.cols <- length(columns)
-  output <- matrix(1, nrow=nrow(buffer), ncol=n.cols)
+  output <- matrix(1, nrow=n.row, ncol=n.cols)
   p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
   thresholds <- matrix(nrow=length(p.thresholds), ncol=n.cols)
   
   for (i in 1:n.cols) {
     cat("  Computing threshold for ", columns[i], "\n")
+    pvals <- 0
     qobj <- 0
     if (columns[i] == "F-statistic") {
-      qobj <- qvalue(pf(buffer[mask > 0.5, columns[i]],
-                        df[1], df[2], lower.tail=F))
+      # convert statistics to p-values
+      if (is.matrix(buffer)) { 
+        pvals <- pf(buffer[mask > 0.5, columns[i]],
+                          df[1], df[2], lower.tail=F)
+      }
+      else {
+        pvals <- pf(buffer[mask>0.5], df[1], df[2], lower.tail=F)
+      }
+      # determine corresponding q values
+      if (method=="qvalue") {
+        qobj <- qvalue(pvals)
+      }
+      else if (method == "FDR" | method == "p.adjust") {
+        qobj$pvalue <- pvals
+        qobj$qvalue <- p.adjust(pvals, "fdr")
+      }
+      else if (method == "pFDR" | method == "fastqvalue") {
+        qobj <- fast.qvalue(pvals)
+      }
+      # calculate thresholds at different sig levels
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
                                   df[1], df[2], lower.tail=F)
@@ -328,7 +385,24 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
     }
                    
     else {
-      qobj <- qvalue(pt2(buffer[mask>0.5, columns[i]], df[2]))
+      # compute p-values
+      if (is.matrix(buffer)) {
+        pvals <-pt2(buffer[mask>0.5, columns[i]], df[2])
+      }
+      else {
+        pvals <- pt2(buffer[mask>0.5], df[2])
+      }
+      # determine corresponding q values
+      if (method == "qvalue") {
+        qobj <- qvalue(pvals)
+      }
+      else if (method == "FDR" | method == "padjust") {
+        qobj$pvalue <- pvals
+        qobj$qvalue <- p.adjust(pvals, "fdr")
+      }
+      else if (method == "pFDR" | method == "fastqvalue") {
+        qobj <- fast.qvalue(pvals)
+      }
       for (j in 1:length(p.thresholds)) {
         thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]])/2,
                               df[2], lower.tail=F)
@@ -342,7 +416,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL) {
   colnames(output) <- columns
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- df
-  class(output) <- c("mincQvals", "mincMultiDim")
+  class(output) <- c("mincQvals", "mincMultiDim", "matrix")
   return(output)
 }
    
@@ -370,6 +444,7 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL) {
 
 
 mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
+  mincFileCheck(filenames)
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }
@@ -379,6 +454,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
                   as.double(grouping)-1,
                   as.double(! is.null(mask)),
                   as.character(mask),
+                  NULL, NULL,
                   as.character(method))
   attr(result, "likeVolume") <- as.character(filenames[1])
   attr(result, "filenames") <- as.character(filenames)
@@ -419,10 +495,11 @@ minc.model <- function(filenames, groupings, method="t-test",
                          as.matrix(groupings),
                          as.double(! is.null(mask)),
                          as.character(mask),
+                         NULL, NULL,
                          as.character(method))
 
     # get the first voxel in order to get the dimension names
-    v.firstVoxel <- minc.get.voxel.from.files(filenames, 0,0,0)
+    v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
     rows <- sub('mmatrix', '',
                 rownames(summary(lm(v.firstVoxel ~ groupings))$coefficients))
     colnames(result$data) <- c("F-statistic", rows)
@@ -436,10 +513,12 @@ minc.model <- function(filenames, groupings, method="t-test",
                     as.double(groupings),
                     as.double(! is.null(mask)),
                     as.character(mask),
+                    NULL, NULL,
                     as.character(method))
   }
   return(result)
 }
+
 
 # create a 2D array of full volumes of all files specified.
 minc.get.volumes <- function(filenames) {
@@ -452,18 +531,41 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
+mincApply <- function(filenames, function.string, mask=NULL) {
+  x <- mincGetVoxel(filenames, 0,0,0)
+  test <- eval(function.string)
+  results <- .Call("minc2_model",
+                   as.character(filenames),
+                   function.string,
+                   as.double(! is.null(mask)),
+                   as.character(mask),
+                   parent.env(environment()),
+                   as.double(length(test)),
+                   as.character("eval"));
+
+  attr(results, "likeVolume") <- filenames[1]
+  if (length(test) > 1) {
+    class(results) <- c("mincMultiDim", "matrix")
+  }
+  else {
+    class(results) <- c("mincSingleDim", "numeric")
+  }
+  return(results)
+}
 
 # efficient way of applying an R function to every voxel
-mincApply <- function(filenames, function.string, mask=NULL) {
-  result <- list(method=paste("mincApply:", function.string))
-  result$likeVolume <- filenames[1]
-  result$filenames <- filenames
-  result$data <- .Call("minc2_apply", as.character(filenames),
-                       function.string,
-                       as.double(! is.null(mask)),
-                       as.character(mask),
-                       parent.env(environment()))
-}
+## mincApply <- function(filenames, function.string, mask=NULL) {
+##   result <- list(method=paste("mincApply:", function.string))
+##   result$likeVolume <- filenames[1]
+##   result$filenames <- filenames
+##   result$data <- .Call("minc2_model",
+##                        as.character(filenames),
+##                        function.string,
+##                        as.double(! is.null(mask)),
+##                        as.character(mask),
+##                        parent.env(environment()),
+##                        as.character("eval"))
+## }
 
 # calls ray-trace to generate a pretty picture of a slice
 minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
@@ -523,13 +625,12 @@ minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
 # * can only return one statistical test
 # * is numbingly, dreadfully, stupifyingly slow.
 
-minc.slow.lme <- function(filenames, fixed.effect, random.effect,
-                          column, mask){
+mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
   voxel.slow.lme <- function(x) {
-    summary(lme(as.formula(fixed.effect), random=as.formula(random.effect)))$tTable[column,4]
+    summary(lme(as.formula(fixed.effect), random=as.formula(random.effect)))$tTable[,4]
   }
   assign("voxel.slow.lme", voxel.slow.lme, env=.GlobalEnv)
-  output <- minc.apply(filenames, quote(voxel.slow.lme(x)), mask)
+  output <- mincApply(filenames, quote(voxel.slow.lme(x)), mask)
   return(output)
 
 }

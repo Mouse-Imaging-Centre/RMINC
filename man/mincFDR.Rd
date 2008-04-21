@@ -14,11 +14,19 @@ qvals <- mincFDR(mincLm.object, mask="mask.mnc")
   \item{mask}{Either a filename or a numeric vector representing a mask
     - only values inside the mask will be used to compute the
     threshold.}
+  \item{df}{The degrees of freedom - normally this can be determined
+    from the input object.}
+  \item{method}{The method used to compute the false discovery
+    rate. Options are "FDR" and "pFDR".}
 }
 \details{This function uses the \link{qvalue} package to compute the
   False Discovery Rate threshold for the results of a \link{mincLm}
   computation. The False Discovery Rate represents the percentage of
-  results expected to be a false positive.}
+  results expected to be a false positive. Two implementations can be
+  used as specified by the method argument. "FDR" uses the
+  implementation in \link{p.adjust}, whereas "pFDR" is a version of the
+  postivie False Discovery Rate as found in John Storey's \link{qvalue}
+  package.} 
 \value{
   \item{qvals}{mincFDR returns an object with the same number of columns
     as the input (or the subset specified by the columns argument to

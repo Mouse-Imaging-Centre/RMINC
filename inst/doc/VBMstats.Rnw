@@ -2,7 +2,7 @@
 \usepackage{Sweave}
 \usepackage{url}
 \usepackage{makeidx}
-
+\usepackage{subfigure}
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
@@ -22,6 +22,8 @@
 \input{linear_models.tex}
 
 \input{bits_and_pieces.tex}
+
+\input{arbitrary_methods.tex}
 
 \printindex
 

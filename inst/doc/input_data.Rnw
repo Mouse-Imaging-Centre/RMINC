@@ -22,28 +22,32 @@ Mention cortical thickness, manual segmentation, etc.
 
 \section{Input data}
 
-Preparing the spreadsheet.
-
-Reading study information into R.
-
 Once the files have been processed, the easiest way to proceed is by
 settting up a text file containing all the necessary information about
 each scan. This file should be comma or space separated, have one row
 per scan, with each column containing info about each scan. One of the
 columns should contain the filename pointing to the MINC volumes to be
-processed. An example might look like the following:
+processed. The example from the five male and five female mice is the
+following: 
 
 \begin{verbatim}
-file,Genotype,scale
-filename1.mnc,+,0.98
-filename2.mnc,-,0.91
-filename3.mnc,-,0.92
+Filename, Gender, coil, weight
+volumes/img_08nov05.0-fwhm1.0.mnc,Female,1,22.6
+volumes/img_08nov05.1-fwhm1.0.mnc,Female,2,19.6
+volumes/img_08nov05.2-fwhm1.0.mnc,Female,3,21.8
+volumes/img_29sept05.0-fwhm1.0.mnc,Male,1,24.0
+volumes/img_29sept05.2-fwhm1.0.mnc,Male,3,27.0
+volumes/img_30sept05.0-fwhm1.0.mnc,Male,1,28.3
+volumes/img_30sept05.1-fwhm1.0.mnc,Male,2,26.5
+volumes/img_30sept05.2-fwhm1.0.mnc,Male,3,28.1
+volumes/img_31oct05.0-fwhm1.0.mnc,Female,1,20.5
+volumes/img_31oct05.2-fwhm1.0.mnc,Female,3,20.0
 \end{verbatim}
 
 Notice how the first row contains a header. This is optional, but
 makes later access to the data easier and is therefore recommended.
 
-The next step is to actually load this filename into R. The steps are
+The next step is to actually load this file into R. The steps are
 given below:
 
 <<echo=F>>=
@@ -52,24 +56,25 @@ library(xtable)
 
 <<intro>>=
 library(RMINC)
-gf <- read.csv("control-file.glim")
+gf <- read.csv("control-file.csv")
 @
 
-The two library commands load the RMINC and xtable libraries into
-R. xtable is only necessary for display purposes in this manual
-(which, by the way, is being written using Sweave, a tool for
-combining R with latex). The variable \texttt{glim.file} is then assigned the
-location of the input data file, which in turn is read into the \texttt{gf}
-variable.
+The library commands load the RMINC library into R. The next line then
+reads the information describing this dataset from a comma-separated
+text file. The basic syntax of an R command is a variable name - which
+can be whatever you chose, within only a few limits - on the left hand
+side, the arrow (less than followed by a dash) indicating an
+assignment, and then the function call (in this case read.csv to read
+a comma separated value) with any arguments (in this case the
+filename) in parentheses. Strings - such as the filename in this case
+- are placed inside quotes.
 
 <<table,results=tex>>=
-xtable(gf[c(1,2,3,22,23,24),c(2,4,5,6)], caption="GLIM File")
+xtable(gf, caption="GLIM File")
 @ 
 
-The little code fragment and table above just shows what a subset of
-the gf variable looks like. To get a feel for the data and some of the
-RMINC functions, the first file is then read and a histogram produced
-(for the curious, the files used in this example actually consist of
-log Jacobians of deformation fields, not voxel density maps usually
-used in VBM).
+The little code fragment and table above just shows what the gf
+variable looks like after being read into R\footnote{xtable is only
+  necessary for display purposes in this manual (which, by the way, is
+  being written using Sweave, a tool for combining R with latex).} 
 
