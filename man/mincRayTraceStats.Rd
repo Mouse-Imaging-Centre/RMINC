@@ -13,7 +13,8 @@ mincRayTraceStats <- function(v, anatomy.volume,
 	caption="t-statistic",
 	fdr=NULL, slice.direction="transverse",
 	outputfile="ray_trace_crosshair.png", 
-	show.pos.and.neg=FALSE, display=TRUE)
+	show.pos.and.neg=FALSE, display=TRUE,
+	clobber=NULL, tmpdir="/tmp")
 }
 \arguments{
   \item{v}{A mincVoxel indicating the voxel of interest.}
@@ -36,6 +37,8 @@ mincRayTraceStats <- function(v, anatomy.volume,
 	\item{outputfile}{The name (and path) of the outputfile.}
   \item{show.pos.and.neg}{In the case of t-statistics, when this flag is set to TRUE, the image will contain both the positive as well as the negative t-statistics.}
   \item{display}{Display the created image.}
+  \item{clobber}{Overwrite existing output file when set to TRUE, will not overwrite when set to FALSE and will prompt when NULL.}
+  \item{tmpdir}{Specify a directory for temporary files.}
 }
 \details{This function will call the ray_trace program to
 create an image of a statistical peak. The anatomical slice

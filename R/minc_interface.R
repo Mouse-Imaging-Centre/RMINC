@@ -648,12 +648,22 @@ mincRayTraceStats <- function(v, anatomy.volume,
 															caption="t-statistic",
 															fdr=NULL, slice.direction="transverse",
 															outputfile="ray_trace_crosshair.png", 
-															show.pos.and.neg=FALSE, display=TRUE){
+															show.pos.and.neg=FALSE, display=TRUE,
+															clobber=NULL, tmpdir="/tmp"){
 	#check whether ray_trace_crosshair is installed
 	lasterr <- try(system("ray_trace_crosshair", ignore.stderr = TRUE), 
 								silent=TRUE)
 	if(lasterr == 32512){
 		stop("ray_trace_crosshair must be installed for mincRayTraceStats to work.")
+	}
+	
+	if(file.exists(outputfile) && is.null(clobber)){
+		answer <- readline("Warning: the outputfile already exists, continue? (y/n) ")
+		if(substr(answer, 1, 1) == "n")
+			stop("Output file exists, specify clobber, or change the output file name.")
+	}
+	else if(file.exists(outputfile) && !clobber){
+		stop("Output file exists, specify clobber, or change the output file name.")
 	}
 	
 	### VOXEL
@@ -703,10 +713,11 @@ mincRayTraceStats <- function(v, anatomy.volume,
  	  	stop(c("File ", like.filename, " cannot be found.\n"))
 		}
 		#write buffer to file
-		mincWriteVolume.default(statsbuffer, "/tmp/R-wrapper-ray-trace-stats.mnc", 
+		mincWriteVolume.default(statsbuffer, 
+														paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""), 
 														like.filename)
 		
-		systemcall[i] <- "/tmp/R-wrapper-ray-trace-stats.mnc"
+		systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
 		i <- i + 1
 	}
 	
@@ -720,9 +731,10 @@ mincRayTraceStats <- function(v, anatomy.volume,
 		
 		#write buffer to file
 		mincWriteVolume.default(statsbuffer[,column], 
-														"/tmp/R-wrapper-ray-trace-stats.mnc", like.filename)
+														paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""),
+														like.filename)
 		
-		systemcall[i] <- "/tmp/R-wrapper-ray-trace-stats.mnc"
+		systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
 		i <- i + 1
 	}
 			
@@ -734,10 +746,15 @@ mincRayTraceStats <- function(v, anatomy.volume,
 		else if(class(mask)[1] == "mincSingleDim"){
 			path.to.mask <- attr(mask, "filename")
 		}
-		system(paste("mv /tmp/R-wrapper-ray-trace-stats.mnc /tmp/R-wrapper-ray-trace-stats-full.mnc"))
-		system(paste("mincmask /tmp/R-wrapper-ray-trace-stats-full.mnc", 
-								path.to.mask, "/tmp/R-wrapper-ray-trace-stats.mnc"))
-		system(paste("rm -f /tmp/R-wrapper-ray-trace-stats-full.mnc"))
+		system(paste("mv", 
+								paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""),
+								paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep="")))
+		system(paste("mincmask", 
+								paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep=""),
+								path.to.mask,
+								paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
+		system(paste("rm -f",
+								paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep="")))
 	}
 	
 	### IMAGE INTENSITY EXTREMA
@@ -832,10 +849,9 @@ mincRayTraceStats <- function(v, anatomy.volume,
     system(paste("display", outputfile, "&"))
   }
   
-  if(class(statsbuffer)[1] ==  "numeric"){
-		#remove the file written to disk
-		system(paste("rm -f /tmp/R-wrapper-ray-trace-stats.mnc"))
-	}
+	#remove the file written to disk
+	system(paste("rm -f",
+							paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
   
 }
 
