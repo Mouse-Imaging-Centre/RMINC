@@ -3,7 +3,7 @@
 \title{Write a MINC volume to file.}
 \description{Writes a MINC volume to file.}
 \usage{
-mincWriteVolume(buffer, "filename.mnc", "optionalColumn")
+mincWriteVolume(buffer, "filename.mnc", "optionalColumn", clobber = NULL)
 }
 \arguments{
   \item{buffer}{The data to be written to file. Usually the result of
@@ -14,6 +14,8 @@ mincWriteVolume(buffer, "filename.mnc", "optionalColumn")
   \item{like.filename}{An existing MINC filename which has the same
     dimensions as the data to be written out. Normally this information
     is stored inside MINC data objects.}
+  \item{clobber}{Overwrite existing output file when set to TRUE, will not 
+  	overwrite when set to FALSE and will prompt when NULL.}
 }
 \details{This function takes numeric data, usually the results computed
   from one of the other mincFunctions, and writes it to file so that it

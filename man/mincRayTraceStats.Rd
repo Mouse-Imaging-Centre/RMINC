@@ -19,25 +19,36 @@ mincRayTraceStats <- function(v, anatomy.volume,
 \arguments{
   \item{v}{A mincVoxel indicating the voxel of interest.}
   \item{anatomy.volume}{The path to the file containing the anatomical data.}
-  \item{statsbuffer}{Either the path to the stats file, a mincSingleDim, or a mincMultiDim.}
-  \item{column}{If a mincMultiDim is specified, column will indicate which column of the data to use.}
-  \item{like.filename}{If a column of a mincMultiDim is explicity passed through, a like file is needed to determine the dimensions of the stats buffer.}
-  \item{mask}{If a mask is specified, the stats outside the mask will not be displayed in output image.}
+  \item{statsbuffer}{Either the path to the stats file, a mincSingleDim, 
+  	or a mincMultiDim.}
+  \item{column}{If a mincMultiDim is specified, column will indicate which 
+  	column of the data to use.}
+  \item{like.filename}{If a column of a mincMultiDim is explicity passed 
+  	through, a like file is needed to determine the dimensions of the stats buffer.}
+  \item{mask}{If a mask is specified, the stats outside the mask will not be 
+  	displayed in output image.}
   \item{image.min}{Specify the minimum image intensity.}
   \item{image.max}{Specify the maximum image intensity.}
   \item{output.width}{Specify the width of the output image.}
   \item{output.height}{Specify the height of the output image.}
-  \item{place.inset}{Boolean indicating whether or not to place a 3D brain inset.}
-  \item{inset}{Path to the object file (.obj) containing the surface of the brain.}
+  \item{place.inset}{Boolean indicating whether or not to place 
+  	a 3D brain inset.}
+  \item{inset}{Path to the object file (.obj) containing the surface 
+  	of the brain.}
 	\item{stats.largest.pos}{Specify the maximum stats value.} 
 	\item{stats.largest.neg}{Specify the minimum stats value.} 
-	\item{caption}{Specify the caption for the colourbar. If spaces occur in the caption use sometime along the line caption="\"Captoin with spaces\"".}
+	\item{caption}{Specify the caption for the colourbar. If spaces occur in the 
+		caption use sometime along the line caption="\"Captoin with spaces\"".}
 	\item{fdr}{Specify the statistical significance threshold.}
-  \item{slice.direction}{The slice direction of the output image. This can be transverse, coronal or sagittal.}
+  \item{slice.direction}{The slice direction of the output image. This can be 
+  	transverse, coronal or sagittal.}
 	\item{outputfile}{The name (and path) of the outputfile.}
-  \item{show.pos.and.neg}{In the case of t-statistics, when this flag is set to TRUE, the image will contain both the positive as well as the negative t-statistics.}
+  \item{show.pos.and.neg}{In the case of t-statistics, when this flag is set 
+  	to TRUE, the image will contain both the positive as well as the negative 
+  	t-statistics.}
   \item{display}{Display the created image.}
-  \item{clobber}{Overwrite existing output file when set to TRUE, will not overwrite when set to FALSE and will prompt when NULL.}
+  \item{clobber}{Overwrite existing output file when set to TRUE, will not 
+  	overwrite when set to FALSE and will prompt when NULL.}
   \item{tmpdir}{Specify a directory for temporary files.}
 }
 \details{This function will call the ray_trace program to
@@ -55,7 +66,10 @@ vs <- mincLm(filenames ~ Genotype, gf)
 v <- mincGetWorldVoxel(filenames, 1, 0.5, -0.5)
 # create an image of this coordinate, using the third column
 # of the mincLm output.
-mincRayTraceStats(v,"/some/path/anatomical.mnc", vs[,3])
+mincRayTraceStats(v,"/some/path/anatomical.mnc", vs[,3], like.filename = "like-this-file.mnc")
+# in this particular case, a like file is stored with the vs object and
+# can be retrieved using:
+mincRayTraceStats(v,"/some/path/anatomical.mnc", vs[,3], like.filename = attr(vs, "likeVolume"))
 # or
 mincRayTraceStats(v,"/some/path/anatomical.mnc", vs, column = 3)
 }}

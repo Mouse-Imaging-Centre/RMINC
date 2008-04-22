@@ -118,6 +118,7 @@ mincGetVolume <- function(filename) {
                hs=double(total.size))$hs
   class(output) <- c("mincSingleDim", "numeric")
   attr(output, "filename") <- filename
+  attr(output, "likeVolume") <- filename
   return(output)
 }
 
@@ -145,12 +146,13 @@ mincWriteVolume <- function(buffer, ...) {
   UseMethod("mincWriteVolume")
 }
 
-mincWriteVolume.mincSingleDim <- function(buffer, output.filename) {
-  mincWriteVolume.mincMultiDim(buffer, output.filename)
+mincWriteVolume.mincSingleDim <- function(buffer, output.filename, clobber = NULL) {
+  mincWriteVolume.default(buffer, output.filename, attr(buffer, "likeVolume"), clobber)
 }
 
 # write out one column of a multidim MINC volume
-mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, like.filename = NULL) {
+mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, 
+																				like.filename = NULL, clobber = NULL) {
   cat("Writing column", column, "to file", output.filename, "\n")
   if (is.null(like.filename)) {
     like.filename <- attr(buffer, "likeVolume")
@@ -159,12 +161,23 @@ mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, like
     stop(c("File ", like.filename, " cannot be found.\n"))
   }
 
-  mincWriteVolume.default(buffer[,column], output.filename, like.filename)
+  mincWriteVolume.default(buffer[,column], output.filename, like.filename, clobber)
 }
 
 # the default MINC output function
 # the buffer is a vector in this case
-mincWriteVolume.default <- function(buffer, output.filename, like.filename) {
+mincWriteVolume.default <- function(buffer, output.filename, like.filename, 
+																		clobber = NULL) {
+	
+	if(file.exists(output.filename) && is.null(clobber)){
+		answer <- readline("Warning: the outputfile already exists, continue? (y/n) ")
+		if(substr(answer, 1, 1) == "n")
+			stop("Output file exists, specify clobber, or change the output file name.")
+	}
+	else if(file.exists(output.filename) && !clobber){
+		stop("Output file exists, specify clobber, or change the output file name.")
+	}
+	
   sizes <- minc.dimensions.sizes(like.filename)
   start <- c(0,0,0)
   if ((sizes[1] * sizes[2] * sizes[3]) != length(buffer)) {
