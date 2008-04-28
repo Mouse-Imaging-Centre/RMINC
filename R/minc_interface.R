@@ -734,9 +734,25 @@ mincRayTraceStats <- function(v, anatomy.volume,
 		i <- i + 1
 	}
 	
+	if(class(statsbuffer)[1] == "mincSingleDim"){
+		if (is.null(like.filename)){
+			like.filename <- as.character(attr(statsbuffer, "likeVolume"))
+		}
+		if (is.na(file.info(as.character(like.filename))$size)){
+ 	  	stop(c("File ", like.filename, " cannot be found.\n"))
+		}
+		#write buffer to file
+		mincWriteVolume.default(statsbuffer, 
+														paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""), 
+														like.filename)
+		
+		systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
+		i <- i + 1
+	}
+	
 	if(class(statsbuffer)[1] == "mincMultiDim"){
 		if (is.null(like.filename)){
-    	like.filename <- attr(statsbuffer, "likeVolume")
+    	like.filename <- as.character(attr(statsbuffer, "likeVolume"))
   	}
 		if (is.na(file.info(like.filename)$size)){
  	  	stop(c("File ", like.filename, " cannot be found.\n"))
