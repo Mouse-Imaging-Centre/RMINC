@@ -421,11 +421,21 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   rank = 1;
   tol = 1e-07;
 
+  //  for (i=0; i<n; i++) {
+  //  effects[i] = y[i];
+  //  residuals[i] = y[i];
+  //}
+
+  //Rprintf("Effects: %f\n", effects[0]);
+
   F77_NAME(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
 	&rank, pivot, qraux, work);
 
   //Rprintf("N: %d P: %d NY: %d\n", n,p,ny);
   //Rprintf("Coefficients: ");
+  //for (i=0; i < n; i++) {
+  //  Rprintf("Effects: %f\n", effects[i]);
+  //}
 
   
 
@@ -477,8 +487,75 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   UNPROTECT(2);
   return(output);
 }
-  
 
+SEXP voxel_anova(SEXP Sy, SEXP Sx) {
+  int                result;
+  mihandle_t         *hvol, hmask;
+  char               *method_name;
+  int                i, v0, v1, v2, output_index, buffer_index;
+  unsigned long      start[3], count[3];
+  unsigned long      location[3];
+  int                num_files;
+  double             *xn_groups;
+  double             *xbuffer, *xoutput, **full_buffer, *xhave_mask, *xn;
+  double             *mask_buffer;
+  double             *groupings;
+  midimhandle_t      dimensions[3];
+  unsigned int       sizes[3];
+  SEXP               output, buffer, R_fcall, t_sexp, n_groups, f_sexp;
+  /* stuff for linear models only */
+  double             *y, *x, *coefficients, *residuals, *effects; 
+  double             *diag, *se, *t, *work, *qraux, *v, *comp, *xf_sexp;
+  double             tol, rss, resvar, ssr;
+  int                n, p, ny, rank, j, rdf, index, dfr;
+  int                *pivot;
+
+  n = nrows(Sx);
+  p = ncols(Sx);
+
+  coefficients = malloc(sizeof(double) * p);
+  residuals = malloc(sizeof(double) * n);
+  effects = malloc(sizeof(double) * n);
+  pivot = malloc(sizeof(int) * p);
+  work = malloc(sizeof(double) * (2*p));
+  qraux = malloc(sizeof(double) * p);
+  v = malloc(sizeof(double) * p * p);
+  diag = malloc(sizeof(double) * p);
+  se = malloc(sizeof(double) * p);
+  t = malloc(sizeof(double) * p);
+  comp = malloc(sizeof(double) * p);
+
+  Rprintf("N: %d P: %d\n", n,p);
+
+  PROTECT(t_sexp = allocVector(REALSXP, p));
+  PROTECT(f_sexp = allocVector(REALSXP, p-1));
+  xf_sexp = REAL(f_sexp);
+  
+  /* allocate the output buffer */
+  //PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), p+1));
+
+
+  t_sexp = voxel_lm(Sy, Sx, coefficients, residuals, effects,
+		    work, qraux, v, pivot, se, t);
+
+  dfr = n - p;
+  for (i=0; i < p; i++) {
+    comp[i] = pow(effects[i], 2);
+  }
+  ssr = 0.0;
+  for (i=0; i < n; i++) {
+    ssr += pow(residuals[i], 2);
+  }
+  for (i=1; i<p; i++) {
+    xf_sexp[i-1] = comp[i] / (ssr/dfr);
+    Rprintf("F value: %f\n", xf_sexp[i-1]);
+  }
+
+  Rprintf("effects: %f\n", effects[0]);
+  UNPROTECT(2);
+  return(f_sexp);
+}
+  
   
 /* minc2_model: run one of a set of modelling function at every voxel
  * filenames: character list of minc2 volumes.
