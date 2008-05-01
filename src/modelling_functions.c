@@ -487,8 +487,83 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   UNPROTECT(2);
   return(output);
 }
+SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
+		 double *coefficients, 
+		 double *residuals, 
+		 double *effects, 
+		 double *work, 
+		 double *qraux, 
+		 double *v, 
+		 int *pivot, 
+		 double *se, 
+		 double *t,
+		 double *comp,
+		 double *ss,
+		 int *df) {
 
-SEXP voxel_anova(SEXP Sy, SEXP Sx) {
+  int p, n, maxasgn, dfr, i;
+  int *xasgn;
+  double ssr;
+  double *xf_sexp;
+  SEXP f_sexp;
+
+  n = nrows(Sx);
+  p = ncols(Sx);
+
+
+  //Rprintf("N: %d P: %d\n", n,p);
+  xasgn = INTEGER(asgn);
+
+  maxasgn = 0;
+  for (i=0; i < p; i++) {
+    if (xasgn[i] > maxasgn) {
+      maxasgn = (int) xasgn[i];
+    }
+  }
+  maxasgn++;
+
+  PROTECT(f_sexp = allocVector(REALSXP, maxasgn-1));
+  xf_sexp = REAL(f_sexp);
+  
+  voxel_lm(Sy, Sx, coefficients, residuals, effects,
+	   work, qraux, v, pivot, se, t);
+
+  // dfr: degrees of freedom of the residuals
+  dfr = n - p;
+  for (i=0; i < p; i++) {
+    comp[i] = pow(effects[i], 2);
+  }
+
+  // set sum of squares and degrees of freedom to zero
+  for (i=0; i < maxasgn; i++) {
+    ss[i] = 0.0;
+    df[i] = 0;
+  }
+
+  // compute sums of squares
+  for (i=0; i < p; i++) {
+    ss[(int)xasgn[i]] += comp[i];
+    df[xasgn[i]]++;
+    //Rprintf("%d %d %f %f\n", i, xasgn[i], comp[i], ss[xasgn[i]]);
+  }
+  
+  // ssr: sums of squares of residuals
+  ssr = 0.0;
+  for (i=0; i < n; i++) {
+    ssr += pow(residuals[i], 2);
+  }
+  // compute the f-statistics
+  for (i=1; i<maxasgn; i++) {
+    xf_sexp[i-1] = (ss[i] / df[i]) / (ssr/dfr);
+    //Rprintf("F value: %f\n", xf_sexp[i-1]);
+  }
+
+  //Rprintf("effects: %f\n", effects[0]);
+  UNPROTECT(1);
+  return(f_sexp);
+}
+
+SEXP test_voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn) {
   int                result;
   mihandle_t         *hvol, hmask;
   char               *method_name;
@@ -504,11 +579,12 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx) {
   unsigned int       sizes[3];
   SEXP               output, buffer, R_fcall, t_sexp, n_groups, f_sexp;
   /* stuff for linear models only */
-  double             *y, *x, *coefficients, *residuals, *effects; 
-  double             *diag, *se, *t, *work, *qraux, *v, *comp, *xf_sexp;
+  double             *y, *x, *coefficients, *residuals, *effects;
+  double             *diag, *se, *t, *work, *qraux, *v, *comp, *xf_sexp, *ss;
   double             tol, rss, resvar, ssr;
-  int                n, p, ny, rank, j, rdf, index, dfr;
-  int                *pivot;
+  int                n, p, ny, rank, j, rdf, index, dfr, maxasgn;
+  int                *pivot, *xasgn, *df;
+
 
   n = nrows(Sx);
   p = ncols(Sx);
@@ -524,43 +600,49 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx) {
   se = malloc(sizeof(double) * p);
   t = malloc(sizeof(double) * p);
   comp = malloc(sizeof(double) * p);
+  ss = malloc(sizeof(double) * maxasgn);
+  df = malloc(sizeof(int) * maxasgn);
+  xasgn = INTEGER(asgn);
 
-  Rprintf("N: %d P: %d\n", n,p);
-
-  PROTECT(t_sexp = allocVector(REALSXP, p));
-  PROTECT(f_sexp = allocVector(REALSXP, p-1));
-  xf_sexp = REAL(f_sexp);
-  
-  /* allocate the output buffer */
-  //PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), p+1));
-
-
-  t_sexp = voxel_lm(Sy, Sx, coefficients, residuals, effects,
-		    work, qraux, v, pivot, se, t);
-
-  dfr = n - p;
+  maxasgn = 0;
   for (i=0; i < p; i++) {
-    comp[i] = pow(effects[i], 2);
+    if (xasgn[i] > maxasgn) {
+      maxasgn = (int) xasgn[i];
+    }
   }
-  ssr = 0.0;
-  for (i=0; i < n; i++) {
-    ssr += pow(residuals[i], 2);
-  }
-  for (i=1; i<p; i++) {
-    xf_sexp[i-1] = comp[i] / (ssr/dfr);
-    Rprintf("F value: %f\n", xf_sexp[i-1]);
-  }
+  maxasgn++;
 
-  Rprintf("effects: %f\n", effects[0]);
-  UNPROTECT(2);
+  //PROTECT(f_sexp = allocVector(REALSXP, maxasgn-1));
+  f_sexp = voxel_anova(Sy, Sx, asgn,
+		       coefficients, residuals,
+		       effects, work, qraux, v, pivot,
+		       se, t, comp, ss, df);
+  //UNPROTECT(1);
+
+  free(coefficients);
+  free(residuals);
+  free(effects);
+  free(pivot);
+  free(work);
+  free(qraux);
+  free(v);
+  free(diag);
+  free(se);
+  free(t);
+  free(comp);
+  free(ss);
+  free(df);
+
   return(f_sexp);
 }
+
   
   
 /* minc2_model: run one of a set of modelling function at every voxel
  * filenames: character list of minc2 volumes.
  * Sx: variable that each particular function will work on. The model matrix 
  *     for method "lm", for example, or the function string for method "eval"
+ * asgn: assignments for factors - only used by anova.
  * have_mask: a double of either 0 or 1 depending on whether a mask should
  *            be used.
  * mask: a string containing the mask filename.
@@ -568,7 +650,7 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx) {
  * nresults: the number of columns in the result - only used by method "eval"
  * method: a string containing one of "t-test", "wilcoxon", or "correlation"
  */
-SEXP minc2_model(SEXP filenames, SEXP Sx,
+SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 		 SEXP have_mask, SEXP mask, 
 		 SEXP rho, SEXP nresults, SEXP method) {
   int                result;
@@ -587,10 +669,10 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
   SEXP               output, buffer, R_fcall, t_sexp, n_groups;
   /* stuff for linear models only */
   double             *y, *x, *coefficients, *residuals, *effects; 
-  double             *diag, *se, *t, *work, *qraux, *v;
+  double             *diag, *se, *t, *work, *qraux, *v, *ss, *comp;
   double             tol, rss, resvar;
-  int                n, p, ny, rank, j, rdf, index;
-  int                *pivot;
+  int                n, p, ny, rank, j, rdf, index, maxasgn;
+  int                *pivot, *xasgn, *df;
 
   num_files = LENGTH(filenames);
 
@@ -692,6 +774,43 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 
     /* allocate the output buffer */
     PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), p+1));
+
+  }
+  else if (strcmp(method_name, "anova") == 0) {
+    n = nrows(Sx);
+    p = ncols(Sx);
+    xasgn = INTEGER(asgn);
+
+    maxasgn = 0;
+    for (i=0; i < p; i++) {
+      if (xasgn[i] > maxasgn) {
+	maxasgn = (int) xasgn[i];
+      }
+    }
+    maxasgn++;
+
+    coefficients = malloc(sizeof(double) * p);
+    residuals = malloc(sizeof(double) * n);
+    effects = malloc(sizeof(double) * n);
+    pivot = malloc(sizeof(int) * p);
+    work = malloc(sizeof(double) * (2*p));
+    qraux = malloc(sizeof(double) * p);
+    v = malloc(sizeof(double) * p * p);
+    diag = malloc(sizeof(double) * p);
+    se = malloc(sizeof(double) * p);
+    t = malloc(sizeof(double) * p);
+
+    comp = malloc(sizeof(double) * p);
+    ss = malloc(sizeof(double) * maxasgn);
+    df = malloc(sizeof(int) * maxasgn);
+    
+    Rprintf("N: %d P: %d\n", n,p);
+
+    PROTECT(t_sexp = allocVector(REALSXP, maxasgn-1));
+
+    /* allocate the output buffer */
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 
+			       maxasgn-1));
 
   }
   else {    
@@ -817,6 +936,16 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
 		      = REAL(t_sexp)[i];
 	    }
 	  }
+	  else if (strcmp(method_name, "anova") == 0) {
+	    t_sexp = voxel_anova(buffer, Sx, asgn,
+				 coefficients, residuals,
+				 effects, work, qraux, v, pivot,
+				 se, t, comp, ss, df);
+	    for(i=0; i < maxasgn-1; i++) {
+	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
+		      = REAL(t_sexp)[i];
+	    }
+	  }
 	}
 	else {
 	  xoutput[output_index] = 0;
@@ -845,6 +974,24 @@ SEXP minc2_model(SEXP filenames, SEXP Sx,
     free(t);
     UNPROTECT(3);
   }
+  else if (strcmp(method_name, "anova")==0) {
+    free(full_buffer);
+    free(coefficients);
+    free(residuals);
+    free(effects);
+    free(pivot);
+    free(work);
+    free(qraux);
+    free(v);
+    free(diag);
+    free(se);
+    free(t);
+    free(comp);
+    free(ss);
+    free(df);
+    UNPROTECT(3);
+  }
+
   else if (strcmp(method_name, "mean") == 0 ||
 	   strcmp(method_name, "var") == 0 ||
 	   strcmp(method_name, "sum") == 0) {

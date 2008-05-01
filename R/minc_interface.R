@@ -252,6 +252,49 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
+# compute a sequential ANOVA at each voxel
+mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
+  m <- match.call()
+  mf <- match.call(expand.dots=FALSE)
+  m <- match(c("formula", "data", "subset"), names(mf), 0)
+
+  mf <- mf[c(1, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1]] <- as.name("model.frame")
+  mf <- eval(mf, parent.frame())
+
+  filenames <- as.character(mf[,1])
+  mmatrix <- model.matrix(formula, mf)
+
+  method <- "anova"
+
+  mincFileCheck(filenames)
+
+  v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
+  #l <- lm(formula, mf)
+  
+  result <- .Call("minc2_model",
+                  as.character(filenames),
+                  as.matrix(mmatrix),
+                  attr(mmatrix, "assign"),
+                  as.double(! is.null(mask)),
+                  as.character(mask),
+                  NULL, NULL,
+                  as.character(method))
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "filenames") <- filenames
+
+  # get the first voxel in order to get the dimension names
+  rows <- sub('mmatrix', '',
+              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+
+  colnames(result) <- attr(terms(formula), "term.labels")
+  class(result) <- c("mincMultiDim", "matrix")
+
+  return(result)
+}
+
 # run a linear model at each voxel
 mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
@@ -273,6 +316,7 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   result <- .Call("minc2_model",
                   as.character(filenames),
                   as.matrix(mmatrix),
+                  NULL,
                   as.double(! is.null(mask)),
                   as.character(mask),
                   NULL, NULL,
@@ -465,6 +509,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
   result <- .Call("minc2_model",
                   as.character(filenames),
                   as.double(grouping)-1,
+                  NULL,
                   as.double(! is.null(mask)),
                   as.character(mask),
                   NULL, NULL,
@@ -506,6 +551,7 @@ minc.model <- function(filenames, groupings, method="t-test",
     result$data <- .Call("minc2_model",
                          as.character(filenames),
                          as.matrix(groupings),
+                         NULL,
                          as.double(! is.null(mask)),
                          as.character(mask),
                          NULL, NULL,
@@ -524,6 +570,7 @@ minc.model <- function(filenames, groupings, method="t-test",
     result <- .Call("minc2_model",
                     as.character(filenames),
                     as.double(groupings),
+                    NULL,
                     as.double(! is.null(mask)),
                     as.character(mask),
                     NULL, NULL,
@@ -550,6 +597,7 @@ mincApply <- function(filenames, function.string, mask=NULL) {
   results <- .Call("minc2_model",
                    as.character(filenames),
                    function.string,
+                   NULL,
                    as.double(! is.null(mask)),
                    as.character(mask),
                    parent.env(environment()),
