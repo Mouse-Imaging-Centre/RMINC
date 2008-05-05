@@ -177,5 +177,18 @@ file. Note that we use the positive false discovery rate above - the
 more standard false discovery rate is the default (i.e. if no method
 argument is specified for \texttt{mincFDR})
 
+You can also compute the FDR from a volume that has already been
+written to file: 
+
+<<>>=
+volume <- mincGetVolume("simple-lm.mnc")
+qvals <- mincFDR(volume, df=21)
+qvals
+@ 
+
+Notice how in this case you have to specify the degrees of freedom,
+since the information associated with the linear model is lost after
+writing to file.
+
 
 
