@@ -2,11 +2,11 @@
 
 /* open_minc_files: given a vector of filenames, open the volumes and
  * returns the dimhandles */
-void open_minc_files(SEXP filenames, 
-		     midimhandle_t *hvol,
-		     unsigned int *sizes) {
+mihandle_t* open_minc_files(SEXP filenames, 
+			       unsigned int *sizes) {
   int num_files, i, result;
-  midimhandle_t *hvol;
+  midimhandle_t dimensions[3];
+  mihandle_t *hvol;
 
   num_files = LENGTH(filenames);
   hvol = malloc(num_files * sizeof(mihandle_t));
@@ -24,24 +24,26 @@ void open_minc_files(SEXP filenames,
   result = miget_volume_dimensions( hvol[0], MI_DIMCLASS_SPATIAL,
 				    MI_DIMATTR_ALL, MI_DIMORDER_FILE,
 				    3, dimensions );
-  if (result != MI_NOERROR) {
+  if (result == MI_ERROR) {
     error("Error getting dimensions\n");
   }
   result = miget_dimension_sizes(dimensions, 3, sizes);
-  if (result != MI_NOERROR) {
+  Rprintf("Sizes: %d %d %d\n", sizes[0], sizes[1], sizes[2]);
+  if (result == MI_ERROR) {
     error("Error getting dimension sizes\n");
   }
+  return(hvol);
 
 }
 
 /* get_mask: opens the mask volume and allocates memory for the 
  * mask buffer */
-void get_mask(SEXP filename, midimhandle_t *hmask, double *mask_buffer,
+void get_mask(SEXP filename, mihandle_t hmask, double *mask_buffer,
 	      unsigned int *sizes) {
   int result;
   
   result = miopen_volume(CHAR(STRING_ELT(filename, 0)),
-			 MI2_OPEN_READ, hmask);
+			 MI2_OPEN_READ, &hmask);
   if (result != MI_NOERROR) {
     error("Error opening mask: %s.\n", CHAR(STRING_ELT(filename, 0)));
   }
@@ -49,48 +51,70 @@ void get_mask(SEXP filename, midimhandle_t *hmask, double *mask_buffer,
 }
 
 /* create_slice_buffer: allocates memory for the slice buffer */
-void create_slice_buffer(SEXP filenames,
-			 unsigned int *sizes,
-			 double **buffer) {
+double** create_slice_buffer(SEXP filenames,
+			     unsigned int *sizes) {
+
   int num_files, i;
+  double **buffer;
+  
+  //Rprintf("before: %p\n", buffer[0]);
 
   num_files = LENGTH(filenames);
   buffer = malloc(num_files * sizeof(double));
   for (i=0; i < num_files; i++) {
     buffer[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
   }
+  Rprintf("after: %p\n", buffer[0]);
+  Rprintf("after: %p\n", buffer[0]);
+  return(buffer);
 }
 
 void get_indices(int v0, int v1, int v2, unsigned int *sizes,
-		 int *output_index, int *buffer_index) {
-  *output_index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
-  *buffer_index = sizes[2] * v1 + v2;
+		 unsigned long *output_index, 
+		 unsigned long *buffer_index) {
+  *output_index = (unsigned long) v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
+  *buffer_index = (unsigned long) sizes[2] * v1 + v2;
 }
 
 
 void fill_slice_buffer(SEXP filenames, 
 		       unsigned int *sizes,
-		       midimhandle_t *hvol,
+		       mihandle_t *hvol,
 		       double **buffer,
 		       int slice_number) {
   int num_files, result, i;
   unsigned long start[3];
   unsigned long count[3];
 
+  Rprintf("Sizes in fill_slice: %d %d %d\n",
+	  sizes[0], sizes[1], sizes[2]);
+
   start[0] = slice_number; start[1] = 0; start[2] = 0;
-  count[0] = 1; count[1] = sizes[1]; count[2] = sizes[2];
+  count[0] = (unsigned long) 1; 
+  count[1] = (unsigned long) sizes[1]; 
+  count[2] = (unsigned long) sizes[2];
+  //count[1] = 1;
+  //count[2] = 1;
 
   num_files = LENGTH(filenames);
   for (i=0; i < num_files; i++) {
-    result = miget_real_value_hyperslab(hvol[i], start, count,
+    Rprintf("buffer: %p\n", buffer[0]);
+    Rprintf("fill_slice_buffer: f %d, start %lu %lu %lu, count %lu %lu %lu\n",
+	    i, start[0], start[1], start[2], 
+	    count[0], count[1], count[2]);
+    result = miget_real_value_hyperslab(hvol[i], 
+					MI_TYPE_DOUBLE,
+					(unsigned long *)start, 
+					(unsigned long *)count, 
 					buffer[i]);
+    Rprintf("hs results: %d\n", result);
     if (result != MI_NOERROR) {
       error("Error getting data from slice %d.\n", slice_number);
     }
   }
 }
 
-void get_mask_slice(midimhandle_t hmask,
+void get_mask_slice(mihandle_t hmask,
 		    unsigned int *sizes,
 		    double *mask_buffer,
 		    int slice_number) {
@@ -101,7 +125,8 @@ void get_mask_slice(midimhandle_t hmask,
   start[0] = slice_number; start[1] = 0; start[2] = 0;
   count[0] = 1; count[1] = sizes[1]; count[2] = sizes[2];
 
-  result = miget_real_value_hyperslab(hmask, start, count, mask_buffer);
+  result = miget_real_value_hyperslab(hmask, MI_TYPE_DOUBLE,
+				      start, count, mask_buffer);
   if (result != MI_NOERROR) {
     error("Error getting mask slice %d.\n", slice_number);
   }
@@ -118,7 +143,7 @@ void free_slice_buffer(SEXP filenames,
   }
 }
 
-void free_minc_files(SEXP filenames, midimhandle_t *hvol) {
+void free_minc_files(SEXP filenames, mihandle_t *hvol) {
   int num_files, i;
   
   num_files = LENGTH(filenames);

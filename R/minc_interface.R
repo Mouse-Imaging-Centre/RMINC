@@ -273,14 +273,20 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   #l <- lm(formula, mf)
   
-  result <- .Call("minc2_model",
+###   result <- .Call("minc2_model",
+###                   as.character(filenames),
+###                   as.matrix(mmatrix),
+###                   attr(mmatrix, "assign"),
+###                   as.double(! is.null(mask)),
+###                   as.character(mask),
+###                   NULL, NULL,
+###                   as.character(method))
+  result <- .Call("per_voxel_anova",
                   as.character(filenames),
                   as.matrix(mmatrix),
                   attr(mmatrix, "assign"),
-                  as.double(! is.null(mask)),
-                  as.character(mask),
-                  NULL, NULL,
-                  as.character(method))
+                  as.integer(! is.null(mask)),
+                  as.character(mask))
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames

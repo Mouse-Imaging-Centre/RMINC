@@ -487,6 +487,8 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   UNPROTECT(2);
   return(output);
 }
+
+/*
 SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
 		 double *coefficients, 
 		 double *residuals, 
@@ -578,7 +580,7 @@ SEXP test_voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn) {
   midimhandle_t      dimensions[3];
   unsigned int       sizes[3];
   SEXP               output, buffer, R_fcall, t_sexp, n_groups, f_sexp;
-  /* stuff for linear models only */
+
   double             *y, *x, *coefficients, *residuals, *effects;
   double             *diag, *se, *t, *work, *qraux, *v, *comp, *xf_sexp, *ss;
   double             tol, rss, resvar, ssr;
@@ -635,7 +637,7 @@ SEXP test_voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn) {
 
   return(f_sexp);
 }
-
+*/
   
   
 /* minc2_model: run one of a set of modelling function at every voxel
@@ -936,6 +938,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 		      = REAL(t_sexp)[i];
 	    }
 	  }
+	  /*
 	  else if (strcmp(method_name, "anova") == 0) {
 	    t_sexp = voxel_anova(buffer, Sx, asgn,
 				 coefficients, residuals,
@@ -946,6 +949,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 		      = REAL(t_sexp)[i];
 	    }
 	  }
+	  */
 	}
 	else {
 	  xoutput[output_index] = 0;
