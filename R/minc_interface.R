@@ -938,3 +938,29 @@ mincRayTraceStats <- function(v, anatomy.volume,
   
 }
 
+
+vertexLm <- function(formula, data, subset=NULL) {
+  # repeat code to extract the formula as in mincLm
+  m <- match.call()
+  mf <- match.call(expand.dots=FALSE)
+  m <- match(c("formula", "data", "subset"), names(mf), 0)
+
+  mf <- mf[c(1, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1]] <- as.name("model.frame")
+  #stop(sys.frames())
+  mf <- eval(mf, parent.frame())
+  #mf <- eval(mf)
+
+  filenames <- as.character(mf[,1])
+  mmatrix <- model.matrix(formula, mf)
+
+  cat("Loading data from files\n")
+  data.matrix <- vertexTable(filenames)
+
+  cat("after loading\n")
+
+  result <- .Call("vertex_lm_loop", data.matrix, mmatrix);
+  
+}
+
