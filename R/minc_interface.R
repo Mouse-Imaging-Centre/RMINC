@@ -166,17 +166,17 @@ mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1,
 
 # the default MINC output function
 # the buffer is a vector in this case
-mincWriteVolume.default <- function(buffer, output.filename, like.filename, 
-																		clobber = NULL) {
+mincWriteVolume.default <- function(buffer, output.filename, like.filename,
+                                    clobber = NULL) {
 	
-	if(file.exists(output.filename) && is.null(clobber)){
-		answer <- readline("Warning: the outputfile already exists, continue? (y/n) ")
-		if(substr(answer, 1, 1) == "n")
-			stop("Output file exists, specify clobber, or change the output file name.")
-	}
-	else if(file.exists(output.filename) && !clobber){
-		stop("Output file exists, specify clobber, or change the output file name.")
-	}
+  if(file.exists(output.filename) && is.null(clobber)){
+    answer <- readline("Warning: the outputfile already exists, continue? (y/n) ")
+    if(substr(answer, 1, 1) == "n")
+      stop("Output file exists, specify clobber, or change the output file name.")
+  }
+  else if(file.exists(output.filename) && !clobber){
+    stop("Output file exists, specify clobber, or change the output file name.")
+  }
 	
   sizes <- minc.dimensions.sizes(like.filename)
   start <- c(0,0,0)
@@ -534,57 +534,6 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
   return(result)
 }
   
-# run a t-test, wilcoxon test, correlation, or linear model at every voxel
-minc.model <- function(filenames, groupings, method="t-test",
-                       mask=NULL) {
-
-  if (method == "t-test"
-      || method == "wilcoxon"
-      || method == "correlation"
-      || method == "lm"
-      || method == "paired-t-test") {
-    # do nothing
-  }
-  else {
-    stop("Method must be one of t-test, paired-t-test, wilcoxon, correlation or lm")
-  }
-
-  if (method == "lm") {
-    result <- list(method="lm")
-    result$likeVolume <- filenames[1]
-    result$model <- groupings
-    result$filenames <- filenames
-    result$data <- .Call("minc2_model",
-                         as.character(filenames),
-                         as.matrix(groupings),
-                         NULL,
-                         as.double(! is.null(mask)),
-                         as.character(mask),
-                         NULL, NULL,
-                         as.character(method))
-
-    # get the first voxel in order to get the dimension names
-    v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
-    rows <- sub('mmatrix', '',
-                rownames(summary(lm(v.firstVoxel ~ groupings))$coefficients))
-    colnames(result$data) <- c("F-statistic", rows)
-    class(result) <- "mincMultiDim"
-    
-  }
-  else {
-    groupings <- as.double(groupings)
-    result <- .Call("minc2_model",
-                    as.character(filenames),
-                    as.double(groupings),
-                    NULL,
-                    as.double(! is.null(mask)),
-                    as.character(mask),
-                    NULL, NULL,
-                    as.character(method))
-  }
-  return(result)
-}
-
 
 # create a 2D array of full volumes of all files specified.
 minc.get.volumes <- function(filenames) {
@@ -634,58 +583,6 @@ mincApply <- function(filenames, function.string, mask=NULL) {
 ##                        as.character("eval"))
 ## }
 
-# calls ray-trace to generate a pretty picture of a slice
-minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
-                           slice=list(pos=0, wv="w", axis="z"),
-                           threshold=NULL,
-                           colourmap="-spectral",
-                           background=NULL,
-                           background.threshold=NULL,
-                           background.colourmap="-gray",
-                           display=TRUE) {
-  # create the slice obj
-  slice.obj.name <- "/tmp/slice.obj"
-  system(paste("make_slice", volume, slice.obj.name, slice$axis,
-               slice$wv, slice$pos, sep=" "))
-
-  # get the threshold if necessary
-  if (is.null(threshold)) {
-    vol <- minc.get.volume(volume)
-    threshold <- range(vol)
-    rm(vol)
-  }
-
-  # get the background threshold if necessary
-  if (!is.null(background) && is.null(background.threshold)) {
-    vol <- minc.get.volume(background)
-    background.threshold <- range(vol)
-    rm(vol)
-  }
-
-  # call ray_trace
-  position <- ""
-  if (slice$axis == "y") {
-    position <- "-back"
-  }
-    
-  if (is.null(background)) {
-    system(paste("ray_trace -output", output, colourmap, threshold[1],
-                 threshold[2], volume, "0 1", slice.obj.name,
-                 "-bg black -crop -size", size[1], size[2], position))
-  } else {
-    system(paste("ray_trace -output", output, background.colourmap,
-                 background.threshold[1], background.threshold[2],
-                 background, "0 1 -under transparent", colourmap,
-                 threshold[1], threshold[2], volume, "0 0.5", slice.obj.name,
-                 "-bg black -crop -size", size[1], size[2], position))
-  }
-  if (display) {
-    system(paste("display", output))
-  }
-  return(output)
-}
-
-
 # use the eval interface to run mixed effect models at every vertex.
 # NOTE: since it uses the eval interface it suffers from several
 # important flaws:
@@ -702,242 +599,6 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
 
 }
   
-
-# calls ray_trace_crosshair.pl to generate a pretty picture of an anatomical slice
-# with a stats slice overlayed and a crosshair indicating the coordinate (peak)
-# of interest
-mincRayTraceStats <- function(v, anatomy.volume, 
-															statsbuffer, column=1, like.filename=NULL, 
-															mask=NULL, image.min=-1000, image.max=4000,
-															output.width=800, output.height=800, 
-															place.inset=FALSE, inset=NULL,
-															stats.largest.pos=NULL, stats.largest.neg=NULL,
-															caption="t-statistic",
-															fdr=NULL, slice.direction="transverse",
-															outputfile="ray_trace_crosshair.png", 
-															show.pos.and.neg=FALSE, display=TRUE,
-															clobber=NULL, tmpdir="/tmp"){
-	#check whether ray_trace_crosshair is installed
-	lasterr <- try(system("ray_trace_crosshair", ignore.stderr = TRUE), 
-								silent=TRUE)
-	if(lasterr == 32512){
-		stop("ray_trace_crosshair must be installed for mincRayTraceStats to work.")
-	}
-	
-	if(file.exists(outputfile) && is.null(clobber)){
-		answer <- readline("Warning: the outputfile already exists, continue? (y/n) ")
-		if(substr(answer, 1, 1) == "n")
-			stop("Output file exists, specify clobber, or change the output file name.")
-	}
-	else if(file.exists(outputfile) && !clobber){
-		stop("Output file exists, specify clobber, or change the output file name.")
-	}
-	
-	### VOXEL
-	#check whether the first argument is a mincVoxel:
-	if(class(v)[1] != "mincVoxel"){
-		stop("Please specify a mincVoxel")
-	}
-	
-	#create a system call for ray_trace_crosshair.pl
-	systemcall <- array()	
-	systemcall[1] <- "ray_trace_crosshair"
-	systemcall[2] <- "-x"
-	systemcall[3] <- attr(v,"worldCoord")[1]
-	systemcall[4] <- "-y"
-	systemcall[5] <- attr(v,"worldCoord")[2]
-	systemcall[6] <- "-z"
-	systemcall[7] <- attr(v,"worldCoord")[3]
-	systemcall[8] <- "-caption"
-	systemcall[9] <- caption
-	
-	### ANATOMY VOLUME
-	i <- 10;
-	systemcall[i] <- "-final-nlin"
-	i <- i + 1
-	if(class(anatomy.volume)[1] == "character"){
-		systemcall[i] <- anatomy.volume
-		i <- i + 1
-	}
-	else if(class(anatomy.volume)[1] == "mincSingleDim"){
-		systemcall[i] <- attr(anatomy.volume, "filename")
-		i <- i + 1
-	}
-	else{
-		stop("Please specify the path to the anatomy volume, or a mincSingleDim containing the anatomy volume.")
-	}
-
-	### STATS VOLUME
-	systemcall[i] <- "-jacobian"
-	i <- i + 1
-	if(class(statsbuffer)[1] == "character"){
-		systemcall[i] <- statsbuffer
-		i <- i + 1
-	}
-	
-	if(class(statsbuffer)[1] == "numeric"){
-		if (is.na(file.info(as.character(like.filename))$size)){
- 	  	stop(c("File ", like.filename, " cannot be found.\n"))
-		}
-		#write buffer to file
-		mincWriteVolume.default(statsbuffer, 
-														paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""), 
-														like.filename)
-		
-		systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
-		i <- i + 1
-	}
-	
-	if(class(statsbuffer)[1] == "mincSingleDim"){
-		if (is.null(like.filename)){
-			like.filename <- as.character(attr(statsbuffer, "likeVolume"))
-		}
-		if (is.na(file.info(as.character(like.filename))$size)){
- 	  	stop(c("File ", like.filename, " cannot be found.\n"))
-		}
-		#write buffer to file
-		mincWriteVolume.default(statsbuffer, 
-														paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""), 
-														like.filename)
-		
-		systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
-		i <- i + 1
-	}
-	
-	if(class(statsbuffer)[1] == "mincMultiDim"){
-		if (is.null(like.filename)){
-    	like.filename <- as.character(attr(statsbuffer, "likeVolume"))
-  	}
-		if (is.na(file.info(like.filename)$size)){
- 	  	stop(c("File ", like.filename, " cannot be found.\n"))
-		}
-		
-		#write buffer to file
-		mincWriteVolume.default(statsbuffer[,column], 
-														paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""),
-														like.filename)
-		
-		systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
-		i <- i + 1
-	}
-			
-	if(class(mask) != "NULL"){
-		path.to.mask = "init"
-		if(class(mask)[1] == "character"){
-			path.to.mask = mask
-		}
-		else if(class(mask)[1] == "mincSingleDim"){
-			path.to.mask <- attr(mask, "filename")
-		}
-		system(paste("mv", 
-								paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""),
-								paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep="")))
-		system(paste("mincmask", 
-								paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep=""),
-								path.to.mask,
-								paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
-		system(paste("rm -f",
-								paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep="")))
-	}
-	
-	### IMAGE INTENSITY EXTREMA
-	systemcall[i] <- "-image-min"
-	i <- i + 1
-	systemcall[i] <- image.min
-	i <- i + 1
-	systemcall[i] <- "-image-max"
-	i <- i + 1
-	systemcall[i] <- image.max
-	i <- i + 1
-	
-	### OUTPUT IMAGE DIMENSIONS
-	systemcall[i] <- "-image-width"
-	i <- i + 1
-	systemcall[i] <- output.width
-	i <- i + 1
-	systemcall[i] <- "-image-height"
-	i <- i + 1
-	systemcall[i] <- output.height
-	i <- i + 1
-	
-	### INSET
-	if(place.inset == FALSE){
-		systemcall[i] <- "-no-place-inset"
-		i <- i + 1
-	}
-	else{
-		systemcall[i] <- "-place-inset"
-		i <- i + 1
-	}
-	
-	if(! is.null(inset)){
-		systemcall[i] <- "-brainsurface"
-		i <- i + 1
-		systemcall[i] <- inset
-		i <- i + 1
-	}
-	
-	### STATS EXTREMA
-	if(! is.null(stats.largest.pos)){
-		systemcall[i] <- "-positive-max"
-		i <- i + 1
-		systemcall[i] <- stats.largest.pos
-		i <- i + 1
-	}
-	
-	if(! is.null(stats.largest.neg)){
-		systemcall[i] <- "-negative-min"
-		i <- i + 1
-		systemcall[i] <- stats.largest.neg
-		i <- i + 1
-	}
-	
-	
-	### FDR
-	if(class(fdr)[1] == "numeric"){
-		systemcall[i] <- "-fdr"
-		i <- i + 1
-		systemcall[i] <- fdr
-		i <- i + 1
-	}
-	
-	### OUTPUTFILE
-	systemcall[i] <- "-outputfile"
-	i <- i + 1
-	systemcall[i] <- outputfile
-	i <- i + 1
-	
-	### SLICE DIRECTION
-	systemcall[i] <- "-slicedirection"
-	i <- i + 1
-	systemcall[i] <- slice.direction
-	i <- i + 1
-	
-	### SHOW POSITIVE AND NEGATIVE
-	if(show.pos.and.neg == FALSE){
-		systemcall[i] <- "-no-show-pos-and-neg"
-		i <- i + 1
-	}
-	else{
-		systemcall[i] <- "-show-pos-and-neg"
-		i <- i + 1
-	}
-
-	### #### ###
-	systemcall[i] <- "-remove-temp"
-	i <- i + 1
- 	system(paste(systemcall, collapse = " " ))
- 						
-  if(display){
-    system(paste("display", outputfile, "&"))
-  }
-  
-	#remove the file written to disk
-	system(paste("rm -f",
-							paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
-  
-}
-
 
 vertexLm <- function(formula, data, subset=NULL) {
   # repeat code to extract the formula as in mincLm

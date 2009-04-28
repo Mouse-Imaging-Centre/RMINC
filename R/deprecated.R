@@ -1,6 +1,57 @@
 # R code which I don't think is necessary anymore but which I'll
 # include just in case I was wrong ...
 
+# run a t-test, wilcoxon test, correlation, or linear model at every voxel
+minc.model <- function(filenames, groupings, method="t-test",
+                       mask=NULL) {
+
+  if (method == "t-test"
+      || method == "wilcoxon"
+      || method == "correlation"
+      || method == "lm"
+      || method == "paired-t-test") {
+    # do nothing
+  }
+  else {
+    stop("Method must be one of t-test, paired-t-test, wilcoxon, correlation or lm")
+  }
+
+  if (method == "lm") {
+    result <- list(method="lm")
+    result$likeVolume <- filenames[1]
+    result$model <- groupings
+    result$filenames <- filenames
+    result$data <- .Call("minc2_model",
+                         as.character(filenames),
+                         as.matrix(groupings),
+                         NULL,
+                         as.double(! is.null(mask)),
+                         as.character(mask),
+                         NULL, NULL,
+                         as.character(method))
+
+    # get the first voxel in order to get the dimension names
+    v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
+    rows <- sub('mmatrix', '',
+                rownames(summary(lm(v.firstVoxel ~ groupings))$coefficients))
+    colnames(result$data) <- c("F-statistic", rows)
+    class(result) <- "mincMultiDim"
+    
+  }
+  else {
+    groupings <- as.double(groupings)
+    result <- .Call("minc2_model",
+                    as.character(filenames),
+                    as.double(groupings),
+                    NULL,
+                    as.double(! is.null(mask)),
+                    as.character(mask),
+                    NULL, NULL,
+                    as.character(method))
+  }
+  return(result)
+}
+
 # run a t-test at every voxel. Only two groups allowed.
 minc.t.test <- function(filenames, groupings, mask=NULL) {
   voxel.t.test <- function(x) {
