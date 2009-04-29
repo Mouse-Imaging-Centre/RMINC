@@ -129,6 +129,12 @@ print.mincMultiDim <- function(x) {
   print(attr(x, "likeVolume"))
 }
 
+print.vertexMultiDim <- function(x) {
+  cat("Multidimensional Vertstats file\n")
+  cat("Columns:      ", colnames(x), "\n")
+}
+      
+
 print.mincSingleDim <- function(x) {
   cat("MINC volume\n")
   print(attr(x, "likeVolume"))
@@ -360,6 +366,11 @@ mincGetMask <- function(mask) {
 
 mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
+}
+
+vertexFDR <- function(buffer, method="FDR") {
+  mincFDR.mincMultiDim(buffer, columns=NULL, mask=NULL, df=NULL,
+                       method=method)
 }
 
 # mincFDR for data not created in the same R session; i.e. obtained
@@ -622,6 +633,19 @@ vertexLm <- function(formula, data, subset=NULL) {
   cat("after loading\n")
 
   result <- .Call("vertex_lm_loop", data.matrix, mmatrix);
+
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "filenames") <- filenames
+
+  # get the first voxel in order to get the dimension names
+  v.firstVoxel <- data.matrix[1,]
+  rows <- sub('mmatrix', '',
+              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+
+  colnames(result) <- c("F-statistic", rows)
+  class(result) <- c("vertexMultiDim", "matrix")
+  return(result)
   
 }
 
