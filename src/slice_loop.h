@@ -12,6 +12,8 @@
 extern mihandle_t* open_minc_files(SEXP filenames, 
 				      unsigned int *sizes);
 
+// get_mask is broken - see per_voxel_anova for how to work around it
+// for the moment
 extern void get_mask(SEXP filename, 
 		     mihandle_t hmask, 
 		     double *mask_buffer,
