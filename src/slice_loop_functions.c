@@ -64,8 +64,7 @@ double** create_slice_buffer(SEXP filenames,
   for (i=0; i < num_files; i++) {
     buffer[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
   }
-  Rprintf("after: %p\n", buffer[0]);
-  Rprintf("after: %p\n", buffer[0]);
+  //Rprintf("after: %p %d %d\n", buffer[0], sizes[1], sizes[2]);
   return(buffer);
 }
 
@@ -86,8 +85,9 @@ void fill_slice_buffer(SEXP filenames,
   unsigned long start[3];
   unsigned long count[3];
 
-  Rprintf("Sizes in fill_slice: %d %d %d\n",
-	  sizes[0], sizes[1], sizes[2]);
+  //Rprintf("Sizes in fill_slice: %d %d %d\n",
+  //sizes[0], sizes[1], sizes[2]);
+  Rprintf("%d ", slice_number);
 
   start[0] = slice_number; start[1] = 0; start[2] = 0;
   count[0] = (unsigned long) 1; 
@@ -98,16 +98,16 @@ void fill_slice_buffer(SEXP filenames,
 
   num_files = LENGTH(filenames);
   for (i=0; i < num_files; i++) {
-    Rprintf("buffer: %p\n", buffer[0]);
-    Rprintf("fill_slice_buffer: f %d, start %lu %lu %lu, count %lu %lu %lu\n",
-	    i, start[0], start[1], start[2], 
-	    count[0], count[1], count[2]);
+    //Rprintf("buffer: %p\n", buffer[0]);
+    //Rprintf("fill_slice_buffer: f %d, start %lu %lu %lu, count %lu %lu %lu\n",
+    //i, start[0], start[1], start[2], 
+    //count[0], count[1], count[2]);
     result = miget_real_value_hyperslab(hvol[i], 
 					MI_TYPE_DOUBLE,
 					(unsigned long *)start, 
 					(unsigned long *)count, 
 					buffer[i]);
-    Rprintf("hs results: %d\n", result);
+    //Rprintf("hs results: %d\n", result);
     if (result != MI_NOERROR) {
       error("Error getting data from slice %d.\n", slice_number);
     }

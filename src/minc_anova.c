@@ -25,7 +25,7 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
   p = ncols(Sx);
 
 
-  //Rprintf("N: %d P: %d\n", n,p);
+  //Rprintf("ANOVA: N: %d P: %d\n", n,p);
   xasgn = INTEGER(asgn);
 
   maxasgn = 0;
@@ -39,8 +39,10 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
   PROTECT(f_sexp = allocVector(REALSXP, maxasgn-1));
   xf_sexp = REAL(f_sexp);
   
+  //Rprintf("before voxel_lm\n");
   voxel_lm(Sy, Sx, coefficients, residuals, effects,
 	   work, qraux, v, pivot, se, t);
+  //Rprintf("after voxel_lm\n");
 
   // dfr: degrees of freedom of the residuals
   dfr = n - p;
@@ -145,7 +147,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   double **full_buffer;
   double *mask_buffer;
   mihandle_t *hvol, hmask;
-  int use_mask;
+  double *use_mask;
   int v0, v1, v2;
   int num_files, i, buffer_index, output_index;
 
@@ -158,19 +160,21 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   SEXP Soutput, t_sexp, Sdata;
   double *output, *data;
 
-  use_mask = INTEGER(have_mask);
+  use_mask = REAL(have_mask);
+  //Rprintf("Use mask: %f\n", use_mask[0]);
   
   num_files = LENGTH(filenames);
-  Rprintf("Before opening files\n");
-  //open_minc_files(filenames, hvol, sizes);
-  Rprintf("Before getting mask\n");
-  if (use_mask == 1) {
+  //Rprintf("Before opening files\n");
+  hvol = open_minc_files(filenames, sizes);
+  //Rprintf("Before getting mask\n");
+  if (use_mask[0] == 1) {
+    Rprintf("Getting mask\n");
     get_mask(mask, hmask, mask_buffer, sizes);
   }
   
-  Rprintf("Before creating slice buffer\n");
-  full_buffer = malloc(num_files * sizeof(double));
-  //create_slice_buffer(filenames, sizes, full_buffer);
+  //Rprintf("Before creating slice buffer\n");
+  //full_buffer = malloc(num_files * sizeof(double));
+  full_buffer = create_slice_buffer(filenames, sizes);
   //num_files = LENGTH(filenames);
   //full_buffer = malloc(num_files * sizeof(double));
   //for (i=0; i < num_files; i++) {
@@ -208,6 +212,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
     
   PROTECT(t_sexp = allocVector(REALSXP, maxasgn-1));
   
+  //Rprintf("Sizes: %d %d %d\n", sizes[0], sizes[1], sizes[2]);
   /* allocate the output buffer */
   PROTECT(Soutput=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 
 			     maxasgn-1));
@@ -220,31 +225,32 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   /* enter slice loop */
   Rprintf("In slice \n");
   for (v0=0; v0 < sizes[0]; v0++) {
-    Rprintf("Before fill_slice_buffer\n");
+    //Rprintf("Before fill_slice_buffer\n");
     fill_slice_buffer(filenames, sizes, hvol, full_buffer, v0);
-    if (use_mask == 1) {
+    //Rprintf("After fill_slice_buffer\n");
+    if (use_mask[0] == 1) {
       get_mask_slice(hmask, sizes, mask_buffer, v0);
     }
     for (v1=0; v1 < sizes[1]; v1++) {
       for (v2=0; v2 < sizes[2]; v2++) {
-	Rprintf("Before get_indices\n");
+	//Rprintf("Before get_indices\n");
 	get_indices(v0,v1,v2, sizes, &output_index, &buffer_index);
 	
 	/* only perform operation if not masked */
-	if (use_mask == 0 ||
-	    (use_mask == 1 && mask_buffer[buffer_index] > 0.5)) {
+	if (use_mask[0] == 0 ||
+	    (use_mask[0] == 1 && mask_buffer[buffer_index] > 0.5)) {
 	  /* fill data buffer */
 	  for (i=0; i< num_files; i++) {
 	    data[i] = full_buffer[i][buffer_index];
 	  }
 
 	  /* compute the linear model */
-	  Rprintf("Before voxel_anova\n");
+	  //Rprintf("Before voxel_anova\n");
 	  t_sexp = voxel_anova(Sdata, Sx, asgn,
 			       coefficients, residuals,
 			       effects, work, qraux, v, pivot,
 			       se, t, comp, ss, df);
-	  Rprintf("Before assigning of output\n");
+	  //Rprintf("Before assigning of output\n");
 	  for (i=0; i < maxasgn-1; i++) {
 	    output[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 	      = REAL(t_sexp)[i];
@@ -259,7 +265,30 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
       }
     }
   }
+  //Rprintf("freeing slice buffer\n");
+  free_slice_buffer(filenames, sizes, full_buffer);
+  //Rprintf("freeing volume handles\n");
+  free_minc_files(filenames, hvol);
+  //Rprintf("finished\n");
+
+  free(coefficients);
+  free(residuals);
+  free(effects);
+  free(pivot);
+  free(work);
+  free(qraux);
+  free(v);
+  free(diag);
+  free(se);
+  free(t);
+  
+  free(comp);
+  free(ss);
+  free(df);
+  UNPROTECT(3);
   Rprintf("\nDone\n");
+  return(Soutput);
+
 }
   
 

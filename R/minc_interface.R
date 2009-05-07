@@ -291,7 +291,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
                   as.character(filenames),
                   as.matrix(mmatrix),
                   attr(mmatrix, "assign"),
-                  as.integer(! is.null(mask)),
+                  as.double(! is.null(mask)),
                   as.character(mask))
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
@@ -601,8 +601,20 @@ mincApply <- function(filenames, function.string, mask=NULL) {
 # * is numbingly, dreadfully, stupifyingly slow.
 
 mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
+
+  # determine the number of output variables
+  x <- rnorm(length(filenames))
+  s <- summary(lme(as.formula(fixed.effect), random=as.formula(random.effect)))$tTable[,4]
+  l <- length(s)
   voxel.slow.lme <- function(x) {
-    summary(lme(as.formula(fixed.effect), random=as.formula(random.effect)))$tTable[,4]
+    s <- summary(lme(as.formula(fixed.effect), random=as.formula(random.effect)))
+    if (inherits(x, "try-error")) {
+      return(vector("numeric", length=l))
+    }
+    else {
+      return(s$tTable[,4])
+    }
+    
   }
   assign("voxel.slow.lme", voxel.slow.lme, env=.GlobalEnv)
   output <- mincApply(filenames, quote(voxel.slow.lme(x)), mask)
