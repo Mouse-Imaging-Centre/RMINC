@@ -622,6 +622,15 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
 
 }
   
+vertexTable <- function(filenames) {
+  nSubjects <- length(filenames)
+  nvertices <- nrow(read.table(filenames[1]))
+  output <- matrix(nrow=nvertices, ncol=nSubjects)
+  for (i in 1:nSubjects) {
+    output[,i] <- as.matrix(read.table(filenames[i]))
+  }
+  return(output)
+}
 
 vertexLm <- function(formula, data, subset=NULL) {
   # repeat code to extract the formula as in mincLm
