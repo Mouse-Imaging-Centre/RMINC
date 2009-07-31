@@ -1,7 +1,7 @@
 # compute a linear model over every structure
 
 
-anatGetFile <- function(filename, atlas, method="volume") {
+anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv" ) {
   if (method == "volume") {
     system(paste("label_volumes_from_jacobians", atlas, filename, "> tmp.txt", sep=" "))
   }
@@ -11,15 +11,47 @@ anatGetFile <- function(filename, atlas, method="volume") {
   return(read.csv("tmp.txt", header=F))
 }
 
-anatGetAll <- function(filenames, atlas, method="volume") {
+anatRenameRows <- function(anat, defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
+  defs <- read.csv(defs)
+  rn <- rownames(anat)
+  on <- as.character(rn)
+  for (i in 1:length(rn)) {
+    # if structure exists in both hemisphere with same number
+    if (rn[i] %in% defs$right.label & rn[i] %in% defs$left.label) {
+      index <- match(rn[i], defs$right.label)
+      on[i] <- paste(defs$Structure[index])
+      #cat("Match", rn[i], "to both:", on[i], "\n")
+    }
+    # left side only
+    else if (rn[i] %in% defs$left.label) {
+      index <- match(rn[i], defs$left.label)
+      on[i] <- paste("left", defs$Structure[index])
+      #cat("Match", rn[i], "to left:", on[i], "\n")
+    }
+    else if (rn[i] %in% defs$right.label) {
+      index <- match(rn[i], defs$right.label)
+      on[i] <- paste("right", defs$Structure[index])
+      #cat("Match", rn[i], "to right:", on[i], "\n")
+    }
+    else {
+      #cat("Something weird", rn[i], "\n")
+    }
+  }
+  rownames(anat) <- on
+  return(anat)
+}
+                     
+
+anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
   vol <- anatGetFile(filenames[1], atlas, method)
   rownames(vol) <- vol[,1]
   vol[,1] <- vol[,2]
   for (i in 2:length(filenames)) {
-    vol[,i] <- getvol(filenames[i], atlas, method)[,2]
+    vol[,i] <- anatGetFile(filenames[i], atlas, method)[,2]
   }
   attr(vol, "atlas") <- atlas
-  return(vol)
+  vol <- anatRenameRows(vol, defs)
+  return(t(vol))
 }
 
 anatCombineStructures <- function(vols, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {

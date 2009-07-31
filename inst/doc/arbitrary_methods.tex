@@ -17,9 +17,14 @@ however:
 
 Here's an example of how it works:
 
-\begin{Schunk}
-\begin{Sinput}
-> f <- function() {
-+     return(tapply(x, gf$Genotype, mean))
-+ }
-> vs <- mincApply(gf$jacobians, quote(f()), mask = "small-mask.mnc")
+
+The code above has two parts. The first is creating the function,
+which has the following properties:
+
+\begin{itemize}
+\item It takes no arguments.
+\item It works on the variable \textit{x}. This function will be
+  evaluated at every voxel, where \textit{x} will be a vector
+  containing the values at that voxel for all the files.
+\item It returns a vector.
+\end{itemize}
