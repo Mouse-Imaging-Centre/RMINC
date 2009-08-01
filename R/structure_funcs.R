@@ -38,43 +38,56 @@ anatRenameRows <- function(anat, defs="/projects/mice/jlerch/cortex-label/c57_br
     }
   }
   rownames(anat) <- on
+  # make it an anat class
+  class(anat) <- c("anatUnilateral", "anatMatrix", "matrix")
+  # make sure we can map label numbers for later use
+  attr(anat, "anatIDs") <- rn
   return(anat)
 }
-                     
+
+# both unilateral and bilateral matrices can be printed the same way
+print.anatMatrix <- function(x) {
+  print.table(x)
+}
 
 anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
   vol <- anatGetFile(filenames[1], atlas, method)
-  rownames(vol) <- vol[,1]
-  vol[,1] <- vol[,2]
+  output <- matrix(nrow=nrow(vol), ncol=length(filenames))
+  rownames(output) <- vol[,1]
+
+  output[,1] <- vol[,2]
   for (i in 2:length(filenames)) {
-    vol[,i] <- anatGetFile(filenames[i], atlas, method)[,2]
+    output[,i] <- anatGetFile(filenames[i], atlas, method)[,2]
   }
-  attr(vol, "atlas") <- atlas
-  vol <- anatRenameRows(vol, defs)
-  return(t(vol))
+  attr(output, "atlas") <- atlas
+  output <- anatRenameRows(output, defs)
+  return(t(output))
 }
 
 anatCombineStructures <- function(vols, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
   labels <- read.csv(defs)
-  combined.labels <- matrix(nrow=ncol(vols), ncol=nrow(labels))
+  combined.labels <- matrix(nrow=nrow(vols), ncol=nrow(labels))
+  labelNumbers <- attr(vols, "anatIDs")
   for (i in 1:nrow(labels)) {
     if (labels$right.label[i] == labels$left.label[i]) {
-      combined.labels[,i] <- t(vols[as.character(labels$right.label[i]),])
+      combined.labels[,i] <- vols[, labelNumbers == as.character(labels$right.label[i])]
     }
     else {
       if (method == "volume") {
-        combined.labels[,i] <- t(vols[as.character(labels$right.label[i]),] +
-                                 vols[as.character(labels$left.label[i]),])
+        combined.labels[,i] <-
+          vols[, labelNumbers == as.character(labels$right.label[i])]
+        + vols[, labelNumbers == as.character(labels$left.label[i])]
       }
       else {
-        combined.labels[,i] <- t(vols[as.character(labels$right.label[i]),] +
-                                 vols[as.character(labels$left.label[i]),]) /2
+        combined.labels[,i] <-
+          vols[, labelNumbers == as.character(labels$right.label[i])]
+        + vols[, labelNumbers == as.character(labels$left.label[i])] /2
       }
         
     }
   }
   colnames(combined.labels) <- labels$Structure
-  class(combined.labels) <- c("anatMatrix", "matrix")
+  class(combined.labels) <- c("anatCombined", "anatMatrix", "matrix")
   attr(combined.labels, "atlas") <- attr(vols, "atlas")
   attr(combined.labels, "definitions") <- defs
   return(combined.labels)
