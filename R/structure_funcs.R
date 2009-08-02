@@ -75,13 +75,11 @@ anatCombineStructures <- function(vols, method="volume", defs="/projects/mice/jl
     else {
       if (method == "volume") {
         combined.labels[,i] <-
-          vols[, labelNumbers == as.character(labels$right.label[i])]
-        + vols[, labelNumbers == as.character(labels$left.label[i])]
+          vols[, labelNumbers == as.character(labels$right.label[i])] + vols[, labelNumbers == as.character(labels$left.label[i])]
       }
       else {
         combined.labels[,i] <-
-          vols[, labelNumbers == as.character(labels$right.label[i])]
-        + vols[, labelNumbers == as.character(labels$left.label[i])] /2
+          vols[, labelNumbers == as.character(labels$right.label[i])] + vols[, labelNumbers == as.character(labels$left.label[i])] /2
       }
         
     }
