@@ -1,14 +1,27 @@
 # compute a linear model over every structure
 
 
-anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv" ) {
+anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE ) {
+  out <- NULL
   if (method == "volume") {
     system(paste("label_volumes_from_jacobians", atlas, filename, "> tmp.txt", sep=" "))
+    out <- read.csv("tmp.txt", header=F)
   }
   else if (method == "means") {
     system(paste("average_values_across_segmentation.py", filename, atlas, "tmp.txt", sep=" "))
+    out <- read.csv("tmp.txt", header=F)
   }
-  return(read.csv("tmp.txt", header=F))
+  else if (method == "text") {
+    # values are already extracted and stored in a text file
+    out <- read.table(filename, header=F)
+  }
+
+  if (dropLabels == TRUE) {
+    labels <- read.csv(defs)
+    leftandright <- c(labels$left.label, labels$right.label)
+    out <- out[out$V1 %in% leftandright,]
+  }
+  return(out)
 }
 
 anatRenameRows <- function(anat, defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
@@ -50,17 +63,19 @@ print.anatMatrix <- function(x) {
   print.table(x)
 }
 
-anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
-  vol <- anatGetFile(filenames[1], atlas, method)
+anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE) {
+  vol <- anatGetFile(filenames[1], atlas, method, defs, dropLabels)
   output <- matrix(nrow=nrow(vol), ncol=length(filenames))
   rownames(output) <- vol[,1]
 
   output[,1] <- vol[,2]
   for (i in 2:length(filenames)) {
-    output[,i] <- anatGetFile(filenames[i], atlas, method)[,2]
+    output[,i] <- anatGetFile(filenames[i], atlas, method, defs, dropLabels)[,2]
   }
   attr(output, "atlas") <- atlas
-  output <- anatRenameRows(output, defs)
+  if (! is.null(defs)) {
+    output <- anatRenameRows(output, defs)
+  }
   return(t(output))
 }
 

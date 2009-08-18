@@ -1,7 +1,8 @@
-New in Version 0.6
+New in Version 0.5.13
 ==================
 
 * better C api.
+* dealing with anatomical structures (ROI)
 
 New in Version 0.5
 ==================
