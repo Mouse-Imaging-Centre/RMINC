@@ -1,7 +1,7 @@
 # compute a linear model over every structure
 
 
-anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE ) {
+anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
   out <- NULL
   if (method == "volume") {
     system(paste("label_volumes_from_jacobians", atlas, filename, "> tmp.txt", sep=" "))
@@ -15,11 +15,20 @@ anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/j
     # values are already extracted and stored in a text file
     out <- read.table(filename, header=F)
   }
-
+  #cat("FILENAME:", filename, "\n")
   if (dropLabels == TRUE) {
     labels <- read.csv(defs)
-    leftandright <- c(labels$left.label, labels$right.label)
-    out <- out[out$V1 %in% leftandright,]
+    usedlabels <- 0
+    if (side == "right") {
+      usedlabels <- labels$right.label
+    }
+    else if (side == "left") {
+      usedlabels <- labels$left.label
+    }
+    else if (side == "both") {
+      usedlabels <- c(labels$left.label, labels$right.label)
+    }
+    out <- out[out$V1 %in% usedlabels,]
   }
   return(out)
 }
@@ -63,14 +72,14 @@ print.anatMatrix <- function(x) {
   print.table(x)
 }
 
-anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE) {
-  vol <- anatGetFile(filenames[1], atlas, method, defs, dropLabels)
+anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both") {
+  vol <- anatGetFile(filenames[1], atlas, method, defs, dropLabels, side)
   output <- matrix(nrow=nrow(vol), ncol=length(filenames))
   rownames(output) <- vol[,1]
 
   output[,1] <- vol[,2]
   for (i in 2:length(filenames)) {
-    output[,i] <- anatGetFile(filenames[i], atlas, method, defs, dropLabels)[,2]
+    output[,i] <- anatGetFile(filenames[i], atlas, method, defs, dropLabels, side)[,2]
   }
   attr(output, "atlas") <- atlas
   if (! is.null(defs)) {
