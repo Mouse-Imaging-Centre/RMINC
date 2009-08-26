@@ -621,6 +621,28 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
   return(output)
 
 }
+
+mincLme <- function(filenames, fixed.effect, random.effect, mask=NULL)
+{
+  # determine the number of output variables
+   x <- rnorm(length(filenames))
+   s <- newlme(as.formula(fixed.effect), random=as.formula(random.effect))
+
+  voxel.lme <- function(x) {
+    s <- newlmeLoop(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, x)
+    if (inherits(s, "try-error")) {
+      return(vector("numeric", length=2))
+    }
+    else {
+	return(s)
+    }
+    
+  }
+  assign("voxel.lme", voxel.lme, env=.GlobalEnv)
+  output <- mincApply(filenames, quote(voxel.lme(x)), mask)
+  return(output)
+
+}
   
 vertexTable <- function(filenames) {
   nSubjects <- length(filenames)
