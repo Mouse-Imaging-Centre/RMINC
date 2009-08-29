@@ -625,11 +625,11 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
 mincLme <- function(filenames, fixed.effect, random.effect, mask=NULL)
 {
   # determine the number of output variables
-   x <- rnorm(length(filenames))
-   s <- newlme(as.formula(fixed.effect), random=as.formula(random.effect))
+  x <- rnorm(length(filenames))
+  s <- rmincLme(as.formula(fixed.effect), random=as.formula(random.effect))
 
   voxel.lme <- function(x) {
-    s <- newlmeLoop(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, x)
+    s <- rmincLmeLoop(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, x)
     if (inherits(s, "try-error")) {
       return(vector("numeric", length=2))
     }
@@ -639,9 +639,33 @@ mincLme <- function(filenames, fixed.effect, random.effect, mask=NULL)
     
   }
   assign("voxel.lme", voxel.lme, env=.GlobalEnv)
-  output <- mincApply(filenames, quote(voxel.lme(x)), mask)
+  output <- mincApplyLme(filenames, quote(voxel.lme(x)), mask)
   return(output)
 
+}
+
+mincApplyLme <- function(filenames, function.string, mask=NULL) {
+  x <- mincGetVoxel(filenames, 0,0,0)
+  test <- eval(function.string)
+  results <- .Call("minc2_model",
+                   as.character(filenames),
+                   function.string,
+                   NULL,
+                   as.double(! is.null(mask)),
+                   as.character(mask),
+                   parent.env(environment()),
+                   as.double(length(test)),
+                   as.character("eval"));
+
+  attr(results, "likeVolume") <- filenames[1]
+  if (length(test) > 1) {
+    class(results) <- c("mincMultiDim", "matrix")
+  }
+  else {
+    class(results) <- c("mincSingleDim", "numeric")
+  }
+  colnames(results) <- colnames(test)
+  return(results)
 }
   
 vertexTable <- function(filenames) {
