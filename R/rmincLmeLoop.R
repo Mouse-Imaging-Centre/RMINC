@@ -1,8 +1,8 @@
 ###            Fit a general linear mixed effects model
 
-library('nlme')
+#library('nlme')
 
-newlme <-
+rmincLme <-
   ## fits general linear mixed effects model by maximum likelihood, or
   ## residual maximum likelihood using Newton-Raphson algorithm.
   function(fixed,
@@ -15,9 +15,9 @@ newlme <-
 	   na.action = na.fail,
 	   control = list(),
            contrasts = NULL, keep.data = TRUE)
-  UseMethod("newlme")
+  UseMethod("rmincLme")
 
-newlme.formula <-
+rmincLme.formula <-
   function(fixed,
 	   data = sys.frame(sys.parent()),
 	   random = pdSymm( eval( as.call( fixed[ -2 ] ) ) ),
@@ -34,7 +34,7 @@ newlme.formula <-
   miss.data <- missing(data) || !is.data.frame(data)
 
   ## control parameters
-  controlvals <- newlmeControl()
+  controlvals <- rmincLmeControl()
 
   ##
   ## checking arguments
@@ -49,7 +49,7 @@ newlme.formula <-
 
   ## create an lme structure containing the random effects model and plug-ins
 
-  lmeSt <- newlmeStruct(reStruct = reSt, corStruct = correlation,
+  lmeSt <- rmincLmeStruct(reStruct = reSt, corStruct = correlation,
 		     varStruct = newvarFunc(weights))
 
   ## extract a data frame with enough information to evaluate
@@ -84,7 +84,7 @@ newlme.formula <-
       NULL
     }
   }
-  
+
   grps <- grps[ord, , drop = FALSE]
   dataMix <- dataMix[ord, ,drop = FALSE]
   #revOrder <- match(origOrder, row.names(dataMix)) # putting in orig. order
@@ -92,7 +92,7 @@ newlme.formula <-
   N <- nrow(grps)
   Z <- model.matrix(reSt, dataMix)
   ncols <- attr(Z, "ncols")
-  Names(lmeSt$reStruct) <- attr(Z, "nams")
+  newNames(lmeSt$reStruct) <- attr(Z, "nams")
   ## keeping the contrasts for later use in predict
 
   contr <- attr(Z, "contr")
@@ -118,21 +118,23 @@ newlme.formula <-
 	 dims = dims, logLik = 0)
   lmeSt <- newInitialize(lmeSt, dataMix, grps, control = controlvals)
 
-  dataMix <<-dataMix
-  X<<-X
-  Z<<-Z
-  grps<<-grps
-  lmeSt<<-lmeSt
-  controlvals<<-controlvals
+  dataMix <<- dataMix
+  X <<- X
+  Z <<- Z
+  grps <<- grps
+  lmeSt <<- lmeSt
+  controlvals <<- controlvals
   dims <<- dims
   listNncols <<- listNncols
   listrownames <<- listrownames
 
-  storedTstats <- newlmeLoop(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, eval(fixed[[2]], dataMix))
+  test <- list(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames)
+
+  storedTstats <- rmincLmeLoop(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, eval(fixed[[2]], dataMix))
   return(storedTstats)
 }
 
-newlmeLoop <- function(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, y)
+rmincLmeLoop <- function(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, y)
 {
   #y <- eval(fixed[[2]], dataMix)
   #dataMix$x <-  y[attr(dataMix, "row.names")]
@@ -264,7 +266,7 @@ newlmeLoop <- function(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols
 #   dims <- attr(lmeSt, "conLin")$dims[c("N", "Q", "qvec", "ngrps", "ncol")]
   ## getting the approximate var-cov of the parameters
 #   if (controlvals$apVar) {
-#     apVar <- newlmeApVar(lmeSt, lmeFit$sigma,
+#     apVar <- rmincLmeApVar(lmeSt, lmeFit$sigma,
 # 		      .relStep = controlvals[[".relStep"]],
 #                       minAbsPar = controlvals[["minAbsParApVar"]],
 # 		      natural = controlvals[["natural"]])
@@ -410,7 +412,7 @@ newgetFixDF <-
   val
 }
 
-newlmeApVar <-
+rmincLmeApVar <-
   function(lmeSt, sigma, conLin = attr(lmeSt, "conLin"),
            .relStep = (.Machine$double.eps)^(1/3), minAbsPar = 0,
            natural = TRUE)
@@ -434,7 +436,7 @@ newlmeApVar <-
       val <- .C("mixed_loglik",
 		as.double(conLin$Xy),
 		as.integer(unlist(dims)),
-		as.double(sigma * unlist(pdFactor(solve(object$reStruct)))),
+		as.double(sigma * unlist(newpdFactor(solve(object$reStruct)))),
 		as.integer(settings),
 		logLik = double(1),
 		lRSS = double(1))[c("logLik", "lRSS")]
@@ -449,14 +451,14 @@ newlmeApVar <-
   sig2 <- sigma * sigma
   reSt <- lmeSt[["reStruct"]]
   for(i in seq_along(reSt)) {
-    matrix(reSt[[i]]) <- as.double(sig2) * pdMatrix(reSt[[i]])
+    matrix(reSt[[i]]) <- as.double(sig2) * newpdMatrix(reSt[[i]])
     if (inherits(reSt[[i]], "pdSymm") && natural) {
-      reSt[[i]] <- pdNatural(reSt[[i]])
+      reSt[[i]] <- newpdNatural(reSt[[i]])
     }
     if (inherits(reSt[[i]], "pdBlocked") && natural) {
       for(j in seq_along(reSt[[i]])) {
         if (inherits(reSt[[i]][[j]], "pdSymm")) {
-          reSt[[i]][[j]] <- pdNatural(reSt[[i]][[j]])
+          reSt[[i]][[j]] <- newpdNatural(reSt[[i]][[j]])
         }
       }
     }
@@ -516,7 +518,7 @@ newMEEM <-
     dd <- conLin$dims
     pdCl <- attr(object, "settings")[-(1:3)]
     pdCl[pdCl == -1] <- 0
-    precvec <- unlist(pdFactor(object))
+    precvec <- unlist(newpdFactor(object))
     zz <- .C("mixed_EM",
 	     as.double(conLin$Xy),
 	     as.integer(unlist(dd)),
@@ -549,7 +551,7 @@ newMEestimate <-
   zz <- .C("mixed_estimate",
 	   as.double(rConLin$Xy),
 	   as.integer(unlist(dd)),
-	   as.double(unlist(pdFactor(object$reStruct))),
+	   as.double(unlist(newpdFactor(object$reStruct))),
 	   as.integer(REML),
 	   double(1),
 	   estimates = double(dd$StrRows * dd$ZXcols),
@@ -566,7 +568,7 @@ newMEestimate <-
       matrix(resp[as.vector(outer(1:(nc[i]), dd$SToff[[i]] - start[i], "+"))],
 	     ncol = nc[i], byrow = TRUE,
 	     dimnames = list(unique(as.character(groups[, nam[i]])),
-		 Names(reSt[[i]])))
+		 newNames(reSt[[i]])))
     NULL
   }
   p <- nc[Q + 1]
@@ -724,21 +726,7 @@ newgetGroupsFormula.lme <-
 #   getGroupsFormula(object$modelStruct$reStruct, asList)
 }
 
-getResponse.lme <-
-  function(object, form)
-{
-#   val <- resid(object) + fitted(object)
-#   if (is.null(lab <- attr(object, "labels")$y)) {
-#     lab <- deparse(newgetResponseFormula(object)[[2]])
-#   }
-#   if (!is.null(aux <- attr(object, "units")$y)) {
-#     lab <- paste(lab, aux)
-#   }
-#   attr(val, "label") <- lab
-#   val
-}
-
-logLik.newlme <-
+logLik.rmincLme <-
   function(object, REML, ...)
 {
   p <- object$dims$ncol[object$dims$Q + 1]
@@ -762,7 +750,7 @@ logLik.newlme <-
   val
 }
 
-print.newlme <-
+print.rmincLme <-
   function(x, ...)
 {
   dd <- x$dims
@@ -877,352 +865,8 @@ print.summary.lme <-
   invisible(x)
 }
 
-# qqnorm.lme <-
-#   function(y, form = ~ resid(., type = "p"), abline = NULL,
-#            id = NULL, idLabels = NULL, grid = FALSE, ...)
-#   ## normal probability plots for residuals and random effects
-# {
-#   object <- y
-#   if (!inherits(form, "formula")) {
-#     stop("\"Form\" must be a formula")
-#   }
-#   ## constructing data
-#   allV <- all.vars(newasOneFormula(form, id, idLabels))
-#   allV <- allV[is.na(match(allV,c("T","F","TRUE","FALSE")))]
-#   if (length(allV) > 0) {
-#     data <- getData(object)
-#     if (is.null(data)) {		# try to construct data
-#       alist <- lapply(as.list(allV), as.name)
-#       names(alist) <- allV
-#       alist <- c(as.list(as.name("data.frame")), alist)
-#       mode(alist) <- "call"
-#       data <- eval(alist, sys.parent(1))
-#     } else {
-#       if (any(naV <- is.na(match(allV, names(data))))) {
-# 	stop(paste(allV[naV], "not found in data"))
-#       }
-#     }
-#   } else data <- NULL
-#   ## argument list
-#   dots <- list(...)
-#   if (length(dots) > 0) args <- dots
-#   else args <- list()
-#   ## appending object to data
-#   data <- as.list(c(as.list(data), . = list(object)))
-# 
-#   ## covariate - must always be present
-#   covF <- newgetCovariateFormula(form)
-#   .x <- eval(covF[[2]], data)
-#   labs <- attr(.x, "label")
-#   if (inherits(.x, "ranef.lme")) {      # random effects
-#     type <- "reff"
-#   } else {
-#     if (!is.null(labs) && ((labs == "Standardized residuals") ||
-#                            (labs == "Normalized residuals") ||
-#                            (substring(labs, 1, 9) == "Residuals"))) {
-#       type <- "res"                     # residuals
-#     } else {
-#       stop("Only residuals and random effects allowed")
-#     }
-#   }
-#   if (is.null(args$xlab)) args$xlab <- labs
-#   if (is.null(args$ylab)) args$ylab <- "Quantiles of standard normal"
-#   if(type == "res") {			# residuals
-#     fData <- qqnorm(.x, plot.it = FALSE)
-#     data[[".y"]] <- fData$x
-#     data[[".x"]] <- fData$y
-#     dform <- ".y ~ .x"
-#     if (!is.null(grp <- getGroupsFormula(form))) {
-#       dform <- paste(dform, deparse(grp[[2]]), sep = "|")
-#     }
-#     if (!is.null(id)) {			# identify points in plot
-#       id <-
-#         switch(mode(id),
-#                numeric = {
-#                  if ((id <= 0) || (id >= 1)) {
-#                    stop("Id must be between 0 and 1")
-#                  }
-#                  if (labs == "Normalized residuals") {
-#                    as.logical(abs(resid(object, type="normalized"))
-#                               > -qnorm(id / 2))
-#                  } else {
-#                    as.logical(abs(resid(object, type="pearson"))
-#                               > -qnorm(id / 2))
-#                  }
-#                },
-#                call = eval(asOneSidedFormula(id)[[2]], data),
-#                stop("\"Id\" can only be a formula or numeric.")
-#                )
-#       if (is.null(idLabels)) {
-#         idLabels <- getGroups(object)
-#         if (length(idLabels) == 0) idLabels <- 1:object$dims$N
-#         idLabels <- as.character(idLabels)
-#       } else {
-#         if (mode(idLabels) == "call") {
-#           idLabels <-
-#             as.character(eval(asOneSidedFormula(idLabels)[[2]], data))
-#         } else if (is.vector(idLabels)) {
-#           if (length(idLabels <- unlist(idLabels)) != length(id)) {
-#             stop("\"IdLabels\" of incorrect length")
-#           }
-#           idLabels <- as.character(idLabels)
-#         } else {
-#           stop("\"IdLabels\" can only be a formula or a vector")
-#         }
-#       }
-#     }
-#   } else {				# random.effects
-#     level <- attr(.x, "level")
-#     std <- attr(.x, "standardized")
-#     if (!is.null(effNams <- attr(.x, "effectNames"))) {
-#       .x <- .x[, effNams, drop = FALSE]
-#     }
-#     nc <- ncol(.x)
-#     nr <- nrow(.x)
-#     fData <- lapply(as.data.frame(.x), qqnorm, plot.it = FALSE)
-#     fData <- data.frame(.x = unlist(lapply(fData, function(x) x[["y"]])),
-# 			.y = unlist(lapply(fData, function(x) x[["x"]])),
-# 			.g = ordered(rep(names(fData),rep(nr, nc)),
-#                         levels = names(fData)), check.names = FALSE)
-#     dform <- ".y ~ .x | .g"
-#     if (!is.null(grp <- getGroupsFormula(form))) {
-#       dform <- paste(dform, deparse(grp[[2]]), sep = "*")
-#       auxData <- data[is.na(match(names(data), "."))]
-#     } else {
-#       auxData <- list()
-#     }
-#     ## id and idLabels - need not be present
-#     if (!is.null(id)) {			# identify points in plot
-#       N <- object$dims$N
-#       id <-
-#         switch(mode(id),
-#                numeric = {
-#                  if ((id <= 0) || (id >= 1)) {
-#                    stop("Id must be between 0 and 1")
-#                  }
-#                  aux <- ranef(object, level = level, standard = TRUE)
-#                  as.logical(abs(c(unlist(aux))) > -qnorm(id / 2))
-#                },
-#                call = eval(asOneSidedFormula(id)[[2]], data),
-#                stop("\"Id\" can only be a formula or numeric.")
-#                )
-#       if (length(id) == N) {
-#         ## id as a formula evaluated in data
-#         auxData[[".id"]] <- id
-#       }
-# 
-#       if (is.null(idLabels)) {
-#         idLabels <- rep(row.names(.x), nc)
-#       } else {
-#         if (mode(idLabels) == "call") {
-#           idLabels <-
-#             as.character(eval(asOneSidedFormula(idLabels)[[2]], data))
-#         } else if (is.vector(idLabels)) {
-#           if (length(idLabels <- unlist(idLabels)) != N) {
-#             stop("\"IdLabels\" of incorrect length")
-#           }
-#           idLabels <- as.character(idLabels)
-#         } else {
-#           stop("\"IdLabels\" can only be a formula or a vector")
-#         }
-#       }
-#       if (length(idLabels) == N) {
-#         ## idLabels as a formula evaluated in data
-#         auxData[[".Lid"]] <- idLabels
-#       }
-#     }
-# 
-#     if (length(auxData)) {		# need collapsing
-#       auxData <- gsummary(as.data.frame(auxData),
-#                           groups = getGroups(object, level = level))
-#       auxData <- auxData[row.names(.x), , drop = FALSE]
-# 
-#       if (!is.null(auxData[[".id"]])) {
-#         id <- rep(auxData[[".id"]], nc)
-#       }
-# 
-#       if (!is.null(auxData[[".Lid"]])) {
-#         idLabels <- rep(auxData[[".Lid"]], nc)
-#       }
-#       data <- cbind(fData, do.call("rbind", rep(list(auxData), nc)))
-#     } else {
-#       data <- fData
-#     }
-#   }
-#   assign("id", if (is.null(id)) NULL else as.logical(as.character(id)))#,
-#   #   where = 1)
-#   assign("idLabels", as.character(idLabels))#, where = 1)
-#   #assign("grid", grid, where = 1)
-#   assign("abl", abline)#, where = 1)
-#   if (is.null(args$strip)) {
-#     args$strip <- function(...) strip.default(..., style = 1)
-#   }
-#   if (is.null(args$cex)) args$cex <- par("cex")
-#   if (is.null(args$adj)) args$adj <- par("adj")
-# 
-#   args <- c(list(eval(parse(text = dform)),
-#                  data = substitute(data)), args)
-#   if (is.null(args$panel)) {
-#     args <- c(list(panel = function(x, y, subscripts, ...){
-#       x <- as.numeric(x)
-#       y <- as.numeric(y)
-#       dots <- list(...)
-#       if (grid) panel.grid()
-#       panel.xyplot(x, y, ...)
-#       if (any(ids <- id[subscripts])){
-#           ltext(x[ids], y[ids], idLabels[subscripts][ids],
-#                 cex = dots$cex, adj = dots$adj)
-#       }
-#       if (!is.null(abl)) { if (length(abl) == 2) panel.abline(a = abl, ...) else panel.abline(h = abl, ...) }
-#     }), args)
-#   }
-#   if(type == "reff" && !std) {
-#     args[["scales"]] <- list(x = list(relation = "free"))
-#   }
-#   do.call("xyplot", as.list(args))
-# }
 
-# ranef.lme <-
-#   ##  Extracts the random effects from an lme object.
-#   ##  If aug.frame is true, the returned data frame is augmented with a
-#   ##  values from the original data object, if available.  The variables
-#   ##  in the original data are collapsed over the cluster variable by the
-#   ##  function fun.
-# function(object, augFrame = FALSE, level = 1:Q, data, which = 1:ncol(data),
-# 	 FUN = mean, standard = FALSE , omitGroupingFactor = TRUE,
-#          subset = NULL, ...)
-# {
-#   Q <- object$dims$Q
-#   effects <- object$coefficients$random
-#   if (Q > 1) {
-#     grpNames <- t(array(rep(rev(names(effects)), Q), c(Q, Q)))
-#     grpNames[lower.tri(grpNames)] <- ""
-#     grpNames <-
-#       rev(apply(grpNames, 1, function(x) paste(x[x != ""], collapse = " %in% ")))
-#   } else {
-#     grpNames <- names(effects)
-#   }
-#   effects <- effects[level]
-#   grpNames <- grpNames[level]
-#   if (standard) {
-#     for (i in names(effects)) {
-#       effects[[i]] <-
-# 	t(t(effects[[i]]) / (object$sigma *
-# 		     sqrt(diag(as.matrix(object$modelStruct$reStruct[[i]])))))
-#     }
-#   }
-#   effects <- lapply(effects, as.data.frame)
-#   if (augFrame) {
-#     if (length(level) > 1) {
-#       stop("Augmentation of random effects only available for single level")
-#     }
-#     effects <- effects[[1]]
-#     effectNames <- names(effects)
-#     if (missing(data)) {
-#       data <- getData(object)
-#     }
-#     data <- as.data.frame(data)
-#     if (is.null(subset)) {              # nlme case
-#       subset <- eval(object$call[["naPattern"]])
-#     } else {
-#       subset <- asOneSidedFormula(as.list(match.call())[["subset"]])
-#     }
-#     if (!is.null(subset)) {
-#       subset <- eval(subset[[2]], data)
-#       data <- data[subset,  ,drop=FALSE]
-#     }
-#     data <- data[, which, drop = FALSE]
-#     ## eliminating columns with same names as effects
-#     data <- data[, is.na(match(names(data), effectNames)), drop = FALSE]
-#     grps <- as.character(object[["groups"]][, level])
-#     data <- gsummary(data, FUN = FUN, groups = grps)
-#     if (omitGroupingFactor) {
-#       data <-
-# 	data[, is.na(match(names(data), names(object$modelStruct$reStruct))),
-# 	      drop = FALSE]
-#     }
-#     if (length(data) > 0) {
-#       effects <- cbind(effects, data[row.names(effects),, drop = FALSE])
-#     }
-#     attr(effects, "effectNames") <- effectNames
-#   } else {
-#     effects <- lapply(effects,
-#                       function(el) {
-#                         attr(el, "effectNames") <- names(el)
-#                         el
-#                       })
-#     if (length(level) == 1) effects <- effects[[1]]
-#   }
-#   attr(effects, "label") <-
-#     if (standard) {
-#       "Standardized random effects"
-#     } else {
-#       "Random effects"
-#     }
-#   attr(effects, "level") <- max(level)
-#   attr(effects, "standardized") <- standard
-#   attr(effects, "grpNames") <- grpNames
-#   class(effects) <- c("ranef.lme", class(effects))
-#   effects
-# }
-
-# residuals.lme <-
-#   function(object, level = Q, type = c("response", "pearson", "normalized"),
-#            asList = FALSE, ...)
-# 
-# {
-#   type <- match.arg(type)
-#   Q <- object$dims$Q
-#   val <- object[["residuals"]]
-#   if (is.character(level)) {		# levels must be given consistently
-#     nlevel <- match(level, names(val))
-#     if (any(aux <- is.na(nlevel))) {
-#       stop(paste("Nonexistent level(s)", level[aux]))
-#     }
-#     level <- nlevel
-#   } else {				# assuming integers
-#     level <- 1 + level
-#   }
-#   if (type != "response") {		# standardize
-#     ## have to standardize properly for when corStruct neq NULL
-#     val <- val[, level]/attr(val, "std")
-#   } else {
-#     val <- val[, level]
-#   }
-#   if (type == "normalized") {
-#     if (!is.null(cSt <- object$modelStruct$corStruct)) {
-#       ## normalize according to inv-trans factor
-#       val <- recalc(cSt, list(Xy = as.matrix(val)))$Xy[, 1:length(level)]
-#     } else {                            # will just standardized
-#       type <- "pearson"
-#     }
-#   }
-#   if (length(level) == 1) {
-#     grps <- as.character(object[["groups"]][, max(c(1, level - 1))])
-#     if (asList) {
-#       val <- as.list(split(val, ordered(grps, levels = unique(grps))))
-#     } else {
-#       grp.nm <- row.names(object[["groups"]])
-#       val <-naresid(object$na.action, val)
-#       names(val) <- grps[match(names(val), grp.nm)]
-#     }
-#     attr(val, "label") <-
-#       switch(type,
-#              response = {
-#                lab <- "Residuals"
-#                if (!is.null(aux <- attr(object, "units")$y)) {
-#                  lab <- paste(lab, aux)
-#                }
-#                lab
-#              },
-#              pearson = "Standardized residuals",
-#              normalized = "Normalized residuals"
-#              )
-#     val
-#   } else naresid(object$na.action, val)
-# }
-
-summary.newlme <- function(object, adjustSigma = TRUE, verbose = FALSE, ...)
+summary.rmincLme <- function(object, adjustSigma = TRUE, verbose = FALSE, ...)
 {
   ##  variance-covariance estimates for fixed effects
   fixed <- fixef(object)
@@ -1264,7 +908,7 @@ summary.newlme <- function(object, adjustSigma = TRUE, verbose = FALSE, ...)
 }
 
 # based on R's update.default
-update.newlme <-
+update.rmincLme <-
     function (object, fixed., ..., evaluate = TRUE)
 {
     call <- object$call
@@ -1453,24 +1097,24 @@ update.newlme <-
 #   val
 # }
 
-###*### newlmeStruct - a model structure for lme fits
+###*### rmincLmeStruct - a model structure for lme fits
 
-newlmeStruct <-
-  ## constructor for newlmeStruct objects
+rmincLmeStruct <-
+  ## constructor for rmincLmeStruct objects
   function(reStruct, corStruct = NULL, varStruct = NULL)
 {
   val <- list(reStruct = reStruct, corStruct = corStruct,
               varStruct = varStruct)
   val <- val[!sapply(val, is.null)]	# removing NULL components
   attr(val, "settings") <- attr(val$reStruct, "settings")
-  class(val) <- c("newlmeStruct", "modelStruct")
+  class(val) <- c("rmincLmeStruct", "modelStruct")
   
   val
 }
 
-##*## newlmeStruct methods for standard generics
+##*## rmincLmeStruct methods for standard generics
 
-fitted.newlmeStruct <-
+fitted.rmincLmeStruct <-
   function(object, level = Q, conLin = attr(object, "conLin"),
            lmeFit = attr(object, "lmeFit"), ...)
 {
@@ -1508,7 +1152,7 @@ fitted.newlmeStruct <-
   if(length(level) > 1) fit[, level + 1, drop = FALSE] else fit[, level+1]
 }
 
-newInitialize.newlmeStruct <-
+newInitialize.rmincLmeStruct <-
   function(object, data, groups, conLin = attr(object, "conLin"),
 	   control= list(niterEM = 20, gradHess = TRUE), ...)
 {
@@ -1528,7 +1172,7 @@ newInitialize.newlmeStruct <-
       control[["gradHess"]]) {
     ## can use numerical derivatives
     attr(object, "settings")[2:3] <- c(0, 1)
-    class(object) <- c("newlmeStructInt", class(object))
+    class(object) <- c("rmincLmeStructInt", class(object))
   }
   if (needUpdate(object)) {
     attr(object, "lmeFit") <- newMEestimate(object, groups)
@@ -1538,14 +1182,14 @@ newInitialize.newlmeStruct <-
   }
 }
 
-logLik.newlmeStruct <-
+logLik.rmincLmeStruct <-
   function(object, Pars, conLin = attr(object, "conLin"), ...)
 {
   coef(object) <- Pars			# updating parameter values
   newrecalc(object, conLin)[["logLik"]]	# updating conLin
 }
 
-logLik.newlmeStructInt <-
+logLik.rmincLmeStructInt <-
   function(object, Pars, conLin = attr(object, "conLin"), ...)
 {
   ## logLik for objects with reStruct parameters only, with
@@ -1564,7 +1208,7 @@ logLik.newlmeStructInt <-
   val
 }
 
-residuals.newlmeStruct <-
+residuals.rmincLmeStruct <-
   function(object, level = Q, conLin = attr(object, "conLin"),
            lmeFit = attr(object, "lmeFit"), ...)
 {
@@ -1572,7 +1216,7 @@ residuals.newlmeStruct <-
   conLin$Xy[, conLin$dims$ZXcols] - fitted(object, level, conLin, lmeFit)
 }
 
-varWeights.newlmeStruct <-
+varWeights.rmincLmeStruct <-
   function(object)
 {
   if (is.null(object$varStruct)) rep(1, attr(object, "conLin")$dims$N)
@@ -1581,7 +1225,7 @@ varWeights.newlmeStruct <-
 
 ## Auxiliary control functions
 
-newlmeScale <- function(start)
+rmincLmeScale <- function(start)
 #
 # function used to set the scale inside ms(), for lme() and nlme()
 # calls
@@ -1599,10 +1243,10 @@ newlmeScale <- function(start)
   scale
 }
 
-newlmeControl <-
+rmincLmeControl <-
   ## Control parameters for lme
   function(maxIter = 50, msMaxIter = 50, tolerance = 1e-6, niterEM = 25, msMaxEval = 200,
-	   msTol = 1e-7, msScale = lmeScale, msVerbose = FALSE,
+	   msTol = 1e-7, msScale = rmincLmeScale, msVerbose = FALSE,
            returnObject = FALSE, gradHess = TRUE, apVar = TRUE,
 	   .relStep = (.Machine$double.eps)^(1/3), minAbsParApVar = 0.05,
            nlmStepMax = 100.0, opt = c("nlminb", "optim"),
@@ -1633,7 +1277,7 @@ coef.modelStruct <-
   unlist(lapply(object, coef, unconstrained))
 }
 
-"coef<-.modelStruct" <-
+"newcoef<-.modelStruct" <-
   function(object, ..., value)
 {
   value <- as.numeric(value) 
@@ -1704,27 +1348,6 @@ update.modelStruct <-
 
 ## newFunc.R
 
-allCoef <-
-  ## Combines different coefficient vectors into one vector, keeping track
-  ## of which coefficients came from which object
-  function(..., extract = coef)
-{
-  dots <- list(...)
-  theta <- lapply(dots, extract)
-  len <- unlist(lapply(theta, length))
-  num <- seq_along(len)
-  if (sum(len) > 0) {
-    which <- outer(rep(num, len), num, "==")
-  } else {
-    which <- array(FALSE, c(1, length(len)))
-  }
-  cnames <- unlist(as.list(sys.call()[-1]))
-  dimnames(which) <- list(NULL, cnames[cnames != substitute(extract)])
-  theta <- unlist(theta)
-  attr(theta, "map") <- which
-  theta
-}
-
 newallVarsRec <-
   ## Recursive version of all.vars
   function(object)
@@ -1747,39 +1370,6 @@ newasOneFormula <-
     eval(parse(text = paste("~", paste(names, collapse = "+")))[[1]])
   } else NULL
 }
-
- compareFits <-
-   ## compares coeffificients from different fitted objects
-   function(object1, object2, which = 1:ncol(object1))
- {
-#   dn1 <- dimnames(object1)
-#   dn2 <- dimnames(object2)
-#   aux <- rep(NA, length(dn1[[1]]))
-#   if (any(aux1 <- is.na(match(dn2[[2]], dn1[[2]])))) {
-#     object1[,dn2[[2]][aux1]] <- aux
-#   }
-#   if (any(aux1 <- is.na(match(dn1[[2]], dn2[[2]])))) {
-#     object2[,dn1[[2]][aux1]] <- aux
-#   }
-#   dn1 <- dimnames(object1)
-#   c1 <- deparse(substitute(object1))
-#   c2 <- deparse(substitute(object2))
-#   if (any(sort(dn1[[1]]) != sort(dn2[[1]]))) {
-#     stop("Objects must have coefficients with same row names")
-#   }
-#   ## putting object2 in same order
-#   object2 <- object2[dn1[[1]], dn1[[2]], drop = FALSE]
-#   object1 <- object1[, which, drop = FALSE]
-#   object2 <- object2[, which, drop = FALSE]
-#   dn1 <- dimnames(object1)
-#   dm1 <- dim(object1)
-#   out <- array(0, c(dm1[1], 2, dm1[2]), list(dn1[[1]], c(c1,c2), dn1[[2]]))
-#   for(i in dn1[[2]]) {
-#     out[,,i] <- cbind(object1[[i]], object2[[i]])
-#   }
-#   class(out) <- "compareFits"
-#   out
- }
 
 newfdHess <- function(pars, fun, ..., .relStep = (.Machine$double.eps)^(1/3),
                     minAbsPar = 0)
@@ -1810,55 +1400,6 @@ newfdHess <- function(pars, fun, ..., .relStep = (.Machine$double.eps)^(1/3),
        Hessian = ( Hess + t(Hess) ) )
 }
 
-gapply <-
-  ## Apply a function to the subframes of a data.frame
-  ## If "apply" were generic, this would be the method for groupedData
-  function(object, which, FUN, form = formula(object), level,
-           groups = newgetGroups(object, form, level), ...)
-{
-  if (!inherits(object, "data.frame")) {
-    stop("Object must inherit from data.frame")
-  }
-  ## Apply a function to the subframes of a groupedData object
-  if (missing(groups)) {                # formula and level are required
-    if (!inherits(form, "formula")) {
-      stop("\"Form\" must be a formula")
-    }
-    if (is.null(grpForm <- newgetGroupsFormula(form, asList = TRUE))) {
-      ## will use right hand side of form as groups formula
-      grpForm <- newsplitFormula(asOneSidedFormula(form[[length(form)]]))
-    }
-    if (missing(level)) level <- length(grpForm)
-    else if (length(level) != 1) {
-      stop("Only one level allowed in gapply")
-    }
-    groups <- groups                    # forcing evaluation
-  }
-  if (!missing(which)) {
-    switch(mode(which),
-           character = {
-             wchNot <- is.na(match(which, names(object)))
-             if (any(wchNot)) {
-               stop(paste(paste(which[wchNot], collapse = ","),
-                          "not matched"))
-             }
-           },
-           numeric = {
-             if (any(is.na(match(which, 1:ncol(object))))) {
-               stop("Which must be between 1 and", ncol(object))
-             }
-           },
-           stop("Which can only be character or integer.")
-           )
-    object <- object[, which, drop = FALSE]
-  }
-  val <- lapply(split(object, groups), FUN, ...)
-  if (is.atomic(val[[1]]) && length(val[[1]]) == 1) {
-    val <- unlist(val)
-  }
-  val
-}
-
 newgetCovariateFormula <-
   function(object)
 {
@@ -1883,97 +1424,6 @@ newgetResponseFormula <-
     stop("\"Form\" must be a two sided formula")
   }
   eval(parse(text = paste("~", deparse(form[[2]]))))
-}
-
-gsummary <-
-  ## Summarize an object according to the levels of a grouping factor
-  ##
-  function(object, FUN = function(x) mean(x, na.rm = TRUE),
-           omitGroupingFactor = FALSE,
-	   form = formula(object), level,
-	   groups = newgetGroups(object, form , level),
-	   invariantsOnly = FALSE, ...)
-{
-  if (!inherits(object, "data.frame")) {
-    stop("Object must inherit from data.frame")
-  }
-  if (missing(groups)) {                # formula and level are required
-    if (!inherits(form, "formula")) {
-      stop("\"Form\" must be a formula")
-    }
-    if (is.null(grpForm <- newgetGroupsFormula(form, asList = TRUE))) {
-      ## will use right hand side of form as groups formula
-      grpForm <- newsplitFormula(asOneSidedFormula(form[[length(form)]]))
-    }
-    if (missing(level)) level <- length(grpForm)
-    else if (length(level) != 1) {
-      stop("Only one level allowed in gsummary")
-    }
-  }
-  gunique <- unique(groups)
-  firstInGroup <- match(gunique, groups)
-  asFirst <- firstInGroup[match(groups, gunique)]
-  value <- as.data.frame(object[firstInGroup, , drop = FALSE])
-  row.names(value) <- as.character(gunique)
-  value <- value[as.character(sort(gunique)), , drop = FALSE]
-  varying <- unlist(lapply(object,
-			   function(column, frst) {
-			     aux <- as.character(column)
-			     any(!identical(aux, aux[frst]))
-			   },
-			   frst = asFirst))
-  if (any(varying) && (!invariantsOnly)) { # varying wanted
-    Mode <- function(x) {
-      aux <- table(x)
-      names(aux)[match(max(aux), aux)]
-    }
-    if (data.class(FUN) == "function") {	# single function given
-      FUN <- list(numeric = FUN, ordered = Mode, factor = Mode)
-    } else {
-      if (!(is.list(FUN) &&
-	   all(sapply(FUN, data.class) == "function"))) {
-	stop("FUN can only be a function or a list of functions")
-      }
-      auxFUN <- list(numeric = mean, ordered = Mode, factor = Mode)
-      aux <- names(auxFUN)[is.na(match(names(auxFUN), names(FUN)))]
-      if (length(aux) > 0) FUN[aux] <- auxFUN[aux]
-    }
-    for(nm in names(object)[varying]) {
-      ## dClass <- data.class(object[[nm]])
-      ## The problem here is that dclass may find an irrelevant class,
-      ## e.g. Hmisc's "labelled"
-      dClass <- if(is.ordered(object[[nm]])) "ordered" else
-	        if(is.factor(object[[nm]])) "factor" else mode(object[[nm]])
-      if (dClass == "numeric") {
-	value[[nm]] <- as.vector(tapply(object[[nm]], groups, FUN[["numeric"]],...))
-      } else {
-	value[[nm]] <-
-	  as.vector(tapply(as.character(object[[nm]]), groups, FUN[[dClass]]))
-        if (inherits(object[,nm], "ordered")) {
-          value[[nm]] <- ordered(value[,nm], levels = levels(object[,nm]))[drop = TRUE]
-        } else {
-          value[[nm]] <- factor(value[,nm], levels = levels(object[,nm]))[drop = TRUE]
-        }
-      }
-    }
-  } else {				# invariants only
-    value <- value[, !varying, drop = FALSE]
-  }
-  if (omitGroupingFactor) {
-    if (is.null(form)) {
-      stop("Cannot omit grouping factor without \"form\"")
-    }
-    grpForm <- newgetGroupsFormula(form, asList = TRUE)
-    if (missing(level)) level <- length(grpForm)
-    grpNames <- names(grpForm)[level]
-    whichKeep <- is.na(match(names(value), grpNames))
-    if (any(whichKeep)) {
-      value <- value[ , whichKeep, drop = FALSE]
-    } else {
-      return(NULL);
-    }
-  }
-  value
 }
 
 newsplitFormula <-
@@ -2010,9 +1460,9 @@ newaugPred <-
   function(object, primary = NULL, minimum = min(primary),
            maximum = max(primary), length.out = 51, ...) UseMethod("newaugPred")
 
-"coef<-" <- "coefficients<-" <-
+"newcoef<-" <- "newcoefficients<-" <-
   ## Assignment of the unconstrained parameter
-  function(object, ..., value) UseMethod("coef<-")
+  function(object, ..., value) UseMethod("newcoef<-")
 
 newcollapse <-
   ## collapse a data frame according to a factor, or several nested factors
@@ -2024,9 +1474,9 @@ newcomparePred <-
 	   minimum = min(primary), maximum = max(primary),
 	   length.out = 51, level = NULL, ...) UseMethod("newcomparePred")
 
-"covariate<-" <-
+"newcovariate<-" <-
   ## Assignment of the primary covariate
-  function(object, value) UseMethod("covariate<-")
+  function(object, value) UseMethod("newcovariate<-")
 
 newDim <-
   ## Extract dimensions of an object. Not needed if "dims" were generic
@@ -2062,11 +1512,6 @@ newgetGroupsFormula <-
   function(object, asList = FALSE, sep = "/")
     UseMethod("newgetGroupsFormula")
 
-getResponse <-
-  ## Return the response associated with object according to form.
-  function(object, form = formula(object))
-    UseMethod("getResponse")
-
 newisBalanced <-
   ## Check for balance, especially in a groupedData object
   function(object, countOnly = FALSE, level) UseMethod("newisBalanced")
@@ -2087,17 +1532,17 @@ newlogDet <-
   ## Returns the negative of the sum of the logarithm of the determinant
   function(object, ...) UseMethod("newlogDet")
 
-"matrix<-" <-
+"newmatrix<-" <-
   ## Assignment of the matrix in an object representing special types of matrices
-  function(object, value) UseMethod("matrix<-")
+  function(object, value) UseMethod("newmatrix<-")
 
-Names <-
+newNames <-
   ## Extract names of an object. Not needed if "names" were generic
-  function(object, ...) UseMethod("Names")
+  function(object, ...) UseMethod("newNames")
 
-"Names<-" <-
+"newNames<-" <-
   ## Assignment of names. Not needed if "names<-" were generic
-  function(object, ..., value) UseMethod("Names<-")
+  function(object, ..., value) UseMethod("newNames<-")
 
 newneedUpdate <-
   ## Checks if model plug-in needs to be updated after an estimation cycle
@@ -2245,17 +1690,6 @@ newgetGroups.data.frame <-
   }
 }
 
-getResponse.data.frame <-
-  function(object, form = formula(object))
-{
-#   ## Return the response, the evaluation of the left hand side of a formula
-#   ## on object
-#   if (!(inherits(form, "formula") && (length(form) == 3))) {
-#     stop("\"Form\" must be a two sided formula")
-#   }
-#   eval(form[[2]], object)
-}
-
 newgetGroupsFormula.default <-
   ## Return the formula(s) for the groups associated with object.
   ## The result is a one-sided formula unless asList is TRUE in which case
@@ -2286,7 +1720,7 @@ newgetGroupsFormula.default <-
                                collapse = sep)))))
 }
 
-Names.formula <-
+newNames.formula <-
   function(object, data = list(), exclude = c("pi", "."), ...)
 {
   if (!is.list(data)) { return(NULL) }  # no data to evaluate variable names
@@ -2300,25 +1734,6 @@ Names.formula <-
 
   if (any(is.na(match(allV, names(data))))) { return(NULL) }
   dimnames(model.matrix(object, model.frame(object, data)))[[2]]
-}
-
-Names.listForm <-
-  function(object, data = list(), exclude = c("pi", "."), ...)
-{
-  pnames <- as.character(unlist(lapply(object, "[[", 2)))
-  nams <- lapply(object, function(el, data, exclude) {
-    Names(newgetCovariateFormula(el), data, exclude)
-    }, data = data, exclude = exclude)
-  if (is.null(nams[[1]])) return(NULL)
-  val <- c()
-  for(i in seq_along(object)) {
-    if ((length(nams[[i]]) == 1) && (nams[[i]] == "(Intercept)")) {
-      val <- c(val, pnames[i])
-    } else {
-      val <- c(val, paste(pnames[i], nams[[i]], sep = "."))
-    }
-  }
-  val
 }
 
 newneedUpdate.default <-
@@ -2353,12 +1768,12 @@ newpdConstruct <-
   ## a virtual constructor for these objects
   function(object, value, form, nam, data, ...) UseMethod("newpdConstruct")
 
-pdFactor <-
-  function(object) UseMethod("pdFactor")
+newpdFactor <-
+  function(object) UseMethod("newpdFactor")
 
-pdMatrix <-
+newpdMatrix <-
   ## extractor for the pd, correlation, or square-root factor matrix
-  function(object, factor = FALSE) UseMethod("pdMatrix")
+  function(object, factor = FALSE) UseMethod("newpdMatrix")
 
 ##*## pdMat - a virtual class of positive definite matrices
 
@@ -2384,7 +1799,7 @@ corMatrix.pdMat <-
   if (!newisInitialized(object)) {
     stop("Cannot access the matrix of uninitialized objects")
   }
-  Var <- pdMatrix(object)
+  Var <- newpdMatrix(object)
   if (length(unlist(dimnames(Var))) == 0) {
     aux <- paste("V", 1:(newDim(Var)[2]), sep = "")
     dimnames(Var) <- list(aux, aux)
@@ -2400,14 +1815,14 @@ corMatrix.pdMat <-
 
 newpdConstruct.pdMat <-
   function(object, value = numeric(0), form = formula(object),
-	   nam = Names(object), data = sys.frame(sys.parent()), ...)
+	   nam = newNames(object), data = sys.frame(sys.parent()), ...)
 {
   if (inherits(value, "pdMat")) {	# constructing from another pdMat
     if (length(form) == 0) {
       form <- formula(value)
     }
     if (length(nam) == 0) {
-      nam <- Names(value)
+      nam <- newNames(value)
     }
     if (newisInitialized(value)) {
       return(newpdConstruct(object, as.matrix(value), form, nam, data))
@@ -2494,10 +1909,10 @@ newpdConstruct.pdMat <-
       }
       form <- val
       class(form) <- "listForm"
-      namesForm <- Names(form, data)
+      namesForm <- newNames(form, data)
     } else {
       if (inherits(form, "formula")) {
-        namesForm <- Names(asOneSidedFormula(form), data)
+        namesForm <- newNames(asOneSidedFormula(form), data)
 ##        namesForm1 <- NULL
       } else {
         stop("\"form\" can only be a formula or a list of formulae")
@@ -2547,13 +1962,13 @@ newpdConstruct.pdMat <-
   object
 }
 
-pdFactor.pdMat <-
+newpdFactor.pdMat <-
   function(object)
 {
-  c(qr.R(qr(pdMatrix(object))))
+  c(qr.R(qr(newpdMatrix(object))))
 }
 
-pdMatrix.pdMat <-
+newpdMatrix.pdMat <-
   function(object, factor = FALSE)
 {
   if (!newisInitialized(object)) {
@@ -2563,14 +1978,14 @@ pdMatrix.pdMat <-
     stop(paste("No default method for extracting the square",
                "root of a pdMat object"))
   } else {
-    crossprod(pdMatrix(object, factor = TRUE))
+    crossprod(newpdMatrix(object, factor = TRUE))
   }
 }
 
 ###*# Methods for standard generics
 
 as.matrix.pdMat <-
-  function(x, ...) pdMatrix(x)
+  function(x, ...) newpdMatrix(x)
 
 newcoef.pdMat <-
   function(object, unconstrained = TRUE, ...)
@@ -2582,7 +1997,7 @@ newcoef.pdMat <-
   }
 }
 
-"coef<-.pdMat" <-
+"newcoef<-.pdMat" <-
   function(object, ..., value)
 {
   value <- as.numeric(value)
@@ -2601,7 +2016,7 @@ newcoef.pdMat <-
 newDim.pdMat <-
   function(object, ...)
 {
-  if ((val <- length(Names(object))) > 0) {
+  if ((val <- length(newNames(object))) > 0) {
     return(c(val, val))
   } else if (newisInitialized(object)) {
     return(dim(as.matrix(object)))
@@ -2628,10 +2043,10 @@ logDet.pdMat <-
     stop(paste("Cannot extract the log of the determinant",
 	       "from an uninitialized object"))
   }
-  sum(log(svd(pdMatrix(object, factor = TRUE))$d))
+  sum(log(svd(newpdMatrix(object, factor = TRUE))$d))
 }
 
-"matrix<-.pdMat" <-
+"newmatrix<-.pdMat" <-
   function(object, value)
 {
   value <- as.matrix(value)
@@ -2642,13 +2057,13 @@ logDet.pdMat <-
   newpdConstruct(object, value)
 }
 
-Names.pdMat <-
+newNames.pdMat <-
   function(object, ...)
 {
   return(as.character(attr(object, "Dimnames")[[2]])) 
 }
 
-"Names<-.pdMat" <-
+"newNames<-.pdMat" <-
   function(object, ..., value)
 {
   if (is.null(value)) {
@@ -2656,7 +2071,7 @@ Names.pdMat <-
     return(object)
   } else {
     value <- as.character(value)
-    if (length(dn <- Names(object)) == 0) {
+    if (length(dn <- newNames(object)) == 0) {
       if (newisInitialized(object)) {	# object is initialized without names
 	if (length(value) != (aux <- newDim(object)[2])) {
 	  stop(paste("Length of names should be", aux))
@@ -2924,41 +2339,41 @@ pdSymm <-
   ## Constructor for the pdSymm class
   function(value = numeric(0), form = NULL, nam = NULL, data = parent.frame())
 {
-#   object <- numeric(0)
-#   class(object) <- c("pdSymm", "pdMat")
-#   newpdConstruct(object, value, form, nam, data)
+  object <- numeric(0)
+  class(object) <- c("pdSymm", "pdMat")
+  newpdConstruct(object, value, form, nam, data)
 }
 
 ####* Methods for local generics
 
 newpdConstruct.pdSymm <-
   function(object, value = numeric(0), form = formula(object),
-	   nam = Names(object), data = sys.frame(sys.parent()), ...)
+	   nam = newNames(object), data = sys.frame(sys.parent()), ...)
 {
-#   val <- NextMethod()
-#   if (length(val) == 0) {               # uninitialized object
-#     class(val) <- c("pdSymm", "pdMat")
-#     return(val)
-#   }
-# 
-#   if (is.matrix(val)) {
-#     vald <- svd(val, nu = 0)
-#     object <- vald$v %*% (log(vald$d) * t(vald$v))
-#     value <- object[row(object) <= col(object)]
-#     attributes(value) <- attributes(val)[names(attributes(val)) !=  "dim"]
-#     class(value) <- c("pdSymm", "pdMat")
-#     return(value)
-#   }
-#   Ncol <- round((sqrt(8*length(val) + 1) - 1)/2)
-#   if (length(val) != round((Ncol * (Ncol + 1))/2)) {
-#     stop(paste("An object of length", length(val),
-# 	       "does not match the required parameter size"))
-#   }
-#   class(val) <- c("pdSymm", "pdMat")
-#   val
+  val <- NextMethod()
+  if (length(val) == 0) {               # uninitialized object
+    class(val) <- c("pdSymm", "pdMat")
+    return(val)
+  }
+
+  if (is.matrix(val)) {
+    vald <- svd(val, nu = 0)
+    object <- vald$v %*% (log(vald$d) * t(vald$v))
+    value <- object[row(object) <= col(object)]
+    attributes(value) <- attributes(val)[names(attributes(val)) !=  "dim"]
+    class(value) <- c("pdSymm", "pdMat")
+    return(value)
+  }
+  Ncol <- round((sqrt(8*length(val) + 1) - 1)/2)
+  if (length(val) != round((Ncol * (Ncol + 1))/2)) {
+    stop(paste("An object of length", length(val),
+	       "does not match the required parameter size"))
+  }
+  class(val) <- c("pdSymm", "pdMat")
+  val
 }
 
-pdFactor.pdSymm <-
+newpdFactor.pdSymm <-
   function(object)
 {
   Ncol <- round((-1 + sqrt(1 + 8 * length(object))) / 2)
@@ -2968,7 +2383,7 @@ pdFactor.pdSymm <-
      as.double(object))$Factor
 }
 
-pdMatrix.pdSymm <-
+newpdMatrix.pdSymm <-
   function(object, factor = FALSE)
 {
   if (!newisInitialized(object)) {
@@ -2976,7 +2391,7 @@ pdMatrix.pdSymm <-
   }
   if (factor) {
     Ncol <- newDim(object)[2]
-    value <- array(pdFactor(object), c(Ncol, Ncol), attr(object, "Dimnames"))
+    value <- array(newpdFactor(object), c(Ncol, Ncol), attr(object, "Dimnames"))
     attr(value, "logDet") <- sum(log(abs(svd(value)$d)))
     value
   } else {
@@ -2992,7 +2407,7 @@ newcoef.pdSymm <-
   if (unconstrained || !newisInitialized(object)) NextMethod()
   else {				# upper triangular elements
     val <- as.matrix(object)
-    aN <- Names(object)
+    aN <- newNames(object)
     aN1 <- paste("cov(", aN, sep ="")
     aN2 <- paste(aN, ")", sep ="")
     aNmat <- t(outer(aN1, aN2, paste, sep = ","))
@@ -3021,7 +2436,7 @@ logDet.pdSymm <-
     stop(paste("Cannot extract the log of the determinant",
 	       "from an uninitialized object"))
   }
-  attr(pdMatrix(object, factor = TRUE), "logDet")
+  attr(newpdMatrix(object, factor = TRUE), "logDet")
 }
 
 solve.pdSymm <-
@@ -3038,43 +2453,42 @@ summary.pdSymm <-
   function(object,
 	   structName = "General positive-definite", ...)
 {
-  cat('MY OUTPUT - summary.pdSymm is running from lmeTogether\n')
   summary.pdMat(object, structName)
 }
 
 ### No need to implement other methods as the methods for pdMat
 ### are sufficient.
 
-###*# pdLogChol - a general positive definite structure parameterized
+###*# newpdLogChol - a general positive definite structure parameterized
 ###   by the non-zero elements of the Cholesky factor with the diagonal
 ###   elements given in the logarithm scale.
 
 ####* Constructor
 
-pdLogChol <-
-  ## Constructor for the pdLogChol class
+newpdLogChol <-
+  ## Constructor for the newpdLogChol class
   function(value = numeric(0), form = NULL, nam = NULL, data = sys.parent())
 {
   object <- numeric(0)
-  class(object) <- c("pdLogChol", "pdMat")
+  class(object) <- c("newpdLogChol", "pdMat")
   newpdConstruct(object, value, form, nam, data)
 }
 
 ####* Methods for local generics
 
-newpdConstruct.pdLogChol <-
+newpdConstruct.newpdLogChol <-
   function(object, value = numeric(0), form = formula(object),
-	   nam = Names(object), data = sys.parent(), ...)
+	   nam = newNames(object), data = sys.parent(), ...)
 {
   val <- newpdConstruct.pdMat(object, value, form, nam, data)
   if (length(val) == 0) {               # uninitialized object
-    class(val) <- c("pdLogChol", "pdSymm", "pdMat")
+    class(val) <- c("newpdLogChol", "pdSymm", "pdMat")
     return(val)
   }
   if (is.matrix(val)) {
     value <- c(log(diag(val)), val[row(val) < col(val)])
     attributes(value) <- attributes(val)[names(attributes(val)) != "dim"]
-    class(value) <- c("pdLogChol", "pdSymm", "pdMat")
+    class(value) <- c("newpdLogChol", "pdSymm", "pdMat")
     return(value)
   }
   Ncol <- round((sqrt(8*length(val) + 1) - 1)/2)
@@ -3082,11 +2496,11 @@ newpdConstruct.pdLogChol <-
     stop(paste("An object of length", length(val),
 	       "does not match a Cholesky factor"))
   }
-  class(val) <- c("pdLogChol", "pdSymm", "pdMat")
+  class(val) <- c("newpdLogChol", "pdSymm", "pdMat")
   val
 }
 
-pdFactor.pdLogChol <-
+newpdFactor.newpdLogChol <-
   function(object)
 {
   Ncol <- round((-1 + sqrt(1 + 8 * length(object))) / 2)
@@ -3098,7 +2512,7 @@ pdFactor.pdLogChol <-
 
 ####* Methods for standard generics
 
-solve.pdLogChol <-
+solve.newpdLogChol <-
   function(a, b, ...)
 {
   if (!newisInitialized(a)) {
@@ -3106,20 +2520,20 @@ solve.pdLogChol <-
   }
   Ncol <- (-1 + sqrt(1 + 8 * length(a))) / 2
 #  val <- array(.Fortran("dbksl",
-# 			as.double(pdFactor(a)),
+# 			as.double(newpdFactor(a)),
 # 			as.integer(Ncol),
 # 			as.integer(Ncol),
 # 			val = as.double(diag(Ncol)),
 # 			as.integer(Ncol),
 # 			integer(1))[["val"]], c(Ncol, Ncol))
 #  val <- qr(t(val))$qr
-  val <- qr(t(solve(pdMatrix(a, factor = TRUE))))$qr
+  val <- qr(t(solve(newpdMatrix(a, factor = TRUE))))$qr
   val <- sign(diag(val)) * val
   coef(a) <- c(log(diag(val)), val[c(row(val) < col(val))])
   a
 }
 
-summary.pdLogChol <-
+summary.newpdLogChol <-
   function(object, structName =
            "General positive-definite, Log-Cholesky parametrization",
            ...)
@@ -3133,31 +2547,31 @@ summary.pdLogChol <-
 
 #newpdConstruct.pdSymm <- newpdConstruct.pdMatrixLog    #default parametrization
 
-####*# pdNatural - a general positive definite structure parameterized
+####*# newpdNatural - a general positive definite structure parameterized
 ####   by the log of the square root of the diagonal elements and the
 ####   generalized logit of the correlations. This is NOT an unrestricted
 ####   parametrization
 
 ####* Constructor
 
-pdNatural <-
-  ## Constructor for the pdNatural class
+newpdNatural <-
+  ## Constructor for the newpdNatural class
   function(value = numeric(0), form = NULL, nam = NULL, data = sys.frame(sys.parent()))
 {
   object <- numeric(0)
-  class(object) <- c("pdNatural", "pdMat")
+  class(object) <- c("newpdNatural", "pdMat")
   newpdConstruct(object, value, form, nam, data)
 }
 
 ####* Methods for local generics
 
-newpdConstruct.pdNatural <-
+newpdConstruct.newpdNatural <-
   function(object, value = numeric(0), form = formula(object),
-	   nam = Names(object), data = sys.frame(sys.parent()), ...)
+	   nam = newNames(object), data = sys.frame(sys.parent()), ...)
 {
   val <- newpdConstruct.pdMat(object, value, form, nam, data)
   if (length(val) == 0) {               # uninitiliazed object
-    class(val) <- c("pdNatural", "pdMat")
+    class(val) <- c("newpdNatural", "pdMat")
     return(val)
   }
   if (is.matrix(val)) {
@@ -3172,7 +2586,7 @@ newpdConstruct.pdNatural <-
       value <- log(val)
     }
     attributes(value) <- attributes(val)[names(attributes(val)) != "dim"]
-    class(value) <- c("pdNatural", "pdMat")
+    class(value) <- c("newpdNatural", "pdMat")
     return(value)
   }
   Ncol <- round((sqrt(8*length(val) + 1) - 1)/2)
@@ -3180,11 +2594,11 @@ newpdConstruct.pdNatural <-
     stop(paste("An object of length", length(val),
 	       "does not match the required parameter size"))
   }
-  class(val) <- c("pdNatural", "pdMat")
+  class(val) <- c("newpdNatural", "pdMat")
   val
 }
 
-pdFactor.pdNatural <-
+newpdFactor.newpdNatural <-
   function(object)
 {
   Ncol <- round((-1 + sqrt(1 + 8 * length(object))) / 2)
@@ -3194,7 +2608,7 @@ pdFactor.pdNatural <-
      as.double(object))$Factor
 }
 
-pdMatrix.pdNatural <-
+newpdMatrix.newpdNatural <-
   function(object, factor = FALSE)
 {
   if (!newisInitialized(object)) {
@@ -3202,7 +2616,7 @@ pdMatrix.pdNatural <-
   }
   if (factor) {
     Ncol <- newDim(object)[2]
-    value <- array(pdFactor(object), c(Ncol, Ncol), attr(object, "Dimnames"))
+    value <- array(newpdFactor(object), c(Ncol, Ncol), attr(object, "Dimnames"))
     attr(value, "logDet") <- sum(log(diag(value)))
     value
   } else {
@@ -3212,7 +2626,7 @@ pdMatrix.pdNatural <-
 
 ####* Methods for standard generics
 
-newcoef.pdNatural <-
+newcoef.newpdNatural <-
   function(object, unconstrained = TRUE, ...)
 {
   if (unconstrained || !newisInitialized(object)) NextMethod()
@@ -3221,7 +2635,7 @@ newcoef.pdNatural <-
     val <- exp(as.vector(object))
     aux <- val[-(1:Ncol)]
     val[-(1:Ncol)] <- (aux - 1) / (aux + 1)
-    aN <- Names(object)
+    aN <- newNames(object)
     aNmat <- t(outer(aN, aN, paste, sep = ","))
     names(val) <- c(paste("sd(",aN,")", sep = ""),
 		    if (Ncol > 1) {
@@ -3231,7 +2645,7 @@ newcoef.pdNatural <-
   }
 }
 
-newDim.pdNatural <-
+newDim.newpdNatural <-
   function(object, ...)
 {
   if (newisInitialized(object)) {
@@ -3242,18 +2656,18 @@ newDim.pdNatural <-
   }
 }
 
-logDet.pdNatural <-
+logDet.newpdNatural <-
   function(object, ...)
 {
   if (!newisInitialized(object)) {
     stop(paste("Cannot extract the log of the determinant",
 	       "from an uninitialized object"))
   }
-  attr(pdMatrix(object, factor = TRUE), "logDet")
+  attr(newpdMatrix(object, factor = TRUE), "logDet")
 }
 
 
-solve.pdNatural <-
+solve.newpdNatural <-
   function(a, b, ...)
 {
   if (!newisInitialized(a)) {
@@ -3262,13 +2676,13 @@ solve.pdNatural <-
   Ncol <- round((-1 + sqrt(1 + 8 * length(a))) / 2)
   if (Ncol > 1) {
 #     val <- array(.Fortran("dbksl",
-# 			  as.double(pdFactor(a)),
+# 			  as.double(newpdFactor(a)),
 # 			  as.integer(Ncol),
 # 			  as.integer(Ncol),
 # 			  val = as.double(diag(Ncol)),
 # 			  as.integer(Ncol),
 # 			  integer(1))[["val"]], c(Ncol, Ncol))
-    val <- solve(pdMatrix(a, factor = TRUE))
+    val <- solve(newpdMatrix(a, factor = TRUE))
     val <- val %*% t(val)
     stdDev <- sqrt(diag(val))
     val <- t(val/stdDev)/stdDev
@@ -3280,7 +2694,7 @@ solve.pdNatural <-
   a
 }
 
-summary.pdNatural <-
+summary.newpdNatural <-
   function(object,
 	   structName = "General positive-definite, Natural parametrization",
            ...)
@@ -3295,7 +2709,7 @@ summary.pdNatural <-
 ###*# Constructor
 
 reStruct <-
-  function(object, pdClass = "pdLogChol", REML = FALSE, data = sys.frame(sys.parent()))
+  function(object, pdClass = "newpdLogChol", REML = FALSE, data = sys.frame(sys.parent()))
 {
   ## object can be:
   ## 1) a named list of formulas or pdMats with grouping factors as names
@@ -3408,7 +2822,7 @@ reStruct <-
   }
   pC <- unlist(lapply(object, data.class))
   pC <- match(pC, c("pdSymm", "pdDiag", "pdIdent", "pdCompSymm",
-                    "pdLogChol"), 0) - 1
+                    "newpdLogChol"), 0) - 1
 #  if (any(pC == -1)) {                 # multiple nesting
 #    pC <- -1
 #  }
@@ -3430,25 +2844,25 @@ corMatrix.reStruct <-
   as.list(rev(lapply(object, corMatrix)))
 }
 
-pdFactor.reStruct <-
+newpdFactor.reStruct <-
   function(object)
 {
-  unlist(lapply(object, pdFactor))
+  unlist(lapply(object, newpdFactor))
 }
 
-pdMatrix.reStruct <-
+newpdMatrix.reStruct <-
   function(object, factor = FALSE)
 {
   if (!newisInitialized(object)) {
     stop("Cannot access the matrix of uninitialized objects")
   }
-  as.list(rev(lapply(object, pdMatrix, factor)))
+  as.list(rev(lapply(object, newpdMatrix, factor)))
 }
 
 ###*# Methods for standard generics
 
 as.matrix.reStruct <-
-  function(x, ...) pdMatrix(x)
+  function(x, ...) newpdMatrix(x)
 
 newcoef.reStruct <-
   function(object, unconstrained = TRUE, ...)
@@ -3456,7 +2870,7 @@ newcoef.reStruct <-
   unlist(lapply(object, coef, unconstrained))
 }
 
-# "coef<-.reStruct" <-
+# "newcoef<-.reStruct" <-
 #   function(object, ..., value)
 # {
 #   if (is.null(plen <- attr(object, "plen"))) {
@@ -3475,7 +2889,7 @@ newcoef.reStruct <-
 #   object
 # }
 
-"coef<-.reStruct" <-
+"newcoef<-.reStruct" <-
   function(object, ..., value)
 {
   if (is.null(plen <- attr(object, "plen"))) {
@@ -3529,7 +2943,7 @@ newInitialize.reStruct <-
   ## initialize reStruct object, possibly getting initial estimates
   seqO <- seq_along(object)
   ## check if names are defined
-  lNams <- unlist(lapply(object, function(el) length(Names(el)))) == 0
+  lNams <- unlist(lapply(object, function(el) length(newNames(el)))) == 0
   if (any(lNams)) {			# need to resolve formula names
     aux <- seqO[lNams]
     object[aux] <- lapply(object[aux],
@@ -3545,7 +2959,7 @@ newInitialize.reStruct <-
 			  if (newisInitialized(el)) {
 			    length(coef(el))			    
 			  } else {
-			    matrix(el) <- diag(length(Names(el)))
+			    matrix(el) <- diag(length(newNames(el)))
 			    length(coef(el))
   			  }
 			}))
@@ -3590,13 +3004,13 @@ logLik.reStruct <-
   .C("mixed_loglik",
      as.double(conLin$Xy),
      as.integer(unlist(conLin$dims)),
-     as.double(pdFactor(object)),
+     as.double(newpdFactor(object)),
      as.integer(attr(object, "settings")),
      loglik = double(1),
      double(1))$loglik
 }
 
-"matrix<-.reStruct" <-
+"newmatrix<-.reStruct" <-
   function(object, value)
 {
   if (data.class(value) != "list") value <- list(value)
@@ -3665,20 +3079,20 @@ model.matrix.reStruct <-
   val
 }
 
-Names.reStruct <-
+newNames.reStruct <-
     function(object, ...)
 {
-    as.list(lapply(object, Names))
+    as.list(lapply(object, newNames))
 }
 
-"Names<-.reStruct" <-
+"newNames<-.reStruct" <-
   function(object, ..., value)
 {
   if (length(object) != length(value)) {
     stop("Incompatible lengths for object names")
   }
   for(i in seq_along(object)) {
-    Names(object[[i]]) <- value[[i]]
+    newNames(object[[i]]) <- value[[i]]
   }
   object
 }
@@ -3801,9 +3215,9 @@ varWeights.varFunc <-
 # 
 # residuals.gnls <- residuals.gls
 
-vcov.gls <- function (object, ...) object$varBeta
-
-vcov.lme <- function (object, ...) object$varFix
+# vcov.gls <- function (object, ...) object$varBeta
+# 
+# vcov.lme <- function (object, ...) object$varFix
 
 .onUnload <- function(libpath)
     library.dynam.unload("nlme", libpath)
