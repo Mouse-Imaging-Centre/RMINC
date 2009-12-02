@@ -143,7 +143,7 @@ print.mincSingleDim <- function(x) {
 
 print.mincQvals <- function(x) {
   print.mincMultiDim(x)
-  cat("Degrees of Freedom:", attr(x, "DF"), "\n")
+  cat("Degrees of Freedom:", paste(attr(x, "DF")), "\n")
   cat("FDR Thresholds:\n")
   print(attr(x, "thresholds"))
 }
@@ -296,6 +296,17 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- rep("F", ncol(result))
+
+  l <- lm.fit(mmatrix, v.firstVoxel)
+  asgn <- l$assign[l$qr$pivot]
+  dfr <- df.residual(l)
+  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
+  dflist <- vector("list", ncol(result))
+  for (i in 1:ncol(result)) {
+    dflist[[i]] <- c(dfs[[i+1]], dfr)
+  }
+  attr(result, "df") <- dflist
 
   # get the first voxel in order to get the dimension names
   rows <- sub('mmatrix', '',
@@ -336,6 +347,19 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("F", rep("t", ncol(result)-1))
+
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+
+  dflist <- vector("list", ncol(result))
+  dflist[[1]] <- c(Fdf1, Fdf2)
+  dflist[2:length(dflist)] <- Fdf2
+  attr(result, "df") <- dflist
+  
+      #df <- vector(length=2)
+    #df[1] <- ncol(attributes(buffer)$model) -1
+    #df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
 
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
@@ -387,7 +411,7 @@ mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue") {
 
 # mincFDR for a local buffer created by mincLm
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
-                                 method="FDR") {
+                                 method="FDR", statType=NULL) {
   if (method == "qvalue") {
     test <- try(library(qvalue))
     if (class(test) == "try-error") {
@@ -395,6 +419,54 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
   }
 
+  # must know the type of statistic we are dealing with
+  knownStats <- c("t", "F")
+  if (is.null(statType)) {
+    # stat type not specified - must be an attribute to the buffer
+    if (is.null(attr(buffer, "stat-type"))) {
+      stop("Error: need to specify the type of statistic.")
+    }
+    else {
+      statType <- attr(buffer, "stat-type")
+    }
+    # make sure that the stat type is recognized
+    if (! all(statType %in% knownStats)) {
+      stop("Error: not all the stat types are recognized. Currently allowed are: ", paste(knownStats, collapse=" "))
+    }
+    # make sure that there are either just one stat type
+    # or as many as there are columns
+    if (length(statType) == 1 & ncol(buffer) !=1) {
+      statType <- rep(statType, ncol(buffer))
+    }
+    else if (length(statType) == ncol(buffer)) {
+      # do nothing
+    }
+    else {
+      stop("Error: stat type needs to be either a single entry or as many entries as there are columns in the buffer")
+    }
+  }
+
+  # need to know the degrees of freedom
+  if (is.null(df)) {
+    df <- attr(buffer, "df")
+    if (is.null(df)) {
+      stop("Error: need to specify the degrees of freedom")
+    }
+    if (length(df) == 1 & ncol(buffer) != 1) {
+      df <- rep(list(df), ncol(buffer))
+    }
+    else if (length(df) == ncol(buffer)) {
+      # do nothing
+    }
+    else {
+      stop("Error: df needs to be of either length 1 or the same length as number of columns in the buffer")
+    }
+    #df <- vector(length=2)
+    #df[1] <- ncol(attributes(buffer)$model) -1
+    #df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
+  }
+
+  
   if (is.null(columns)) {
     columns <- colnames(buffer)
     cat("\nComputing FDR threshold for all columns\n")
@@ -416,11 +488,6 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     mask <- mincGetMask(mask)
   }
   
-  if (is.null(df)) {
-    df <- vector(length=2)
-    df[1] <- ncol(attributes(buffer)$model) -1
-    df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
-  }
 
   output <- matrix(1, nrow=n.row, ncol=n.cols)
   p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
@@ -430,60 +497,51 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     cat("  Computing threshold for ", columns[i], "\n")
     pvals <- 0
     qobj <- 0
-    if (columns[i] == "F-statistic") {
-      # convert statistics to p-values
-      if (is.matrix(buffer)) { 
-        pvals <- pf(buffer[mask > 0.5, columns[i]],
-                          df[1], df[2], lower.tail=F)
-      }
-      else {
-        pvals <- pf(buffer[mask>0.5], df[1], df[2], lower.tail=F)
-      }
-      # determine corresponding q values
-      if (method=="qvalue") {
-        qobj <- qvalue(pvals)
-      }
-      else if (method == "FDR" | method == "p.adjust") {
-        qobj$pvalue <- pvals
-        qobj$qvalue <- p.adjust(pvals, "fdr")
-      }
-      else if (method == "pFDR" | method == "fastqvalue") {
-        qobj <- fast.qvalue(pvals)
-      }
-      # calculate thresholds at different sig levels
-      for (j in 1:length(p.thresholds)) {
-        thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
-                                  df[1], df[2], lower.tail=F)
-      }
-      output[mask>0.5,i] <- qobj$qvalue
-    }
-                   
-    else {
-      # compute p-values
+
+    # convert statistics to p-values
+    if (statType[i] == "t") {
       if (is.matrix(buffer)) {
-        pvals <-pt2(buffer[mask>0.5, columns[i]], df[2])
+        pvals <- pt2(buffer[mask>0.5, i], df[[i]])
       }
       else {
-        pvals <- pt2(buffer[mask>0.5], df[2])
+        pvals <- pt2(buffer[mask>0.5], df[[i]])
       }
-      # determine corresponding q values
-      if (method == "qvalue") {
-        qobj <- qvalue(pvals)
-      }
-      else if (method == "FDR" | method == "padjust") {
-        qobj$pvalue <- pvals
-        qobj$qvalue <- p.adjust(pvals, "fdr")
-      }
-      else if (method == "pFDR" | method == "fastqvalue") {
-        qobj <- fast.qvalue(pvals)
-      }
-      for (j in 1:length(p.thresholds)) {
-        thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]])/2,
-                              df[2], lower.tail=F)
-      }
-      output[mask>0.5,i] <- qobj$qvalue
     }
+    else if (statType[i] == "F") {
+      if (is.matrix(buffer)) {
+        pvals <- pf(buffer[mask>0.5, i], df[[i]][1], df[[i]][2],
+                    lower.tail=F)
+      }
+      else {
+        pvals <- pf(buffer[mask>0.5], df[[i]][1], df[[i]][2], lower.tail=F)
+      }
+    }
+    
+    # determine corresponding q values
+    if (method=="qvalue") {
+      qobj <- qvalue(pvals)
+    }
+    else if (method == "FDR" | method == "p.adjust") {
+      qobj$pvalue <- pvals
+      qobj$qvalue <- p.adjust(pvals, "fdr")
+    }
+    else if (method == "pFDR" | method == "fastqvalue") {
+      qobj <- fast.qvalue(pvals)
+    }
+    # calculate thresholds at different sig levels
+    for (j in 1:length(p.thresholds)) {
+      if (statType[i] == "F") {
+        thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
+                              df[[i]][1], df[[i]][2], lower.tail=F)
+      }
+      else if (statType[i] == "t") {
+        thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue<=p.thresholds[j]])/2,
+                             df[[i]], lower.tail=F)
+      }
+    }
+    output[mask>0.5,i] <- qobj$qvalue
   }
+                   
   rownames(thresholds) <- p.thresholds
   colnames(thresholds) <- columns
   attr(output, "thresholds") <- thresholds

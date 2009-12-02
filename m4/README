@@ -1,0 +1,131 @@
+		How to use the MNI Autoconf Macros
+		----------------------------------
+
+This directory contains several .m4 files, each containing one or
+several related autoconf macros.  This document describes how to
+incorporate the commonly-used macros in your package.  Other macros
+are described in their source .m4 file.
+
+
+Preliminaries
+-------------
+
+First, you need to put the macro source files into your sources.
+If you are using CVS for your sources, the following command will
+enable you to track the mni-acmacros repository, thereby receiving
+updated sources each time you "cvs update"
+
+	cvs -d /software/source/libraries checkout -d m4 mni-acmacros
+
+Note the "-d m4" option: that tells cvs to put mni-acmacros into
+a directory called "m4", which is traditional.  It doesn't matter what
+you call this directory, but be sure to use the correct name when invoking
+"aclocal"; see below.
+
+The macro definitions are eventually copied into the configure script.
+This happens in two stages.  First, the command "aclocal" will scan
+the m4 files and copy the required macros into the file "aclocal.m4".
+You need to tell "aclocal" in which directory the macro sources are
+located.  If you use "m4", then "aclocal -I m4" is the command to run.
+
+If you are using automake, the generated Makefile will include rules
+to refresh "aclocal.m4" when needed by re-running "aclocal".  You need
+to insert
+
+	ACLOCAL_AMFLAGS = -I m4
+
+to have "aclocal" scan the correct directory (change the -I option as
+appropriate).
+
+Your package will also need to distribute the m4 files since they
+are required to regenerate the file "aclocal.m4".  Automake will
+generate a rule for "aclocal.m4" that depends on all the .m4 files.
+Unfortunately, automake is too conservative in this regard: the 
+generated rule will depend on *all* the m4 files scanned, even if
+the macro contained is not used.  Thus, you will need to include
+by hand all the files m4/*.m4 in the EXTRA_DIST list.  Add the
+following to Makefile.am:
+
+
+EXTRA_DIST = $(m4_files) ...
+
+m4_files = \
+	m4/mni_REQUIRE_LIB.m4 \
+	m4/mni_REQUIRE_MNILIBS.m4 \
+	m4/mni_REQUIRE_OPENINVENTOR.m4 \
+	m4/mni_cxx_have_koenig_lookup.m4 \
+	m4/smr_OPTIONAL_LIB.m4 \
+	m4/smr_REQUIRED_LIB.m4 \
+	m4/smr_WITH_BUILD_PATH.m4
+
+
+
+Macro smr_WITH_BUILD_PATH
+-------------------------
+
+I strongly suggest you always use this one.  It adds a
+"--with-build-path" option to the generated configure script.  This
+configure option provides a convenient way to add "-I" options to
+CPPFLAGS and "-L" options to LDFLAGS, at configure time.  Invoking
+"./configure --with-build-path=DIR" results in "-I DIR/include" being
+added to CPPFLAGS if DIR/include exists, and "-L DIR/lib" being added
+to LDFLAGS if DIR/lib exists.
+
+Separate multiple directories using colons;
+e.g. "--with-build-path=DIR1:DIR2:DIR3".
+
+Usage:
+	smr_WITH_BUILD_PATH
+
+(i.e. insert the above into configure.ac or configure.in)
+
+
+
+Macro mni_REQUIRE_MINC
+----------------------
+
+Use this if your program requires the MINC libraries.  The libraries
+libm, libnetcdf, and libminc will be probed for at configure time
+(this is when --with-build-path comes in handy!).  If any of the three
+libraries cannot be found, configure will stop with an error message.
+If the libraries are all found, the LIBS makefile variable will be set
+appropriately.  When using automake, this suffices to properly link
+against MINC.
+
+Usage:
+	mni_REQUIRE_MINC
+
+
+
+Macro mni_REQUIRE_VOLUMEIO
+--------------------------
+
+Extends mni_REQUIRE_MINC to also search for libvolume_io.  When using
+this macro, mni_REQUIRE_MINC is automatically invoked, so you needn't
+have both in your configure.ac.
+
+Usage:
+	mni_REQUIRE_VOLUMEIO
+
+
+
+Macro mni_REQUIRE_BICPL
+-----------------------
+
+Extends mni_REQUIRE_VOLUMEIO to also search for libbicpl.  When using
+this macro, mni_REQUIRE_VOLUMEIO is automatically invoked, so you needn't
+have both in your configure.ac.
+
+Usage:
+	mni_REQUIRE_BICPL
+
+
+
+Macro mni_REQUIRE_OPENINVENTOR
+------------------------------
+
+Use this if your program requires OpenInventor.  This macro will
+search first for the COIN library (an OpenInventor clone), then for
+SGI's libInventor.  If one is found, LIBS is set appropriately, else
+the configure script bombs with an error.
+
