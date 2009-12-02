@@ -762,7 +762,16 @@ vertexLm <- function(formula, data, subset=NULL) {
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("F", rep("t", ncol(result)-1))
 
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+
+  dflist <- vector("list", ncol(result))
+  dflist[[1]] <- c(Fdf1, Fdf2)
+  dflist[2:length(dflist)] <- Fdf2
+  attr(result, "df") <- dflist
+  
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
   rows <- sub('mmatrix', '',
