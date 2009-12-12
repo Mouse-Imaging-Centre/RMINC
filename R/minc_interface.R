@@ -783,3 +783,53 @@ vertexLm <- function(formula, data, subset=NULL) {
   
 }
 
+# calls ray-trace to generate a pretty picture of a slice
+minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
+                           slice=list(pos=0, wv="w", axis="z"),
+                           threshold=NULL,
+                           colourmap="-spectral",
+                           background=NULL,
+                           background.threshold=NULL,
+                           background.colourmap="-gray",
+                           display=TRUE) {
+  # create the slice obj
+  slice.obj.name <- "/tmp/slice.obj"
+  system(paste("make_slice", volume, slice.obj.name, slice$axis,
+               slice$wv, slice$pos, sep=" "))
+
+  # get the threshold if necessary
+  if (is.null(threshold)) {
+    vol <- minc.get.volume(volume)
+    threshold <- range(vol)
+    rm(vol)
+  }
+
+  # get the background threshold if necessary
+  if (!is.null(background) && is.null(background.threshold)) {
+    vol <- minc.get.volume(background)
+    background.threshold <- range(vol)
+    rm(vol)
+  }
+
+  # call ray_trace
+  position <- ""
+  if (slice$axis == "y") {
+    position <- "-back"
+  }
+    
+  if (is.null(background)) {
+    system(paste("ray_trace -output", output, colourmap, threshold[1],
+                 threshold[2], volume, "0 1", slice.obj.name,
+                 "-bg black -crop -size", size[1], size[2], position))
+  } else {
+    system(paste("ray_trace -output", output, background.colourmap,
+                 background.threshold[1], background.threshold[2],
+                 background, "0 1 -under transparent", colourmap,
+                 threshold[1], threshold[2], volume, "0 0.5", slice.obj.name,
+                 "-bg black -crop -size", size[1], size[2], position))
+  }
+  if (display) {
+    system(paste("display", output))
+  }
+  return(output)
+}
