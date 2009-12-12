@@ -399,14 +399,14 @@ vertexFDR <- function(buffer, method="FDR") {
 
 # mincFDR for data not created in the same R session; i.e. obtained
 # from mincGetVolume
-mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue") {
+mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue", ...) {
   if (is.null(df)) {
     stop("Error: need to specify the degrees of freedom")
   }
   if (length(df) == 1) {
     df <- c(1,df)
   }
-  mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method)
+  mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method, ...)
 }
 
 # mincFDR for a local buffer created by mincLm
