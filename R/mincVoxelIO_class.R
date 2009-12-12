@@ -1,0 +1,267 @@
+#
+# =============================================================================
+# Purpose: MincVoxelIO Class Definition
+#
+# Description:
+#	Here we define that class which does IO at the smallest possible level
+#	of granularity: the voxel.  As is the case with the SliceIO class, the
+#	the VoxelIO class tries to make it possible to process at great number
+#	of volumes (3D and 4D), without blowing out our memory.
+#
+#	So, it a nutshell, this class reads the real value for a specific 
+#	voxel. Furthermore, the user can specify multiple 4D volumes, thus
+#	allowing us to obtain the value of a specific voxel across all frames,
+#	over all volumes.
+#
+#	This function was inspired by a similar function by Jason Lerch, buried 
+#   in the very bowels of the RMINC package.
+#
+# ToDo: Nuttin.
+#
+# Notes: 
+#
+# =============================================================================
+#
+setClass("MincVoxelIO", 
+		representation( mincInfo="MincInfo",
+						voxelCoords="numeric",
+						worldCoords="numeric",
+						filenames="character" ),
+		prototype( voxelCoords=c(0,0,0), 
+					worldCoords=c(0,0,0),
+					filenames="undefined" ),
+		contains="matrix"
+)
+
+
+
+# =============================================================================
+# Purpose:	Methods for print()/show() generic functions
+#
+# Notes:	(1) the name of the argument *must* match that used in the
+#			print() generic function (that is, 'x' in this case)
+# =============================================================================
+# 
+# print object when using "print(obj)"
+setMethod(
+	"print", 
+	signature=signature(x="MincVoxelIO"),
+	definition=function(x, ...) {
+
+		if ( R_DEBUG_mincIO ) cat(">> MincVoxelIO::print() ... \n")
+
+		# assume a MincInfo object has been passed
+		if ( R_DEBUG_mincIO ) cat("MincVoxelIO::print() >> printMincInfo ... \n")
+		printMincInfo(x@mincInfo)
+
+		# display a little something about the voxel data itself
+		cat("\n---- Voxel Specific Information ----\n")
+		cat(sprintf("Sampled coordinate (voxel space): [ %d, %d, %d ]\n",
+													x@voxelCoords[1],
+													x@voxelCoords[2],
+													x@voxelCoords[3]
+		))
+
+		cat(sprintf("Sampled coordinate (world space): [ %f, %f, %f ]\n",
+													x@worldCoords[1],
+													x@worldCoords[2],
+													x@worldCoords[3]
+		))
+
+		cat(sprintf("VoxelIO matrix dimensions: [%d, %d]\n", dim(x)[1], dim(x)[2]))
+		if ( length(x@filenames) > 1 ) {
+			cat(sprintf("Volume Names:\n"))
+			for ( ndx in 1: length(x@filenames) ) {
+				cat(sprintf("%d.  %s\n", ndx, x@filenames[ndx]))
+			}
+		}
+
+		if ( R_DEBUG_mincIO ) cat("<< MincVoxelIO::print() ... \n")
+
+	}
+)
+
+
+
+
+# =============================================================================
+# Purpose:	Read the real value of a given voxel over frames and
+#			files (as specified)
+#
+#
+# Input:
+#	The input will consist of one or more filenames (3D or 4D), and a voxel
+#	coordinate in x,y,z order.
+#
+# Notes:
+#	(1) coordinates are passed in x,y,z order
+#	(2) pass voxel (not stx) coords
+#	(3) passed coordinate values are 1-relative (matching R)
+#
+# =============================================================================
+# 
+setGeneric( 
+	name="readByVoxel", 
+	def = function(filenames, voxelCoords) { standardGeneric("readByVoxel") }
+) 
+
+# read the volume, by passing a MincInfo object
+setMethod(
+	"readByVoxel", 
+	signature=signature(filenames="character"),
+	definition=function(filenames, voxelCoords) {
+
+		if ( R_DEBUG_mincIO ) cat(">> readByVoxel ... \n")
+
+		# are all of the files readable?
+		if ( !isReadable(filenames) ) {
+			stop("Unreadable files found.\n")
+		}
+
+		# are all files valid minc2 volumes?
+		checkedFilenames <- filenames
+		for ( ndx in 1:length(filenames) ) {
+			if ( !isMinc(filenames[ndx]) ) {
+				stop(sprintf("Input volume [%s] does not appear to be Minc\n"))
+			}
+			#
+			# if minc1, then we need to convert
+			checkedFilenames[ndx] <- filenames[ndx]
+			if ( !isMinc1(filenames[ndx]) ) {
+				checkedFilenames[ndx] <- asMinc2(filenames[ndx])
+			}
+		}
+
+		# OK. Now we know that all of the filenames are valid Minc2. So now we can read.
+		voxelMatrix <- readByVoxelX(filenames, voxelCoords)
+
+
+		# return the VoxelIO object
+		if ( R_DEBUG_mincIO ) cat("<< readByVoxel ... \n")
+		return(voxelMatrix)
+
+	}
+)
+
+
+
+
+readByVoxelX <- function(filenames, voxelCoords) {
+# =============================================================================
+# Purpose: Common xovel read routine.
+#
+# Description:
+#	Read a real voxel value of frames and volumes.
+#
+# TODO: 
+#    (1) TBD, but there must be something.
+#
+#
+# Notes: 
+#
+# =============================================================================
+#
+	if ( R_DEBUG_mincIO ) cat(">> readByVoxelX ... \n")
+
+
+	nFrames <- 0
+	nFiles <- length(filenames)
+
+	# get the mincInfo details for the first volume
+	mincInfoV01 <- readMincInfo(filenames[1])
+	nFrames <- mincInfoV01@nFrames
+
+	# get the mincInfo for all files ... 
+	# ... get frame count and ensure that all counts are the same
+	for ( ndx in 1:nFiles ) {
+		mincInfo <- readMincInfo(filenames[ndx])
+		if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: processing volume %d\n", ndx))
+
+		# check that all 4D volumes have a consistent time dimension
+		if ( mincInfo@nDimensions > 3 ) {
+			if ( nFrames > 1 && rownames(mincInfo@dimInfo)[1] != "time" ) 
+				cat(sprintf("Warning: First dimension of volume [%s] not equal to 'time'\n", filenames[ndx]))
+		
+				if ( nFrames != mincInfo@nFrames )
+				stop(sprintf("Differing number of frames found at volume %s\n", filenames[ndx]))
+		}
+		
+		# if the sampling the same across all volumes?
+		# ... check the dimension sizes
+		if ( !identical(mincInfoV01@dimInfo$sizes, mincInfo@dimInfo$sizes) ) {
+			stop(sprintf("Volume %s appears to have different dimension sizes when compared to volume %s",
+			mincInfo@filename,
+			mincInfoV01@filename))
+		}
+		# ... check the step sizes
+		if ( !identical(mincInfoV01@dimInfo$steps, mincInfo@dimInfo$steps) ) {
+			stop(sprintf("Volume %s appears to have different step sizes when compared to volume %s",
+			mincInfo@filename,
+			mincInfoV01@filename))
+		}
+		# ... check the start offsets
+		if ( !identical(mincInfoV01@dimInfo$starts, mincInfo@dimInfo$starts) ) {
+			stop(sprintf("Volume %s appears to have different start offsets when compared to volume %s",
+			mincInfo@filename,
+			mincInfoV01@filename))
+		}
+		if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: processing volume %d ... complete\n", ndx))
+	}
+
+	# validate the coordinates
+	#
+	# 3 coords were passed?
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: at coord validation step\n"))
+	if ( length(voxelCoords) != 3 ) 
+		stop(sprintf("Coordinate vector must have a length of 3, not %d\n", length(voxelCoords)))
+
+
+	# all coordinates are within range for the first volume?
+	# ... if we have a 4-D volume, skip the first (time) index
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: doing 4D adjustment stuff\n"))
+	offset <- 0
+	if ( mincInfoV01@nDimensions > 3 )  offset <- offset +1
+	for ( ndx in 1:3 ) {
+		if ( voxelCoords[ndx] > mincInfoV01@dimInfo$sizes[ndx+offset] ) {
+			errmsg <- sprintf("Error: Passed coordinate [%d] not within range for dimension %s\n",
+			                		voxelCoords[ndx],
+									mincInfoV01@dimInfo$names[ndx +offset])
+			stop(errmsg)
+		}
+	}
+
+	
+	# make coords z,y,x order and 0-relative for C-call
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: making coords C-relative\n"))
+	adjVoxCoords <- rev(voxelCoords) -1
+	
+	# OK. Now that we passsed validation, let's get the values
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: calling read_voxel_from_files\n"))
+	voxel.mat <- .Call("read_voxel_from_files",
+                  as.character(filenames),
+                  as.integer(adjVoxCoords),
+                  as.integer(nFiles),
+                  as.integer(nFrames), PACKAGE="RMINC")
+
+	# create the MincVoxelIO object and set assorted fields
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: instantiating object\n"))
+	voxelObj <- new("MincVoxelIO",
+	 					voxel.mat,
+						mincInfo=mincInfo, 
+						voxelCoords=as.integer(voxelCoords),
+						worldCoords=convertVoxelToWorld(filenames[1], voxelCoords),
+						filenames=filenames )
+
+	# DONE. Return the new volume array object.
+	if ( R_DEBUG_mincIO ) cat("<< readByVoxelX ... \n")
+	return(voxelObj)
+	
+
+}
+
+
+
+
+
+
+
