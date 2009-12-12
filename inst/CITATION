@@ -1,0 +1,15 @@
+citHeader("To cite package 'mniMincIO' in publications use:")
+
+desc <- packageDescription("mniMincIO")
+vers <- paste("R package version", desc$Version)
+
+citEntry(entry="Manual",
+		title = "Package mniMincIO: Minc Volume Access without Tears",
+		author = personList(as.person("Jim Nikelski")),
+		year = 2009,
+		note = vers,
+		organization = "McGill University",
+		address = "Montreal, Quebec, Canada",
+		textVersion = paste("Jim Nikelski (2009). Package mniMincIO: Minc Volume Access without Tears. ", vers, ". ",
+		"McGill University, Montreal, Quebec, Canada.", sep="")
+)
