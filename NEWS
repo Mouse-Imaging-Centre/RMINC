@@ -6,6 +6,7 @@ New in Version 1.0.0
 * inserted test data sets used by vignettes into /inst so that
   vignettes don't need to hard-code paths and so that Rd \examples
   can be made executable.
+* countless bits and pieces
 
 New in Version 0.5.13
 =====================
