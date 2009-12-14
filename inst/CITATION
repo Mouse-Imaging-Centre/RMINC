@@ -4,12 +4,13 @@ desc <- packageDescription("RMINC")
 vers <- paste("R package version", desc$Version)
 
 citEntry(entry="Manual",
-		title = "Package mniMincIO: Minc Volume Access without Tears",
-		author = personList(as.person("Jim Nikelski")),
+		title = "Package RMINC: Voxel-Wise Morphometry using RMINC",
+		author = personList(as.person("Jason Lerch"), as.person("Jim Nikelski"), as.person("the RMINC team")),
 		year = 2009,
 		note = vers,
 		organization = "McGill University",
 		address = "Montreal, Quebec, Canada",
-		textVersion = paste("Jim Nikelski (2009). Package mniMincIO: Minc Volume Access without Tears. ", vers, ". ",
-		"McGill University, Montreal, Quebec, Canada.", sep="")
+		textVersion = paste("Jason Lerch, Jim Nikelski, and the RMINC team (2009). Package RMINC: Voxel-Wise Morphometry using RMINC. ",
+		                     vers, ". ",
+		                    "McGill University, Montreal, Quebec, Canada.", sep="")
 )
