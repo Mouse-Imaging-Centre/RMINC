@@ -1,6 +1,6 @@
-citHeader("To cite package 'mniMincIO' in publications use:")
+citHeader("To cite package 'RMINC' in publications use:")
 
-desc <- packageDescription("mniMincIO")
+desc <- packageDescription("RMINC")
 vers <- paste("R package version", desc$Version)
 
 citEntry(entry="Manual",
