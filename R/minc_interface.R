@@ -531,12 +531,18 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     # calculate thresholds at different sig levels
     for (j in 1:length(p.thresholds)) {
       if (statType[i] == "F") {
-        thresholds[j,i] <- qf(max(qobj$pvalue[qobj$qvalue <= p.thresholds[j]]),
-                              df[[i]][1], df[[i]][2], lower.tail=F)
+		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		# cat(sprintf("Number of sub-threshold F p-values: %d\n", length(subTholdPvalues)))
+		if ( length(subTholdPvalues) > 1 ) {
+			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=F)
+		} else { thresholds[j,i] <- NA }
       }
       else if (statType[i] == "t") {
-        thresholds[j,i] <-qt(max(qobj$pvalue[qobj$qvalue<=p.thresholds[j]])/2,
-                             df[[i]], lower.tail=F)
+		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
+		if ( length(subTholdPvalues) > 1 ) {
+			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=F)
+		} else { thresholds[j,i] <- NA }
       }
     }
     output[mask>0.5,i] <- qobj$qvalue

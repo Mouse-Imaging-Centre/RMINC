@@ -15,5 +15,6 @@ Collate: mincInfo_class.R mincVolumeIO_class.R mincSlice_class.R
          deprecated.R zzz.R
 LazyLoad: yes
 OS_type: unix
-
+SystemRequirements: 
+URL: https://launchpad.net/rminc, https://wiki.phenogenomics.ca/display/MICePub/RMINC
 

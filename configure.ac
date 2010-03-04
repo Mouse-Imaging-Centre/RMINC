@@ -1,4 +1,4 @@
-AC_INIT([RMINC], 0.4)
+AC_INIT([RMINC], 1.0)
 
 dnl Now find the compiler and compiler flags to use
 : ${R_HOME=`R RHOME`}

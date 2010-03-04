@@ -247,6 +247,7 @@ library(xtable)
 
 
 <<intro>>=
+options(warn=0)
 library(RMINC)
 inputFile <- file.path(dataDir, "control-file.csv")
 gf <- read.csv(inputFile)
@@ -549,6 +550,7 @@ the False Discovery Rate.
 <<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
 setwd(dataDir)
 vs <- mincLm(Filename ~ Gender, gf)
+print(vs)
 #
 qvals <- mincFDR(vs, mask="volumes/mask.mnc", method="pFDR")
 print(qvals)
@@ -582,7 +584,7 @@ volume <- mincGetVolume(volname)
 #
 qvals <- mincFDR(volume, df=21, statType="t")
 print(qvals)
-@ 
+@
 
 Notice how in this case you have to specify the degrees of freedom,
 since the information associated with the linear model is lost after

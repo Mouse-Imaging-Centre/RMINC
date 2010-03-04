@@ -176,6 +176,11 @@ options(width=60)
 # get path to volumeData subdir within package
 volDir <- system.file("packageData/volumes", package="RMINC")
 
+# create a path to a temporary work dir (for the figures)
+tmpDir <- file.path("/tmp/mincIO-userGuide", "figures")
+unlink("/tmp/mincIO-userGuide", recursive=TRUE)
+dir.create(tmpDir, showWarnings=TRUE, recursive=TRUE, mode="0777")
+
 # create a full pathname to the sample volumes
 v305PET <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
 vIcbm <- file.path(volDir, "icbm_avg_152_t1_tal_lin.mnc")
@@ -265,7 +270,8 @@ So we simply create a string containing the full path and file name, and call th
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/volumePlot.png')
+pngFilename <- file.path(tmpDir, "volumePlot.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE>>=
@@ -279,7 +285,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/volumePlot.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:volumePlot} Summary plot of a 3-dimensional volume (ICBM-152).  Slices are axial, and an intensity histogram is also provided.}
 \end{center}
 \end{figure}
@@ -309,7 +315,8 @@ vol2 <- asVolume(vol * mask3D, vol)
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/volumePlotMasked.png')
+pngFilename <- file.path(tmpDir, "volumePlotMasked.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE>>=
@@ -323,7 +330,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/volumePlotMasked.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:volumePlotMasked} Summary plot of a masked 3-dimensional volume (ICBM-152).  The effect of the masking at an intensity level of 100000 can clearly be seen in the histogram.}
 \end{center}
 \end{figure}
@@ -364,7 +371,8 @@ There you go. Can you see it?  Take a gander at Figure~\ref{fig:volumePlotLine}.
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/volumePlotLine.png')
+pngFilename <- file.path(tmpDir, "volumePlotLine.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE>>=
@@ -378,7 +386,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/volumePlotLine.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:volumePlotLine} ICBM volume with a 5-voxel line ``drawn'' through the caudate at slice 82.  The modification was accomplished by directly manipulating the voxel values within the 3D volume array.}
 \end{center}
 \end{figure}
@@ -421,7 +429,8 @@ Note the new \texttt{convertWorldToVoxel()} function, that takes a volume name a
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/volumePlotHslab.png')
+pngFilename <- file.path(tmpDir, "volumePlotHslab.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE>>=
@@ -435,7 +444,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/volumePlotHslab.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:volumePlotHslab} ICBM volume masked with a hyperslab ROI.  The hyperslab mask was created relative to the anterior commissure, and ranges between the following extents: X-axis=(AC$\pm$30 mm), Y-axis=(AC-60 mm, AC+30 mm), and Z-axis=(AC-20 mm, AC+30 mm).}
 \end{center}
 \end{figure}
@@ -459,7 +468,8 @@ We start simply by loading the ICBM volume, and extracting the slice at voxel co
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/axialSlice01.png')
+pngFilename <- file.path(tmpDir, "axialSlice01.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
@@ -473,7 +483,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/axialSlice01.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:axialSlice01} Axial slice 55 extracted from the ICBM volume. Default colormap is grayscale; voxel origin (voxel[1,1]) is located in the bottom-left portion of the image (posterior-left within the volume).}
 \end{center}
 \end{figure}
@@ -489,7 +499,8 @@ s055[60:120, 80:120] <- 0          # block out brainstem
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/axialSlice02.png')
+pngFilename <- file.path(tmpDir, "axialSlice02.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
@@ -502,7 +513,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/axialSlice02.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:axialSlice02} Display of a modified axial slice 55. Upper left and lower right blocks are set to high intensity values (white blocks), and the larger central block is set to low intensity values (black).}
 \end{center}
 \end{figure}
@@ -517,7 +528,8 @@ Note that the only mandatory inputs to \texttt{putSlice()} are the slice and the
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/volumePlotUpdatedSlice.png')
+pngFilename <- file.path(tmpDir, "volumePlotUpdatedSlice.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
@@ -530,7 +542,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/volumePlotUpdatedSlice.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:volumePlotUpdatedSlice} Display of a modified ICBM volume after inserting the changed slice 55 back into the volume using the \texttt{putSlice()} function.}
 \end{center}
 \end{figure}
@@ -567,7 +579,8 @@ So there you have it.  Slice 46 from the 3rd volume is now instantiated as a sli
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/sliceIO01.png')
+pngFilename <- file.path(tmpDir, "sliceIO01.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
@@ -580,7 +593,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/sliceIO01.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:sliceIO01} Slice 46 from the 3rd volume, as extracted from the slice array.}
 \end{center}
 \end{figure}
@@ -602,7 +615,8 @@ print(frame10s30)
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/sliceIO02.png')
+pngFilename <- file.path(tmpDir, "sliceIO02.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
@@ -615,7 +629,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/sliceIO02.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:sliceIO02} Slice 30 taken from frame 10 of a 4D volume, as extracted from the slice array.  Note that the default colormap is ``rainbow'', as 4D volumes are (by default) understood to contain functional data.}
 \end{center}
 \end{figure}
@@ -656,7 +670,8 @@ There you have it.  Looks pretty much the same as the 3D case, but now the voxel
 % kludge to generate png graphics rather than pdf
 % ... open png output
 <<fig=FALSE,echo=FALSE>>=
-png(filename='figures/voxelIOtac.png')
+pngFilename <- file.path(tmpDir, "voxelIOtac.png")
+png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
@@ -675,7 +690,7 @@ dev.off()
 % ... send png image to Latex doc
 \begin{figure}[htb!]
 \begin{center}
-\includegraphics[width=12cm,draft=false,clip=true]{figures/voxelIOtac.png}
+\includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
 \caption[]{\label{fig:voxelIOtac} Time activity curve at the sampled voxel, for the first volume, taken over all 34 frames.  A rather wiggly curve has been fitted to the sample points. }
 \end{center}
 \end{figure}
