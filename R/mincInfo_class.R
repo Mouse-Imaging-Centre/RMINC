@@ -61,6 +61,7 @@ readMincInfo <- function(filename) {
 	# ===================================================
 	#
 
+	if ( R_DEBUG_mincIO ) cat(">> MincInfo::readMincInfo() ... \n")
 
 	# make sure that any shell wild characters are expanded
 	filename <- path.expand(filename)
@@ -68,12 +69,12 @@ readMincInfo <- function(filename) {
 	# let's make sure that we have a minc2 volume (else convert)
 	filename <- asMinc2(filename)
 
-#	cat("About to enter the C code\n")
+	#cat("MincInfo::readMincInfo(). About to enter the C code\n")
 	volInfo <- .Call("get_volume_info",
               as.character(filename),PACKAGE="RMINC")
-#	print(volInfo)
-#	str(volInfo)
-#	cat("Returned from the C code\n")
+	#cat("MincInfo::readMincInfo(). Returned from the C code\n")
+	#print(volInfo)
+	#str(volInfo)
 
 	# create the MincInfo object and init the fields with the
 	# info returned above
@@ -90,9 +91,10 @@ readMincInfo <- function(filename) {
 
 
 	# add some derived information
-	# ... if we have a 4-D volume, use the slowest varying as number of frames
+	# ... if we have a 4-D volume, then nFrames should have been initialized
+	
 	mincInfo@nFrames <- 0
-	if ( mincInfo@nDimensions > 3 )  mincInfo@nFrames <- mincInfo@dimInfo$sizes[1]
+	if ( mincInfo@nDimensions > 3 )  mincInfo@nFrames <- volInfo$nFrames
 
 
 	# add the time-related info (if necessary)
@@ -106,7 +108,7 @@ readMincInfo <- function(filename) {
 		# have to use an external mincinfo call to return it.
 		# Who you lookin at? It gets the job done. Yeah, that's right.
 		#
-		# We want soemthing like this: "mincinfo -varvalues time-width volume_name.mnc"
+		# We want something like this: "mincinfo -varvalues time-width volume_name.mnc"
 		cmd <- paste("mincinfo -varvalues time-width ", filename)
 		mincInfo@timeWidths <- as.numeric(system(cmd, intern=TRUE))
 		
@@ -125,6 +127,7 @@ readMincInfo <- function(filename) {
 	mincInfo@filename <- filename
 
 	#
+	if ( R_DEBUG_mincIO ) cat("<< MincInfo::readMincInfo() ... \n")
 	return(mincInfo)
 }
 

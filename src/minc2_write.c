@@ -147,7 +147,7 @@ SEXP write_volume(SEXP filename, SEXP nDimensions,
 
 	// set valid and real ranges 
 	// ... 0xFFFF=65535=16-bits (unsigned)
-	miset_volume_valid_range(minc_volume, 0xFFFF, 0);
+	miset_volume_valid_range(minc_volume, 0x7FFF, 0);
 	miset_volume_range(minc_volume, volume_range_max, volume_range_min);
 
 

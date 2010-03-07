@@ -17,13 +17,14 @@ SEXP get_volume_info(SEXP filename) {
 	int					result, i;
 	int					n_dimensions;
 	int					n_protects, list_index;
+	int					n_frames;
 	
 // variables to hold dim-related info
 	unsigned int		dim_sizes[MI2_MAX_VAR_DIMS];
 	double				dim_starts[MI2_MAX_VAR_DIMS];
 	double				dim_steps[MI2_MAX_VAR_DIMS];
-	double				time_offsets[34];
-	double				time_widths[34];
+	double				time_offsets[MAX_FRAMES];
+	double				time_widths[MAX_FRAMES];
 	char 				*dim_name;
 	char 				*dim_units;
 	char 				*space_type;
@@ -187,8 +188,14 @@ SEXP get_volume_info(SEXP filename) {
 		
 		// do we have a time dimension?
 		if ( !strcmp(dim_name, "time") ) { 
-			time_dim_exists = TRUE; 
+			time_dim_exists = TRUE;
+			n_frames = ( time_dim_exists ) ? dim_sizes[0] : 0;
+			/* append to return list ... */
+			list_index++;
+			SET_VECTOR_ELT(rtnList, list_index, ScalarInteger(n_frames));
+			SET_STRING_ELT(listNames, list_index, mkChar("nFrames"));
 		}
+		
 		// store the goodness
 		SET_STRING_ELT(xDimNames, i, mkChar(dim_name));
 		mifree_name(dim_name);
@@ -211,12 +218,12 @@ SEXP get_volume_info(SEXP filename) {
 	/* get the dimension OFFSETS values for the TIME dimension */
 	if ( time_dim_exists ) {
 
-		PROTECT( xTimeOffsets=allocVector(REALSXP,34) );
+		PROTECT( xTimeOffsets=allocVector(REALSXP,n_frames) );
 		n_protects++;
-		result = miget_dimension_offsets(dimensions[0], 34, 0, time_offsets);
+		result = miget_dimension_offsets(dimensions[0], n_frames, 0, time_offsets);
 		if ( result == MI_ERROR ) { error("Error returned from miget_dimension_offsets.\n"); }
 		/* add to R vector ... */
-		for (i=0; i<34; ++i) {
+		for (i=0; i<n_frames; ++i) {
 			REAL(xTimeOffsets)[i] = time_offsets[i];
 		}
 		list_index++;
@@ -224,16 +231,16 @@ SEXP get_volume_info(SEXP filename) {
 		SET_STRING_ELT(listNames, list_index, mkChar("timeOffsets"));
 
 		/* get the dimension WIDTH values for the TIME dimension */
-		PROTECT( xTimeWidths=allocVector(REALSXP,34) );
+		PROTECT( xTimeWidths=allocVector(REALSXP,n_frames) );
 		n_protects++;
-		for (i=0; i<34; ++i) {
-			time_widths[i]=66.6;
+		for (i=0; i<n_frames; ++i) {
+			time_widths[i]=999.9;
 		}
 	
-		result = miget_dimension_widths(dimensions[0], MI_ORDER_FILE, 34, 0, time_widths);
+		result = miget_dimension_widths(dimensions[0], MI_ORDER_FILE, n_frames, 0, time_widths);
 		if ( result == MI_ERROR ) { error("Error returned from miget_dimension_widths.\n"); }
 		/* add to R vector ... */
-		for (i=0; i<34; ++i) {
+		for (i=0; i<n_frames; ++i) {
 			REAL(xTimeWidths)[i] = time_widths[i];
 //			if (R_DEBUG_mincIO) Rprintf("Time width[%d] =  \n", i, time_widths[i]);
 		}

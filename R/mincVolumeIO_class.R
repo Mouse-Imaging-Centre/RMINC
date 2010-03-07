@@ -416,7 +416,10 @@ setMethod(
 				stop("Attempting to over-write pre-existing volume without Clobber flag set\n")
 			}
 		}
-
+		
+		# minc2 API does not like unexpanded paths (i.e., with "~", or "..", etc)
+		# so let's ensure that it's expanded
+		filename <- path.expand(filename)
 
 		# OK, yes I know that the actual volume write could be inserted directly
 		# in here, but at this stage, I'm not sure if I might overload this 
@@ -427,7 +430,7 @@ setMethod(
 		# out the volume), so we do not need to capture a return value.
 
 		if ( R_DEBUG_mincIO ) cat("writeVolume >> writeVolumeX ... \n")
-		writeVolumeX(object, filename)
+			writeVolumeX(object, filename)
 		if ( R_DEBUG_mincIO ) cat("<< writeVolume ... \n")
 		
 		

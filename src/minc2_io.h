@@ -4,8 +4,8 @@
 #include <minc2.h>
 #include <stdio.h>
 
-// maximum number of dimensions allowed in volume
-//#define MAX_DIM     4
+// maximum number of frames permitted in a volume
+#define MAX_FRAMES 100
 // maximum buffer size for attributes
 #define MAX_STRING_LEN   256
 // R return list size (number of list elements)
