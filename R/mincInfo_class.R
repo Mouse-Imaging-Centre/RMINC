@@ -70,11 +70,12 @@ readMincInfo <- function(filename) {
 	filename <- asMinc2(filename)
 
 	#cat("MincInfo::readMincInfo(). About to enter the C code\n")
+	if ( R_DEBUG_mincIO ) cat("MincInfo::readMincInfo(). Entering C code\n")
 	volInfo <- .Call("get_volume_info",
               as.character(filename),PACKAGE="RMINC")
-	#cat("MincInfo::readMincInfo(). Returned from the C code\n")
-	#print(volInfo)
-	#str(volInfo)
+	if ( R_DEBUG_mincIO ) cat("MincInfo::readMincInfo(). Returning from C code\n")
+	# print(volInfo)
+	# str(volInfo)
 
 	# create the MincInfo object and init the fields with the
 	# info returned above
@@ -83,6 +84,7 @@ readMincInfo <- function(filename) {
 	mincInfo@volumeDataType <- volInfo$volumeDataType
 	mincInfo@spaceType <- volInfo$spaceType
 	mincInfo@nDimensions <- volInfo$nDimensions
+	mincInfo@nFrames <- volInfo$nFrames
 	mincInfo@dimInfo <- data.frame(sizes=volInfo$dimSizes, 
 									steps=volInfo$dimSteps, 
 									starts=volInfo$dimStarts, 
@@ -93,22 +95,29 @@ readMincInfo <- function(filename) {
 	# add some derived information
 	# ... if we have a 4-D volume, then nFrames should have been initialized
 	
-	mincInfo@nFrames <- 0
-	if ( mincInfo@nDimensions > 3 )  mincInfo@nFrames <- volInfo$nFrames
+	# mincInfo@nFrames <- 0
+	# if ( mincInfo@nDimensions > 3 )  mincInfo@nFrames <- volInfo$nFrames
 
 
 	# add the time-related info (if necessary)
 	if ( mincInfo@nDimensions > 3) {
 		#
-		# insert the time offsets
-		mincInfo@timeOffsets <- volInfo$timeOffsets
+		# Now let's deal with the time/timeWidths in a cludgey fashion.
+		# That is, since the minc2 API is currently not able to return this info, 
+		# we are going to have to use an external mincinfo call to return it.
+		# Specifically, for example, although the the "time" dimension is 
+		# irregularly sampled, minc2 API assumes regularly samepled and
+		# happily provides the incorrect values. Neat, eh?
 		#
-		# now deal with the timeWidths in a cludgey fashion.
-		# This is, since the minc2 API is currently not able to return this info, we are going to
-		# have to use an external mincinfo call to return it.
+		# The minc2 API really ought to be fixed ... but who as the time?
+		# This fix, while a stinkin, rotten cludge, still works.
 		# Who you lookin at? It gets the job done. Yeah, that's right.
 		#
-		# We want something like this: "mincinfo -varvalues time-width volume_name.mnc"
+		# insert the time offsets
+		cmd <- paste("mincinfo -varvalues time ", filename)
+		mincInfo@timeOffsets <- as.numeric(system(cmd, intern=TRUE))
+		#
+		# insert the time-width information
 		cmd <- paste("mincinfo -varvalues time-width ", filename)
 		mincInfo@timeWidths <- as.numeric(system(cmd, intern=TRUE))
 		
