@@ -61,7 +61,7 @@ setMethod(
 	definition=function(x) {
 		if ( R_DEBUG_mincIO ) cat("MincSlice print() method ...\n")
 		# assume a MincInfo object has been passed
-		printMincInfo(x@mincInfo)
+		mincIO.printMincInfo(x@mincInfo)
 	
 		# display a little something about the volume data itself
 		cat("\n---- Slice Specific Information ----\n")
@@ -86,7 +86,7 @@ setMethod(
 	definition=function(object) {
 		if ( R_DEBUG_mincIO ) cat("MincSlice show() method ...\n")
 		# assume a MincInfo object has been passed
-		printMincInfo(object@mincInfo)
+		mincIO.printMincInfo(object@mincInfo)
 	
 		# display a little something about the volume data itself
 		cat("\n---- Slice Specific Information ----\n")
@@ -121,7 +121,7 @@ setMethod(
 		# do the slice plot using lattice.  
 		#
 		if ( x@orientation == "xSlice") {
-			myPlot <- plotSlicePretty(getDataPart(x), 
+			myPlot <- mincIO.plotSlicePretty(getDataPart(x), 
 										xAxisLabel="Y Axis", 
 										yAxisLabel="Z Axis", 
 										aspectRatio=x@aspectRatio,
@@ -130,7 +130,7 @@ setMethod(
 		}
 
 		if ( x@orientation == "ySlice") {
-			myPlot <- plotSlicePretty(getDataPart(x), 
+			myPlot <- mincIO.plotSlicePretty(getDataPart(x), 
 										xAxisLabel="X Axis", 
 										yAxisLabel="Z Axis", 
 										aspectRatio=x@aspectRatio,
@@ -139,7 +139,7 @@ setMethod(
 		}
 
 		if ( x@orientation == "zSlice") {
-			myPlot <- plotSlicePretty(getDataPart(x), 
+			myPlot <- mincIO.plotSlicePretty(getDataPart(x), 
 										xAxisLabel="X Axis", 
 										yAxisLabel="Y Axis", 
 										aspectRatio=x@aspectRatio,
@@ -151,7 +151,7 @@ setMethod(
 
 
 
-plotSlicePretty <- function(slice, xAxisLabel, yAxisLabel, aspectRatio, colorMap) {
+mincIO.plotSlicePretty <- function(slice, xAxisLabel, yAxisLabel, aspectRatio, colorMap) {
 	# =============================================================================
 	# Purpose:	Common Slice Plotting Function
 	#
@@ -164,7 +164,7 @@ plotSlicePretty <- function(slice, xAxisLabel, yAxisLabel, aspectRatio, colorMap
 	# =============================================================================
 	# 
 
-	if ( R_DEBUG_mincIO ) cat(">> plotSlicePretty ... \n")
+	if ( R_DEBUG_mincIO ) cat(">> mincIO.plotSlicePretty ... \n")
 
 	# init the colormap to use for display
 	# ... first ensure that a valid colormap was specified
@@ -209,7 +209,7 @@ plotSlicePretty <- function(slice, xAxisLabel, yAxisLabel, aspectRatio, colorMap
 				}
 			)
 	# done. Send it back.
-	if ( R_DEBUG_mincIO ) cat("<< plotSlicePretty ... \n")
+	if ( R_DEBUG_mincIO ) cat("<< mincIO.plotSlicePretty ... \n")
 	return(myPlot)
 }
 
@@ -223,16 +223,16 @@ plotSlicePretty <- function(slice, xAxisLabel, yAxisLabel, aspectRatio, colorMap
 # =============================================================================
 # 
 setGeneric( 
-	name="getSliceX", 
-	def = function(mincVolume, sliceNo) { standardGeneric("getSliceX") }
+	name="mincIO.getSliceX", 
+	def = function(mincVolume, sliceNo) { standardGeneric("mincIO.getSliceX") }
 ) 
 setGeneric( 
-	name="getSliceY", 
-	def = function(mincVolume, sliceNo) { standardGeneric("getSliceY") }
+	name="mincIO.getSliceY", 
+	def = function(mincVolume, sliceNo) { standardGeneric("mincIO.getSliceY") }
 ) 
 setGeneric( 
-	name="getSliceZ", 
-	def = function(mincVolume, sliceNo) { standardGeneric("getSliceZ") }
+	name="mincIO.getSliceZ", 
+	def = function(mincVolume, sliceNo) { standardGeneric("mincIO.getSliceZ") }
 ) 
 
 
@@ -258,7 +258,7 @@ setGeneric(
 # **** x-slice 
 # ****
 setMethod(
-	"getSliceX", 
+	"mincIO.getSliceX", 
 	signature=signature(mincVolume="MincVolumeIO"),
 	definition=function(mincVolume, sliceNo) {
 		#
@@ -297,7 +297,7 @@ setMethod(
 # **** y-slice 
 # ****
 setMethod(
-	"getSliceY", 
+	"mincIO.getSliceY", 
 	signature=signature(mincVolume="MincVolumeIO"),
 	definition=function(mincVolume, sliceNo) {
 		#
@@ -336,7 +336,7 @@ setMethod(
 # **** z-slice 
 # ****
 setMethod(
-	"getSliceZ", 
+	"mincIO.getSliceZ", 
 	signature=signature(mincVolume="MincVolumeIO"),
 	definition=function(mincVolume, sliceNo) {
 		#
@@ -382,8 +382,8 @@ setMethod(
 # =============================================================================
 # 
 setGeneric( 
-	name="putSlice", 
-	def = function(mincSlice, mincVolume, sliceNo, ...) { standardGeneric("putSlice") }
+	name="mincIO.putSlice", 
+	def = function(mincSlice, mincVolume, sliceNo, ...) { standardGeneric("mincIO.putSlice") }
 ) 
 
 
@@ -407,7 +407,7 @@ setGeneric(
 # =============================================================================
 #
 setMethod(
-	"putSlice", 
+	"mincIO.putSlice", 
 	signature=signature(mincSlice="MincSlice", mincVolume="MincVolumeIO"),
 	definition=function(mincSlice, mincVolume, sliceNo) {
 		#
@@ -496,15 +496,15 @@ setMethod(
 # =============================================================================
 #
 setGeneric( 
-	name="makeNewSliceZ", 
-	def = function(mincVolume, initVector=missing) { standardGeneric("makeNewSliceZ") }
+	name="mincIO.makeNewSliceZ", 
+	def = function(mincVolume, initVector=missing) { standardGeneric("mincIO.makeNewSliceZ") }
 ) 
 
 # ****
 # **** 
 # ****
 setMethod(
-	"makeNewSliceZ", 
+	"mincIO.makeNewSliceZ", 
 	signature=signature(mincVolume="MincVolumeIO"),
 	definition=function(mincVolume, initVector) {
 		#

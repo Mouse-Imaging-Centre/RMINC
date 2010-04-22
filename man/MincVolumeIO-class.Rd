@@ -16,7 +16,7 @@
 \section{Objects from the Class}{
     Objects can be created by calls of the form \code{new("MincVolumeIO", data, dim, dimnames, ...)},
     however, these objects should never need to be instantiated directly by the user.  Instead, these
-    objects are more commonly created as a result to a call to \code{\link{readVolume}}.
+    objects are more commonly created as a result to a call to \code{\link{mincIO.readVolume}}.
 }
 
 \section{Slots}{
@@ -40,14 +40,14 @@ Class \code{"\linkS4class{vector}"}, by class "array", distance 5, with explicit
 
 \section{Methods}{
   \describe{
-    \item{getSliceX}{\code{signature(mincVolume = "MincVolumeIO")}: ... }
-    \item{getSliceY}{\code{signature(mincVolume = "MincVolumeIO")}: ... }
-    \item{getSliceZ}{\code{signature(mincVolume = "MincVolumeIO")}: ... }
+    \item{mincIO.getSliceX}{\code{signature(mincVolume = "MincVolumeIO")}: ... }
+    \item{mincIO.getSliceY}{\code{signature(mincVolume = "MincVolumeIO")}: ... }
+    \item{mincIO.getSliceZ}{\code{signature(mincVolume = "MincVolumeIO")}: ... }
     \item{plot}{\code{signature(x = "MincVolumeIO")}: ... }
     \item{print}{\code{signature(x = "MincVolumeIO")}: ... }
-    \item{putSlice}{\code{signature(mincSlice = "MincSlice", mincVolume = "MincVolumeIO")}: ... }
+    \item{mincIO.putSlice}{\code{signature(mincSlice = "MincSlice", mincVolume = "MincVolumeIO")}: ... }
     \item{show}{\code{signature(object = "MincVolumeIO")}: ... }
-    \item{writeVolume}{\code{signature(object = "MincVolumeIO")}: ... }
+    \item{mincIO.writeVolume}{\code{signature(object = "MincVolumeIO")}: ... }
 	 }
 }
 

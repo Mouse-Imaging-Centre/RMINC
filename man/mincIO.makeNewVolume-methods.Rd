@@ -1,10 +1,10 @@
-\name{makeNewVolume-methods}
+\name{mincIO.makeNewVolume-methods}
 \Rdversion{1.1}
 \docType{methods}
-\alias{makeNewVolume-methods}
-\alias{makeNewVolume}
-\alias{makeNewVolume,character,numeric,numeric,numeric-method}
-\alias{makeNewVolume,character,character-method}
+\alias{mincIO.makeNewVolume-methods}
+\alias{mincIO.makeNewVolume}
+\alias{mincIO.makeNewVolume,character,numeric,numeric,numeric-method}
+\alias{mincIO.makeNewVolume,character,character-method}
 
 \keyword{methods}
 
@@ -28,17 +28,17 @@
 
 
 \usage{
-\S4method{makeNewVolume}{character,numeric,numeric,numeric}(filename, dimLengths, dimSteps, dimStarts)
+\S4method{mincIO.makeNewVolume}{character,numeric,numeric,numeric}(filename, dimLengths, dimSteps, dimStarts)
 
-\S4method{makeNewVolume}{character,character}(filename, likeTemplate)
+\S4method{mincIO.makeNewVolume}{character,character}(filename, likeTemplate)
 
-\S4method{makeNewVolume}{character,character}(filename, likeFile)
+\S4method{mincIO.makeNewVolume}{character,character}(filename, likeFile)
 }
 
 
 \arguments{
   \item{filename}{The filename of the minc volume to be created.  The name is only placed into the MincInfo header.
-        While no IO is actually performed as this time, the \code{writeVolume} method will use this name at file
+        While no IO is actually performed as this time, the \code{mincIO.writeVolume} method will use this name at file
         creation time.}
   \item{dimLengths}{A vector of 3 integers specifying the number of elements in the x, y, and z dimensions
         (in that order)}
@@ -59,7 +59,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\linkS4class{MincVolumeIO}} \code{\link{readVolume}} \code{\link{writeVolume}}
+    \code{\linkS4class{MincVolumeIO}} \code{\link{mincIO.readVolume}} \code{\link{mincIO.writeVolume}}
 }
 
 \examples{
@@ -70,16 +70,16 @@
     volDir <- system.file("packageData/volumes", package="RMINC")
 }
 # create from scratch
-vol <- makeNewVolume("mymakeNewVolume.mnc", dimLengths=c(128,128,80), 
+vol <- mincIO.makeNewVolume("mymakeNewVolume.mnc", dimLengths=c(128,128,80), 
                                     dimSteps=c(1.34, 1.72, 1.50), 
                                     dimStarts=c(-85.76, -126.08, -37.50))
 # use a template
-vol1 <- makeNewVolume("myIcbmTemplateVolume.mnc", likeTemplate="icbm152")
-vol2 <- makeNewVolume("my305LinTemplateVolume.mnc", likeTemplate="mni305linear")
-vol3 <- makeNewVolume("my305PetTemplateVolume.mnc", likeTemplate="mni305PET")
+vol1 <- mincIO.makeNewVolume("myIcbmTemplateVolume.mnc", likeTemplate="icbm152")
+vol2 <- mincIO.makeNewVolume("my305LinTemplateVolume.mnc", likeTemplate="mni305linear")
+vol3 <- mincIO.makeNewVolume("my305PetTemplateVolume.mnc", likeTemplate="mni305PET")
 
 \dontrun{
 # use a "like" volume
-vol <- makeNewVolume("myLikeVolume", likeFile="myOwnWackySampling.mnc")
+vol <- mincIO.makeNewVolume("myLikeVolume", likeFile="myOwnWackySampling.mnc")
 }
 }

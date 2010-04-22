@@ -14,7 +14,7 @@ all volumes of a series of 3D volumes, or both.}
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("MincVoxelIO", data, nrow, ncol, byrow, dimnames, ...)},
     however, users are not expected to instantiate these objects directly.  More conveniently, these objects are usually
-    created by calls to \code{\link{readByVoxel}}.
+    created by calls to \code{\link{mincIO.readByVoxel}}.
 }
 
 \section{Slots}{
@@ -43,7 +43,7 @@ Class \code{"\linkS4class{vector}"}, by class "matrix", distance 4, with explici
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{readByVoxel}}
+    \code{\link{mincIO.readByVoxel}}
 }
 
 \examples{

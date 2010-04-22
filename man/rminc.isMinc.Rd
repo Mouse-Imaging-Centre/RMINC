@@ -1,6 +1,6 @@
-\name{isMinc}
+\name{rminc.isMinc}
 \Rdversion{1.1}
-\alias{isMinc}
+\alias{rminc.isMinc}
 \title{
     Check File For Minc Volume Format
 }
@@ -9,7 +9,7 @@
     as a minc1 (netcdf) or minc2 (hdf5) volume.  Else, \code{FALSE} is returned.
 }
 \usage{
-isMinc(filename)
+rminc.isMinc(filename)
 }
 
 \arguments{
@@ -17,7 +17,7 @@ isMinc(filename)
 }
 
 \details{
-    This routine calls the \code{\link{isMinc1}} and \code{\link{isMinc2}} functions to do
+    This routine calls the \code{\link{rminc.isMinc1}} and \code{\link{rminc.isMinc2}} functions to do
     the minc checking.
 }
 \value{ 
@@ -27,7 +27,7 @@ isMinc(filename)
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{isMinc1}} \code{\link{isMinc2}} \code{\link{asMinc2}} \code{\link{isReadable}}
+    \code{\link{rminc.isMinc1}} \code{\link{rminc.isMinc2}} \code{\link{rminc.asMinc2}} \code{\link{rminc.isReadable}}
 }
 
 \examples{
@@ -39,10 +39,10 @@ isMinc(filename)
 }
 # check for minc
 myFile <- file.path(volDir, "icbm_avg_152_t1_tal_lin.mnc")
-if ( isMinc(myFile) ) {
-    myFile <- asMinc2(myFile)               # could be minc1, so call converter
-    myFileInfo <- readMincInfo(myFile)      # read the mincInfo for this volume
-    print(myFileInfo)                       # ... and print it
+if ( rminc.isMinc(myFile) ) {
+    myFile <- rminc.asMinc2(myFile)             # could be minc1, so call converter
+    myFileInfo <- mincIO.readMincInfo(myFile)   # read the mincInfo for this volume
+    print(myFileInfo)                           # ... and print it
 }
 }
 

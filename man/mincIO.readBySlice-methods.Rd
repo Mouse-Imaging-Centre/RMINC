@@ -1,9 +1,9 @@
-\name{readBySlice-methods}
+\name{mincIO.readBySlice-methods}
 \Rdversion{1.1}
 \docType{methods}
-\alias{readBySlice-methods}
-\alias{readBySlice}
-\alias{readBySlice,character,numeric-method}
+\alias{mincIO.readBySlice-methods}
+\alias{mincIO.readBySlice}
+\alias{mincIO.readBySlice,character,numeric-method}
 
 \keyword{methods}
 
@@ -24,14 +24,13 @@
 
 
 \usage{
-\S4method{readBySlice}{character,numeric}(filenames, sliceNumber, ..., volumeType, colorMap)
+\S4method{mincIO.readBySlice}{character,numeric}(filenames, sliceNumber, ..., volumeType, colorMap)
 }
 
 
 \arguments{
   \item{filenames}{Either a single 4D Minc volume name, or a character vector containing multiple 3D volume names.}
-  \item{sliceNumber}{The 1-relative axial slice number to be read.  Note that currently we only allow reading axial slices,
-                     thus the lack of a \dQuote{slice orientation} argument.}
+  \item{sliceNumber}{The 1-relative axial slice number to be read.  Note that currently we only allow reading axial slices, thus the lack of a \dQuote{slice orientation} argument.}
   \item{\dots}{Other yet to be defined parameters.}
   \item{volumeType}{Type of volume(s) being read.  Current options include \dQuote{anatomical} and \dQuote{functional};
                     if not specified, reasonable defaults will be assigned (4D = \dQuote{functional}, 3D = \dQuote{anatomical}).
@@ -58,7 +57,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{getSliceFromSliceArray}} \code{\linkS4class{MincSliceIO}} 
+    \code{\link{mincIO.getSliceFromSliceArray}} \code{\linkS4class{MincSliceIO}} 
 }
 
 \examples{
@@ -70,18 +69,18 @@
 }
 # read slice 80 across all frames and print summary
 v4d <- file.path(volDir, "functional_4D.mnc")
-v4d_SA <- readBySlice(v4d, 80)                 # read
-print(v4d_SA)                                  # ... print summary info
+v4d_SA <- mincIO.readBySlice(v4d, 80)                  # read
+print(v4d_SA)                                          # ... print summary info
 
-s080f006 <- getSliceFromSliceArray(v4d_SA,6)   # get the slice from the 6th frame
-print(s080f006)                                # ... print summary and visualize
+s080f006 <- mincIO.getSliceFromSliceArray(v4d_SA,6)    # get the slice from the 6th frame
+print(s080f006)                                        # ... print summary and visualize
 
 # read a slice from a series of 3D volumes
 v305 <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-s022_SA <- readBySlice(c(v305, v305), 22)       # read slice 22 for both volumes
-print(s022_SA)                                  # ... print summary
-s022v002 <- getSliceFromSliceArray(s022_SA,2)    # get slice 22 for the 2nd volume
-print(s022v002)                                 # ... print summary and visualize
+s022_SA <- mincIO.readBySlice(c(v305, v305), 22)       # read slice 22 for both volumes
+print(s022_SA)                                         # ... print summary
+s022v002 <- mincIO.getSliceFromSliceArray(s022_SA,2)   # get slice 22 for the 2nd volume
+print(s022v002)                                        # ... print summary and visualize
 }
 
 

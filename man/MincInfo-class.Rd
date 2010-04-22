@@ -9,7 +9,7 @@
     The MincInfo class is used to hold essential minc volume information, which
     can then be passed to various functions.  As such, this
     class is contained within a number of other higher-level classes.  While
-    this class can be created directly by the user via the \code{\link{readMincInfo}} method,
+    this class can be created directly by the user via the \code{\link{mincIO.readMincInfo}} method,
     typically, objects of this class would be instantiated by other higher-level methods. 
 }
 
@@ -36,7 +36,7 @@
 }
 \section{Methods}{
   \describe{
-    \item{readVolume}{\code{signature(object = "MincInfo")}: ... }
+    \item{mincIO.readVolume}{\code{signature(object = "MincInfo")}: ... }
     \item{show}{\code{signature(object = "MincInfo")}: ... }
 	 }
 }

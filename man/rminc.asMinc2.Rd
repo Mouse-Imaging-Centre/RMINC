@@ -1,6 +1,6 @@
-\name{asMinc2}
+\name{rminc.asMinc2}
 \Rdversion{1.1}
-\alias{asMinc2}
+\alias{rminc.asMinc2}
 \title{
 Convert Volume to Minc2 Format
 }
@@ -10,7 +10,7 @@ Convert Volume to Minc2 Format
 }
 
 \usage{
-asMinc2(filename, keepName = TRUE)
+rminc.asMinc2(filename, keepName = TRUE)
 }
 
 \arguments{
@@ -27,13 +27,13 @@ asMinc2(filename, keepName = TRUE)
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-     \code{\link{isMinc1}} \code{\link{isMinc2}} \code{\link{isMinc}} \code{\link{isReadable}}
+     \code{\link{rminc.isMinc1}} \code{\link{rminc.isMinc2}} \code{\link{rminc.isMinc}} \code{\link{rminc.isReadable}}
 }
 
 \examples{
 \dontrun{
 myVolume1 <- "happy_little_minc1_volume.mnc"
-myVolume2 <- asMinc2(myVolume1)
+myVolume2 <- rminc.asMinc2(myVolume1)
 }
 }
 

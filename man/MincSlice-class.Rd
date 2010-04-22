@@ -42,7 +42,7 @@ Class \code{"\linkS4class{vector}"}, by class "matrix", distance 4, with explici
   \describe{
     \item{plot}{\code{signature(x = "MincSlice")}: ... }
     \item{print}{\code{signature(x = "MincSlice")}: ... }
-    \item{putSlice}{\code{signature(mincSlice = "MincSlice", mincVolume = "MincVolumeIO")}: ... }
+    \item{mincIO.putSlice}{\code{signature(mincSlice = "MincSlice", mincVolume = "MincVolumeIO")}: ... }
     \item{show}{\code{signature(object = "MincSlice")}: ... }
 	 }
 }

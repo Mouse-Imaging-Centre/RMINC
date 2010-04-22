@@ -15,7 +15,7 @@
 Package: \tab mincIO\cr
 Type: \tab Package\cr
 Version: \tab 1.0\cr
-Date: \tab 2009-09-28\cr
+Date: \tab 2010-04-26\cr
 License: \tab BSD\cr
 LazyLoad: \tab yes\cr
 }
@@ -32,7 +32,7 @@ LazyLoad: \tab yes\cr
     were created.  As this level of IO is performed at the slice level, many more
     volumes or frames can be loaded within a unified data structure, without running
     out of memory.  The resultant object is structured an an M x N matrix, with M 
-    voxels per slice, and N slices.  The \code{\link{getSliceFromSliceArray}} function can be used 
+    voxels per slice, and N slices.  The \code{\link{mincIO.getSliceFromSliceArray}} function can be used 
     to convert a specific slice within the slice matrix into a slice object, for 
     visualization, or for subsequently transferring to an output volume.
 }

@@ -1,17 +1,17 @@
-\name{getSliceXYZ-methods}
+\name{mincIO.getSliceXYZ-methods}
 \Rdversion{1.1}
 \docType{methods}
 
-\alias{getSliceXYZ}
-\alias{getSliceX-methods}
-\alias{getSliceY-methods}
-\alias{getSliceZ-methods}
-\alias{getSliceX}
-\alias{getSliceY}
-\alias{getSliceZ}
-\alias{getSliceX,MincVolumeIO-method}
-\alias{getSliceY,MincVolumeIO-method}
-\alias{getSliceZ,MincVolumeIO-method}
+\alias{mincIO.getSliceXYZ}
+\alias{mincIO.getSliceX-methods}
+\alias{mincIO.getSliceY-methods}
+\alias{mincIO.getSliceZ-methods}
+\alias{mincIO.getSliceX}
+\alias{mincIO.getSliceY}
+\alias{mincIO.getSliceZ}
+\alias{mincIO.getSliceX,MincVolumeIO-method}
+\alias{mincIO.getSliceY,MincVolumeIO-method}
+\alias{mincIO.getSliceZ,MincVolumeIO-method}
 
 \keyword{methods}
 
@@ -28,16 +28,16 @@
 }}
 
 \usage{
-\S4method{getSliceX}{MincVolumeIO}(mincVolume, sliceNo)
+\S4method{mincIO.getSliceX}{MincVolumeIO}(mincVolume, sliceNo)
 
-\S4method{getSliceY}{MincVolumeIO}(mincVolume, sliceNo)
+\S4method{mincIO.getSliceY}{MincVolumeIO}(mincVolume, sliceNo)
 
-\S4method{getSliceZ}{MincVolumeIO}(mincVolume, sliceNo)
+\S4method{mincIO.getSliceZ}{MincVolumeIO}(mincVolume, sliceNo)
 }
 
 \arguments{
   \item{mincVolume}{
-    The name of a MincVolumeIO object, most likely created via a call to \code{\link{readVolume}}.
+    The name of a MincVolumeIO object, most likely created via a call to \code{\link{mincIO.readVolume}}.
 }
   \item{sliceNo}{
     All slice numbers are 1-relative, ranging from inferior-to-superior (axial),
@@ -57,7 +57,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{putSlice}} \code{\linkS4class{MincSlice}} \code{\linkS4class{MincVolumeIO}} \code{\link{readVolume}}
+    \code{\link{mincIO.putSlice}} \code{\linkS4class{MincSlice}} \code{\linkS4class{MincVolumeIO}} \code{\link{mincIO.readVolume}}
 }
 
 \examples{
@@ -69,8 +69,8 @@
 }
 # read slice 60 from the 305 volume
 v305PET <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-vol <- readVolume(v305PET)             # read the volume
-s060 <- getSliceX(vol, 60)             # extract sagittal slice 60
+vol <- mincIO.readVolume(v305PET)      # read the volume
+s060 <- mincIO.getSliceX(vol, 60)      # extract sagittal slice 60
 print(s060)                            # print summary info
 plot(s060)                             # visualize it
 }

@@ -1,10 +1,10 @@
-\name{makeNewSliceZ-methods}
+\name{mincIO.makeNewSliceZ-methods}
 \Rdversion{1.1}
 \docType{methods}
 
-\alias{makeNewSliceZ}
-\alias{makeNewSliceZ-methods}
-\alias{makeNewSliceZ,MincVolumeIO-method}
+\alias{mincIO.makeNewSliceZ}
+\alias{mincIO.makeNewSliceZ-methods}
+\alias{mincIO.makeNewSliceZ,MincVolumeIO-method}
 
 \keyword{methods}
 
@@ -23,7 +23,7 @@
 }}
 
 \usage{
-\S4method{makeNewSliceZ}{MincVolumeIO}(mincVolume,initVector)
+\S4method{mincIO.makeNewSliceZ}{MincVolumeIO}(mincVolume,initVector)
 }
 
 \arguments{
@@ -44,8 +44,8 @@
     the result is in a \code{\link{MincSlice}} object, it can then be easily moved into a 
     \code{\link{MincVolumeIO}} object for subsequent writing.
 
-    Note that the reason for having a \code{makeNewSliceZ} method and no \code{newSliceX} or 
-    \code{newSliceY} methods is because the \code{\link{MincSliceIO}} objects currently
+    Note that the reason for having a \code{mincIO.makeNewSliceZ} method and no \code{mincIO.newSliceX} or 
+    \code{mincIO.newSliceY} methods is because the \code{\link{MincSliceIO}} objects currently
     only store axial slices.  If a need arises for these other methods, they shall be
     written.
 }
@@ -55,7 +55,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{putSlice}} \code{\linkS4class{MincSlice}} \code{\linkS4class{MincVolumeIO}}
+    \code{\link{mincIO.putSlice}} \code{\linkS4class{MincSlice}} \code{\linkS4class{MincVolumeIO}}
 }
 
 \examples{
@@ -67,17 +67,17 @@
 }
 
 # create an empty volume and axial slice
-vol <- makeNewVolume("myResultsVolume.mnc", likeTemplate="mni305PET")
+vol <- mincIO.makeNewVolume("myResultsVolume.mnc", likeTemplate="mni305PET")
 
 # load slice 20 from 2 3D volumes into a MincSliceIO object
 v305 <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-slicesMatrix <- readBySlice(c(v305, v305), 20)
+slicesMatrix <- mincIO.readBySlice(c(v305, v305), 20)
 
 # compute the mean at each voxel
 sliceMean <- apply(slicesMatrix,1,mean)   
 
 # create an axial slice and init with the mean() result
-zSlice <- makeNewSliceZ(vol, sliceMean)
+zSlice <- mincIO.makeNewSliceZ(vol, sliceMean)
 
 # display/visualize the slice
 print(zSlice)
@@ -85,7 +85,7 @@ plot(zSlice)
 
 # move the results slice into the output volume
 # ... as slice 20
-vol <- putSlice(zSlice, vol, 20)
+vol <- mincIO.putSlice(zSlice, vol, 20)
 }
 
 

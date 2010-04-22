@@ -58,8 +58,8 @@ setMethod(
 		if ( R_DEBUG_mincIO ) cat(">> MincVolumeIO::print() ... \n")
 
 		# assume a MincInfo object has been passed
-		if ( R_DEBUG_mincIO ) cat("MincVolumeIO::print() >> printMincInfo ... \n")
-		printMincInfo(x@mincInfo)
+		if ( R_DEBUG_mincIO ) cat("MincVolumeIO::print() >> mincIO.printMincInfo() ... \n")
+		mincIO.printMincInfo(x@mincInfo)
 
 		# print out frame info (if we got it)
 		if ( x@frameNumber > 0 ) {
@@ -86,8 +86,8 @@ setMethod(
 		if ( R_DEBUG_mincIO ) cat(">> MincVolumeIO::show() ... \n")
 
 		# assume a MincInfo object has been passed
-		if ( R_DEBUG_mincIO ) cat("MincVolumeIO::show() >> printMincInfo ... \n")
-		printMincInfo(object@mincInfo)
+		if ( R_DEBUG_mincIO ) cat("MincVolumeIO::show() >> mincIO.printMincInfo() ... \n")
+		mincIO.printMincInfo(object@mincInfo)
 
 		# print out frame info (if we got it)
 		if ( object@frameNumber > 0 ) {
@@ -233,59 +233,59 @@ setMethod(
 # =============================================================================
 # 
 setGeneric( 
-	name="readVolume", 
-	def = function(object, frameNo=0, ..., volumeType, colorMap) { standardGeneric("readVolume") }
+	name="mincIO.readVolume", 
+	def = function(object, frameNo=0, ..., volumeType, colorMap) { standardGeneric("mincIO.readVolume") }
 ) 
 
 # read the volume, by passing a MincInfo object
 setMethod(
-	"readVolume", 
+	"mincIO.readVolume", 
 	signature=signature(object="MincInfo"),
 	definition=function(object, frameNo, ..., volumeType, colorMap) {
 
-		if ( R_DEBUG_mincIO ) cat(">> readVolume ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.readVolume() ... \n")
 
 		#
 		# we've been passed a MincInfo object, so we can start the read directly
-		if ( R_DEBUG_mincIO ) cat("readVolume >> readVolumeX ... \n")
-		mincVolume <- readVolumeX(object, frameNo, volumeType, colorMap)
+		if ( R_DEBUG_mincIO ) cat("mincIO.readVolume() >> mincIO.readVolumeX() ... \n")
+		mincVolume <- mincIO.readVolumeX(object, frameNo, volumeType, colorMap)
 	}
 )
 
 # read the volume, by passing the "filename" of the volume to read
 setMethod(
-	"readVolume", 
+	"mincIO.readVolume", 
 	signature=signature(object="character"),
 	definition=function(object, frameNo, ..., volumeType, colorMap) {
 
-		if ( R_DEBUG_mincIO ) cat(">> readVolume ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.readVolume() ... \n")
 
 		# mincId is a filename
 		filename <- object
 	
 		# make sure that the input file is minc/minc2
-		if ( !isMinc(filename) ) {
+		if ( !rminc.isMinc(filename) ) {
 			errmsg <- paste("File", filename, "does not appear to be a valid minc volume")
 			stop(errmsg)
 		}
 		# convert if needed
-		filename <- asMinc2(filename)
+		filename <- rminc.asMinc2(filename)
 
 		# get some volume info
-		mincInfo <- readMincInfo(filename)
+		mincInfo <- mincIO.readMincInfo(filename)
 	
 		# do the read
-		if ( R_DEBUG_mincIO ) cat("readVolume >> readVolumeX ... \n")
-		mincVolume <- readVolumeX(mincInfo, frameNo, volumeType, colorMap)
+		if ( R_DEBUG_mincIO ) cat("mincIO.readVolume() >> mincIO.readVolumeX() ... \n")
+		mincVolume <- mincIO.readVolumeX(mincInfo, frameNo, volumeType, colorMap)
 
-		if ( R_DEBUG_mincIO ) cat("<< readVolume ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.readVolume() ... \n")
 		return(mincVolume)
 	}
 )
 
 
 
-readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
+mincIO.readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
 #
 # =============================================================================
 # Purpose: Common 3D volume read routine.
@@ -305,7 +305,7 @@ readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
 #
 # =============================================================================
 #
-	if ( R_DEBUG_mincIO ) cat(">> readVolumeX ... \n")
+	if ( R_DEBUG_mincIO ) cat(">> mincIO.readVolumeX() ... \n")
 
 	# If this is a 4d volume, make sure that a valid frame number has been passed
 	if ( mincInfo@nDimensions == 4 ) {
@@ -390,17 +390,17 @@ readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
 # =============================================================================
 # 
 setGeneric( 
-	name="writeVolume", 
-	def = function(object, filename=missing, clobber=FALSE) { standardGeneric("writeVolume") }
+	name="mincIO.writeVolume", 
+	def = function(object, filename=missing, clobber=FALSE) { standardGeneric("mincIO.writeVolume") }
 ) 
 
 # write the volume, by passing a MincVolumeIO object, and the desired output filename
 setMethod(
-	"writeVolume", 
+	"mincIO.writeVolume", 
 	signature=signature(object="MincVolumeIO"),
 	definition=function(object, filename, clobber) {
 
-		if ( R_DEBUG_mincIO ) cat(">> writeVolume ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.writeVolume() ... \n")
 
 		# if no filename has been specified, take it from the object to be written
 		if ( missing(filename) ) {
@@ -429,9 +429,9 @@ setMethod(
 		# note that we really only care about the "side effect" here (i.e. writing
 		# out the volume), so we do not need to capture a return value.
 
-		if ( R_DEBUG_mincIO ) cat("writeVolume >> writeVolumeX ... \n")
-			writeVolumeX(object, filename)
-		if ( R_DEBUG_mincIO ) cat("<< writeVolume ... \n")
+		if ( R_DEBUG_mincIO ) cat("mincIO.writeVolume() >> mincIO.writeVolumeX() ... \n")
+			mincIO.writeVolumeX(object, filename)
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.writeVolume() ... \n")
 		
 		
 	}
@@ -440,7 +440,7 @@ setMethod(
 
 
 
-writeVolumeX <- function(mincVolume, filename) {
+mincIO.writeVolumeX <- function(mincVolume, filename) {
 #
 # =============================================================================
 # Purpose: Common 3D volume write routine.
@@ -457,11 +457,11 @@ writeVolumeX <- function(mincVolume, filename) {
 #
 # =============================================================================
 #
-	if ( R_DEBUG_mincIO ) cat(">> writeVolumeX ... \n")
+	if ( R_DEBUG_mincIO ) cat(">> mincIO.writeVolumeX() ... \n")
 
 
 	# set start indices and counts to read an entire volume, then read
-	if ( R_DEBUG_mincIO ) cat(">> writeVolumeX >> write_volume ... \n")
+	if ( R_DEBUG_mincIO ) cat(">> mincIO.writeVolumeX() >> mincIO.write_volume() ... \n")
 	callStatus <- .Call("write_volume",
                as.character(filename),
                as.integer(mincVolume@mincInfo@nDimensions),
@@ -473,7 +473,7 @@ writeVolumeX <- function(mincVolume, filename) {
                as.double( getDataPart(mincVolume) ), PACKAGE="RMINC")
 
 	# DONE. Return nothing.
-	if ( R_DEBUG_mincIO ) cat("<< writeVolumeX ... \n")
+	if ( R_DEBUG_mincIO ) cat("<< mincIO.writeVolumeX() ... \n")
 	return
 	
 }
@@ -498,19 +498,19 @@ writeVolumeX <- function(mincVolume, filename) {
 # =============================================================================
 # 
 setGeneric( 
-	name="makeNewVolume", 
+	name="mincIO.makeNewVolume", 
 	def = function(filename=filename, 
 					dimLengths, 
 					dimSteps, 
 					dimStarts,
 					likeTemplate,
-					likeFile) { standardGeneric("makeNewVolume") }
+					likeFile) { standardGeneric("mincIO.makeNewVolume") }
 ) 
 
 
 # Create a new, empty MincVolumeIO object, by passing a filename and the sampling details
 setMethod(
-	"makeNewVolume", 
+	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
 						dimLengths="numeric", 
 						dimSteps="numeric", 
@@ -520,7 +520,7 @@ setMethod(
 						likeTemplate=NULL,
 						likeFile=NULL) {
 
-		if ( R_DEBUG_mincIO ) cat(">> makeNewVolume ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.makeNewVolume() ... \n")
 
 		# use the passed parameters to create a MincInfo object
 		# ... use some reasonable defaults
@@ -530,12 +530,12 @@ setMethod(
 		mincInfo@filename <- filename
 
 		# set the default data class to REAL
-		dataClass.df <- getDataClasses()
+		dataClass.df <- rminc.getDataClasses()
 		enumCode <- which(dataClass.df$string == "REAL")
 		mincInfo@volumeDataClass <- dataClass.df$numCode[enumCode]
 
 		# set the default data storage type to 16-bit unsigned integer
-		dataType.df <- getDataTypes()
+		dataType.df <- rminc.getDataTypes()
 		enumCode <- which(dataType.df$code == "MI_TYPE_USHORT")
 		mincInfo@volumeDataType <- dataType.df$numCode[enumCode]
 
@@ -557,10 +557,10 @@ setMethod(
 										units=c("mm", "mm", "mm"), stringsAsFactors=FALSE)
 
 		# use this mincInfo to create a new, empty volume
-		mincVolume <- makeNewVolumeX(mincInfo)
+		mincVolume <- mincIO.makeNewVolumeX(mincInfo)
 
 		# DONE. Return MincInfo object.
-		if ( R_DEBUG_mincIO ) cat("<< makeNewVolume ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.makeNewVolume() ... \n")
 		return(mincVolume)
 
 		
@@ -571,7 +571,7 @@ setMethod(
 
 # Create a new, empty MincVolumeIO object, by passing a filename and the sampling details
 setMethod(
-	"makeNewVolume", 
+	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
 						likeTemplate="character",
 						likeFile="missing"),
@@ -580,7 +580,7 @@ setMethod(
 						likeTemplate="icbm152",
 						likeFile=NULL) {
 
-		if ( R_DEBUG_mincIO ) cat(">> makeNewVolume/templates ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.makeNewVolume()/templates ... \n")
 
 
 		# make sure that a valid template volume has been specified
@@ -604,11 +604,11 @@ setMethod(
 			# set the MincInfo fields
 			mincInfo@filename <- filename
 
-			dataClass.df <- getDataClasses()
+			dataClass.df <- rminc.getDataClasses()
 			enumCode <- which(dataClass.df$string == "REAL")
 			mincInfo@volumeDataClass <- dataClass.df$numCode[enumCode]
 
-			dataType.df <- getDataTypes()
+			dataType.df <- rminc.getDataTypes()
 			enumCode <- which(dataType.df$code == "MI_TYPE_SHORT")
 			mincInfo@volumeDataType <- dataType.df$numCode[enumCode]
 
@@ -630,11 +630,11 @@ setMethod(
 			# set the MincInfo fields
 			mincInfo@filename <- filename
 
-			dataClass.df <- getDataClasses()
+			dataClass.df <- rminc.getDataClasses()
 			enumCode <- which(dataClass.df$string == "REAL")
 			mincInfo@volumeDataClass <- dataClass.df$numCode[enumCode]
 
-			dataType.df <- getDataTypes()
+			dataType.df <- rminc.getDataTypes()
 			enumCode <- which(dataType.df$code == "MI_TYPE_UBYTE")
 			mincInfo@volumeDataType <- dataType.df$numCode[enumCode]
 
@@ -655,11 +655,11 @@ setMethod(
 			# set the MincInfo fields
 			mincInfo@filename <- filename
 
-			dataClass.df <- getDataClasses()
+			dataClass.df <- rminc.getDataClasses()
 			enumCode <- which(dataClass.df$string == "REAL")
 			mincInfo@volumeDataClass <- dataClass.df$numCode[enumCode]
 
-			dataType.df <- getDataTypes()
+			dataType.df <- rminc.getDataTypes()
 			enumCode <- which(dataType.df$code == "MI_TYPE_SHORT")
 			mincInfo@volumeDataType <- dataType.df$numCode[enumCode]
 
@@ -676,10 +676,10 @@ setMethod(
 
 		# OK. We've now built a descriptive MincInfo object
 		# new use this mincInfo to create a new, empty volume
-		mincVolume <- makeNewVolumeX(mincInfo)
+		mincVolume <- mincIO.makeNewVolumeX(mincInfo)
 
 		# DONE. Return MincVolumeIO object.
-		if ( R_DEBUG_mincIO ) cat("<< makeNewVolume/templates ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.makeNewVolume()/templates ... \n")
 		return(mincVolume)
 
 		
@@ -690,7 +690,7 @@ setMethod(
 
 # Create a new, empty MincVolumeIO object, by passing a filename and a "like" volume name
 setMethod(
-	"makeNewVolume", 
+	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
 						likeTemplate="missing",
 						likeFile="character"),
@@ -699,26 +699,26 @@ setMethod(
 						likeTemplate=NULL,
 						likeFile="dummy") {
 
-		if ( R_DEBUG_mincIO ) cat(">> makeNewVolume/like_file ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.makeNewVolume()/like_file ... \n")
 
 		# make sure that the "like" file exists, and is minc
-		if ( !isMinc(likeFile) ) {
+		if ( !rminc.isMinc(likeFile) ) {
 			stop(sprintf("Error: The \"like\" file [%s] either does not exist, or is not minc", likeFile));
 		}
 		
 		# Ok, it's minc.  Make sure it's minc2
-		likeFile <- asMinc2(likeFile);
+		likeFile <- rminc.asMinc2(likeFile);
 		
 
 		# Great, off to the races.  
-		mincInfo <- readMincInfo(likeFile);
+		mincInfo <- mincIO.readMincInfo(likeFile);
 
 		# update filename and then instantiate a MincVolumeIO object
 		mincInfo@filename <- filename
-		mincVolume <- makeNewVolumeX(mincInfo)
+		mincVolume <- mincIO.makeNewVolumeX(mincInfo)
 
 		# DONE. Return MincVolumeIO object.
-		if ( R_DEBUG_mincIO ) cat("<< makeNewVolume/like_file ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.makeNewVolume()/like_file ... \n")
 		return(mincVolume)
 
 		
@@ -727,7 +727,7 @@ setMethod(
 
 
 
-makeNewVolumeX <- function(mincInfo) {
+mincIO.makeNewVolumeX <- function(mincInfo) {
 #
 # =============================================================================
 # Purpose: Common 3D volume creation routine.
@@ -743,7 +743,7 @@ makeNewVolumeX <- function(mincInfo) {
 #
 # =============================================================================
 #
-	if ( R_DEBUG_mincIO ) cat(">> makeNewVolumeX ... \n")
+	if ( R_DEBUG_mincIO ) cat(">> mincIO.makeNewVolumeX() ... \n")
 
 	# create a pre-initialized (to zero) 3D array
 	nVoxels <- cumprod(mincInfo@dimInfo$sizes)[mincInfo@nDimensions]
@@ -760,7 +760,7 @@ makeNewVolumeX <- function(mincInfo) {
 	mincVolume@colorMap <- "gray"
 
 	# DONE. Return MincVolumeIO object
-	if ( R_DEBUG_mincIO ) cat("<< makeNewVolumeX ... \n")
+	if ( R_DEBUG_mincIO ) cat("<< mincIO.makeNewVolumeX() ... \n")
 	return(mincVolume)
 
 }
@@ -775,22 +775,22 @@ makeNewVolumeX <- function(mincInfo) {
 # =============================================================================
 # 
 setGeneric( 
-	name="asVolume", 
+	name="mincIO.asVolume", 
 	def = function(array3D,
 					likeVolObject,
-					likeTemplate) { standardGeneric("asVolume") }
+					likeTemplate) { standardGeneric("mincIO.asVolume") }
 ) 
 
 
 # Convert to volume, by passing a MincVolumeIO object
 setMethod(
-	"asVolume", 
+	"mincIO.asVolume", 
 	signature=signature(array3D="array", 
 						likeVolObject="MincVolumeIO", 
 						likeTemplate="missing"),
 	definition=function(array3D, likeVolObject, likeTemplate=NULL) {
 
-		if ( R_DEBUG_mincIO ) cat(">> asVolume (likeVolume) ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.asVolume (likeVolume) ... \n")
 		
 		# Ok, so we're going to make the passed array into a volume
 		# object that looks like the passed object
@@ -814,7 +814,7 @@ setMethod(
 
 
 		# DONE. Return MincInfo object.
-		if ( R_DEBUG_mincIO ) cat("<< asVolume (likeVolume) ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.asVolume (likeVolume) ... \n")
 		return(myVolume)
 		
 	}
@@ -823,19 +823,19 @@ setMethod(
 
 # Convert to volume, by passing a volume template type
 setMethod(
-	"asVolume", 
+	"mincIO.asVolume", 
 	signature=signature(array3D="array", 
 						likeVolObject="missing", 
 						likeTemplate="character"),
 	definition=function(array3D, likeVolObject=NULL, likeTemplate) {
 
-		if ( R_DEBUG_mincIO ) cat(">> asVolume (likeTemplate) ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.asVolume (likeTemplate) ... \n")
 		
 		# Ok, so we're going to make the passed array into a volume
 		# object that looks like the passed template volume
 		
 		# create the "like" volume to get the S4 attributes
-		myVolume <- makeNewVolume(filename="created_by_asVolume_function", likeTemplate=likeTemplate)
+		myVolume <- mincIO.makeNewVolume(filename="created_by_asVolume_function", likeTemplate=likeTemplate)
 
 		# move the new array data in
 		myVolume <- setDataPart(myVolume, array3D)
@@ -847,7 +847,7 @@ setMethod(
 
 
 		# DONE. Return MincInfo object.
-		if ( R_DEBUG_mincIO ) cat("<< asVolume (likeTemplate) ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.asVolume (likeTemplate) ... \n")
 		return(myVolume)
 		
 	}

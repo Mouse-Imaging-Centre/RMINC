@@ -76,7 +76,7 @@ setMethod(
 
 		# assume a MincInfo object has been passed
 		if ( R_DEBUG_mincIO ) cat("MincSliceIO::print() >> printMincInfo ... \n")
-		printMincInfo(x@mincInfo)
+		mincIO.printMincInfo(x@mincInfo)
 
 		# display a little something about the volume data itself
 		cat("\n---- Slice Specific Information ----\n")
@@ -112,7 +112,7 @@ setMethod(
 
 		# assume a MincInfo object has been passed
 		if ( R_DEBUG_mincIO ) cat("MincSliceIO::show() >> printMincInfo ... \n")
-		printMincInfo(object@mincInfo)
+		mincIO.printMincInfo(object@mincInfo)
 
 		# display a little something about the volume data itself
 		cat("\n---- Slice Specific Information ----\n")
@@ -163,24 +163,24 @@ setMethod(
 # =============================================================================
 # 
 setGeneric( 
-	name="readBySlice", 
-	def = function(filenames, sliceNumber, ..., volumeType, colorMap) { standardGeneric("readBySlice") }
+	name="mincIO.readBySlice", 
+	def = function(filenames, sliceNumber, ..., volumeType, colorMap) { standardGeneric("mincIO.readBySlice") }
 ) 
 
 # read the volume, by passing a MincInfo object
 setMethod(
-	"readBySlice", 
+	"mincIO.readBySlice", 
 	signature=signature(filenames="character", sliceNumber="numeric"),
 	definition=function(filenames, sliceNumber, ..., volumeType, colorMap) {
 
-		if ( R_DEBUG_mincIO ) cat(">> readBySlice ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.readBySlice() ... \n")
 
 		# figure out whether we have a 3D or 4D volume
-		if ( !isMinc(filenames[1]) ) {
+		if ( !rminc.isMinc(filenames[1]) ) {
 			stop(sprintf("Specified filename [%s] either does not exist or is not minc"))
 		}
-		filename <- asMinc2(filenames[1])
-		mincInfo <- readMincInfo(filename[1])
+		filename <- rminc.asMinc2(filenames[1])
+		mincInfo <- mincIO.readMincInfo(filename[1])
 
 		# set the display properties to useful defaults (if unset)
 		if ( !hasArg(volumeType) ) {
@@ -249,17 +249,17 @@ setMethod(
 			# validate files and convert to minc2 (if necessary)
 			nVolumes <- length(filenames)
 			for ( ndx in 1:nVolumes ) {
-				if ( !isMinc(filenames[ndx] ) ) {
+				if ( !rminc.isMinc(filenames[ndx] ) ) {
 					stop(sprintf("Specified filename [%s] either does not exist or is not minc"))
 				}
-				filenames[ndx] <- asMinc2(filenames[ndx])
+				filenames[ndx] <- rminc.asMinc2(filenames[ndx])
 			}
 			
 			# Initialize the MincInfo object for the first volume 
 			# ... yes, we are going to assume that Mr. User is smart enough not to feed
 			# ... us volumes with different sampling
 			if ( R_DEBUG_mincIO ) cat(sprintf("About to read %s\n", filenames[1]))
-			mincInfo <- readMincInfo(filenames[1])
+			mincInfo <- mincIO.readMincInfo(filenames[1])
 			if ( R_DEBUG_mincIO ) cat(sprintf("Reading complete\n"))
 			
 			# don't allow reading anything other than a 3D volume
@@ -304,7 +304,7 @@ setMethod(
 		}
 
 		# return the slice object
-		if ( R_DEBUG_mincIO ) cat("<< readBySlice ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.readBySlice() ... \n")
 		return(mincSlice)
 
 	}
@@ -320,8 +320,8 @@ setMethod(
 # =============================================================================
 # 
 setGeneric( 
-	name="getSliceFromSliceArray", 
-	def = function(mincSliceMatrix, sliceIndex) { standardGeneric("getSliceFromSliceArray") }
+	name="mincIO.getSliceFromSliceArray", 
+	def = function(mincSliceMatrix, sliceIndex) { standardGeneric("mincIO.getSliceFromSliceArray") }
 ) 
 
 # =============================================================================
@@ -339,7 +339,7 @@ setGeneric(
 # =============================================================================
 #
 setMethod(
-	"getSliceFromSliceArray", 
+	"mincIO.getSliceFromSliceArray", 
 	signature=signature(mincSliceMatrix="MincSliceIO"),
 	definition=function(mincSliceMatrix, sliceIndex) {
 		#

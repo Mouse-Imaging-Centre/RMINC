@@ -1,12 +1,12 @@
-\name{printMincInfo}
+\name{mincIO.printMincInfo}
 \Rdversion{1.1}
-\alias{printMincInfo}
+\alias{mincIO.printMincInfo}
 \title{    Print a MincInfo Object}
 
 \description{This function formats and prints a MincInfo type object.}
 
 \usage{
-printMincInfo(mincInfo)
+mincIO.printMincInfo(mincInfo)
 }
 
 \arguments{
@@ -21,7 +21,7 @@ printMincInfo(mincInfo)
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{print-methods}} \code{\linkS4class{MincInfo}} 
+    \code{\link{mincIO.print-methods}} \code{\linkS4class{MincInfo}} 
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the

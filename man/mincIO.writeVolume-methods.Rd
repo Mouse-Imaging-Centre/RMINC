@@ -1,9 +1,9 @@
-\name{writeVolume-methods}
+\name{mincIO.writeVolume-methods}
 \Rdversion{1.1}
 \docType{methods}
-\alias{writeVolume-methods}
-\alias{writeVolume}
-\alias{writeVolume,MincVolumeIO-method}
+\alias{mincIO.writeVolume-methods}
+\alias{mincIO.writeVolume}
+\alias{mincIO.writeVolume,MincVolumeIO-method}
 
 \keyword{methods}
 
@@ -20,7 +20,7 @@
 
 
 \usage{
-\S4method{writeVolume}{MincVolumeIO}(object, filename, clobber=FALSE)
+\S4method{mincIO.writeVolume}{MincVolumeIO}(object, filename, clobber=FALSE)
 }
 
 
@@ -41,17 +41,17 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{makeNewVolume}} \code{\link{readVolume}} \code{\linkS4class{MincVolumeIO}} 
+    \code{\link{mincIO.makeNewVolume}} \code{\link{mincIO.readVolume}} \code{\linkS4class{MincVolumeIO}} 
 }
 
 \examples{
 \dontrun{
 # create an empty volume
-vol1 <- makeNewVolume("myIcbmTemplateVolume.mnc", likeTemplate="icbm152")
-writeVolume(vol1)                              # write out as "myIcbmTemplateVolume.mnc"
-writeVolume(vol1, "writeEmptyVol01.mnc")       # write out as "writeEmptyVol01.mnc"
+vol1 <- mincIO.makeNewVolume("myIcbmTemplateVolume.mnc", likeTemplate="icbm152")
+mincIO.writeVolume(vol1)                          # write out as "myIcbmTemplateVolume.mnc"
+mincIO.writeVolume(vol1, "writeEmptyVol01.mnc")   # write out as "writeEmptyVol01.mnc"
 
-vol2 <- vol1 +1                               # modify the volume and overwrite
-writeVolume(vol2, "writeEmptyVol01.mnc", clobber=TRUE)
+vol2 <- vol1 +1                                   # modify the volume and overwrite
+mincIO.writeVolume(vol2, "writeEmptyVol01.mnc", clobber=TRUE)
 }}
 

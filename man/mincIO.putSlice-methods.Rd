@@ -1,9 +1,9 @@
-\name{putSlice-methods}
+\name{mincIO.putSlice-methods}
 \Rdversion{1.1}
 \docType{methods}
-\alias{putSlice-methods}
-\alias{putSlice}
-\alias{putSlice,MincSlice,MincVolumeIO-method}
+\alias{mincIO.putSlice-methods}
+\alias{mincIO.putSlice}
+\alias{mincIO.putSlice,MincSlice,MincVolumeIO-method}
 
 \keyword{methods}
 
@@ -20,7 +20,7 @@
 
 
 \usage{
-\S4method{putSlice}{MincSlice,MincVolumeIO}(mincSlice, mincVolume, sliceNo, ...)
+\S4method{mincIO.putSlice}{MincSlice,MincVolumeIO}(mincSlice, mincVolume, sliceNo, ...)
 }
 
 
@@ -37,9 +37,9 @@
 \details{
      The primary purpose of this method is to permit the re-insertion of newly modified slices into a
      MincVolumeIO volume, prior to writing the volume out.  Now of course, the other major use-case would
-     consist of creating a new, empty volume with \code{\link{makeNewVolume}}, and then inserting newly created
+     consist of creating a new, empty volume with \code{\link{mincIO.makeNewVolume}}, and then inserting newly created
      slices into this volume.  Note that as it's currently not possible to create an empty slice
-     (well, not easily, at least), one could simply create an empty volume and then \code{getSliceX/Y/Z} 
+     (well, not easily, at least), one could simply create an empty volume and then \code{mincIO.getSliceX/Y/Z} 
      any slice, which would then serve as the template empty slice.  Clearly, in this case, the \code{sliceNo}
      argument would need to be specified in order to write the modified template slices to different positions
      within the volume.}
@@ -49,7 +49,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{getSliceXYZ}} \code{\linkS4class{MincSlice}} 
+    \code{\link{mincIO.getSliceXYZ}} \code{\linkS4class{MincSlice}} 
 }
 
 \examples{
@@ -61,10 +61,10 @@
 }
 # modify a slice and then put it back
 v305PET <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-vol <- readVolume(v305PET)               # read the 3D volume
-sx <- getSliceX(vol, 60)                 # extract an axial slice
-sx[10,20] <- 0                           # modify the slice
-updatedVol <- putSlice(sx, vol)          # put the slice back into the volume
+vol <- mincIO.readVolume(v305PET)            # read the 3D volume
+sx <- mincIO.getSliceX(vol, 60)              # extract an axial slice
+sx[10,20] <- 0                               # modify the slice
+updatedVol <- mincIO.putSlice(sx, vol)       # put the slice back into the volume
 }
 
 

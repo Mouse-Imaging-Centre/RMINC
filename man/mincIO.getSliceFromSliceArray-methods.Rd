@@ -1,9 +1,9 @@
-\name{getSliceFromSliceArray-methods}
+\name{mincIO.getSliceFromSliceArray-methods}
 \Rdversion{1.1}
 \docType{methods}
-\alias{getSliceFromSliceArray-methods}
-\alias{getSliceFromSliceArray}
-\alias{getSliceFromSliceArray,MincSliceIO-method}
+\alias{mincIO.getSliceFromSliceArray-methods}
+\alias{mincIO.getSliceFromSliceArray}
+\alias{mincIO.getSliceFromSliceArray,MincSliceIO-method}
 
 \keyword{methods}
 
@@ -20,12 +20,12 @@
 }}
 
 \usage{
-\S4method{getSliceFromSliceArray}{MincSliceIO}(mincSliceMatrix, sliceIndex)
+\S4method{mincIO.getSliceFromSliceArray}{MincSliceIO}(mincSliceMatrix, sliceIndex)
 }
 
 \arguments{
   \item{mincSliceMatrix}{
-    The name of a MincSliceIO object, most likely created via a call to \code{\link{readBySlice}}.
+    The name of a MincSliceIO object, most likely created via a call to \code{\link{mincIO.readBySlice}}.
 }
   \item{sliceIndex}{
     The column number within the MincSliceIO object data matrix used to create the Slice object. If
@@ -48,7 +48,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{readBySlice}}  \code{\linkS4class{MincSlice}} \code{\linkS4class{MincSliceIO}}
+    \code{\link{mincIO.readBySlice}}  \code{\linkS4class{MincSlice}} \code{\linkS4class{MincSliceIO}}
 }
 
 \examples{
@@ -61,15 +61,15 @@
 
 # read a slice from a dynamic volume
 v4d <- file.path(volDir, "functional_4D.mnc")
-s080_SA <- readBySlice(v4d, 80)                 # read slice 80 across all frames
-s080f006 <- getSliceFromSliceArray(s080_SA,6)   # get the slice from the 6th frame
+s080_SA <- mincIO.readBySlice(v4d, 80)                 # read slice 80 across all frames
+s080f006 <- mincIO.getSliceFromSliceArray(s080_SA,6)   # get the slice from the 6th frame
 print(s080f006)
 plot(s080f006)
 
 # read a slice from a series of 3D volumes
 v305 <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-s020_SA <- readBySlice(c(v305, v305), 20)       # read slice 20 for all volumes
-s020v002 <- getSliceFromSliceArray(s020_SA,2)   # get the slice for the 2nd volume
+s020_SA <- mincIO.readBySlice(c(v305, v305), 20)       # read slice 20 for all volumes
+s020v002 <- mincIO.getSliceFromSliceArray(s020_SA,2)   # get the slice for the 2nd volume
 print(s020v002)
 plot(s020v002)
 }

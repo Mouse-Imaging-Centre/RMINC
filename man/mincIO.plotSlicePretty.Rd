@@ -1,6 +1,6 @@
-\name{plotSlicePretty}
+\name{mincIO.plotSlicePretty}
 \Rdversion{1.1}
-\alias{plotSlicePretty}
+\alias{mincIO.plotSlicePretty}
 \title{     Display a 2D Image Plot}
 
 \description{
@@ -8,7 +8,7 @@ This function is called internally by the MincSlice::plot function to display a 
 2D image plot.}
 
 \usage{
-plotSlicePretty(slice, xAxisLabel, yAxisLabel, aspectRatio, colorMap)
+mincIO.plotSlicePretty(slice, xAxisLabel, yAxisLabel, aspectRatio, colorMap)
 }
 \arguments{
   \item{slice}{The 2D slice matrix extracted from the data part of a MincSlice object.}

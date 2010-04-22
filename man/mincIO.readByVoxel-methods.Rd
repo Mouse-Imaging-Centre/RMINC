@@ -1,9 +1,9 @@
-\name{readByVoxel-methods}
+\name{mincIO.readByVoxel-methods}
 \Rdversion{1.1}
 \docType{methods}
-\alias{readByVoxel-methods}
-\alias{readByVoxel}
-\alias{readByVoxel,character-method}
+\alias{mincIO.readByVoxel-methods}
+\alias{mincIO.readByVoxel}
+\alias{mincIO.readByVoxel,character-method}
 
 \keyword{methods}
 
@@ -20,8 +20,8 @@
 }}
 
 \usage{
-readByVoxel(filenames, voxelCoords)
-\S4method{readByVoxel}{character}(filenames, voxelCoords)
+mincIO.readByVoxel(filenames, voxelCoords)
+\S4method{mincIO.readByVoxel}{character}(filenames, voxelCoords)
 }
 
 \arguments{
@@ -40,7 +40,7 @@ allowing us to obtain the value of a specific voxel across all frames,
 over all volumes.
 
 This function was inspired by a similar function by Jason Lerch, buried 
-in the very bowels of the \pkg{RMINC} package.
+in the very bowels of the original \pkg{RMINC} package.
 }
 
 \value{An instantiated \code{\linkS4class{MincVoxelIO}} object.  The dimensionality of the matrix
@@ -49,7 +49,7 @@ in the very bowels of the \pkg{RMINC} package.
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{readByVoxelX}} \code{\linkS4class{MincVoxelIO}} 
+    \code{\linkS4class{MincVoxelIO}} 
 }
 
 \examples{
@@ -63,15 +63,15 @@ in the very bowels of the \pkg{RMINC} package.
 # into a voxel array.  Start with the 3D case.
 v305 <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
 worldCoords <- c(0,0,0)
-voxCoords <- convertWorldToVoxel(v305, worldCoords)
-voxelArray <- readByVoxel(c(v305, v305, v305, v305, v305), voxCoords)
+voxCoords <- rminc.convertWorldToVoxel(v305, worldCoords)
+voxelArray <- mincIO.readByVoxel(c(v305, v305, v305, v305, v305), voxCoords)
 print(voxelArray)
 
 # 4D case with 34 frames
 v4d <- file.path(volDir, "functional_4D.mnc")
 worldCoords <- c(0,0,0)
-voxCoords <- convertWorldToVoxel(v4d, worldCoords)
-voxelArray <- readByVoxel(c(v4d, v4d, v4d, v4d, v4d), voxCoords)
+voxCoords <- rminc.convertWorldToVoxel(v4d, worldCoords)
+voxelArray <- mincIO.readByVoxel(c(v4d, v4d, v4d, v4d, v4d), voxCoords)
 print(voxelArray)
 }
 

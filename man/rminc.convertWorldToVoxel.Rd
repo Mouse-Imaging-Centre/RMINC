@@ -1,6 +1,6 @@
-\name{convertWorldToVoxel}
+\name{rminc.convertWorldToVoxel}
 \Rdversion{1.1}
-\alias{convertWorldToVoxel}
+\alias{rminc.convertWorldToVoxel}
 
 \title{
     Convert World to Voxel Coordinates
@@ -9,7 +9,7 @@
     Converts 3 dimensional xyz (world) coordinates into 1-relative ijk (voxel) coordinates.
 }
 \usage{
-    convertWorldToVoxel(filename, worldCoords)
+    rminc.convertWorldToVoxel(filename, worldCoords)
 }
 \arguments{
   \item{filename}{The name of a minc2 volume to be used to do the conversion to voxel space.}
@@ -29,7 +29,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{convertVoxelToWorld}}
+    \code{\link{rminc.convertVoxelToWorld}}
 }
 
 \examples{
@@ -47,7 +47,7 @@ v305PET <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
 print(v305PET)
 
 # convert and show it
-ijkCoords <- convertWorldToVoxel(v305PET, xyzCoords)
+ijkCoords <- rminc.convertWorldToVoxel(v305PET, xyzCoords)
 print(ijkCoords)
 }
 

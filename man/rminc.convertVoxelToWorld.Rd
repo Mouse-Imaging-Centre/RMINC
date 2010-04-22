@@ -1,6 +1,6 @@
-\name{convertVoxelToWorld}
+\name{rminc.convertVoxelToWorld}
 \Rdversion{1.1}
-\alias{convertVoxelToWorld}
+\alias{rminc.convertVoxelToWorld}
 \title{
     Convert Voxel to World Coordinates
 }
@@ -9,7 +9,7 @@
 }
 
 \usage{
-convertVoxelToWorld(filename, voxCoords)
+rminc.convertVoxelToWorld(filename, voxCoords)
 }
 
 \arguments{
@@ -28,7 +28,7 @@ convertVoxelToWorld(filename, voxCoords)
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{convertWorldToVoxel}}
+    \code{\link{rminc.convertWorldToVoxel}}
 }
 
 \examples{
@@ -46,6 +46,6 @@ v305PET <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
 print(v305PET)
 
 # convert and show it
-xyzCoords <- convertVoxelToWorld(v305PET, ijkCoords)
+xyzCoords <- rminc.convertVoxelToWorld(v305PET, ijkCoords)
 print(xyzCoords)
 }

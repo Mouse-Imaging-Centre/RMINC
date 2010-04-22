@@ -1,10 +1,10 @@
-\name{readVolume-methods}
+\name{mincIO.readVolume-methods}
 \Rdversion{1.1}
 \docType{methods}
-\alias{readVolume-methods}
-\alias{readVolume}
-\alias{readVolume,MincInfo-method}
-\alias{readVolume,character-method}
+\alias{mincIO.readVolume-methods}
+\alias{mincIO.readVolume}
+\alias{mincIO.readVolume,MincInfo-method}
+\alias{mincIO.readVolume,character-method}
 
 \keyword{methods}
 
@@ -23,9 +23,9 @@ a MincVolumeIO object.}
 
 
 \usage{
-\S4method{readVolume}{character}(object, frameNo = 0, ..., volumeType, colorMap)
+\S4method{mincIO.readVolume}{character}(object, frameNo = 0, ..., volumeType, colorMap)
 
-\S4method{readVolume}{MincInfo}(object, frameNo = 0, ..., volumeType, colorMap)
+\S4method{mincIO.readVolume}{MincInfo}(object, frameNo = 0, ..., volumeType, colorMap)
 }
 
 \arguments{
@@ -60,7 +60,7 @@ a MincVolumeIO object.}
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{makeNewVolume}} \code{\link{writeVolume}} \code{\linkS4class{MincVolumeIO}} 
+    \code{\link{mincIO.makeNewVolume}} \code{\link{mincIO.writeVolume}} \code{\linkS4class{MincVolumeIO}} 
 }
 
 \examples{
@@ -72,19 +72,19 @@ a MincVolumeIO object.}
 }
 # 3D volume
 v305 <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-vol <- readVolume(v305)                      # load a 3D volume 
+vol <- mincIO.readVolume(v305)               # load a 3D volume 
 print(vol)                                   # ... print and visualize
 \dontrun{plot(vol)}
 
-vol <- readVolume(v305, colorMap="rainbow")
+vol <- mincIO.readVolume(v305, colorMap="rainbow")
 \dontrun{plot(vol)}                          # show the colormap effect
 
-vol <- readVolume(v305, colorMap="heat.colors") 
+vol <- mincIO.readVolume(v305, colorMap="heat.colors") 
 \dontrun{plot(vol)}                          # ... yet another colormap
 
 # read a frame from a specific dynamic volume
 v4d <- file.path(volDir, "functional_4D.mnc")
-vol <- readVolume(v4d, 10)                   # read frame 10
+vol <- mincIO.readVolume(v4d, 10)            # read frame 10
 print(vol)                                   # print and visualize it
 \dontrun{plot(vol)}                          #
 }

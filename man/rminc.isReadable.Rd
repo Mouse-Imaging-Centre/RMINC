@@ -1,6 +1,6 @@
-\name{isReadable}
+\name{rminc.isReadable}
 \Rdversion{1.1}
-\alias{isReadable}
+\alias{rminc.isReadable}
 \title{
     Check Read Permissions for Files
 }
@@ -9,7 +9,7 @@
     not readable, \code{FALSE} is returned.
 }
 \usage{
-isReadable(filenames)
+rminc.isReadable(filenames)
 }
 
 \arguments{
@@ -28,18 +28,18 @@ isReadable(filenames)
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \note{
-    This code was basically stolen from Jason Lerch's \pkg{RMINC} package.  May dog have mercy on
+    This code was basically stolen from Jason Lerch and renamed.  May dog have mercy on
     my sole.
 }
 
 \seealso{
-    \code{\link{isMinc}} \code{\link{isMinc1}} \code{\link{isMinc2}} \code{\link{asMinc2}}
+    \code{\link{rminc.isMinc}} \code{\link{rminc.isMinc1}} \code{\link{rminc.isMinc2}} \code{\link{rminc.asMinc2}}
 }
 \examples{
 \dontrun{
 # check for readability of a bunch of files
 myFiles <- list.files(pattern=".mnc$")     # get all minc files in current directory
-if ( !isReadable(myFiles) ) {              # test for readability
+if ( !rminc.isReadable(myFiles) ) {        # test for readability
     error("One of the files was unreadable.  Very sad, that.") 
 }
 }}

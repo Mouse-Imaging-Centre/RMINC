@@ -34,20 +34,20 @@ setClass("MincInfo",
 setMethod("print", "MincInfo",
 			function(x) {
 				# assume a MincInfo object has been passed
-				printMincInfo(x)
+				mincIO.printMincInfo(x)
 				}
 )
 
 setMethod("show", "MincInfo",
 			function(object) {
 				# assume a MincInfo object has been passed
-				printMincInfo(object)
+				mincIO.printMincInfo(object)
 				}
 )
 
 
 # get the dimension sizes of a particular file.
-readMincInfo <- function(filename) {
+mincIO.readMincInfo <- function(filename) {
 	# ===================================================
 	# Purpose: Read a bunch of stuff from the volume header
 	#          and return a MincInfo object.  
@@ -61,19 +61,19 @@ readMincInfo <- function(filename) {
 	# ===================================================
 	#
 
-	if ( R_DEBUG_mincIO ) cat(">> MincInfo::readMincInfo() ... \n")
+	if ( R_DEBUG_mincIO ) cat(">> MincInfo::mincIO.readMincInfo() ... \n")
 
 	# make sure that any shell wild characters are expanded
 	filename <- path.expand(filename)
 
 	# let's make sure that we have a minc2 volume (else convert)
-	filename <- asMinc2(filename)
+	filename <- rminc.asMinc2(filename)
 
 	#cat("MincInfo::readMincInfo(). About to enter the C code\n")
-	if ( R_DEBUG_mincIO ) cat("MincInfo::readMincInfo(). Entering C code\n")
+	if ( R_DEBUG_mincIO ) cat("MincInfo::mincIO.readMincInfo(). Entering C code\n")
 	volInfo <- .Call("get_volume_info",
               as.character(filename),PACKAGE="RMINC")
-	if ( R_DEBUG_mincIO ) cat("MincInfo::readMincInfo(). Returning from C code\n")
+	if ( R_DEBUG_mincIO ) cat("MincInfo::mincIO.readMincInfo(). Returning from C code\n")
 	# print(volInfo)
 	# str(volInfo)
 
@@ -136,14 +136,14 @@ readMincInfo <- function(filename) {
 	mincInfo@filename <- filename
 
 	#
-	if ( R_DEBUG_mincIO ) cat("<< MincInfo::readMincInfo() ... \n")
+	if ( R_DEBUG_mincIO ) cat("<< MincInfo::mincIO.readMincInfo() ... \n")
 	return(mincInfo)
 }
 
 
 
 
-printMincInfo <- function(mincInfo) {
+mincIO.printMincInfo <- function(mincInfo) {
 	# ===================================================
 	# Purpose: Create a very user-friendly display of a
 	#          MincInfo object.  
@@ -156,8 +156,8 @@ printMincInfo <- function(mincInfo) {
 	#
 
 	# get the valid minc2 data types and classes
-	dataClass.df <- getDataClasses()
-	dataType.df <- getDataTypes()
+	dataClass.df <- rminc.getDataClasses()
+	dataType.df <- rminc.getDataTypes()
 
 	# great. Now print it real pretty like
 	cat("\n---- Volume Specific Information ----\n")

@@ -13,7 +13,7 @@
     all volumes of a series of 3D volumes.}
 
 \section{Objects from the Class}{
-    Objects can be created by calls of the form \code{new("MincSliceIO", data, nrow, ncol, byrow, dimnames, ...)}, however, users are not expected to instantiate these objects directly.  More conveniently, these objects are usually created by calls to \link{readBySlice}.}
+    Objects can be created by calls of the form \code{new("MincSliceIO", data, nrow, ncol, byrow, dimnames, ...)}, however, users are not expected to instantiate these objects directly.  More conveniently, these objects are usually created by calls to \link{mincIO.readBySlice}.}
 
 \section{Slots}{
 	 \describe{
@@ -38,7 +38,7 @@ Class \code{"\linkS4class{vector}"}, by class "matrix", distance 4, with explici
 
 \section{Methods}{
   \describe{
-    \item{getSliceFromSliceArray}{\code{signature(mincSliceMatrix = "MincSliceIO")}: ... }
+    \item{mincIO.getSliceFromSliceArray}{\code{signature(mincSliceMatrix = "MincSliceIO")}: ... }
     \item{print}{\code{signature(x = "MincSliceIO")}: ... }
     \item{show}{\code{signature(object = "MincSliceIO")}: ... }
 	 }

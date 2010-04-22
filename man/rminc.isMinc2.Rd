@@ -1,6 +1,6 @@
-\name{isMinc2}
+\name{rminc.isMinc2}
 \Rdversion{1.1}
-\alias{isMinc2}
+\alias{rminc.isMinc2}
 \title{
     Test File For Minc2 Volume Format
 }
@@ -9,7 +9,7 @@
     as a minc2 (hdf5) volume.  Else, \code{FALSE} is returned.
 }
 \usage{
-isMinc2(filename)
+rminc.isMinc2(filename)
 }
 
 \arguments{
@@ -28,7 +28,7 @@ isMinc2(filename)
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{isMinc1}} \code{\link{isMinc}} \code{\link{asMinc2}} \code{\link{isReadable}}
+    \code{\link{rminc.isMinc1}} \code{\link{rminc.isMinc}} \code{\link{rminc.asMinc2}} \code{\link{rminc.isReadable}}
 }
 
 \examples{
@@ -40,8 +40,8 @@ isMinc2(filename)
 }
 # very contrived example, but gets the point across
 myFile <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-if ( !isMinc2(myFile) && isMinc1(myFile) ) {
-    myFile <- asMinc2(myFile)
+if ( !rminc.isMinc2(myFile) && rminc.isMinc1(myFile) ) {
+    myFile <- rminc.asMinc2(myFile)
 }
 }
 

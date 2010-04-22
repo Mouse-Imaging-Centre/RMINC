@@ -51,8 +51,8 @@ setMethod(
 		if ( R_DEBUG_mincIO ) cat(">> MincVoxelIO::print() ... \n")
 
 		# assume a MincInfo object has been passed
-		if ( R_DEBUG_mincIO ) cat("MincVoxelIO::print() >> printMincInfo ... \n")
-		printMincInfo(x@mincInfo)
+		if ( R_DEBUG_mincIO ) cat("MincVoxelIO::print() >> mincIO.printMincInfo ... \n")
+		mincIO.printMincInfo(x@mincInfo)
 
 		# display a little something about the voxel data itself
 		cat("\n---- Voxel Specific Information ----\n")
@@ -101,43 +101,43 @@ setMethod(
 # =============================================================================
 # 
 setGeneric( 
-	name="readByVoxel", 
-	def = function(filenames, voxelCoords) { standardGeneric("readByVoxel") }
+	name="mincIO.readByVoxel", 
+	def = function(filenames, voxelCoords) { standardGeneric("mincIO.readByVoxel") }
 ) 
 
 # read the volume, by passing a MincInfo object
 setMethod(
-	"readByVoxel", 
+	"mincIO.readByVoxel", 
 	signature=signature(filenames="character"),
 	definition=function(filenames, voxelCoords) {
 
-		if ( R_DEBUG_mincIO ) cat(">> readByVoxel ... \n")
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.readByVoxel() ... \n")
 
 		# are all of the files readable?
-		if ( !isReadable(filenames) ) {
+		if ( !rminc.isReadable(filenames) ) {
 			stop("Unreadable files found.\n")
 		}
 
 		# are all files valid minc2 volumes?
 		checkedFilenames <- filenames
 		for ( ndx in 1:length(filenames) ) {
-			if ( !isMinc(filenames[ndx]) ) {
+			if ( !rminc.isMinc(filenames[ndx]) ) {
 				stop(sprintf("Input volume [%s] does not appear to be Minc\n"))
 			}
 			#
 			# if minc1, then we need to convert
 			checkedFilenames[ndx] <- filenames[ndx]
-			if ( !isMinc1(filenames[ndx]) ) {
-				checkedFilenames[ndx] <- asMinc2(filenames[ndx])
+			if ( !rminc.isMinc1(filenames[ndx]) ) {
+				checkedFilenames[ndx] <- rminc.asMinc2(filenames[ndx])
 			}
 		}
 
 		# OK. Now we know that all of the filenames are valid Minc2. So now we can read.
-		voxelMatrix <- readByVoxelX(filenames, voxelCoords)
+		voxelMatrix <- mincIO.readByVoxelX(filenames, voxelCoords)
 
 
 		# return the VoxelIO object
-		if ( R_DEBUG_mincIO ) cat("<< readByVoxel ... \n")
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.readByVoxel() ... \n")
 		return(voxelMatrix)
 
 	}
@@ -146,7 +146,7 @@ setMethod(
 
 
 
-readByVoxelX <- function(filenames, voxelCoords) {
+mincIO.readByVoxelX <- function(filenames, voxelCoords) {
 # =============================================================================
 # Purpose: Common xovel read routine.
 #
@@ -161,21 +161,21 @@ readByVoxelX <- function(filenames, voxelCoords) {
 #
 # =============================================================================
 #
-	if ( R_DEBUG_mincIO ) cat(">> readByVoxelX ... \n")
+	if ( R_DEBUG_mincIO ) cat(">> mincIO.readByVoxelX() ... \n")
 
 
 	nFrames <- 0
 	nFiles <- length(filenames)
 
 	# get the mincInfo details for the first volume
-	mincInfoV01 <- readMincInfo(filenames[1])
+	mincInfoV01 <- mincIO.readMincInfo(filenames[1])
 	nFrames <- mincInfoV01@nFrames
 
 	# get the mincInfo for all files ... 
 	# ... get frame count and ensure that all counts are the same
 	for ( ndx in 1:nFiles ) {
-		mincInfo <- readMincInfo(filenames[ndx])
-		if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: processing volume %d\n", ndx))
+		mincInfo <- mincIO.readMincInfo(filenames[ndx])
+		if ( R_DEBUG_mincIO ) cat(sprintf("Debug mincIO.readByVoxelX(): processing volume %d\n", ndx))
 
 		# check that all 4D volumes have a consistent time dimension
 		if ( mincInfo@nDimensions > 3 ) {
@@ -205,20 +205,20 @@ readByVoxelX <- function(filenames, voxelCoords) {
 			mincInfo@filename,
 			mincInfoV01@filename))
 		}
-		if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: processing volume %d ... complete\n", ndx))
+		if ( R_DEBUG_mincIO ) cat(sprintf("Debug mincIO.readByVoxelX(): processing volume %d ... complete\n", ndx))
 	}
 
 	# validate the coordinates
 	#
 	# 3 coords were passed?
-	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: at coord validation step\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug mincIO.readByVoxelX(): at coord validation step\n"))
 	if ( length(voxelCoords) != 3 ) 
 		stop(sprintf("Coordinate vector must have a length of 3, not %d\n", length(voxelCoords)))
 
 
 	# all coordinates are within range for the first volume?
 	# ... if we have a 4-D volume, skip the first (time) index
-	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: doing 4D adjustment stuff\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug mincIO.readByVoxelX(): doing 4D adjustment stuff\n"))
 	offset <- 0
 	if ( mincInfoV01@nDimensions > 3 )  offset <- offset +1
 	for ( ndx in 1:3 ) {
@@ -232,11 +232,11 @@ readByVoxelX <- function(filenames, voxelCoords) {
 
 	
 	# make coords z,y,x order and 0-relative for C-call
-	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: making coords C-relative\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug mincIO.readByVoxelX(): making coords C-relative\n"))
 	adjVoxCoords <- rev(voxelCoords) -1
 	
 	# OK. Now that we passsed validation, let's get the values
-	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: calling read_voxel_from_files\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug mincIO.readByVoxelX(): calling read_voxel_from_files\n"))
 	voxel.mat <- .Call("read_voxel_from_files",
                   as.character(filenames),
                   as.integer(adjVoxCoords),
@@ -244,16 +244,16 @@ readByVoxelX <- function(filenames, voxelCoords) {
                   as.integer(nFrames), PACKAGE="RMINC")
 
 	# create the MincVoxelIO object and set assorted fields
-	if ( R_DEBUG_mincIO ) cat(sprintf("Debug readByVoxelX: instantiating object\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf("Debug mincIO.readByVoxelX(): instantiating object\n"))
 	voxelObj <- new("MincVoxelIO",
 	 					voxel.mat,
 						mincInfo=mincInfo, 
 						voxelCoords=as.integer(voxelCoords),
-						worldCoords=convertVoxelToWorld(filenames[1], voxelCoords),
+						worldCoords=rminc.convertVoxelToWorld(filenames[1], voxelCoords),
 						filenames=filenames )
 
 	# DONE. Return the new volume array object.
-	if ( R_DEBUG_mincIO ) cat("<< readByVoxelX ... \n")
+	if ( R_DEBUG_mincIO ) cat("<< mincIO.readByVoxelX() ... \n")
 	return(voxelObj)
 	
 

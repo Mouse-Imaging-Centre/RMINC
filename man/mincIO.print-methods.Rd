@@ -1,4 +1,4 @@
-\name{print-methods}
+\name{mincIO.print-methods}
 \Rdversion{1.1}
 \docType{methods}
 \alias{print-methods}
@@ -67,19 +67,19 @@ to produce summary information for the full range of \pkg{mincIO} class objects.
 # print all sorts of stuff
 v305 <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
 
-volInfo <- readMincInfo(v305)                   #
+volInfo <- mincIO.readMincInfo(v305)            #
 print(volInfo)                                  # print volume info
 
-vol <- readVolume(v305)                         #
+vol <- mincIO.readVolume(v305)                  #
 print(vol)                                      # print volume info
 
 # get a slice and print info
-sx <- getSliceX(vol, 60)                        #
+sx <- mincIO.getSliceX(vol, 60)                 #
 print(sx)                                       # print slice info
 
 # read slice 80 across all frames
 v4d <- file.path(volDir, "functional_4D.mnc")
-sliceMatrix <- readBySlice(v4d, 80)             # load the slice matrix
+sliceMatrix <- mincIO.readBySlice(v4d, 80)      # load the slice matrix
 print(sliceMatrix)                              # print summary info
 }
 

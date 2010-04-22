@@ -1,4 +1,4 @@
-\name{plot-methods}
+\name{mincIO.plot-methods}
 \Rdversion{1.1}
 \docType{methods}
 \alias{plot-methods}
@@ -49,16 +49,16 @@
 # read and plot the 305 volume
 v305 = "norm_avg_305_mri_minc2.mnc"
 
-vol <- readVolume(v305)                        # default read (grayscale)
-plot(vol)                                      # ... visualize the volume
-sx <- getSliceX(vol, 20)                       # get axial slice 20
-plot(sx)                                       # ... visualize the slice
+vol <-  mincIO.readVolume(v305)    # default read (grayscale)
+plot(vol)                                          # ... visualize the volume
+sx <-  mincIO.getSliceX(vol, 20)                   # get axial slice 20
+plot(sx)                                           # ... visualize the slice
 
-vol <- readVolume(v305, colorMap="rainbow")    # set display colormap on read
-plot(vol)                                      # show it using "rainbow"
+vol <-  mincIO.readVolume(v305, colorMap="rainbow")    # set display colormap on read
+plot(vol)                                              # show it using "rainbow"
 
-vol <- readVolume(v305, colorMap="heat.colors") #
-plot(vol)                                       # now use "heat" colormap 
+vol <-  mincIO.readVolume(v305, colorMap="heat.colors") #
+plot(vol)                                          # now use "heat" colormap 
 }}
 
 

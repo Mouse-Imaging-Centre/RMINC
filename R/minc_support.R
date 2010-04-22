@@ -1,6 +1,6 @@
 
 # test to see whether files exist and are readable
-isReadable <- function(filenames) {
+rminc.isReadable <- function(filenames) {
   rValue <- TRUE
   READ_PERMISSION <- 4
   if (sum(file.access(as.character(filenames), READ_PERMISSION)) != 0
@@ -19,18 +19,18 @@ isReadable <- function(filenames) {
 
 
 # test to see whether a given file is minc (minc1 or minc2)
-isMinc <- function(filename) {
+rminc.isMinc <- function(filename) {
 	rValue <- FALSE
 	if ( !file.exists(filename) ) { return(rValue) }
-	if ( isMinc1(filename) ) rValue <- TRUE
-	if ( isMinc2(filename) ) rValue <- TRUE
+	if ( rminc.isMinc1(filename) ) rValue <- TRUE
+	if ( rminc.isMinc2(filename) ) rValue <- TRUE
 	#
 	return(rValue)
 }
 
 
 # test to see whether a given file is minc1
-isMinc1 <- function(filename) {
+rminc.isMinc1 <- function(filename) {
 	rValue <- FALSE
 	sysCmd <- paste("file", filename)
 #	print(sysCmd)
@@ -42,7 +42,7 @@ isMinc1 <- function(filename) {
 
 
 # test to see whether a given file is minc2
-isMinc2 <- function(filename) {
+rminc.isMinc2 <- function(filename) {
 	rValue <- FALSE
 	sysCmd <- paste("file", filename)
 #	print(sysCmd)
@@ -54,13 +54,13 @@ isMinc2 <- function(filename) {
 
 
 # convert minc1 volume to minc2
-asMinc2 <- function(filename, keepName=TRUE) {
+rminc.asMinc2 <- function(filename, keepName=TRUE) {
 	
 	# is it already minc2? Just return the input filename.
-	if ( isMinc2(filename) ) return(filename)
+	if ( rminc.isMinc2(filename) ) return(filename)
 	
 	# if it isn't minc1, tell 'em and run away
-	if ( !isMinc(filename) ) {
+	if ( !rminc.isMinc(filename) ) {
 		stop(paste("Error: Trying to convert a non-minc file (", filename, ") to minc", sep=""))
 	}
 	
@@ -89,10 +89,10 @@ asMinc2 <- function(filename, keepName=TRUE) {
 }
 
 
-convertVoxelToWorld <- function(filename, voxCoords) {
+rminc.convertVoxelToWorld <- function(filename, voxCoords) {
 	#
 	
-	if ( R_DEBUG_mincIO ) cat(sprintf(">>convertVoxelToWorld\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf(">>rminc.convertVoxelToWorld\n"))
 
 	# the C routines want the coordinates 0-relative, AND in volume order
 	# ... so convert first
@@ -104,16 +104,16 @@ convertVoxelToWorld <- function(filename, voxCoords) {
                as.double(voxCoords), PACKAGE="RMINC")
 
 	# return a vector of 3 doubles
-	if ( R_DEBUG_mincIO ) cat(sprintf("<<convertVoxelToWorld\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf("<<rminc.convertVoxelToWorld\n"))
 	return(output)
 }
 
 
 
-convertWorldToVoxel <- function(filename, worldCoords) {
+rminc.convertWorldToVoxel <- function(filename, worldCoords) {
 	#
 	# dunno why, but the voxel coordinates are passed as doubles
-	if ( R_DEBUG_mincIO ) cat(sprintf(">>convertWorldToVoxel\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf(">>rminc.convertWorldToVoxel\n"))
 
 	output <- .Call("convert_world_to_voxel_mincIO",
                as.character(filename),
@@ -134,13 +134,13 @@ convertWorldToVoxel <- function(filename, worldCoords) {
 	}
 	
 	# send it back
-	if ( R_DEBUG_mincIO ) cat(sprintf("<<convertWorldToVoxel\n"))
+	if ( R_DEBUG_mincIO ) cat(sprintf("<<rminc.convertWorldToVoxel\n"))
 	return(output)
 }
 
 
 
-getDataTypes <- function() {
+rminc.getDataTypes <- function() {
 	# =============================================================================
 	# Purpose: return a data.frame containing the minc2 data types
 	#
@@ -167,7 +167,7 @@ getDataTypes <- function() {
 
 
 
-getDataClasses <- function() {
+rminc.getDataClasses <- function() {
 	# =============================================================================
 	# Purpose: return a data.frame containing the minc2 data classes
 	#

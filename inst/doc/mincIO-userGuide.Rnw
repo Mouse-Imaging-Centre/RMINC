@@ -203,17 +203,17 @@ Note that in the R system, preceding the function of interest with a question ma
 
 \subsection*{Getting Volume Information}
 
-\paragraph{Reading volume header information.} OK, now begins the fun part. Let's start by getting some header information from a 3D volume by using the \texttt{readMincInfo} function.
+\paragraph{Reading volume header information.} OK, now begins the fun part. Let's start by getting some header information from a 3D volume by using the \texttt{mincIO.readMincInfo} function.
 
 <<echo=TRUE, keep.source=TRUE>>=
-# see doc with: "?readMincInfo"
+# see doc with: "?mincIO.readMincInfo"
 
 # get information for the 305 volume
 v305PET <- "average305_PET_t1_tal_lin.mnc"
 v305PET <- file.path(volDir, v305PET)
-volInfo <- readMincInfo(v305PET)
+volInfo <-  mincIO.readMincInfo(v305PET)
 @
-Firstly, on a point of semantics, all \textsf{mincIO} functions whose names start with either \texttt{read*} or \texttt{write*} will do file access, whereas those that start with either \texttt{get*} or \texttt{put*} will not --- they are usually associated with manipulating in-memory structures.  As such, \texttt{readMincInfo} is going to the file to access volume header information. Right?  In the above code, we set up a full path name pointing to the volume of interest, and then call \texttt{readMincInfo}, passing the name of the file. If this works without a hitch, the \texttt{readMincInfo} function will return a S4 MincInfo object which we assign to variable \texttt{volInfo}.  While the MincInfo object does not contain any image data, it does contain all sorts of volume header information. Wanna see?
+Firstly, on a point of semantics, all \textsf{mincIO} functions whose names start with either \texttt{read*} or \texttt{write*} will do file access, whereas those that start with either \texttt{get*} or \texttt{put*} will not --- they are usually associated with manipulating in-memory structures.  As such, \texttt{mincIO.readMincInfo} is going to the file to access volume header information. Right?  In the above code, we set up a full path name pointing to the volume of interest, and then call \texttt{mincIO.readMincInfo}, passing the name of the file. If this works without a hitch, the \texttt{mincIO.readMincInfo} function will return a S4 MincInfo object which we assign to variable \texttt{volInfo}.  While the MincInfo object does not contain any image data, it does contain all sorts of volume header information. Wanna see?
 
 <<echo=TRUE>>=
 print(volInfo)
@@ -257,15 +257,15 @@ If you're starting to get a little queasy about this internal stuff, please rest
 \paragraph{Reading 3D volumes.} Let's start out looking at volume-granularity by loading a 3D volume and printing the volume header information.
 
 <<echo=TRUE, keep.source=TRUE>>=
-# see doc with: "?readVolume"
+# see doc with: "?mincIO.readVolume"
 #
 # load the ICBM-152 volume
 vIcbm <- "icbm_avg_152_t1_tal_lin.mnc"
 vIcbm <- file.path(volDir, vIcbm)
-vol <- readVolume(vIcbm)
+vol <- mincIO.readVolume(vIcbm)
 print(vol)
 @
-So we simply create a string containing the full path and file name, and call the \texttt{readVolume()} function, which returns a MincVolumeIO object in variable \texttt{vol}.  As before, we use the standard (overloaded) \texttt{print()} function to print the variable information. To get a visual summary of the volume, just call the \texttt{plot()} function, passing the new \texttt{vol} variable, the results of which can be seen in Figure~\ref{fig:volumePlot}.
+So we simply create a string containing the full path and file name, and call the \texttt{mincIO.readVolume()} function, which returns a MincVolumeIO object in variable \texttt{vol}.  As before, we use the standard (overloaded) \texttt{print()} function to print the variable information. To get a visual summary of the volume, just call the \texttt{plot()} function, passing the new \texttt{vol} variable, the results of which can be seen in Figure~\ref{fig:volumePlot}.
 
 % kludge to generate png graphics rather than pdf
 % ... open png output
@@ -296,7 +296,7 @@ dev.off()
 # add or subtract a value from every voxel in volume
 vol_adj <- vol - mean(vol)
 @
-Now let's try something a little more adventurous. First, a mask is created by thresholding the volume at an intensity value of 100000.  Note that the resultant mask is actually a 3D array --- \emph{not} a MincVolumeIO object --- this is important to note.  Next, the 3D mask is applied to the original volume, yielding a masked 3D image --- which is also  \emph{not} a MincVolumeIO object, as the arithmetic operations stripped the object attributes, leaving us with a simple 3D array.  The final line of code converts the 3D image data back into a MincVolumeIO object by using the \texttt{asVolume()} function, which replaces the \texttt{vol} image data with the new {maskedImage} 3D array, creating a new volume object (\texttt{vol2}).  Of course, the \texttt{asVolume()} function call could have been incorporated in the previous command, as demonstrated in the final line.
+Now let's try something a little more adventurous. First, a mask is created by thresholding the volume at an intensity value of 100000.  Note that the resultant mask is actually a 3D array --- \emph{not} a MincVolumeIO object --- this is important to note.  Next, the 3D mask is applied to the original volume, yielding a masked 3D image --- which is also  \emph{not} a MincVolumeIO object, as the arithmetic operations stripped the object attributes, leaving us with a simple 3D array.  The final line of code converts the 3D image data back into a MincVolumeIO object by using the \texttt{mincIO.asVolume()} function, which replaces the \texttt{vol} image data with the new {maskedImage} 3D array, creating a new volume object (\texttt{vol2}).  Of course, the \texttt{mincIO.asVolume()} function call could have been incorporated in the previous command, as demonstrated in the final line.
 
 <<echo=TRUE, keep.source=TRUE>>=
 # make a mask array (not a volume object)
@@ -306,10 +306,10 @@ mask3D <- vol[,,]>100000
 maskedImage <- vol * mask3D
 
 # recast image data into a MincVolumeIO object
-vol2 <-asVolume(maskedImage, vol)
+vol2 <-mincIO.asVolume(maskedImage, vol)
 
 # combining previous 2 lines into 1
-vol2 <- asVolume(vol * mask3D, vol)
+vol2 <- mincIO.asVolume(vol * mask3D, vol)
 @
 
 % kludge to generate png graphics rather than pdf
@@ -335,7 +335,7 @@ dev.off()
 \end{center}
 \end{figure}
 
-See Figure~\ref{fig:volumePlotMasked} for a summary plot of the newly created, masked volume data.  While the \texttt{asVolume()} function does a nice job of recasting arrays back into volumes, it would be nice if the arithmetic operations didn't strip off the object attributes in the first place.  I believe that this is solvable by over-loading some of the more commonly used operators.  Available in the next version? Stay tuned.
+See Figure~\ref{fig:volumePlotMasked} for a summary plot of the newly created, masked volume data.  While the \texttt{mincIO.asVolume()} function does a nice job of recasting arrays back into volumes, it would be nice if the arithmetic operations didn't strip off the object attributes in the first place.  I believe that this is solvable by over-loading some of the more commonly used operators.  Available in the next version? Stay tuned.
 
 
 
@@ -346,7 +346,7 @@ Ok, now let's break by own suggestion by reading in a 3D volume and changing a n
 
 <<echo=TRUE, keep.source=TRUE>>=
 # read the ICBM-152 volume
-vol <- readVolume(vIcbm)
+vol <- mincIO.readVolume(vIcbm)
 # set a voxel within the caudate (slice 82) to high intensity
 vol[85, 142, 82] <- 500000     # left caudate
 vol[95, 142, 82] <- 500000     # right caudate
@@ -396,35 +396,35 @@ dev.off()
 
 <<echo=TRUE, keep.source=TRUE>>=
 # read volume
-vol <- readVolume(vIcbm)
+vol <- mincIO.readVolume(vIcbm)
 #
 # define the bound of the hyperslab
 # ... X-axis start and stop voxel (+-30 mm from AC)
 rangeX <- numeric()
-rangeX[1] <- convertWorldToVoxel(vIcbm, c(0-30, 0, 0))[1]
-rangeX[2] <- convertWorldToVoxel(vIcbm, c(0+30, 0, 0))[1]
+rangeX[1] <- rminc.convertWorldToVoxel(vIcbm, c(0-30, 0, 0))[1]
+rangeX[2] <- rminc.convertWorldToVoxel(vIcbm, c(0+30, 0, 0))[1]
 #
 # ... Y-axis start and stop voxel (-60 mm, +30 mm from AC)
 rangeY <- numeric()
-rangeY[1] <- convertWorldToVoxel(vIcbm, c(0, 0-60, 0))[2]
-rangeY[2] <- convertWorldToVoxel(vIcbm, c(0, 0+30, 0))[2]
+rangeY[1] <- rminc.convertWorldToVoxel(vIcbm, c(0, 0-60, 0))[2]
+rangeY[2] <- rminc.convertWorldToVoxel(vIcbm, c(0, 0+30, 0))[2]
 #
 # ... Z-axis start and stop voxel (-20 mm, +30 mm from AC)
 rangeZ <- numeric()
-rangeZ[1] <- convertWorldToVoxel(vIcbm, c(0, 0, 0-20))[3]
-rangeZ[2] <- convertWorldToVoxel(vIcbm, c(0, 0, 0+30))[3]
+rangeZ[1] <- rminc.convertWorldToVoxel(vIcbm, c(0, 0, 0-20))[3]
+rangeZ[2] <- rminc.convertWorldToVoxel(vIcbm, c(0, 0, 0+30))[3]
 #
 # ... create a new initialized mask volume and create hyperslab mask
-maskVol <- makeNewVolume(filename="mask_volume.mnc", likeTemplate="icbm152")
+maskVol <- mincIO.makeNewVolume(filename="mask_volume.mnc", likeTemplate="icbm152")
 maskVol[ rangeX[1] : rangeX[2],
          rangeY[1] : rangeY[2],
          rangeZ[1] : rangeZ[2] ] <- 1
 #
 # ... apply the mask to the T1 volume and recast as volume
-hyperVol <- asVolume(vol * maskVol, vol)
+hyperVol <- mincIO.asVolume(vol * maskVol, vol)
 @
 
-Note the new \texttt{convertWorldToVoxel()} function, that takes a volume name and a vector of world coordinates (XYZ order).  Perhaps in the near future, we'll be able to pass it a MincVolumeIO object, saving us some file IO, but sadly that day has not yet come.  Also new is the \texttt{makeNewVolume()} function, which creates a new (initialized to zeros) volume, with the attributes set according to a known template (ICBM, in this case).  Figure~\ref{fig:volumePlotHslab} displays the ROI within the masked volume.
+Note the new \texttt{rminc.convertWorldToVoxel()} function, that takes a volume name and a vector of world coordinates (XYZ order).  Perhaps in the near future, we'll be able to pass it a MincVolumeIO object, saving us some file IO, but sadly that day has not yet come.  Also new is the \texttt{mincIO.makeNewVolume()} function, which creates a new (initialized to zeros) volume, with the attributes set according to a known template (ICBM, in this case).  Figure~\ref{fig:volumePlotHslab} displays the ROI within the masked volume.
 
 % kludge to generate png graphics rather than pdf
 % ... open png output
@@ -454,13 +454,13 @@ dev.off()
 
 
 \subsection*{Doing Stuff with Slices}
-While working with 3D volumes directly, as demonstrated above, is convenient and intuitive, there is also a wee bit of a performance hit, given R's pass-by-value semantics.  We can minimize this performance penalty by working with individual slices rather than the entire volume while doing updates, since each update will only result in the slice being copied, rather than the entire volume.  To do this, \textsf{mincIO} provides 3 extractor functions, \texttt{getSliceX()}, \texttt{getSliceY()}, and \texttt{getSliceZ()}, which serve to extract a slice of a given orientation from a 3D MincVolumeIO object.  Additionally, function \texttt{putSlice()} serves to move a slice back into a MincVolumeIO object.  Let's take a look at a simple example.
+While working with 3D volumes directly, as demonstrated above, is convenient and intuitive, there is also a wee bit of a performance hit, given R's pass-by-value semantics.  We can minimize this performance penalty by working with individual slices rather than the entire volume while doing updates, since each update will only result in the slice being copied, rather than the entire volume.  To do this, \textsf{mincIO} provides 3 extractor functions, \texttt{mincIO.getSliceX()}, \texttt{mincIO.getSliceY()}, and \texttt{mincIO.getSliceZ()}, which serve to extract a slice of a given orientation from a 3D MincVolumeIO object.  Additionally, function \texttt{mincIO.putSlice()} serves to move a slice back into a MincVolumeIO object.  Let's take a look at a simple example.
 
 <<echo=TRUE, keep.source=TRUE>>=
-# see doc with: "?getSliceZ"
+# see doc with: "?mincIO.getSliceZ"
 #
-vol <- readVolume(vIcbm)               # read the ICBM volume
-s055 <- getSliceZ(vol, 55)             # extract axial slice 55
+vol <- mincIO.readVolume(vIcbm)        # read the ICBM volume
+s055 <- mincIO.getSliceZ(vol, 55)      # extract axial slice 55
 print(s055)                            # print summary info
 @
 We start simply by loading the ICBM volume, and extracting the slice at voxel coordinate 55, resulting in the creation of a Slice object (s055).  Details about the slice (and the volume from which it was extracted) are displayed using the over-loaded \texttt{print()} function, and the slice is  then visualized using the over-loaded \texttt{plot()} function (see Figure~\ref{fig:axialSlice01}). 
@@ -518,12 +518,12 @@ dev.off()
 \end{center}
 \end{figure}
 
-The results of the modifications are can be seen in Figure~\ref{fig:axialSlice02}.  The final step would be to move the modified slice back into the MincVolumeIO object prior to writing the modified 3D object back to disk.  This is easily done via the \texttt{putSlice()} function, and looks like the following.
+The results of the modifications are can be seen in Figure~\ref{fig:axialSlice02}.  The final step would be to move the modified slice back into the MincVolumeIO object prior to writing the modified 3D object back to disk.  This is easily done via the \texttt{mincIO.putSlice()} function, and looks like the following.
 
 <<echo=TRUE, keep.source=TRUE>>=
-vol <- putSlice(s055, vol)        # update vol with moded slice
+vol <- mincIO.putSlice(s055, vol)     # update vol with moded slice
 @
-Note that the only mandatory inputs to \texttt{putSlice()} are the slice and the volume to be updated.  The slice number need not be specified, as the slice already ``knows'' its slice number, and therefore puts itself back into the correct place within the volume.  An explicit specification of the slice number (3rd argument) allows the user to write the slice back into a different position within the volume (although the dimensionality must still match).  In order to prove that the updated slice \emph{has} been written to the volume, let's take a look a the volume plot shown in Figure~\ref{fig:volumePlotUpdatedSlice}.
+Note that the only mandatory inputs to \texttt{mincIO.putSlice()} are the slice and the volume to be updated.  The slice number need not be specified, as the slice already ``knows'' its slice number, and therefore puts itself back into the correct place within the volume.  An explicit specification of the slice number (3rd argument) allows the user to write the slice back into a different position within the volume (although the dimensionality must still match).  In order to prove that the updated slice \emph{has} been written to the volume, let's take a look a the volume plot shown in Figure~\ref{fig:volumePlotUpdatedSlice}.
 
 % kludge to generate png graphics rather than pdf
 % ... open png output
@@ -558,19 +558,19 @@ We now explore using \textsf{mincIO} to do IO using slice granularity.  As discu
 vol1 <- vol2 <- vol3 <- vol4 <- vol5 <- vIcbm
 @
 <<echo=TRUE, keep.source=TRUE>>=
-# see doc with: "?readBySlice"
+# see doc with: "?mincIO.readBySlice"
 #
-volumes <- c(vol1, vol2, vol3, vol4, vol5)      # set volume names
-slice_array_s46 <- readBySlice(volumes, 46)     # load slice 46
+volumes <- c(vol1, vol2, vol3, vol4, vol5)            # set volume names
+slice_array_s46 <- mincIO.readBySlice(volumes, 46)    # load slice 46
 print(slice_array_s46)
 @
 
-In addition to the common volume information (common to all volumes) the \texttt{print()} function also shows some slice array details, including, slice number, matrix dimensions, and volume names.\footnote{The astute reader will notice that all of the volumes are the same.  Yes, I cheated by reading the same volume 5 times, since distributing \textsf{mincIO} with a bunch of sample volumes was really not a good thing. Corners needed to be cut.}  As the next step, let's say that you needed to extract a particular slice from the slice array for visualization, manipulation, etc. How would one do that?  Let's try the aptly named \texttt{getSliceFromSliceArray()} function.
+In addition to the common volume information (common to all volumes) the \texttt{print()} function also shows some slice array details, including, slice number, matrix dimensions, and volume names.\footnote{The astute reader will notice that all of the volumes are the same.  Yes, I cheated by reading the same volume 5 times, since distributing \textsf{mincIO} with a bunch of sample volumes was really not a good thing. Corners needed to be cut.}  As the next step, let's say that you needed to extract a particular slice from the slice array for visualization, manipulation, etc. How would one do that?  Let's try the aptly named \texttt{mincIO.getSliceFromSliceArray()} function.
 
 <<echo=TRUE, keep.source=TRUE>>=
-# see doc with: "?getSliceFromSliceArray"
+# see doc with: "?mincIO.getSliceFromSliceArray"
 #
-vol3s46 <- getSliceFromSliceArray(slice_array_s46, 3)
+vol3s46 <- mincIO.getSliceFromSliceArray(slice_array_s46, 3)
 print(vol3s46)
 @
 So there you have it.  Slice 46 from the 3rd volume is now instantiated as a slice object, which we are free to either modify, move to a MincVolumeIO object, or simply visualize --- as we see in Figure~\ref{fig:sliceIO01}.
@@ -602,13 +602,13 @@ dev.off()
 \paragraph{Read a slice over all 4D volume frames.} The second use case is very similar to the first, except that we are now reading frames within a single 4D volume.  Given that the syntax is really pretty similar, let's do this quickly.  Take a look at the following.
 
 <<echo=TRUE, keep.source=TRUE>>=
-slice_array_s30 <- readBySlice(v4D, 30)     # load slice 30
+slice_array_s30 <- mincIO.readBySlice(v4D, 30)     # load slice 30
 print(slice_array_s30)
 @
-The name of a 4D volume is loaded into the variable v4D, and then function \texttt{readBySlice()} is called, requesting that slice 30 be loaded from all frames.  The \texttt{print()} function then displays similar information as previously displayed, in addition to some frame-specific information (e.g., frame offsets and widths across all frames).   Extracting the slice from frame 10, we see a bit more frame-specific detail.  Note that, since we are dealing with 4D volumes, the default colormap for display is ``rainbow'' (sort of like ``spectral''), as evidenced by Figure~\ref{fig:sliceIO02}.
+The name of a 4D volume is loaded into the variable v4D, and then function \texttt{mincIO.readBySlice()} is called, requesting that slice 30 be loaded from all frames.  The \texttt{print()} function then displays similar information as previously displayed, in addition to some frame-specific information (e.g., frame offsets and widths across all frames).   Extracting the slice from frame 10, we see a bit more frame-specific detail.  Note that, since we are dealing with 4D volumes, the default colormap for display is ``rainbow'' (sort of like ``spectral''), as evidenced by Figure~\ref{fig:sliceIO02}.
 
 <<echo=TRUE, keep.source=TRUE>>=
-frame10s30 <- getSliceFromSliceArray(slice_array_s30, 10)
+frame10s30 <- mincIO.getSliceFromSliceArray(slice_array_s30, 10)
 print(frame10s30)
 @
 
@@ -643,24 +643,24 @@ An now we arrive at doing voxel-level IO.  Voxel-level IO works with one or more
 volumes <- c(vIcbm, vIcbm ,vIcbm, vIcbm, vIcbm)
 #
 worldCoords <- c(0,0,0)           # get AC voxel coords
-voxCoords <- round(convertWorldToVoxel(vIcbm, worldCoords))
+voxCoords <- round(rminc.convertWorldToVoxel(vIcbm, worldCoords))
 print(voxCoords)
 #
-voxel_array <- readByVoxel(volumes, voxCoords)
+voxel_array <- mincIO.readByVoxel(volumes, voxCoords)
 print(voxel_array)
 print(voxel_array[,])
 @
 
-Ok, it's pretty straightforward.  We're endeavouring to read the real value stored at the voxel located at the mid anterior commissure across 5 volumes.  Actually, all 5 volumes are the same (didactic license again), so the values all better be the same.  As all access uses voxel coordinates, we first convert the stereotactic address to voxel space, and then print it out.\footnote{Be aware that although the \textsf{mincIO} package is perfectly capable of reading and processing native-space volumes, note that the space conversion routines may not be of much use to you unless you're in stereotactic space.  Specifically, in native space, one can get all sorts of unusual Start values, since the origin is machine relative; this can result in funny (e.g., negative) voxel indices being generated by \texttt{convertWorldToVoxel()}, which are usually not super useable.} The actual read is accomplished with \texttt{readByVoxel()}, followed by a print of the voxel array meta information, and then the actual array values themselves. Easy as $\pi$.  We can do the exact same thing with 4D volumes.  Take a boo.
+Ok, it's pretty straightforward.  We're endeavouring to read the real value stored at the voxel located at the mid anterior commissure across 5 volumes.  Actually, all 5 volumes are the same (didactic license again), so the values all better be the same.  As all access uses voxel coordinates, we first convert the stereotactic address to voxel space, and then print it out.\footnote{Be aware that although the \textsf{mincIO} package is perfectly capable of reading and processing native-space volumes, note that the space conversion routines may not be of much use to you unless you're in stereotactic space.  Specifically, in native space, one can get all sorts of unusual Start values, since the origin is machine relative; this can result in funny (e.g., negative) voxel indices being generated by \texttt{rminc.convertWorldToVoxel()}, which are usually not super useable.} The actual read is accomplished with \texttt{mincIO.readByVoxel()}, followed by a print of the voxel array meta information, and then the actual array values themselves. Easy as $\pi$.  We can do the exact same thing with 4D volumes.  Take a boo.
 
 <<echo=TRUE, keep.source=TRUE>>=
 volumes <- c(v4D, v4D, v4D, v4D, v4D)
 
 worldCoords <- c(0,0,0)           # get AC voxel coords
-voxCoords <- round(convertWorldToVoxel(v4D, worldCoords))
+voxCoords <- round(rminc.convertWorldToVoxel(v4D, worldCoords))
 print(voxCoords)
 
-voxel_array <- readByVoxel(volumes, voxCoords)
+voxel_array <- mincIO.readByVoxel(volumes, voxCoords)
 print(voxel_array)
 print(voxel_array[,])
 @
@@ -707,9 +707,9 @@ To start, say that we simply wanted to write a script to read in a minc volume a
 	# load RMINC library
 	suppressPackageStartupMessages(library(RMINC))  
 #
-	args <- commandArgs(TRUE)         # read script args
-	mincInfo <- readMincInfo(args[1]) # read the volume info
-	print(mincInfo)                   # ... and display it
+	args <- commandArgs(TRUE)                 # read script args
+	mincInfo <- mincIO.readMincInfo(args[1])  # read the volume info
+	print(mincInfo)                           # ... and display it
 \end{verbatim}
 
 
@@ -737,12 +737,12 @@ The output appears as expected, I suppose.  Clearly, everything that can be done
 \section*{Summary and Future Development}
 So there you have a taste of the \textsf{RMINC-mincIO} module, and its capabilities.  Clearly, I was not able to demonstrate all package functionality in this tutorial, however, the reference information integrated into the R help system will be able to provide you with a list of all functions and how to use them.  A great deal of work went into writing that documentation, so please feel free to use it.  With regard to learning R, remember that google is your friend --- an ever-growing amount of documentation is being written and made freely available as R gains acceptance amongst college statistics instructors.  While becoming an R wizard is not strictly necessary in order to use the \textsf{mincIO} package, is must be remembered that R is both an environment \emph{and} a full featured language; the more confident you are with the R language, the better use you'll be able to make use of \textsf{mincIO}.
 
-Subsequent development would likely focus on using R to analyze cortical surfaces.  A preliminary (proof of concept) version of a \textsf{mniSurfaceIO} package already exists, and is capable of reading ASCII ``.obj'' files, and rendering the surfaces for inspection using the \textsf{rgl} package.  Much work remains to be done; stay tuned.
+Subsequent development would likely focus on using R to analyze cortical surfaces.  A preliminary (proof of concept) version of a \textsf{surfaceIO} package already exists, and is capable of reading ASCII ``.obj'' files, and rendering the surfaces for inspection using the \textsf{rgl} package.  Much work remains to be done; stay tuned.
 
 Finally, I suppose I need to mention the Windows platform.  If one of the ultimate goals of this project is make it easier to use the Minc volume format, and therefore increase its use, we need to remember that 95\% of the world is using Windows.  The inability of the current Minc tools to build and run on Windows is necessarily going to reduce adoption of these tools, and therefore use of the Minc volume format.  It should be remembered that this restriction does not exist in the world of Matlab-Nifti, and so Windows users will naturally gravitate to that development platform.  I believe that this problem should not be insurmountable, if we do the conversion in stages. I would suggest that, given that the Minc2 library is only dependent on the HDF5 library (which \emph{does} build under windows), we start by implementing a Windows build of the Minc2 library.  This has the following advantages: (1) a proof of concept build under Windows with a relatively simple, encapsulated library; lessons learned could be applied to build all of Minc for Windows, and (2) as \textsf{RMINC} is \emph{only} dependent on the Minc2 library, once we have the Minc2 dlls, we would immediately be able to start using \textsf{mincIO} under Windows.  Sadly, multi-platform building is not my strength, so we would require the services of someone else to tackle this.
 
 
-Thanks for your interest in the \textsf{RMINC-mincIO} package. Feel free to share your ideas and critiques.
+Thanks for your interest in the \textsf{RMINC-mincIO} package. Feel free to share your ideas and critiques with others. Not with me. I don't handle criticism very well. I kid. A little.
 
 
 

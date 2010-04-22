@@ -1,6 +1,6 @@
-\name{readMincInfo}
+\name{mincIO.readMincInfo}
 \Rdversion{1.1}
-\alias{readMincInfo}
+\alias{mincIO.readMincInfo}
 
 \title{
     Initialize a MincInfo Object from a Valid Minc Volume
@@ -12,7 +12,7 @@
 }
 
 \usage{
-readMincInfo(filename)
+mincIO.readMincInfo(filename)
 }
 
 \arguments{
@@ -21,7 +21,7 @@ readMincInfo(filename)
 }
 
 \details{
-     Auto-conversion from Minc1 to Minc2.  Specifying a non-mincy volume will cause toads to rain 
+     Auto-conversion from Minc1 to Minc2.  Specifying a non-mincy volume will cause toads to rain toads 
      from the heavens.}
 
 \value{An instantiated MincInfo object.}
@@ -41,7 +41,7 @@ readMincInfo(filename)
 }
 # get information for the 305 volume
 v305PET <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-vol <- readMincInfo(v305PET)            # read the volume info
+vol <- mincIO.readMincInfo(v305PET)     # read the volume info
 print(vol)                              # print summary info
 }
 
