@@ -118,7 +118,7 @@ fast.qvalue <- function (p = NULL, lambda = seq(0, 0.9, 0.05),
     
     qvalue <- .C("qvalue_min", as.double(qvalue), as.integer(u),
                  as.integer(m),
-                 o=double(length=m))$o
+                 o=double(length=m), PACKAGE="RMINC")$o
     
     #for (i in (m - 1):1) {
     #    qvalue[u[i]] <- min(qvalue[u[i]], qvalue[u[i + 1]], 1)

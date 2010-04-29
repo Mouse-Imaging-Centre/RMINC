@@ -1,10 +1,13 @@
 \name{mincRayTraceStats}
 \alias{mincRayTraceStats}
+
 \title{Create an image of a statistical peak.}
+
 \description{Takes a voxel, an anatomical file, and a statistics file
 to create an image of the statistical peak.}
+
 \usage{
-mincRayTraceStats <- function(v, anatomy.volume, 
+mincRayTraceStats(v, anatomy.volume, 
 	statsbuffer, column=1, like.filename=NULL, mask=NULL,
 	image.min=-1000, image.max=4000,
 	output.width=800, output.height=800,
@@ -16,6 +19,7 @@ mincRayTraceStats <- function(v, anatomy.volume,
 	show.pos.and.neg=FALSE, display=TRUE,
 	clobber=NULL, tmpdir="/tmp")
 }
+
 \arguments{
   \item{v}{A mincVoxel indicating the voxel of interest.}
   \item{anatomy.volume}{The path to the file containing the anatomical data.}
@@ -51,11 +55,14 @@ mincRayTraceStats <- function(v, anatomy.volume,
   	overwrite when set to FALSE and will prompt when NULL.}
   \item{tmpdir}{Specify a directory for temporary files.}
 }
+
 \details{This function will call the ray_trace program to
 create an image of a statistical peak. The anatomical slice
 of the brain will be overlayed with the statistical slice and
 a crosshair indicates the chosen peak.}
+
 \seealso{mincLm, mincFDR, mincMean, mincSd}
+
 \examples{
 \dontrun{
 # read the text file describing the dataset

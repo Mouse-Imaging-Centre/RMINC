@@ -3,7 +3,6 @@
 \title{Call ray_trace to get a bitmap of a slice}
 \description{Call ray_trace to get an image of a rendered slice}
 \usage{
-minc.ray.trace("filename.mnc")
 minc.ray.trace(volume, output="slice.rgb", size=c(400,400),
                slice=list(pos=0, wv="w", axis="z"),
                threshold=NULL,
@@ -13,6 +12,7 @@ minc.ray.trace(volume, output="slice.rgb", size=c(400,400),
                background.colourmap="-gray",
                display=TRUE)
 }
+
 \arguments{
   \item{volume}{The filename of a volume to render.}
   \item{output}{The output filename.}

@@ -5,15 +5,15 @@ anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/j
   out <- NULL
   if (method == "volume") {
     system(paste("label_volumes_from_jacobians", atlas, filename, "> tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=F)
+    out <- read.csv("tmp.txt", header=FALSE)
   }
   else if (method == "means") {
     system(paste("average_values_across_segmentation.py", filename, atlas, "tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=F)
+    out <- read.csv("tmp.txt", header=FALSE)
   }
   else if (method == "text") {
     # values are already extracted and stored in a text file
-    out <- read.table(filename, header=F)
+    out <- read.table(filename, header=FALSE)
   }
   #cat("FILENAME:", filename, "\n")
   if (dropLabels == TRUE) {
@@ -68,7 +68,7 @@ anatRenameRows <- function(anat, defs="/projects/mice/jlerch/cortex-label/c57_br
 }
 
 # both unilateral and bilateral matrices can be printed the same way
-print.anatMatrix <- function(x) {
+print.anatMatrix <- function(x, ...) {
   print.table(x)
 }
 
@@ -144,7 +144,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   # in the formulat
   anatmatrix <- t(anat[mf[,"(rowcount)"],])
   # same stats as for vertex tables
-  result <- .Call("vertex_lm_loop", anatmatrix, mmatrix)
+  result <- .Call("vertex_lm_loop", anatmatrix, mmatrix, PACKAGE="RMINC")
   rownames(result) <- colnames(anat)
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- anatmatrix[1,]

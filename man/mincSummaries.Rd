@@ -4,27 +4,32 @@
 \alias{mincSum}
 \alias{mincSd}
 \title{Create descriptive statistics across a series of MINC volumes}
+
+\description{This function is used to compute the mean, standard deviation,
+  sum, or variance of every voxel in a set of MINC volumes. An optional
+  grouping variable will split the computation by group rather than
+  performing it across all volumes as is the default.}
+
+
 \usage{
-means <- mincMean(filenames)
-means.by.factor <- mincMean(filenames, Group)
-stdevs <- mincSd(filenames)
-stdevs.by.factor <- mincSd(filenames, Group)
-sums <- mincSum(filenames)
-sums.by.factor <- mincSum(filenames, Group)
-variances <- mincVar(filenames)
-variances.by.factor <- mincVar(filenames, Group)
+mincMean(filenames, grouping=NULL, mask=NULL)
+
+mincSd(filenames, grouping=NULL, mask=NULL)
+
+mincSum(filenames, grouping=NULL, mask=NULL)
+
+mincVar(filenames, grouping=NULL, mask=NULL)
 }
+
 \arguments{
   \item{filenames}{Filenames of the MINC volumes across which to create
     the descriptive statistic.}
   \item{grouping}{Optional grouping - contains same number of elements
     as filenames; the results will then have the descriptive statistic
     computed separately for each group.}
+  \item{mask}{A mask specifying which voxels are to be included in the summary.}
 }
-\details{This function is used to compute the mean, standard deviation,
-  sum, or variance of every voxel in a set of MINC volumes. An optional
-  grouping variable will split the computation by group rather than
-  performing it across all volumes as is the default.}
+
 \value{
   \item{out}{The output will be a single vector containing as many
     elements as there are voxels in the input files. If a grouping
@@ -32,6 +37,7 @@ variances.by.factor <- mincVar(filenames, Group)
     as many rows as there were voxels in the files, and as many columns
     as there were groups.}
 }
+
 \seealso{mincWriteVolume,mincLm,mincGetVolume}
 \examples{
 \dontrun{

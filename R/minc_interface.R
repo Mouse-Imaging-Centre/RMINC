@@ -15,7 +15,7 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
                as.integer(v1),
                as.integer(v2),
                as.integer(v3),
-               o=double(length=num.files))$o
+               o=double(length=num.files), PACKAGE="RMINC")$o
   class(output) <- c("mincVoxel", "vector")
   attr(output, "filenames") <- filenames
   attr(output, "voxelCoord") <- c(v1,v2,v3)
@@ -48,7 +48,7 @@ mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
                as.double(v1),
                as.double(v2),
                as.double(v3),
-               o=double(length=num.files))$o
+               o=double(length=num.files), PACKAGE="RMINC")$o
   class(output) <- c("mincVoxel", "vector")
   attr(output, "filenames") <- filenames
   attr(output, "worldCoord") <- c(v1,v2,v3)
@@ -57,7 +57,7 @@ mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
 }
 
 # the print function for a voxel
-print.mincVoxel <- function(x, filenames=FALSE, digits=NULL) {
+print.mincVoxel <- function(x, ..., filenames=FALSE, digits=NULL) {
   if (filenames == FALSE) {
     print.table(x)
   }
@@ -77,7 +77,7 @@ mincGetVector <- function(filenames, v1, v2, v3, v.length) {
                   as.integer(v.length),
                   as.integer(v1),
                   as.integer(v2),
-                  as.integer(v3))
+                  as.integer(v3), PACKAGE="RMINC")
   class(output) <- c("mincVector", "mincVoxel", class(output))
   attr(output, "filenames") <- filenames
   attr(output, "voxelCoord") <- c(v1,v2,v3)
@@ -91,7 +91,7 @@ mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
                as.double(v1),
                as.double(v2),
                as.double(v3),
-               o=double(length=3))$o
+               o=double(length=3), PACKAGE="RMINC")$o
   return(output)
 }
 
@@ -101,7 +101,7 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
                as.double(v1),
                as.double(v2),
                as.double(v3),
-               o=double(length=3))$o
+               o=double(length=3), PACKAGE="RMINC")$o
   return(round(output))
 }
 
@@ -115,7 +115,7 @@ mincGetVolume <- function(filename) {
                as.character(filename),
                as.integer(start),
                as.integer(sizes),
-               hs=double(total.size))$hs
+               hs=double(total.size), PACKAGE="RMINC")$hs
   class(output) <- c("mincSingleDim", "numeric")
   attr(output, "filename") <- filename
   attr(output, "likeVolume") <- filename
@@ -123,25 +123,25 @@ mincGetVolume <- function(filename) {
 }
 
 # print function for multidimensional files
-print.mincMultiDim <- function(x) {
+print.mincMultiDim <- function(x, ...) {
   cat("Multidimensional MINC volume\n")
   cat("Columns:      ", colnames(x), "\n")
   print(attr(x, "likeVolume"))
 }
 
-print.vertexMultiDim <- function(x) {
+print.vertexMultiDim <- function(x, ...) {
   cat("Multidimensional Vertstats file\n")
   cat("Columns:      ", colnames(x), "\n")
 }
       
 
-print.mincSingleDim <- function(x) {
+print.mincSingleDim <- function(x, ...) {
   cat("MINC volume\n")
   print(attr(x, "likeVolume"))
   print(attr(x, "filename"))
 }
 
-print.mincQvals <- function(x) {
+print.mincQvals <- function(x, ...) {
   print.mincMultiDim(x)
   cat("Degrees of Freedom:", paste(attr(x, "DF")), "\n")
   cat("FDR Thresholds:\n")
@@ -198,7 +198,7 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                as.integer(sizes),
                as.double(b.max),
                as.double(b.min),
-               as.double(buffer))
+               as.double(buffer), PACKAGE="RMINC")
 }
 
 
@@ -206,7 +206,7 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
 minc.dimensions.sizes <- function(filename) {
   sizes <- .C("get_volume_sizes",
               as.character(filename),
-              sizes = integer(3))$sizes
+              sizes = integer(3), PACKAGE="RMINC")$sizes
   return(sizes)
 }
 
@@ -222,7 +222,7 @@ minc.get.hyperslab <- function(filename, start, count, buffer=NA) {
   output <- .C("get_hyperslab",
                as.character(filename),
                as.integer(start),
-               as.integer(count), hs=buffer)$hs
+               as.integer(count), hs=buffer, PACKAGE="RMINC")$hs
   return(output)
 }
 
@@ -286,13 +286,13 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 ###                   as.double(! is.null(mask)),
 ###                   as.character(mask),
 ###                   NULL, NULL,
-###                   as.character(method))
+###                   as.character(method), PACKAGE="RMINC")
   result <- .Call("per_voxel_anova",
                   as.character(filenames),
                   as.matrix(mmatrix),
                   attr(mmatrix, "assign"),
                   as.double(! is.null(mask)),
-                  as.character(mask))
+                  as.character(mask), PACKAGE="RMINC")
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
@@ -343,7 +343,7 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
                   as.double(! is.null(mask)),
                   as.character(mask),
                   NULL, NULL,
-                  as.character(method))
+                  as.character(method), PACKAGE="RMINC")
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
@@ -510,10 +510,10 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     else if (statType[i] == "F") {
       if (is.matrix(buffer)) {
         pvals <- pf(buffer[mask>0.5, i], df[[i]][1], df[[i]][2],
-                    lower.tail=F)
+                    lower.tail=FALSE)
       }
       else {
-        pvals <- pf(buffer[mask>0.5], df[[i]][1], df[[i]][2], lower.tail=F)
+        pvals <- pf(buffer[mask>0.5], df[[i]][1], df[[i]][2], lower.tail=FALSE)
       }
     }
     
@@ -534,14 +534,14 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
 		# cat(sprintf("Number of sub-threshold F p-values: %d\n", length(subTholdPvalues)))
 		if ( length(subTholdPvalues) > 1 ) {
-			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=F)
+			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
       else if (statType[i] == "t") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
 		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
 		if ( length(subTholdPvalues) > 1 ) {
-			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=F)
+			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
     }
@@ -594,7 +594,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
                   as.double(! is.null(mask)),
                   as.character(mask),
                   NULL, NULL,
-                  as.character(method))
+                  as.character(method), PACKAGE="RMINC")
   attr(result, "likeVolume") <- as.character(filenames[1])
   attr(result, "filenames") <- as.character(filenames)
 
@@ -632,7 +632,7 @@ mincApply <- function(filenames, function.string, mask=NULL) {
                    as.character(mask),
                    parent.env(environment()),
                    as.double(length(test)),
-                   as.character("eval"));
+                   as.character("eval"), PACKAGE="RMINC");
 
   attr(results, "likeVolume") <- filenames[1]
   if (length(test) > 1) {
@@ -655,7 +655,7 @@ mincApply <- function(filenames, function.string, mask=NULL) {
 ##                        as.double(! is.null(mask)),
 ##                        as.character(mask),
 ##                        parent.env(environment()),
-##                        as.character("eval"))
+##                        as.character("eval"), PACKAGE="RMINC")
 ## }
 
 # use the eval interface to run mixed effect models at every vertex.
@@ -719,7 +719,7 @@ mincApplyLme <- function(filenames, function.string, mask=NULL) {
                    as.character(mask),
                    parent.env(environment()),
                    as.double(length(test)),
-                   as.character("eval"));
+                   as.character("eval"), PACKAGE="RMINC");
 
   attr(results, "likeVolume") <- filenames[1]
   if (length(test) > 1) {
@@ -763,7 +763,7 @@ vertexLm <- function(formula, data, subset=NULL) {
 
   cat("after loading\n")
 
-  result <- .Call("vertex_lm_loop", data.matrix, mmatrix);
+  result <- .Call("vertex_lm_loop", data.matrix, mmatrix, PACKAGE="RMINC");
 
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)

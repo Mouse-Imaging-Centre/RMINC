@@ -1,14 +1,22 @@
 \name{mincWriteVolume}
 \alias{mincWriteVolume}
+\alias{mincWriteVolume.mincSingleDim}
+\alias{mincWriteVolume.mincMultiDim}
+
 \title{Write a MINC volume to file.}
+
 \description{Writes a MINC volume to file.}
+
 \usage{
-mincWriteVolume(buffer, "filename.mnc", "optionalColumn", clobber = NULL)
+\method{mincWriteVolume}{mincSingleDim}(buffer, output.filename, clobber = NULL)
+
+\method{mincWriteVolume}{mincMultiDim}(buffer, output.filename, column=1, like.filename = NULL, clobber = NULL)
 }
+
 \arguments{
   \item{buffer}{The data to be written to file. Usually the result of
     \link{mincLm} or some such command.}
-  \item{filename}{The filename to which to write the data to.}
+  \item{output.filename}{The filename to which to write the data to.}
   \item{column}{Optional name of the column of a multidimensional MINC
     object to write out. By default the first column is used.}
   \item{like.filename}{An existing MINC filename which has the same
@@ -17,10 +25,13 @@ mincWriteVolume(buffer, "filename.mnc", "optionalColumn", clobber = NULL)
   \item{clobber}{Overwrite existing output file when set to TRUE, will not 
   	overwrite when set to FALSE and will prompt when NULL.}
 }
+
 \details{This function takes numeric data, usually the results computed
   from one of the other mincFunctions, and writes it to file so that it
   can be viewed or manipulated with the standard MINC tools.}
+
 \seealso{mincLm,mincFDR,mincMean, mincSd}
+
 \examples{
 \dontrun{
 # read the text file describing the dataset

@@ -46,7 +46,7 @@ void R_init_RMINC(DllInfo *info) {
 
 void R_unload_RMINC(DllInfo *info) {
 
-	int			hdf_dl_status;
+//	int			hdf_dl_status;
 
 
 	/* release resources */

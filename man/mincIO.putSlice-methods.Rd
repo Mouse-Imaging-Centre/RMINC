@@ -20,7 +20,7 @@
 
 
 \usage{
-\S4method{mincIO.putSlice}{MincSlice,MincVolumeIO}(mincSlice, mincVolume, sliceNo, ...)
+\S4method{mincIO.putSlice}{MincSlice,MincVolumeIO}(mincSlice, mincVolume, sliceNo)
 }
 
 

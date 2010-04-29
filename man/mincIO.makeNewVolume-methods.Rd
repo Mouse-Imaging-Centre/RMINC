@@ -1,14 +1,13 @@
 \name{mincIO.makeNewVolume-methods}
-\Rdversion{1.1}
 \docType{methods}
-\alias{mincIO.makeNewVolume-methods}
 \alias{mincIO.makeNewVolume}
-\alias{mincIO.makeNewVolume,character,numeric,numeric,numeric-method}
-\alias{mincIO.makeNewVolume,character,character-method}
-
+\alias{mincIO.makeNewVolume-methods}
+\alias{mincIO.makeNewVolume,character,numeric,numeric,numeric,missing,missing-method}
+\alias{mincIO.makeNewVolume,character,missing,missing,missing,character,missing-method}
+\alias{mincIO.makeNewVolume,character,missing,missing,missing,missing,character-method}
 \keyword{methods}
 
-\title{Methods to Create a New, Empty 3D Minc Volume Object}
+\title{Methods to create a new, empty 3D Minc volume object}
 
 \description{
     There exist 2 different ways to get an instantiated MincVolumeIO object: (1) create one
@@ -16,23 +15,12 @@
     from scratch.  This method deals with the second way.
 }
 
-
-\section{Methods}{
-\describe{
-\item{filename="character", dimLength="numeric", dimSteps="numeric", dimStarts="numeric"}{Create from scratch,
-                 by explicitly specifying all of the dimensional attributes.}
-\item{filename="character", likeTemplate="character"}{Create the volume by using one of 3 templates.}
-\item{filename="character", likeFile="character"}{Create the volume by specifying the full path 
-                 and volume name of a volume whose properties the new volume should match.}
-}}
-
-
 \usage{
-\S4method{mincIO.makeNewVolume}{character,numeric,numeric,numeric}(filename, dimLengths, dimSteps, dimStarts)
+\S4method{mincIO.makeNewVolume}{character,numeric,numeric,numeric,missing,missing}(filename,dimLengths,dimSteps,dimStarts,likeTemplate,likeFile)
 
-\S4method{mincIO.makeNewVolume}{character,character}(filename, likeTemplate)
+\S4method{mincIO.makeNewVolume}{character,missing,missing,missing,character,missing}(filename,dimLengths,dimSteps,dimStarts,likeTemplate,likeFile)
 
-\S4method{mincIO.makeNewVolume}{character,character}(filename, likeFile)
+\S4method{mincIO.makeNewVolume}{character,missing,missing,missing,missing,character}(filename,dimLengths,dimSteps,dimStarts,likeTemplate,likeFile)
 }
 
 
@@ -66,7 +54,7 @@
 \dontshow{
 # clear debug flag and get full volume pathname
 # ... dunno why zzz.R debug setting is not passed
-    R_DEBUG_mincIO <- 0      
+    R_DEBUG_mincIO <- 1      
     volDir <- system.file("packageData/volumes", package="RMINC")
 }
 # create from scratch

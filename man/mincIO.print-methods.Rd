@@ -1,6 +1,7 @@
 \name{mincIO.print-methods}
 \Rdversion{1.1}
 \docType{methods}
+\alias{mincIO.print-methods}
 \alias{print-methods}
 \alias{print,MincInfo-method}
 \alias{print,MincSlice-method}
@@ -33,9 +34,9 @@ to produce summary information for the full range of \pkg{mincIO} class objects.
 }}
 
 \usage{
-\S4method{print}{MincInfo}(x, ...)
+\S4method{print}{MincInfo}(x)
 
-\S4method{print}{MincSlice}(x, ...)
+\S4method{print}{MincSlice}(x)
 
 \S4method{print}{MincSliceIO}(x, ...)
 
@@ -54,7 +55,7 @@ to produce summary information for the full range of \pkg{mincIO} class objects.
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{printMincInfo}} \code{\link{plot-methods}}
+    \code{\link{mincIO.printMincInfo}} \code{\link{plot-methods}}
 }
 
 \examples{

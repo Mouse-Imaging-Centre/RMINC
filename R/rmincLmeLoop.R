@@ -360,7 +360,7 @@ newgetFixDF <-
                          as.integer(p),
                          as.integer(Q),
                          as.integer(N),
-                         val = double(p * Q))[["val"]]), c(p, Qp1),
+                         val = double(p * Q), PACKAGE="nlme")[["val"]]), c(p, Qp1),
                     list(namX, stratNam))
     ## strata in which columns of X are estimated
     ## ignoring fractional inner percentages for now
@@ -439,7 +439,7 @@ rmincLmeApVar <-
 		as.double(sigma * unlist(newpdFactor(solve(object$reStruct)))),
 		as.integer(settings),
 		logLik = double(1),
-		lRSS = double(1))[c("logLik", "lRSS")]
+		lRSS = double(1), PACKAGE="nlme")[c("logLik", "lRSS")]
       aux <- (exp(val[["lRSS"]])/sigma)^2
       conLin[["logLik"]] + val[["logLik"]] + (N * log(aux) - aux)/2
     }
@@ -500,7 +500,7 @@ newMEdecomp <-
   }
   dc <- array(.C("mixed_decomp",
 		 as.double(conLin$Xy),
-		 as.integer(unlist(dims)))[[1]],
+		 as.integer(unlist(dims)), PACKAGE="nlme")[[1]],
 	      c(dims$StrRows, dims$ZXcols))
   dims$ZXrows <- dims$StrRows
   dims$ZXoff <- dims$DecOff
@@ -528,7 +528,7 @@ newMEEM <-
 	     as.integer(attr(object, "settings")[1]),
 	     double(1),
 	     double(length(precvec)),
-	     double(1))[["precvec"]]
+	     double(1), PACKAGE="nlme")[["precvec"]]
     Prec <- vector("list", length(object))
     names(Prec) <- names(object)
     for (i in seq_along(object)) {
@@ -555,7 +555,7 @@ newMEestimate <-
 	   as.integer(REML),
 	   double(1),
 	   estimates = double(dd$StrRows * dd$ZXcols),
-	   as.logical(FALSE))[["estimates"]]
+	   as.logical(FALSE), PACKAGE="nlme")[["estimates"]]
   estimates <- array(zz, c(dd$StrRows, dd$ZXcols))
   resp <- estimates[ , dd$ZXcols]
   reSt <- object$reStruct
@@ -1201,7 +1201,7 @@ logLik.rmincLmeStructInt <-
 	    as.double(Pars),
 	    as.integer(attr(object, "settings")),
 	    val = double(1 + q * (q + 1)),
-	    double(1))[["val"]]
+	    double(1), PACKAGE="nlme")[["val"]]
   val <- aux[1]
   attr(val, "gradient") <- -aux[1 + (1:q)]
   attr(val, "hessian") <- -array(aux[-(1:(q+1))], c(q, q))
@@ -2380,7 +2380,7 @@ newpdFactor.pdSymm <-
   .C("matrixLog_pd",
      Factor = double(Ncol * Ncol),
      as.integer(Ncol),
-     as.double(object))$Factor
+     as.double(object), PACKAGE="nlme")$Factor
 }
 
 newpdMatrix.pdSymm <-
@@ -2507,7 +2507,7 @@ newpdFactor.newpdLogChol <-
   .C("logChol_pd",
      Factor = double(Ncol * Ncol),
      as.integer(Ncol),
-     as.double(object))$Factor
+     as.double(object), PACKAGE="nlme")$Factor
 }
 
 ####* Methods for standard generics
@@ -2605,7 +2605,7 @@ newpdFactor.newpdNatural <-
   .C("natural_pd",
      Factor = double(Ncol * Ncol),
      as.integer(Ncol),
-     as.double(object))$Factor
+     as.double(object), PACKAGE="nlme")$Factor
 }
 
 newpdMatrix.newpdNatural <-
@@ -3007,7 +3007,7 @@ logLik.reStruct <-
      as.double(newpdFactor(object)),
      as.integer(attr(object, "settings")),
      loglik = double(1),
-     double(1))$loglik
+     double(1), PACKAGE="nlme")$loglik
 }
 
 "newmatrix<-.reStruct" <-

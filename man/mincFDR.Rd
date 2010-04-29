@@ -1,13 +1,21 @@
 \name{mincFDR}
 \alias{mincFDR}
+\alias{mincFDR.mincSingleDim}
+\alias{mincFDR.mincMultiDim}
+
 \title{Compute the False Discovery Rate for a mincLm object}
+
 \description{Takes the output of a mincLm run and computes the False
   Discovery Rate on the results.}
+
 \usage{
-qvals <- mincFDR(mincLm.object, mask="mask.mnc")
+\method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
+
+\method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
 }
+
 \arguments{
-  \item{mincLm.object}{The results of a mincLm run.}
+  \item{buffer}{The results of a mincLm run.}
   \item{columns}{A vector of column names. By default the threshold will
     be computed for all columns; with this argument the computation can
     be limited to a subset.}
@@ -18,15 +26,20 @@ qvals <- mincFDR(mincLm.object, mask="mask.mnc")
     from the input object.}
   \item{method}{The method used to compute the false discovery
     rate. Options are "FDR" and "pFDR".}
+  \item{statType}{This should be either a "t" or an "F", depending upon the type
+                  of statistic being thresholded.}
+  \item{\dots}{Extra arguments of interest, such as "statType".}
 }
-\details{This function uses the \link{qvalue} package to compute the
+
+\details{This function uses the \code{qvalue} package to compute the
   False Discovery Rate threshold for the results of a \link{mincLm}
   computation. The False Discovery Rate represents the percentage of
   results expected to be a false positive. Two implementations can be
   used as specified by the method argument. "FDR" uses the
-  implementation in \link{p.adjust}, whereas "pFDR" is a version of the
-  postivie False Discovery Rate as found in John Storey's \link{qvalue}
+  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
+  postivie False Discovery Rate as found in John Storey's \code{qvalue}
   package.} 
+
 \value{
   \item{qvals}{mincFDR returns an object with the same number of columns
     as the input (or the subset specified by the columns argument to
@@ -36,7 +49,10 @@ qvals <- mincFDR(mincLm.object, mask="mask.mnc")
     which contains the 1, 5, 10, 15, and 20 percent false discovery rate
     thresholds.}
 }
-\seealso{mincWriteVolume,mincLm}
+\seealso{
+     \code{\link{mincWriteVolume}}, \code{\link{mincLm}}
+}
+
 \examples{
 \dontrun{
 # read the text file describing the dataset

@@ -5,7 +5,7 @@
 \description{Similar to apply, this allows one to apply an arbitrary R
   function to a list of MINC2 volumes.}
 \usage{
-average <- minc.apply(filenames, quote(mean(x)), mask=mask.filename)
+average <- minc.apply(filenames, function.string, mask=mask.filename)
 }
 \arguments{
   \item{filenames}{A list of filenames of MINC2 volumes.}

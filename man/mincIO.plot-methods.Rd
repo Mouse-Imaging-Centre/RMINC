@@ -41,7 +41,7 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\link{plotSlicePretty}} \code{\link{print-methods}}
+    \code{\link{mincIO.plotSlicePretty}} \code{\link{print-methods}}
 }
 
 \examples{

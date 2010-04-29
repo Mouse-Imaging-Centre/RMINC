@@ -1,4 +1,7 @@
 \documentclass{report}
+%%\VignetteIndexEntry{An introduction to voxel-based morphometry (VBM)}
+
+
 \usepackage{Sweave}
 \usepackage{url}
 \usepackage{makeidx}

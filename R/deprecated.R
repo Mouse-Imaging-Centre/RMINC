@@ -28,7 +28,7 @@ minc.model <- function(filenames, groupings, method="t-test",
                          as.double(! is.null(mask)),
                          as.character(mask),
                          NULL, NULL,
-                         as.character(method))
+                         as.character(method), PACKAGE="RMINC")
 
     # get the first voxel in order to get the dimension names
     v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
@@ -47,7 +47,7 @@ minc.model <- function(filenames, groupings, method="t-test",
                     as.double(! is.null(mask)),
                     as.character(mask),
                     NULL, NULL,
-                    as.character(method))
+                    as.character(method), PACKAGE="RMINC")
   }
   return(result)
 }
@@ -56,7 +56,7 @@ minc.model <- function(filenames, groupings, method="t-test",
 minc.t.test <- function(filenames, groupings, mask=NULL) {
   voxel.t.test <- function(x) {
     .Call("t_test", as.double(x), as.double(tmp.groupings),
-          as.double(length(x)))
+          as.double(length(x)), PACKAGE="RMINC")
   }
   assign("tmp.groupings", groupings, env=.GlobalEnv)
   assign("voxel.t.test", voxel.t.test, env=.GlobalEnv);
@@ -70,7 +70,7 @@ minc.wilcoxon.test <- function(filenames, groupings, mask=NULL) {
     .Call("wilcoxon_rank_test", as.double(x),
           as.double(tmp.groupings),
           as.double(sum(tmp.groupings==0)),
-          as.double(sum(tmp.groupings==1)))
+          as.double(sum(tmp.groupings==1)), PACKAGE="RMINC")
   }
 
   groupings <- as.double(groupings)
@@ -144,7 +144,7 @@ minc.get.hyperslab2 <- function(filename, start, count, buffer=NA) {
   .Call("get_hyperslab2",
                as.character(filename),
                as.integer(start),
-               as.integer(count), hs=buffer, DUP=FALSE)
+               as.integer(count), hs=buffer, DUP=FALSE, PACKAGE="RMINC")
   #return(output)
 }
 
@@ -155,7 +155,7 @@ minc.get.slices <- function(filenames, begin.slice=NA, end.slice=NA) {
   #cat(filenames[1]
   sizes <- .C("get_volume_sizes",
               as.character(filenames[1]),
-              sizes = integer(3))$sizes
+              sizes = integer(3), PACKAGE="RMINC")$sizes
   num.slices <- end.slice - begin.slice
   total.size <- sizes[2] * sizes[3] * num.slices
   num.files <- length(filenames)
@@ -168,7 +168,7 @@ minc.get.slices <- function(filenames, begin.slice=NA, end.slice=NA) {
     output[, i] <- .C("get_hyperslab",
                        as.character(filenames[i]),
                        as.integer(start),
-                       as.integer(count), hs=double(total.size))$hs
+                       as.integer(count), hs=double(total.size), PACKAGE="RMINC")$hs
   }
   return(output)
 }

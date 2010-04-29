@@ -512,7 +512,7 @@ setMethod(
 		if ( R_DEBUG_mincIO ) cat("MincSlice method: creating a new Z-slice from array ... \n")
 
 		# create a new empty z-slice (use slice 1 as a template)
-		zSlice <- getSliceZ(mincVolume, 1)
+		zSlice <- mincIO.getSliceZ(mincVolume, 1)
 
 		# set the slice to zero
 		sliceSize <- dim(zSlice)[1] * dim(zSlice)[2]

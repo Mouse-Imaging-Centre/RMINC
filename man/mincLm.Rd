@@ -4,7 +4,7 @@
 \description{Perform a linear models at every voxel of a
   set of MINC files}
 \usage{
-out <- mincLm(files ~ covariates, gf, mask="mask.mnc")
+mincLm(formula, data=NULL, subset=NULL, mask=NULL)
 }
 \arguments{
   \item{formula}{The linear model formula. The left-hand term consists

@@ -1,4 +1,7 @@
 \documentclass{article}
+%%\VignetteIndexEntry{Advanced image analysis using the RMINC package}
+
+
 \usepackage{Sweave}
 \usepackage{url}
 

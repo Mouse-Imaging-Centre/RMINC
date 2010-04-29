@@ -499,7 +499,7 @@ mincIO.writeVolumeX <- function(mincVolume, filename) {
 # 
 setGeneric( 
 	name="mincIO.makeNewVolume", 
-	def = function(filename=filename, 
+	def = function(filename, 
 					dimLengths, 
 					dimSteps, 
 					dimStarts,
@@ -514,13 +514,15 @@ setMethod(
 	signature=signature(filename="character", 
 						dimLengths="numeric", 
 						dimSteps="numeric", 
-						dimStarts="numeric"),
+						dimStarts="numeric",
+						likeTemplate="missing",
+						likeFile="missing"),
 	definition=function(filename=filename, 
 						dimLengths=NULL, dimSteps=NULL, dimStarts=NULL,
-						likeTemplate=NULL,
-						likeFile=NULL) {
+						likeTemplate, likeFile) {
 
 		if ( R_DEBUG_mincIO ) cat(">> mincIO.makeNewVolume() ... \n")
+
 
 		# use the passed parameters to create a MincInfo object
 		# ... use some reasonable defaults
@@ -573,15 +575,17 @@ setMethod(
 setMethod(
 	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
+						dimLengths="missing", 
+						dimSteps="missing", 
+						dimStarts="missing",
 						likeTemplate="character",
 						likeFile="missing"),
 	definition=function(filename=filename, 
-						dimLengths=NULL, dimSteps=NULL, dimStarts=NULL,
-						likeTemplate="icbm152",
-						likeFile=NULL) {
+						dimLengths, dimSteps, dimStarts,
+						likeTemplate="icbm152", likeFile) {
+
 
 		if ( R_DEBUG_mincIO ) cat(">> mincIO.makeNewVolume()/templates ... \n")
-
 
 		# make sure that a valid template volume has been specified
 		if ( likeTemplate != "icbm152" &&
@@ -692,12 +696,15 @@ setMethod(
 setMethod(
 	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
+						dimLengths="missing", 
+						dimSteps="missing", 
+						dimStarts="missing",
 						likeTemplate="missing",
 						likeFile="character"),
 	definition=function(filename=filename, 
-						dimLengths=NULL, dimSteps=NULL, dimStarts=NULL,
-						likeTemplate=NULL,
-						likeFile="dummy") {
+						dimLengths, dimSteps, dimStarts,
+						likeTemplate, likeFile="dummy") {
+
 
 		if ( R_DEBUG_mincIO ) cat(">> mincIO.makeNewVolume()/like_file ... \n")
 
@@ -788,7 +795,7 @@ setMethod(
 	signature=signature(array3D="array", 
 						likeVolObject="MincVolumeIO", 
 						likeTemplate="missing"),
-	definition=function(array3D, likeVolObject, likeTemplate=NULL) {
+	definition=function(array3D, likeVolObject, likeTemplate) {
 
 		if ( R_DEBUG_mincIO ) cat(">> mincIO.asVolume (likeVolume) ... \n")
 		
@@ -827,7 +834,7 @@ setMethod(
 	signature=signature(array3D="array", 
 						likeVolObject="missing", 
 						likeTemplate="character"),
-	definition=function(array3D, likeVolObject=NULL, likeTemplate) {
+	definition=function(array3D, likeVolObject, likeTemplate) {
 
 		if ( R_DEBUG_mincIO ) cat(">> mincIO.asVolume (likeTemplate) ... \n")
 		
