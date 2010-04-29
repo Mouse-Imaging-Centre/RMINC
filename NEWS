@@ -1,3 +1,13 @@
+New in Version 1.0.1
+====================
+
+* major interface change: 
+*    o mincIO routines now have a mincIO.* prefix
+*    o common (some) rminc functions now use the rminc.* prefix
+* moved definition of all S4 generics to AllGenerics.R, in conformance
+  with best practices and bio-conductor recommendations
+* lots of Rd documentation updating to conform better to R CMD check
+
 New in Version 1.0.0
 ====================
 

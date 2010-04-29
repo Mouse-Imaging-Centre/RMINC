@@ -31,6 +31,13 @@ setClass("MincInfo",
 )
 
 
+
+# =====================================================================
+# Print methods
+# =====================================================================
+
+# METHOD: print(MincInfo)
+# PURPOSE: print MincInfo object info
 setMethod("print", "MincInfo",
 			function(x) {
 				# assume a MincInfo object has been passed
@@ -38,6 +45,9 @@ setMethod("print", "MincInfo",
 				}
 )
 
+
+# METHOD: show(MincInfo)
+# PURPOSE: print MincInfo object info by simply typing "obj" at the prompt
 setMethod("show", "MincInfo",
 			function(object) {
 				# assume a MincInfo object has been passed

@@ -83,11 +83,9 @@ setMethod(
 
 
 
-
-# =============================================================================
-# Purpose:	Read the real value of a given voxel over frames and
+# =====================================================================
+# Methods to read the real value of a given voxel over frames and
 #			files (as specified)
-#
 #
 # Input:
 #	The input will consist of one or more filenames (3D or 4D), and a voxel
@@ -98,14 +96,11 @@ setMethod(
 #	(2) pass voxel (not stx) coords
 #	(3) passed coordinate values are 1-relative (matching R)
 #
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.readByVoxel", 
-	def = function(filenames, voxelCoords) { standardGeneric("mincIO.readByVoxel") }
-) 
+# =====================================================================
 
-# read the volume, by passing a MincInfo object
+
+# METHOD: mincIO.readByVoxel(character, numeric)
+# PURPOSE: read a specific voxel value across many minn volumes
 setMethod(
 	"mincIO.readByVoxel", 
 	signature=signature(filenames="character"),

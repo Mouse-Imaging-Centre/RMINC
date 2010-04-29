@@ -49,7 +49,9 @@ setClass("MincVolumeIO",
 #				produce different displays (*Cool*)
 # =============================================================================
 # 
-# print object when using "print(obj)"
+
+# METHOD: print(MincVolumeIO)
+# PURPOSE: print MincVolumeIO info
 setMethod(
 	"print", 
 	signature=signature(x="MincVolumeIO"),
@@ -77,7 +79,9 @@ setMethod(
 	}
 )
 
-# print object when simply typing "obj" at the prompt
+
+# METHOD: show(MincVolumeIO)
+# PURPOSE: print MincVolumeIO info by simply typing "obj" at the prompt
 setMethod(
 	"show", 
 	signature=signature(object="MincVolumeIO"),
@@ -106,8 +110,8 @@ setMethod(
 )
 
 
-
-# use the plot() generic to display the image
+# METHOD: plot(MincVolumeIO, ANY)
+# PURPOSE: display a volume summary plot
 setMethod(
 	"plot", 
 	signature=signature(x="MincVolumeIO", y="ANY"),
@@ -225,19 +229,13 @@ setMethod(
 
 
 
+# =====================================================================
+# Volume read methods
+# =====================================================================
 
-# =============================================================================
-# Purpose:	Create a generic function for each "readVolume" function, and then
-#			add various methods that attach to that generic
-#
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.readVolume", 
-	def = function(object, frameNo=0, ..., volumeType, colorMap) { standardGeneric("mincIO.readVolume") }
-) 
 
-# read the volume, by passing a MincInfo object
+# METHOD: mincIO.readVolume(MincInfo)
+# PURPOSE: read the volume specified by the MincInfo object
 setMethod(
 	"mincIO.readVolume", 
 	signature=signature(object="MincInfo"),
@@ -252,7 +250,9 @@ setMethod(
 	}
 )
 
-# read the volume, by passing the "filename" of the volume to read
+
+# METHOD: mincIO.readVolume(character, numeric)
+# PURPOSE: read the volume specified by a fully qualified volume name
 setMethod(
 	"mincIO.readVolume", 
 	signature=signature(object="character"),
@@ -381,20 +381,13 @@ mincIO.readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
 
 
 
+# =====================================================================
+# Volume write methods
+# =====================================================================
 
 
-# =============================================================================
-# Purpose:	Create a generic function for the "writeVolume" function, and then
-#			add various methods that attach to that generic
-#
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.writeVolume", 
-	def = function(object, filename=missing, clobber=FALSE) { standardGeneric("mincIO.writeVolume") }
-) 
-
-# write the volume, by passing a MincVolumeIO object, and the desired output filename
+# METHOD: mincIO.writeVolume(MincVolumeIO, character)
+# PURPOSE: write the MincVolumeIO object to the specified file
 setMethod(
 	"mincIO.writeVolume", 
 	signature=signature(object="MincVolumeIO"),
@@ -480,35 +473,25 @@ mincIO.writeVolumeX <- function(mincVolume, filename) {
 
 
 
-
-
-# =============================================================================
-# Purpose:	Create a generic function for the "makeNewVolume" function, and then
-#			add various methods that attach to that generic
+# =====================================================================
+# Methods to create a new, initialized MincVolumeIO object
 #	Note:
 #		This generic is heavily over-loaded, linking to 3 different methods.
 #		Please remember the following S4 info:
 #		(1) the args in the generic and the methods must match exactly
 #		(2) the args in the signature are only used for method selection, so we
-#			only need to specify those args that provide a unqiue signature.
+#			only need to specify those args that provide a unqiue signature,
+#			however, this messes up the Rd doc, which always requires a full
+#			signature ... so specify a full signature.
 #		(3) the signature for "likeTemplate" and "likeFile" are both 
 #			c("character", "character"), so the args names need to be specified
 #			in the signature.  I have explicitly set "missing" where appropriate
 #			to emphasize the differences in these signatures.
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.makeNewVolume", 
-	def = function(filename, 
-					dimLengths, 
-					dimSteps, 
-					dimStarts,
-					likeTemplate,
-					likeFile) { standardGeneric("mincIO.makeNewVolume") }
-) 
+# =====================================================================
 
-
-# Create a new, empty MincVolumeIO object, by passing a filename and the sampling details
+# METHOD: mincIO.makeNewVolume(character, numeric,numeric,numeric)
+# PURPOSE: Create a new, empty MincVolumeIO object, by passing a filename
+#          and sampling details
 setMethod(
 	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
@@ -570,8 +553,9 @@ setMethod(
 )
 
 
-
-# Create a new, empty MincVolumeIO object, by passing a filename and the sampling details
+# METHOD: mincIO.makeNewVolume(character, character)
+# PURPOSE: Create a new, empty MincVolumeIO object, by passing a filename
+#          and a 'like' template designator
 setMethod(
 	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
@@ -691,8 +675,9 @@ setMethod(
 )
 
 
-
-# Create a new, empty MincVolumeIO object, by passing a filename and a "like" volume name
+# METHOD: mincIO.makeNewVolume(character, character)
+# PURPOSE: Create a new, empty MincVolumeIO object, by passing a filename
+#          and a 'like' volume name
 setMethod(
 	"mincIO.makeNewVolume", 
 	signature=signature(filename="character", 
@@ -774,22 +759,13 @@ mincIO.makeNewVolumeX <- function(mincInfo) {
 
 
 
+# =====================================================================
+# Methods for conversion to MincVolumeIO objects
+# =====================================================================
 
-# =============================================================================
-# Purpose:	Given a 3D matrix, convert it to a MincVolumeIO object
-#
-#
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.asVolume", 
-	def = function(array3D,
-					likeVolObject,
-					likeTemplate) { standardGeneric("mincIO.asVolume") }
-) 
-
-
-# Convert to volume, by passing a MincVolumeIO object
+# METHOD: mincIO.asVolume(array, MincVolumeIO)
+# PURPOSE: convert 3D array into a MincVolumeIO object
+#          by passing a template MincVolumeIO object
 setMethod(
 	"mincIO.asVolume", 
 	signature=signature(array3D="array", 
@@ -828,7 +804,9 @@ setMethod(
 )
 
 
-# Convert to volume, by passing a volume template type
+# METHOD: mincIO.asVolume(array, character)
+# PURPOSE: convert 3D array into a MincVolumeIO object 
+#          by passing a volume template type
 setMethod(
 	"mincIO.asVolume", 
 	signature=signature(array3D="array", 

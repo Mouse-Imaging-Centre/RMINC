@@ -46,15 +46,12 @@ setClass("MincSlice",
 
 
 
-# =============================================================================
-# Purpose:	Methods for print()/show() generic functions
-#
-# Notes:	(1) the name of the argument *must* match that used in the
-#			print() generic function (that is, 'x' in this case)
-#
-# =============================================================================
-# 
-# print object when using "print(obj)"
+# =====================================================================
+# Print methods
+# =====================================================================
+
+# METHOD: print(MincSlice)
+# PURPOSE: print mincSlice info
 setMethod(
 	"print", 
 	signature=signature(x="MincSlice"),
@@ -79,7 +76,9 @@ setMethod(
 	}
 )
 
-# print object when simply typing "obj" at the prompt
+
+# METHOD: show(MincSlice)
+# PURPOSE: print mincSlice info by simply typing "obj" at the prompt
 setMethod(
 	"show", 
 	signature=signature(object="MincSlice"),
@@ -107,8 +106,8 @@ setMethod(
 )
 
 
-
-# use the plot() generic to display the image
+# METHOD: plot(MincSlice)
+# PURPOSE: display a minc slice
 setMethod(
 	"plot", 
 	signature=signature(x="MincSlice", y="ANY"),
@@ -215,31 +214,9 @@ mincIO.plotSlicePretty <- function(slice, xAxisLabel, yAxisLabel, aspectRatio, c
 
 
 
-# =============================================================================
-# Purpose:	Create a generic function for each "getSlice" function
-#			given slice number and orientation
-#
-#
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.getSliceX", 
-	def = function(mincVolume, sliceNo) { standardGeneric("mincIO.getSliceX") }
-) 
-setGeneric( 
-	name="mincIO.getSliceY", 
-	def = function(mincVolume, sliceNo) { standardGeneric("mincIO.getSliceY") }
-) 
-setGeneric( 
-	name="mincIO.getSliceZ", 
-	def = function(mincVolume, sliceNo) { standardGeneric("mincIO.getSliceZ") }
-) 
-
-
-
-# =============================================================================
-# Purpose:	Get and return a slice from the minc volume array,
-#			given slice number and orientation
+# =====================================================================
+# Methods to get and return a slice from the minc volume array,
+#    given slice number and orientation
 #
 # Input: 	MincVolumeIO object
 #			slice number:	integer
@@ -251,12 +228,11 @@ setGeneric(
 #		call a common routine to do the common slice processing, this would
 #		potentially result in the slice object needing to be copied again.
 #		Thus, although less pretty, this is likely more efficient.
-#
-# =============================================================================
-#
-# ****
-# **** x-slice 
-# ****
+# =====================================================================
+
+
+# METHOD: mincIO.getSliceX(MincVolumeIO, numeric)
+# PURPOSE: get and return a sagittal slice from the minc volume array
 setMethod(
 	"mincIO.getSliceX", 
 	signature=signature(mincVolume="MincVolumeIO"),
@@ -293,9 +269,8 @@ setMethod(
 )
 
 
-# ****
-# **** y-slice 
-# ****
+# METHOD: mincIO.getSliceY(MincVolumeIO, numeric)
+# PURPOSE: get and return a coronal slice from the minc volume array
 setMethod(
 	"mincIO.getSliceY", 
 	signature=signature(mincVolume="MincVolumeIO"),
@@ -331,10 +306,9 @@ setMethod(
 	}
 )
 
-#
-# ****
-# **** z-slice 
-# ****
+
+# METHOD: mincIO.getSliceZ(MincVolumeIO, numeric)
+# PURPOSE: get and return an axial slice from the minc volume array
 setMethod(
 	"mincIO.getSliceZ", 
 	signature=signature(mincVolume="MincVolumeIO"),
@@ -372,25 +346,8 @@ setMethod(
 
 
 
-
-# =============================================================================
-# Purpose:	Create a generic function for the "putSlice" function
-#			given slice number and orientation.  This generic shall be used
-#			for all slice orientations.
-#
-#
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.putSlice", 
-	def = function(mincSlice, mincVolume, sliceNo, ...) { standardGeneric("mincIO.putSlice") }
-) 
-
-
-
-# =============================================================================
-# Purpose:	Write an updated slice to the minc volume array
-#
+# =====================================================================
+# Methods to move an updated slice to the minc volume array
 #
 # Input: 	MincSlice		object
 #			MincVolumeIO	object
@@ -404,8 +361,11 @@ setGeneric(
 #		to its original location within the volume.  I suspect that this will
 #		be the most common situation -- although I am still permitting the slice
 #		to be written to a different slice within the volume.
-# =============================================================================
-#
+# =====================================================================
+
+
+# METHOD: mincIO.putSlice(MincSlice, MincVolumeIO, numeric)
+# PURPOSE: move a slice into a volume
 setMethod(
 	"mincIO.putSlice", 
 	signature=signature(mincSlice="MincSlice", mincVolume="MincVolumeIO"),
@@ -484,25 +444,20 @@ setMethod(
 
 
 
-# =============================================================================
-# Purpose:	Create a new empty axial slice, given a MincVolumeIO object.
+# =====================================================================
+# Methods to create a new empty axial slice, given a MincVolumeIO object
 #
 # Input: 	MincVolumeIO object
 #
 # Output: MincSlice object
 #
 # Note: None, really.
-#
-# =============================================================================
-#
-setGeneric( 
-	name="mincIO.makeNewSliceZ", 
-	def = function(mincVolume, initVector=missing) { standardGeneric("mincIO.makeNewSliceZ") }
-) 
+# =====================================================================
 
-# ****
-# **** 
-# ****
+
+# METHOD: mincIO.makeNewSliceZ(MincVolumeIO, numeric)
+# PURPOSE: create a new MincSlice object, initialized with the
+#          contents of the initialization vector or zeros
 setMethod(
 	"mincIO.makeNewSliceZ", 
 	signature=signature(mincVolume="MincVolumeIO"),

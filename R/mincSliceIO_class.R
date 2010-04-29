@@ -65,8 +65,10 @@ setClass("MincSliceIO",
 #			(2) Note that the "print" and "show" methods can be set to 
 #				produce different displays (*Cool*)
 # =============================================================================
-# 
-# print object when using "print(obj)"
+
+
+# METHOD: print(MincSliceIO)
+# PURPOSE: print MincSliceIO info
 setMethod(
 	"print", 
 	signature=signature(x="MincSliceIO"),
@@ -102,7 +104,9 @@ setMethod(
 	}
 )
 
-# print object when simply typing "obj" at the prompt
+
+# METHOD: show(MincSliceIO)
+# PURPOSE: print MincSliceIO info by simply typing "obj" at the prompt
 setMethod(
 	"show", 
 	signature=signature(object="MincSliceIO"),
@@ -140,10 +144,8 @@ setMethod(
 
 
 
-# =============================================================================
-# Purpose:	Create a generic function for each "readBySlice" function, and then
-#			add various methods that attach to that generic
-#
+# =====================================================================
+# Methods to read a given slice across many volumes or frames
 #
 # Input:
 #	The input will consist of either one filename, or multiple filenames.  The
@@ -160,14 +162,12 @@ setMethod(
 #		a range of 3D volumes.  The returned object contains an NxM matrix in which
 #		N=slice voxels, and M=slice over volumes.
 #
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.readBySlice", 
-	def = function(filenames, sliceNumber, ..., volumeType, colorMap) { standardGeneric("mincIO.readBySlice") }
-) 
+#
+# =====================================================================
 
-# read the volume, by passing a MincInfo object
+
+# METHOD: mincIO.readBySlice(character, numeric)
+# PURPOSE: read a given slice across many volumes
 setMethod(
 	"mincIO.readBySlice", 
 	signature=signature(filenames="character", sliceNumber="numeric"),
@@ -312,21 +312,9 @@ setMethod(
 
 
 
-
-# =============================================================================
-# Purpose:	Create some useful generics 
-#
-#
-# =============================================================================
-# 
-setGeneric( 
-	name="mincIO.getSliceFromSliceArray", 
-	def = function(mincSliceMatrix, sliceIndex) { standardGeneric("mincIO.getSliceFromSliceArray") }
-) 
-
-# =============================================================================
-# Purpose:	Get and return a slice/frame from the minc slice matrix,
-#			given slice number
+# =====================================================================
+# Methods to get and return a slice/frame from the minc slice matrix,
+#         given slice number
 #
 # Input: 	MincSliceIO object
 #			slice index:	integer index to given matrix column
@@ -335,9 +323,11 @@ setGeneric(
 #
 # Note: 
 #	None.
-#
-# =============================================================================
-#
+# =====================================================================
+
+
+# METHOD: mincIO.getSliceFromSliceArray(MincSliceIO, numeric)
+# PURPOSE: return a specific slice from a slice array
 setMethod(
 	"mincIO.getSliceFromSliceArray", 
 	signature=signature(mincSliceMatrix="MincSliceIO"),
