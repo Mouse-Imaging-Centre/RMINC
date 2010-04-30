@@ -90,6 +90,12 @@ setGeneric(
 ) 
 
 
+# 
+# property-related generics
+setGeneric( 
+	name="mincIO.getProperty", 
+	def = function(mincIOobj, propertyId) { standardGeneric("mincIO.getProperty") }
+) 
 
 
 

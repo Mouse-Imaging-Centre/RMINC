@@ -32,6 +32,58 @@ setClass("MincInfo",
 
 
 
+# =============================================================================
+# Method to get a desired property value from a MincInfo object
+#
+# =============================================================================
+
+# METHOD: mincIO.getProperty(MincInfo)
+# PURPOSE: get a property from a MincInfo object
+setMethod(
+	"mincIO.getProperty", 
+	signature=signature(mincIOobj="MincInfo", propertyId="character"),
+	definition=function(mincIOobj, propertyId) {
+
+		if ( R_DEBUG_mincIO ) cat(">> MincInfo::mincIO.getProperty() ... \n")
+
+		# does the property exist in the MincInfo object? i.e., valid slot name passed?
+		propertyHit <- FALSE
+		if ( propertyId %in% slotNames(mincIOobj) ) {
+			value <- slot(mincIOobj, propertyId)
+			propertyHit <- TRUE
+		}
+
+		# does the property exist in the dimInfo slot?
+		if ( propertyId %in% names(slot(mincIOobj,"dimInfo")) ) {
+			dimX <- slot(mincIOobj,"dimInfo")[propertyId]
+			
+			# info is returned as a data.frame in z,y,x order -- 
+			# ... let's convert to a named vector in x,y,z order
+			value <- dimX[rev(1:nrow(dimX)),]		# now it's an xyz vector
+			names(value) <- rev(row.names(dimX))	# ... and now it's named
+			propertyHit <- TRUE
+		}  
+
+		# property not found: warn and return NULL
+		if ( !propertyHit ) {
+			warning(sprintf("Property \"%s\" was not found in object \"%s\" [class %s]\n", 
+		                              propertyId, 
+		                              deparse(substitute(mincIOobj)),
+		                              class(mincIOobj)))
+			value <- NULL
+		}
+
+		if ( R_DEBUG_mincIO ) cat("<< MincInfo::mincIO.getProperty() ... \n")
+
+		# return
+		return(value)
+	}
+)
+
+
+
+
+
 # =====================================================================
 # Print methods
 # =====================================================================

@@ -58,7 +58,54 @@ setClass("MincSliceIO",
 
 
 # =============================================================================
-# Purpose:	Methods for print()/show() generic functions
+# Method to get a desired property value from a MincVolumeIO object
+#
+# =============================================================================
+
+# METHOD: mincIO.getProperty(MincSliceIO)
+# PURPOSE: get a property from a MincSliceIO object
+setMethod(
+	"mincIO.getProperty", 
+	signature=signature(mincIOobj="MincSliceIO", propertyId="character"),
+	definition=function(mincIOobj, propertyId) {
+
+		if ( R_DEBUG_mincIO ) cat(">> MincSliceIO::mincIO.getProperty() ... \n")
+
+		# does the property exist in the MincSliceIO object?
+		propertyHit <- FALSE
+		if ( propertyId %in% slotNames(mincIOobj) ) {
+			value <- slot(mincIOobj, propertyId)
+			propertyHit <- TRUE
+		}
+
+		# not found yet; does the property exist in the embedded MincInfo object?
+		if ( !propertyHit ) {
+			value <- mincIO.getProperty(mincIOobj@mincInfo, propertyId)
+			if ( !is.null(value) ) {
+				propertyHit <- TRUE
+			}  
+		}
+
+		# property not found: warn and return NULL
+		if ( !propertyHit ) {
+			warning(sprintf("Property \"%s\" was not found in object \"%s\" [class %s]\n", 
+		                              propertyId, 
+		                              deparse(substitute(mincIOobj)),
+		                              class(mincIOobj)))
+			value <- NULL
+		}
+
+		if ( R_DEBUG_mincIO ) cat("<< MincSliceIO::mincIO.getProperty() ... \n")
+
+		# return
+		return(value)
+	}
+)
+
+
+
+# =============================================================================
+# Methods for print()/show() generic functions
 #
 # Notes:	(1) the name of the argument *must* match that used in the
 #			print() generic function (that is, 'x' in this case)

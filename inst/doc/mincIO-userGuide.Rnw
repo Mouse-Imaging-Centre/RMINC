@@ -226,7 +226,7 @@ Before we go on to the next function, we need to learn how to peek inside the ac
 <<echo=TRUE>>=
 str(volInfo)
 @
-Lots of stuff, yes?  It contains all of the information seen in the display, and a bit more.  Each element within the structure has a fairly intuitive name, and if you desire, any element can be extracted and used programmatically within R. For those of you who desire an in-depth knowledge of R S4 objects --- have a look at the ``Writing R Extensions'' document that comes with R.  However, just to get a taste, here are a few examples.
+Lots of stuff, yes?  It contains all of the information seen in the display, and a bit more.  Each element within the structure has a fairly intuitive name, and if you desire, any element can be extracted and used programmatically within R. For those of you who desire an in-depth knowledge of R S4 objects --- have a look at the ``Writing R Extensions'' document that comes with R.  Also, please note that there is a better (and recommended) way of extracting this information when writing your own scripts; we'll be looking at that way of doing this next.  But first, let's take a look at a few examples of doing this the hard way, since it provides a bit of insight into how the mincIO objects are actually constructed.\footnote{Of course, if you just want to get a job done, feel free to skip over this bit and move right on to the \texttt{mincIO.getProperty()} method.}
 
 <<echo=TRUE, keep.source=TRUE>>=
 # print the filename
@@ -247,8 +247,19 @@ print(volInfo@dimInfo$sizes[1])
 @
 These commands need some explanation.  The storage of image data within volumes is quite flexible, permitting data to be ordered in a number of different ways.  For example, image data can be stored as axial slices (e.g., zyx-order), coronal slices (e.g., yxz-order), or sagittal slices (e.g., xyz-order).  This flexibility can make writing code unnecessarily complicated, since one always has to check for data orientation.  In \textsf{mincIO}, this issue was addressed by using an extremely useful feature of the MINC2 API --- the ability to set an ``apparent'' order to be used for IO operations, regardless of the actual order of the image data within the volume.  As such, all \textsf{mincIO} IO operations use an \emph{apparent} order of ZYX.  That is, all volumes are read as if they were comprised of axial slices, and this is why the \texttt{print(volInfo@dimInfo\$sizes)} function shown above displays the dimension information in ZYX order.\footnote{The Civet pipeline creates all volumes in ZYX order, thus any overhead required by the MINC2 API to reorder the volumes is bypassed.} The final command demonstrates that, since R uses 1-relative indexing, in order to extract the number of (axial) slices, one needs to get the first element of the \texttt{volInfo@dimInfo\$sizes} vector.
 
-If you're starting to get a little queasy about this internal stuff, please rest assured that one will normally never have to deal with it.  MincInfo objects are normally used internally within the \textsf{mincIO} package to pass volume information to functions, and it should be entirely possible to do all sorts of developemnt without needing to deal with the internal details of the various S4 objects.  Relax.  Take a deep breath.  It's all going to be all right.\footnote{Please note that the phrase ``Relax.  Take a deep breath.  It's all going to be all right.'' is a trademark of Universal Mind Control Corp.}
+If you're starting to get a little queasy about this internal stuff, please rest assured that one will normally never have to deal with it, since there is a better way of getting at this information. So relax.  Take a deep breath.  It's all going to be all right.\footnote{Please note that the phrase ``Relax.  Take a deep breath.  It's all going to be all right.'' is a trademark of Universal Mind Control Corp.}
 
+Now for the easier and recommended way of doing the above.  Specifically, the better way involves use of the \texttt{mincIO.getProperty()} set of methods, which have conveniently been defined for all mincIO objects.  So let's do exactly what we just did, only using the new accessor methods.
+
+<<echo=TRUE, keep.source=TRUE>>=
+mincIO.getProperty(volInfo, "filename")       # print the filename
+mincIO.getProperty(volInfo, "nDimensions")    # show number of dimensions
+mincIO.getProperty(volInfo, "sizes")          # show number of elements
+mincIO.getProperty(volInfo, "sizes")[3]       # get the number of axial slices
+mincIO.getProperty(volInfo, "starts")         # get dim start values
+@
+
+Much easier, huh?  Also, note that you don't have to worry about where in the S4 object the information exists; you just specify a single property name, and the accessor finds it for you.  Additionally, note that the dimension-related information is returned in xyz-order, reflecting the standard mincIO ordering, so no need to manually reorder anything. Nice, yes?
 
 
 \subsection*{Doing Stuff with Volumes}
@@ -675,7 +686,9 @@ png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
-xyplot(voxel_array[1,] ~ round(round(voxel_array@mincInfo@timeOffsets)/60),
+timeOffsets <- mincIO.getProperty(voxel_array, "timeOffsets")
+print(timeOffsets)
+xyplot(voxel_array[1,] ~ round(round(timeOffsets)/60),
 xlab='Frame Acquisition Time (Minutes)',
 ylab=paste('Real Voxel Value at voxel [', paste(voxCoords, collapse=" "), ']', sep=""),
        panel = function(x, y) {
