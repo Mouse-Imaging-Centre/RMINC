@@ -6,7 +6,7 @@ vers <- paste("R package version", desc$Version)
 citEntry(entry="Manual",
 		title = "Package RMINC: Voxel-Wise Morphometry using RMINC",
 		author = personList(as.person("Jason Lerch"), as.person("Jim Nikelski"), as.person("the RMINC team")),
-		year = 2009,
+		year = 2010,
 		note = vers,
 		organization = "McGill University",
 		address = "Montreal, Quebec, Canada",

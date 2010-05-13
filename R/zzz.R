@@ -9,7 +9,7 @@
 	library.dynam(libName, package=pkgname, lib.loc=libpath)
 
 	if ( R_DEBUG_mincIO ) {
-		cat("Package mincIO: Debugging is turned ON.\n")
+		cat("Package RMINC::mincIO. Debugging is turned ON.\n")
 	}
 
 }

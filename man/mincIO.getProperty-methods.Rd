@@ -40,7 +40,9 @@
 \author{Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}}
 
 \seealso{
-    \code{\linkS4class{MincInfo}} \code{\linkS4class{MincVolumeIO}} \code{\linkS4class{MincSlice}} \code{\linkS4class{MincSliceIO}} \code{\linkS4class{MincVoxelIO}}
+    \code{\link{mincIO.setProperty}}
+    \code{\linkS4class{MincInfo}} \code{\linkS4class{MincVolumeIO}} \code{\linkS4class{MincSlice}}
+    \code{\linkS4class{MincSliceIO}} \code{\linkS4class{MincVoxelIO}}
 }
 
 \examples{

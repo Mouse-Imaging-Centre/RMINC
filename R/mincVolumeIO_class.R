@@ -42,7 +42,7 @@ setClass("MincVolumeIO",
 
 
 # =============================================================================
-# Method to get a desired property value from a MincVolumeIO object
+# Methods to get/set a desired property value from a MincVolumeIO object
 #
 # =============================================================================
 
@@ -85,6 +85,79 @@ setMethod(
 		return(value)
 	}
 )
+
+
+# METHOD: mincIO.setProperty(MincVolumeIO)
+# PURPOSE: set a property from a MincVolumeIO object
+setMethod(
+	"mincIO.setProperty", 
+	signature=signature(mincIOobj="MincVolumeIO", propertyId="character"),
+	definition=function(mincIOobj, propertyId, value) {
+
+		if ( R_DEBUG_mincIO ) cat(">> MincVolumeIO::mincIO.setProperty() ... \n")
+
+
+		# get the variable name for the passed MincVolumeIO object
+		# ... we'll need it later to write out the updated object in place
+		objName <- deparse(substitute(mincIOobj))
+
+		# does the property exist in the MincVolumeIO object? i.e., valid slot name passed?
+		propertyHit <- FALSE
+		prevValue <- mincIO.getProperty(mincIOobj, propertyId)
+		if ( !is.null(prevValue) ) {
+				propertyHit <- TRUE
+		}
+
+		# property not found: warn and return NULL
+		if ( !propertyHit ) {
+			warning(sprintf("Property \"%s\" was not found in object \"%s\" [class %s]\n", 
+		                              propertyId, 
+		                              objName,
+		                              class(mincIOobj)))
+			return(invisible())
+		}
+
+		# setting new property
+		#
+		# define settable properties (for this class)
+		valid_properties <- c("filename",
+		                      "volumeIntensityRange",
+		                      "frameNumber",
+		                      "volumeType",
+		                      "colorMap")
+
+		# is the passed property settable?
+		if ( !propertyId %in% valid_properties ) {
+			warning(sprintf("Property \"%s\" is not settable in object \"%s\" [class %s]\n", 
+		                              propertyId, 
+		                              objName,
+		                              class(mincIOobj)))
+			return(invisible())
+		}
+
+		# set the property
+		if ( propertyId == "filename") mincIOobj@mincInfo@filename <- as.character(value)
+		if ( propertyId == "volumeIntensityRange") mincIOobj@mincInfo@volumeIntensityRange <- as.numeric(value)
+		if ( propertyId == "volumeIntensityRange") mincIOobj@volumeIntensityRange <- as.numeric(value)
+
+		if ( propertyId == "frameNumber") mincIOobj@frameNumber <- as.numeric(value)
+		if ( propertyId == "volumeType") mincIOobj@volumeType <- as.character(value)
+		if ( propertyId == "colorMap") mincIOobj@colorMap <- as.character(value)
+
+
+		# assign newly updated object to parent frame and then return nothing
+		if ( R_DEBUG_mincIO ) {
+			cat(sprintf("MincVolumeIO::mincIO.setProperty(). Old property: %s\n", as.character(prevValue)))
+			cat(sprintf("MincVolumeIO::mincIO.setProperty(). New property: %s\n", as.character(value)))
+			cat(sprintf("MincVolumeIO::mincIO.setProperty(). Updating object: %s\n", as.character(objName)))
+		}
+		#
+		assign(objName, mincIOobj, envir=parent.frame())
+		if ( R_DEBUG_mincIO ) cat("<< MincVolumeIO::mincIO.setProperty() ... \n")
+		return(invisible())
+	}
+)
+
 
 
 

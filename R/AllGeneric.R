@@ -97,6 +97,11 @@ setGeneric(
 	def = function(mincIOobj, propertyId) { standardGeneric("mincIO.getProperty") }
 ) 
 
+setGeneric( 
+	name="mincIO.setProperty", 
+	def = function(mincIOobj, propertyId, value) { standardGeneric("mincIO.setProperty") }
+) 
+
 
 
 

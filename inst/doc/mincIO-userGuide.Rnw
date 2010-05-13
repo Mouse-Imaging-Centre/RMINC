@@ -245,9 +245,7 @@ print(volInfo@dimInfo$sizes)
 # get the number of axial slices
 print(volInfo@dimInfo$sizes[1])    
 @
-These commands need some explanation.  The storage of image data within volumes is quite flexible, permitting data to be ordered in a number of different ways.  For example, image data can be stored as axial slices (e.g., zyx-order), coronal slices (e.g., yxz-order), or sagittal slices (e.g., xyz-order).  This flexibility can make writing code unnecessarily complicated, since one always has to check for data orientation.  In \textsf{mincIO}, this issue was addressed by using an extremely useful feature of the MINC2 API --- the ability to set an ``apparent'' order to be used for IO operations, regardless of the actual order of the image data within the volume.  As such, all \textsf{mincIO} IO operations use an \emph{apparent} order of ZYX.  That is, all volumes are read as if they were comprised of axial slices, and this is why the \texttt{print(volInfo@dimInfo\$sizes)} function shown above displays the dimension information in ZYX order.\footnote{The Civet pipeline creates all volumes in ZYX order, thus any overhead required by the MINC2 API to reorder the volumes is bypassed.} The final command demonstrates that, since R uses 1-relative indexing, in order to extract the number of (axial) slices, one needs to get the first element of the \texttt{volInfo@dimInfo\$sizes} vector.
-
-If you're starting to get a little queasy about this internal stuff, please rest assured that one will normally never have to deal with it, since there is a better way of getting at this information. So relax.  Take a deep breath.  It's all going to be all right.\footnote{Please note that the phrase ``Relax.  Take a deep breath.  It's all going to be all right.'' is a trademark of Universal Mind Control Corp.}
+These commands need some explanation.  The storage of image data within volumes is quite flexible, permitting data to be ordered in a number of different ways.  For example, image data can be stored as axial slices (e.g., zyx-order), coronal slices (e.g., yxz-order), or sagittal slices (e.g., xyz-order).  This flexibility can make writing code unnecessarily complicated, since one always has to check for data orientation.  In \textsf{mincIO}, this issue was addressed by using an extremely useful feature of the MINC2 API --- the ability to set an ``apparent'' order to be used for IO operations, regardless of the actual order of the image data within the volume.  As such, all \textsf{mincIO} IO operations use an \emph{apparent} order of ZYX.  That is, all volumes are read as if they were comprised of axial slices, and this is why the \texttt{print(volInfo@dimInfo\$sizes)} function shown above displays the dimension information in ZYX order.\footnote{The Civet pipeline creates all volumes in ZYX order, thus any overhead required by the MINC2 API to reorder the volumes is bypassed.} The final command demonstrates that, since R uses 1-relative indexing, in order to extract the number of (axial) slices, one needs to get the first element of the \texttt{volInfo@dimInfo\$sizes} vector. If you're starting to get a little queasy about this internal stuff, please rest assured that one will normally never have to deal with it, since there is a better way of getting at this information. So relax.  Take a deep breath.  It's all going to be all right.\footnote{The phrase ``Relax.  Take a deep breath.  It's all going to be all right.'' is a trademark of Universal Mind Control Corp.}
 
 Now for the easier and recommended way of doing the above.  Specifically, the better way involves use of the \texttt{mincIO.getProperty()} set of methods, which have conveniently been defined for all mincIO objects.  So let's do exactly what we just did, only using the new accessor methods.
 
@@ -256,10 +254,29 @@ mincIO.getProperty(volInfo, "filename")       # print the filename
 mincIO.getProperty(volInfo, "nDimensions")    # show number of dimensions
 mincIO.getProperty(volInfo, "sizes")          # show number of elements
 mincIO.getProperty(volInfo, "sizes")[3]       # get the number of axial slices
+mincIO.getProperty(volInfo, "sizes")["zspace"]  # ... again, by name
 mincIO.getProperty(volInfo, "starts")         # get dim start values
 @
 
 Much easier, huh?  Also, note that you don't have to worry about where in the S4 object the information exists; you just specify a single property name, and the accessor finds it for you.  Additionally, note that the dimension-related information is returned in xyz-order, reflecting the standard mincIO ordering, so no need to manually reorder anything. Nice, yes?
+
+
+If you would like to change some of the object's properties, try the \texttt{mincIO.setProperty()} function.  It works similarly to the \texttt{mincIO.getProperty()} function, with the following differences: (1) the \texttt{mincIO} object is changed in-place, thus no return value is used, and (2) not all properties can be changed.  Specifically, properties which, when changed, could result in an inconsistent \texttt{mincIO} object are not permitted to be modified.  So, for example, all dimension-related properties cannot be changed, as such changes may no longer reflect the dimensionality of the object's data array.  So, let's look at a couple of examples.
+
+<<echo=TRUE, keep.source=TRUE>>=
+# show structure before
+str(volInfo)
+
+# change filename
+mincIO.setProperty(volInfo, "filename", "my_bunny_goes_hop.mnc")
+# change intensity range
+mincIO.setProperty(volInfo, "volumeIntensityRange", c(0,123))
+
+# show structure after
+str(volInfo)
+@
+
+What we see is a change in both the filename and the volume intensity range properties. Note that since the filename is of character type, a literal string was supplied specifying the new name; the volume intensity range value needed to be supplied a 2-element numeric vector, reflecting the underlying slot type. As would be expected, attempts to modify an unsettable property shall be greeted with a stern rebuke.
 
 
 \subsection*{Doing Stuff with Volumes}
@@ -584,7 +601,7 @@ In addition to the common volume information (common to all volumes) the \texttt
 vol3s46 <- mincIO.getSliceFromSliceArray(slice_array_s46, 3)
 print(vol3s46)
 @
-So there you have it.  Slice 46 from the 3rd volume is now instantiated as a slice object, which we are free to either modify, move to a MincVolumeIO object, or simply visualize --- as we see in Figure~\ref{fig:sliceIO01}.
+So there you have it.  Slice 46 from the 3rd volume is now instantiated as a slice object, which we are free to either modify, move to a MincVolumeIO object, or simply visualize --- as we see in Figure~\ref{fig:sliceIO01} (note the change in the colorMap property, just because we can).
 
 
 % kludge to generate png graphics rather than pdf
@@ -595,6 +612,7 @@ png(filename=pngFilename)
 @
 % ... send plot out to png device
 <<fig=FALSE,echo=TRUE, keep.source=TRUE>>=
+mincIO.setProperty(vol3s46, "colorMap", "heat.colors")
 plot(vol3s46)                       # plot extracted slice
 @
 % ... close the png device
@@ -605,7 +623,7 @@ dev.off()
 \begin{figure}[htb!]
 \begin{center}
 \includegraphics[width=12cm,draft=false,clip=true]{\Sexpr{pngFilename}}
-\caption[]{\label{fig:sliceIO01} Slice 46 from the 3rd volume, as extracted from the slice array.}
+\caption[]{\label{fig:sliceIO01} Slice 46 from the 3rd volume, as extracted from the slice array, displayed using the \textit{heat.colors} color map.}
 \end{center}
 \end{figure}
 
