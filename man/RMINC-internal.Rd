@@ -20,6 +20,8 @@
 
 \alias{as.matrix.pdMat}
 \alias{as.matrix.reStruct}
+\alias{civet.AllROIs}
+\alias{civet.getAllFilenames}
 \alias{civetAllROIs}
 \alias{civetFilenames}
 \alias{coef.modelStruct}

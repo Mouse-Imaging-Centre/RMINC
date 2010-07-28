@@ -329,12 +329,15 @@ Now let's try something a little more adventurous. First, a mask is created by t
 <<echo=TRUE, keep.source=TRUE>>=
 # make a mask array (not a volume object)
 mask3D <- vol[,,]>100000
+class(mask3D)
 
 # apply the mask element-wise to the volume
 maskedImage <- vol * mask3D
+class(maskedImage)
 
 # recast image data into a MincVolumeIO object
-vol2 <-mincIO.asVolume(maskedImage, vol)
+vol2 <- mincIO.asVolume(maskedImage, vol)
+class(vol2)
 
 # combining previous 2 lines into 1
 vol2 <- mincIO.asVolume(vol * mask3D, vol)
@@ -363,7 +366,7 @@ dev.off()
 \end{center}
 \end{figure}
 
-See Figure~\ref{fig:volumePlotMasked} for a summary plot of the newly created, masked volume data.  While the \texttt{mincIO.asVolume()} function does a nice job of recasting arrays back into volumes, it would be nice if the arithmetic operations didn't strip off the object attributes in the first place.  I believe that this is solvable by over-loading some of the more commonly used operators.  Available in the next version? Stay tuned.
+See Figure~\ref{fig:volumePlotMasked} for a summary plot of the newly created, masked volume data.  While the \texttt{mincIO.asVolume()} function does a nice job of recasting arrays back into volumes, it would be nice if a select few arithmetic operations didn't strip off the object attributes in the first place.  I believe that this is solvable by over-loading some of the more commonly used operators.  Available in the next version? Stay tuned.
 
 
 

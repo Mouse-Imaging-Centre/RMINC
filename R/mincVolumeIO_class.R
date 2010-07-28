@@ -192,8 +192,8 @@ setMethod(
 
 		# the following fields mostly effect display
 		cat("\n---- Volume Display-Related Properties ----\n")
-		cat(sprintf("Volume type: %s\n", x@volumeType))
-		cat(sprintf("Colormap used for display: %s\n\n", x@colorMap))
+		cat(sprintf("volumeType: %s\n", x@volumeType))
+		cat(sprintf("colorMap used for display: %s\n\n", x@colorMap))
 
 		if ( R_DEBUG_mincIO ) cat("<< MincVolumeIO::print() ... \n")
 
@@ -222,8 +222,8 @@ setMethod(
 
 		# the following fields mostly effect display
 		cat("\n---- Volume Display-Related Properties ----\n")
-		cat(sprintf("Volume type: %s\n", object@volumeType))
-		cat(sprintf("Colormap used for display: %s\n\n", object@colorMap))
+		cat(sprintf("volumeType: %s\n", object@volumeType))
+		cat(sprintf("colorMap used for display: %s\n\n", object@colorMap))
 
 		if ( R_DEBUG_mincIO ) cat("<< MincVolumeIO::show() ... \n")
 	
@@ -440,16 +440,6 @@ mincIO.readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
 	}
 
 
-	# set the display properties to useful defaults (if unset)
-	if ( !hasArg(volumeType) ) {
-		volumeType <- "anatomical"
-		if ( mincInfo@nFrames > 0 )  volumeType <- "functional"
-	}
-	if ( !hasArg(colorMap) ) {
-		colorMap <- "gray"
-		if ( volumeType == "functional")  colorMap <- "rainbow"
-	}
-
 	# set start indices and counts to read an entire volume, then read
 	# make some adjustments in the case of 4 dimensions (time is dim #1)
 	if (  mincInfo@nDimensions == 3 )  { 
@@ -486,13 +476,47 @@ mincIO.readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
 						volumeIntensityRange=mincInfo@volumeIntensityRange,
 						frameNumber=frameNo)
 
-	# set display-related properties
+
+	# set the display properties to useful defaults (if unset)
+	if ( !hasArg(volumeType) ) {
+		mincIO.setProperty(mincVolume, "volumeType", "anatomical")
+		if ( mincIO.getProperty(mincVolume, "nFrames") > 0 )  {
+			mincIO.setProperty(mincVolume, "volumeType", "functional")
+		}
+		# ... if we have a very contrained range of values, let's call it a label volume
+		# ...    call round() to make the floats are more integer like, thus allowing 
+		# ...    the user to use the "==" operator in comparisons
+		nUniqueValues <- length(unique(mincVolume))
+		if ( nUniqueValues < 256 ) {
+			# ... is it really a mask volume?
+			# ...    Yes
+			if ( nUniqueValues == 2 ) mincIO.setProperty(mincVolume, "volumeType", "mask")
+			# ...    Nope
+			if ( nUniqueValues > 2 ) mincIO.setProperty(mincVolume, "volumeType", "label")
+			mincVolume <- round(mincVolume)
+			volMin <- min(mincVolume, na.rm=TRUE)
+			volMax <- max(mincVolume, na.rm=TRUE)
+			mincIO.setProperty(mincVolume, "volumeIntensityRange", c(volMin, volMax))
+		}
+	}
+	# ... else set it to the passed value
 	if ( hasArg(volumeType) ) {
-		mincVolume@volumeType <- volumeType
+		mincIO.setProperty(mincVolume, "volumeType", volumeType)
 	}
-	if ( hasArg(colorMap) ) {
-		mincVolume@colorMap <- colorMap
+	
+	# ... set colormap
+	if ( !hasArg(colorMap) ) {
+		if ( mincIO.getProperty(mincVolume, "volumeType") %in% c("anatomical", "mask") ) {
+				mincIO.setProperty(mincVolume, "colorMap", "gray")
+		}
+		if ( mincIO.getProperty(mincVolume, "volumeType") %in% c("functional", "label") ) {
+				mincIO.setProperty(mincVolume, "colorMap", "rainbow")
+		}
 	}
+	else {
+			mincIO.setProperty(mincVolume, "colorMap", colorMap)
+	}
+
 
 	# DONE. Return the new volume array object.
 	if ( R_DEBUG_mincIO ) cat("<< readVolumeX ... \n")
@@ -869,8 +893,9 @@ mincIO.makeNewVolumeX <- function(mincInfo) {
 						volumeIntensityRange=mincInfo@volumeIntensityRange)
 
    # set display-related properties for an anatomical volume
-	mincVolume@volumeType <- "anatomical"
-	mincVolume@colorMap <- "gray"
+	mincIO.setProperty(mincVolume, "volumeType", "anatomical")
+	mincIO.setProperty(mincVolume, "colorMap", "gray")
+
 
 	# DONE. Return MincVolumeIO object
 	if ( R_DEBUG_mincIO ) cat("<< mincIO.makeNewVolumeX() ... \n")
@@ -912,9 +937,9 @@ setMethod(
 		myVolume <- setDataPart(myVolume, array3D)
 		
 		# update volume-related fields
-		myVolume@volumeIntensityRange <- c(min(myVolume), max(myVolume))
-		myVolume@mincInfo@volumeIntensityRange <- c(myVolume@volumeIntensityRange[1],
-			                                        myVolume@volumeIntensityRange[2])
+		volMin <- min(myVolume, na.rm=TRUE)
+		volMax <- max(myVolume, na.rm=TRUE)
+		mincIO.setProperty(myVolume, "volumeIntensityRange", c(volMin, volMax))
 
 
 		# DONE. Return MincInfo object.
@@ -947,14 +972,138 @@ setMethod(
 		myVolume <- setDataPart(myVolume, array3D)
 		
 		# update volume-related fields
-		myVolume@volumeIntensityRange <- c(min(myVolume), max(myVolume))
-		myVolume@mincInfo@volumeIntensityRange <- c(myVolume@volumeIntensityRange[1],
-			                                        myVolume@volumeIntensityRange[2])
+		volMin <- min(myVolume, na.rm=TRUE)
+		volMax <- max(myVolume, na.rm=TRUE)
+		mincIO.setProperty(myVolume, "volumeIntensityRange", c(volMin, volMax))
 
 
 		# DONE. Return MincInfo object.
 		if ( R_DEBUG_mincIO ) cat("<< mincIO.asVolume (likeTemplate) ... \n")
 		return(myVolume)
+		
+	}
+)
+
+
+
+# =====================================================================
+# MincVolumeIO arithmetic operator overloading
+# =====================================================================
+
+
+# METHOD: mincIO.+(MincVolumeIO, MincVolumeIO)
+# PURPOSE: Add 2 MincVolumeIO objects (ADIDTION)
+#
+setMethod(
+	"+", 
+	signature=signature(e1="MincVolumeIO", 
+						e2="MincVolumeIO"), 
+	definition=function(e1, e2) {
+
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.+ ovrloaded operator ... \n")
+		
+		# A I sees it, we should have been passed 2 MincVolumeIO object
+		# ... do the math
+		newVol <- getDataPart(e1) + getDataPart(e2)
+		# convert to MincVolumeIO object reflecting the first object passed
+		newVol <- mincIO.asVolume(newVol, e1)
+		
+		# update volume-related fields
+		volMin <- min(newVol, na.rm=TRUE)
+		volMax <- max(newVol, na.rm=TRUE)
+		mincIO.setProperty(newVol, "volumeIntensityRange", c(volMin, volMax))
+
+		# DONE. Return MincInfo object.
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.+ ovrloaded operator ... \n")
+		return(newVol)
+		
+	}
+)
+
+
+# METHOD: mincIO.-(MincVolumeIO, MincVolumeIO)
+# PURPOSE: Subtract 2 MincVolumeIO objects (SUBTRACTION)
+#
+setMethod(
+	"-", 
+	signature=signature(e1="MincVolumeIO", 
+						e2="MincVolumeIO"), 
+	definition=function(e1, e2) {
+
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.- ovrloaded operator ... \n")
+		
+		# A I sees it, we should have been passed 2 MincVolumeIO object
+		# ... do the math
+		newVol <- getDataPart(e1) - getDataPart(e2)
+		# convert to MincVolumeIO object reflecting the first object passed
+		newVol <- mincIO.asVolume(newVol, e1)
+		
+		# update volume-related fields
+		volMin <- min(newVol, na.rm=TRUE)
+		volMax <- max(newVol, na.rm=TRUE)
+		mincIO.setProperty(newVol, "volumeIntensityRange", c(volMin, volMax))
+
+		# DONE. Return MincInfo object.
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.- ovrloaded operator ... \n")
+		return(newVol)
+		
+	}
+)
+
+# METHOD: mincIO.*(MincVolumeIO, MincVolumeIO)
+# PURPOSE: Multiply 2 MincVolumeIO objects (MULTIPLICATION)
+#
+setMethod(
+	"*", 
+	signature=signature(e1="MincVolumeIO", 
+						e2="MincVolumeIO"), 
+	definition=function(e1, e2) {
+
+		if ( R_DEBUG_mincIO ) cat(">> mincIO.* ovrloaded operator ... \n")
+		
+		# A I sees it, we should have been passed 2 MincVolumeIO object
+		# ... do the math
+		newVol <- getDataPart(e1) * getDataPart(e2)
+		# convert to MincVolumeIO object reflecting the first object passed
+		newVol <- mincIO.asVolume(newVol, e1)
+		
+		# update volume-related fields
+		volMin <- min(newVol, na.rm=TRUE)
+		volMax <- max(newVol, na.rm=TRUE)
+		mincIO.setProperty(newVol, "volumeIntensityRange", c(volMin, volMax))
+
+		# DONE. Return MincInfo object.
+		if ( R_DEBUG_mincIO ) cat("<< mincIO.* ovrloaded operator ... \n")
+		return(newVol)
+		
+	}
+)
+
+# METHOD: mincIO./(MincVolumeIO, MincVolumeIO)
+# PURPOSE: Divide 2 MincVolumeIO objects (DIVISION)
+#
+setMethod(
+	"/", 
+	signature=signature(e1="MincVolumeIO", 
+						e2="MincVolumeIO"), 
+	definition=function(e1, e2) {
+
+		if ( R_DEBUG_mincIO ) cat(">> mincIO./ ovrloaded operator ... \n")
+		
+		# A I sees it, we should have been passed 2 MincVolumeIO object
+		# ... do the math
+		newVol <- getDataPart(e1) / getDataPart(e2)
+		# convert to MincVolumeIO object reflecting the first object passed
+		newVol <- mincIO.asVolume(newVol, e1)
+		
+		# update volume-related fields
+		volMin <- min(newVol, na.rm=TRUE)
+		volMax <- max(newVol, na.rm=TRUE)
+		mincIO.setProperty(newVol, "volumeIntensityRange", c(volMin, volMax))
+
+		# DONE. Return MincInfo object.
+		if ( R_DEBUG_mincIO ) cat("<< mincIO./ ovrloaded operator ... \n")
+		return(newVol)
 		
 	}
 )

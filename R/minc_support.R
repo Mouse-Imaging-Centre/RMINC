@@ -188,6 +188,98 @@ rminc.getDataClasses <- function() {
 
 
 
+rminc.checkForExternalProgram <- function(program, test_string, prog_options="") {
+	# =============================================================================
+	# Purpose: Check for the existence of an external program.
+	#
+	# Details:
+	#	This function is passed the name of a program or script that is s'posed 
+	#	to be on the user's path, along with an option that generates a known
+	#	response (the test_string).  If the passed test_string is not found in
+	#	the returned output, we send a warning message and then return FALSE.
+	#	The user, given a FALSE, can then cobble together a fitting response to
+	#	the user.
+	#
+	# Example:
+	#	program <- "xfm2param_nonexisting"
+	#	progOptions <- "-version"
+	#	test_string <- "mni_autoreg"
+	#	result <- rminc.checkForExternalProgram(program, test_string, progOptions)
+	#	if ( !result ) { ... }
+	#
+	# Note: Nothing of note, really.
+	#
+	# =============================================================================
+	#
+
+	# create string to submit to shell and then run it
+	cmd <- paste(program, prog_options)
+	cmdOut <- system(cmd, intern=TRUE, wait=TRUE)
+	
+	# collapse all output into a single line for easy grepping
+	cmdOutLong <- paste(cmdOut, collapse="")
+	
+	# look for test string in output
+	if ( !grepl(test_string, cmdOutLong, fixed=TRUE) ) {
+		# test string not found??
+		cat(sprintf("Attempt to execute program \"%s\" within shell failed\n", program))
+		cat(sprintf("Shell responded with: \n%s\n", cmdOut))
+		warning("\nCheck your path ...")
+		return(FALSE)
+	}
+	
+	# return TRUE if we made this far
+	return(TRUE)
+}
+
+
+
+rminc.readLinearXfmFile <- function(xfmFilename) {
+	# =============================================================================
+	# Purpose: Read the contents of a linear XFM file.
+	#
+	# Details:
+	#	This is done by spawning the xfm2param program from the  
+	#	mni_autoreg package.  As such, we need to make sure that this
+	#	MNI package is installed and xfm2param is on the user's PATH.
+	#
+	#
+	# Note: Nothing of note, really.
+	#
+	# =============================================================================
+	#
+
+	# check for the external program
+	program <- "xfm2param"
+	progOptions <- "-version"
+	test_string <- "mni_autoreg"
+	status <- rminc.checkForExternalProgram(program, test_string, progOptions)
+	if ( !status ) { stop("Program xfm2param of package mni_autoreg cannot be found on PATH") }
+
+	# OK, so we have xfm2pram -- now let's do the read
+	# ... first have xfm2param place tabular output in a temp file
+	tmpfile <- tempfile("rminc.readLinearXfmFile")
+	cmd <- paste("xfm2param", xfmFilename, "> ", tmpfile)
+	# ... now read the nicely formatted tabular file
+	system(cmd, intern=TRUE, wait=TRUE)
+	xfm.df <- read.table(tmpfile, skip=1, stringsAsFactors=FALSE)
+	
+	# make first column into row names
+	rowNames <- xfm.df[,1]
+	rowNames <- gsub("^-", "", rowNames)
+	row.names(xfm.df) <- rowNames
+	
+	# change col names and then remove col 1
+	names(xfm.df) <- c("dummy", "x", "y", "z")
+	xfm.df <- subset(xfm.df,select=-dummy) 
+	
+	# return the xfm data.frame
+	return(xfm.df)
+}
+
+
+
+
 
 
 

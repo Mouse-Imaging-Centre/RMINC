@@ -1,3 +1,29 @@
+New in Version 1.0.2
+====================
+
+* added a bunch of civet convenience functions. All functions
+  are prefixed with civet.*
+* added renamed versions of both of Jason's civet functions, 
+  matching the new naming convention. The previous versions
+  still exist, but have had deprecation warnings added.
+* added a new volume.* prefix for functions that do 
+  non-statistical processing on volumes.
+* added function volume.explodeLabelVolume() to split, for
+  example, a Civet classify volume into its 4 component
+  volumes. Also added function volume.combineMaskVolumes()
+  to, ummmm, combine any number of mask volume objects into
+  a unified mask volume object.
+* finally got around to figuring out how to overload the 
+  basic S4 arithmetic operators, allowing me to now do
+  "+-*/" operations on MincVolumeIO objects without 
+  having the resulting objects converted to array objects.
+* added a new "label" volume type which is auto-detected and
+  displayed using a spectral-ish colormap (like the functional
+  volumes).
+* added a new "mask" volume type which is auto-detected and
+  displayed using a gray-scale (really just black and white) 
+  colormap.
+
 New in Version 1.0.1
 ====================
 
