@@ -1,3 +1,13 @@
+New in Version 1.0.3
+====================
+
+* added a couple of civet convenience functions to 
+  compute tissue volumes.
+* added a civet convenience function to compute the
+  global native-to-icbm_model rescaling factor. This
+  is super useful in creating volume estimates in native
+  space, given icbm values as input.
+
 New in Version 1.0.2
 ====================
 

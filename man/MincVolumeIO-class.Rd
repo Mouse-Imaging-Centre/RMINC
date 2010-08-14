@@ -3,6 +3,10 @@
 \docType{class}
 \alias{MincVolumeIO-class}
 \alias{MincVolumeIO}
+\alias{+,MincVolumeIO,MincVolumeIO-method}
+\alias{-,MincVolumeIO,MincVolumeIO-method}
+\alias{*,MincVolumeIO,MincVolumeIO-method}
+\alias{/,MincVolumeIO,MincVolumeIO-method}
 
 \title{Class "MincVolumeIO"}
 

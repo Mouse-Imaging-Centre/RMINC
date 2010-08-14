@@ -343,7 +343,6 @@ civet.getFilenameMeanSurfaceCurvature <- function(scanID, baseDir, civetVersion=
 # =============================================================================
 # Purpose: 
 #	Return the fully-qualified transform filenames (linear and nonlinear).
-#	(left and right).
 #
 # Example: See civet.getFilenameClassify
 # Note: The request for the nonlinear transform file, returns 2 filenames: 
@@ -698,8 +697,120 @@ civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion="1.1.9") {
 
 
 
+# =============================================================================
+# Purpose: 
+#	Return a named vector containing the tisse volumes, in stx space, derived from 
+#	the final tissue classification volume.
+#
+# Example: 
+#	scanID <- "0548-F-NC"
+#	baseDir <- "~/tmp/ADNI/civet/pipeOut"
+#	cls_vec <- civet.computeStxTissueVolumes(scanID, baseDir)
+#	print(cls_vec["gm"])
+# =============================================================================
+#
+civet.computeStxTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.9") {
+	#
+	# check whether the Civet version has been tested
+	civet.checkVersion(civetVersion)
+	
+	# get a list of matching filenames in the classify dir, and return
+	baseDir <- path.expand(baseDir)
+	scanRoot <- file.path(baseDir, scanID)
+
+	# get classify volume name
+	filename <- civet.getFilenameClassify(scanID, baseDir)
+	cls_vol <- mincIO.readVolume(filename)
+
+	# explode classify into components
+	clsX <- volume.explodeLabelVolume(cls_vol, civetLabels=TRUE)
+	
+	# store elements into named vector
+	cls_vec <- numeric(3)
+	names(cls_vec) <- c("csf", "gm", "wm")
+	cls_vec["csf"] <- sum(clsX$csf)
+	cls_vec["gm"] <- sum(clsX$gm)
+	cls_vec["wm"] <- sum(clsX$wm)
+	
+	return(cls_vec)
+}
+#
+
+# =============================================================================
+# Purpose: 
+#	XFM files contain information to transform a given volume to a model.
+#	In the case of Civet and rescaling, the XFM contains the rescaling 
+#	factors (x,y,z) needed to transform the Native volume to the model, which
+#	currently, is usually the symmetrical icbm-152 model.
+#
+#	This functuon serves to compute a global rescaling factor by reading
+#	the individual x,y,z rescales from the XFM, and returning the
+#	product.
+#
+#	Interpretation of rescaling factors:
+#	(a) > 1.0 = native brain is expanded to fit model
+#	(b) < 1.0 = native brain is reduced to fit model
+#
+# Example: 
+#	scanID <- "0548-F-NC"
+#	baseDir <- "~/tmp/ADNI/civet/pipeOut"
+#	rescale <- civet.computeNativeToStxRescalingFactor(scanID, baseDir)
+#	print(rescale)
+# =============================================================================
+#
+civet.computeNativeToStxRescalingFactor <- function(scanID, baseDir, civetVersion="1.1.9") {
+	#
+	# check whether the Civet version has been tested
+	civet.checkVersion(civetVersion)
+	
+	# read linear xfm file
+	xfmFilename <- civet.getFilenameLinearTransform(scanID, baseDir)
+	xfm.df <- rminc.readLinearXfmFile(xfmFilename)
+	
+	# compute global linear scaling factor
+	scaling_factor <- prod(xfm.df["scale",])
+	
+	# return
+	return(scaling_factor)
+}
+#
 
 
+
+# =============================================================================
+# Purpose: 
+#	Return a named vector containing NATIVE space tisse volumes, derived from 
+#	the final tissue classification volume.
+#
+# Example: 
+#	scanID <- "0548-F-NC"
+#	baseDir <- "~/tmp/ADNI/civet/pipeOut"
+#	cls_vec <- civet.computeNativeTissueVolumes(scanID, baseDir)
+#	print(cls_vec["gm"])
+# =============================================================================
+#
+civet.computeNativeTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.9") {
+	#
+	# check whether the Civet version has been tested
+	civet.checkVersion(civetVersion)
+	
+	# get a list of matching filenames in the classify dir, and return
+	baseDir <- path.expand(baseDir)
+	scanRoot <- file.path(baseDir, scanID)
+
+	# get vector of tissue volumes in stx space first
+	cls_vec <- civet.computeStxTissueVolumes(scanID, baseDir)
+
+	# compute the global rescaling factor
+	scaling_factor <- civet.computeNativeToStxRescalingFactor(scanID, baseDir)
+	
+	# divide the stx volumes by the scaling factor
+	cls_vec <- cls_vec / scaling_factor
+	
+	# return
+	return(cls_vec)
+}
+#
 
 
 
