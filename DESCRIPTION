@@ -1,6 +1,6 @@
 Package: RMINC
-Version: 1.0.3
-Date: 2010-08-13
+Version: 1.0.4
+Date: 2010-12-02
 Title: Package for reading and analyzing MINC2 files
 Author: Jason Lerch <jason@phenogenomics.ca>, Jim Nikelski <nikelski@bic.mni.mcgill.ca>
 Maintainer: Jason lerch <jason@phenogenomics.ca>

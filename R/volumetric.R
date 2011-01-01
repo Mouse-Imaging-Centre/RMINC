@@ -18,7 +18,7 @@
 #	(if civetLabels == TRUE).
 # =============================================================================
 #
-volume.explodeLabelVolume <- function(label_vol, civetLabels=TRUE) {
+volume.explodeLabelVolume <- function(label_vol, labels=NULL, civetLabels=TRUE) {
 	
 	# list the tissue types in Civet order, to be used in naming the
 	# components of the returned list
@@ -27,8 +27,18 @@ volume.explodeLabelVolume <- function(label_vol, civetLabels=TRUE) {
 	# read the label volume
 	# label_vol <- mincIO.readVolume(labelVolname)
 
-	# first, get the number of unique labels
-	labels <- unique(label_vol)
+	# here we have a choice: We either specify which labels we want exploded out,
+	# or, we don't, and we get all of them
+	#
+	if ( is.null(labels)) {
+		# not specified, so get the set of unique labels
+		labels <- unique(label_vol)
+	} else {
+		# specified, ... make sure we've been passed a numeric vector
+		if ( !is.vector(labels, mode="numeric")) {stop("Label vector must be a numeric vector")}
+		
+	}
+
 
 	# loop thru all labels, creating a mask for each
 	return_list <- list()
@@ -37,6 +47,7 @@ volume.explodeLabelVolume <- function(label_vol, civetLabels=TRUE) {
 		# determine the list component name
 		label_name <- paste("label", label, sep="_")
 		if ( civetLabels ) { label_name <- tissueTypes[label +1]}
+		if (R_DEBUG_mincIO) cat(sprintf("processing label %s\n", label_name))
 		
 		# compute the mask
 		#cat(sprintf("processing label %s\n", label_name))

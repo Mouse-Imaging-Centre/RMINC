@@ -486,7 +486,7 @@ mincIO.readVolumeX <- function(mincInfo, frameNo, volumeType, colorMap) {
 		# ... if we have a very contrained range of values, let's call it a label volume
 		# ...    call round() to make the floats are more integer like, thus allowing 
 		# ...    the user to use the "==" operator in comparisons
-		nUniqueValues <- length(unique(mincVolume))
+		nUniqueValues <- length(unique(round(mincVolume)))
 		if ( nUniqueValues < 256 ) {
 			# ... is it really a mask volume?
 			# ...    Yes

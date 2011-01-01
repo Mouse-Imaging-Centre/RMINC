@@ -1,3 +1,14 @@
+New in Version 1.0.4
+====================
+
+* added a new 'labels' argument to volume.explodeLabelVolume to permit
+  specification of a subset of labels that one wants exploded out as
+  masks.
+* fixed a volume type determination error in mincIO.writeVolumeX. 
+  Label volumes were not being identified as such due to
+  issues relating to use of floating point values to represent 
+  integers.
+
 New in Version 1.0.3
 ====================
 
