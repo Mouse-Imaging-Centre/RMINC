@@ -155,6 +155,17 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   attr(result, "atlas") <- attr(anat, "atlas")
   attr(result, "definitions") <- attr(anat, "definitions")
   attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "stat-type") <- c("F", rep("t", ncol(result)-1))
+  
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+
+  dflist <- vector("list", ncol(result))
+  dflist[[1]] <- c(Fdf1, Fdf2)
+  dflist[2:length(dflist)] <- Fdf2
+  attr(result, "df") <- dflist
+  
+  
   return(result)
     
 }
