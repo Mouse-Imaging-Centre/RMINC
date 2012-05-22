@@ -533,14 +533,14 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       if (statType[i] == "F") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
 		# cat(sprintf("Number of sub-threshold F p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) > 1 ) {
+		if ( length(subTholdPvalues) >= 1 ) {
 			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
       else if (statType[i] == "t") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
 		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) > 1 ) {
+		if ( length(subTholdPvalues) >= 1 ) {
 			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
