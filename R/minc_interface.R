@@ -630,7 +630,7 @@ mincApply <- function(filenames, function.string, mask=NULL) {
                    NULL,
                    as.double(! is.null(mask)),
                    as.character(mask),
-                   parent.env(environment()),
+                   .GlobalEnv,
                    as.double(length(test)),
                    as.character("eval"), PACKAGE="RMINC");
 
@@ -717,7 +717,7 @@ mincApplyLme <- function(filenames, function.string, mask=NULL) {
                    NULL,
                    as.double(! is.null(mask)),
                    as.character(mask),
-                   parent.env(environment()),
+                   .GlobalEnv,
                    as.double(length(test)),
                    as.character("eval"), PACKAGE="RMINC");
 
