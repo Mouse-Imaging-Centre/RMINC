@@ -17,5 +17,5 @@ Collate: AllGeneric.R
 LazyLoad: yes
 OS_type: unix
 SystemRequirements: 
-URL: https://launchpad.net/rminc, https://wiki.phenogenomics.ca/display/MICePub/RMINC
+URL: https://github.com/mcvaneede/RMINC, https://wiki.phenogenomics.ca/display/MICePub/RMINC
 

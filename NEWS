@@ -1,3 +1,18 @@
+New in Version 1.0.5
+====================
+* changed name of default volume calculation in anatGetFile to be 
+  jacobians instead of volume.
+* added labels option for volume calculation. This enables users
+  to specify a separate set of labels for each input brain and 
+  calculate the volume from these directly, rather than using
+  a single set of labels for the consensus image combined with 
+  the jacobians for each brain.
+* fixed error in anatCombineStructures when means are used. 
+* this version will now require installation of pyminc
+  and pyminctools, both of which contain the python libraries
+  and scripts needed for the anatGetFile 'labels' and 'jacobians'
+  options. Both of these are available on github.
+
 New in Version 1.0.4
 ====================
 

@@ -1,10 +1,15 @@
 # compute a linear model over every structure
 
 
-anatGetFile <- function(filename, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
+anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
   out <- NULL
-  if (method == "volume") {
+  if (method == "jacobians") {
     system(paste("label_volumes_from_jacobians", atlas, filename, "> tmp.txt", sep=" "))
+    out <- read.csv("tmp.txt", header=FALSE)
+  }
+  else if (method == "labels") {
+    # filename here should be a set of labels unique to this brain
+    system(paste("volumes_from_labels_only.py", filename, "tmp.txt", sep=" "))
     out <- read.csv("tmp.txt", header=FALSE)
   }
   else if (method == "means") {
@@ -72,7 +77,7 @@ print.anatMatrix <- function(x, ...) {
   print.table(x)
 }
 
-anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both") {
+anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both") {
   vol <- anatGetFile(filenames[1], atlas, method, defs, dropLabels, side)
   output <- matrix(nrow=nrow(vol), ncol=length(filenames))
   rownames(output) <- vol[,1]
@@ -88,7 +93,7 @@ anatGetAll <- function(filenames, atlas, method="volume", defs="/projects/mice/j
   return(t(output))
 }
 
-anatCombineStructures <- function(vols, method="volume", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
+anatCombineStructures <- function(vols, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
   labels <- read.csv(defs)
   combined.labels <- matrix(nrow=nrow(vols), ncol=nrow(labels))
   labelNumbers <- attr(vols, "anatIDs")
@@ -97,13 +102,13 @@ anatCombineStructures <- function(vols, method="volume", defs="/projects/mice/jl
       combined.labels[,i] <- vols[, labelNumbers == as.character(labels$right.label[i])]
     }
     else {
-      if (method == "volume") {
+      if (method == "jacobians" || method == "labels") {
         combined.labels[,i] <-
           vols[, labelNumbers == as.character(labels$right.label[i])] + vols[, labelNumbers == as.character(labels$left.label[i])]
       }
-      else {
+      else if (method == "means"){
         combined.labels[,i] <-
-          vols[, labelNumbers == as.character(labels$right.label[i])] + vols[, labelNumbers == as.character(labels$left.label[i])] /2
+          (vols[, labelNumbers == as.character(labels$right.label[i])] + vols[, labelNumbers == as.character(labels$left.label[i])]) /2
       }
         
     }
