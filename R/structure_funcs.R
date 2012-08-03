@@ -78,14 +78,31 @@ print.anatMatrix <- function(x, ...) {
 }
 
 anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both") {
-  vol <- anatGetFile(filenames[1], atlas, method, defs, dropLabels, side)
-  output <- matrix(nrow=nrow(vol), ncol=length(filenames))
-  rownames(output) <- vol[,1]
+  # Get output dimensions from full set of label definitions
+  labeldefs <- read.csv(defs) 
+  labels <- c(0, labeldefs$right.label, labeldefs$left.label)
+  labels.sorted <- sort(labels)
+  usedlabels <- labels.sorted[!duplicated(labels.sorted)]
+  
+  output <- matrix(nrow = length(usedlabels), ncol = length(filenames))
+  rownames(output) <- usedlabels
 
-  output[,1] <- vol[,2]
-  for (i in 2:length(filenames)) {
-    output[,i] <- anatGetFile(filenames[i], atlas, method, defs, dropLabels, side)[,2]
+  for (i in 1:length(filenames)){
+    vol <- anatGetFile(filenames[i], atlas, method, defs, dropLabels, side)
+    for (j in 1:length(usedlabels)){
+       if(usedlabels[j] == vol[j,1]){
+          output[j,i] <- vol[j,2]
+       }
+       else {
+          #If labels don't exist for a particular volume, set their value to zero
+          toadd <- list(usedlabels[j],0)
+          dim = nrow(vol)
+          vol <- rbind(vol[1:j-1,], toadd, vol[j:dim,]) 
+          output[j,i] <- 0
+       }			
+    }
   }
+ 
   attr(output, "atlas") <- atlas
   if (! is.null(defs)) {
     output <- anatRenameRows(output, defs)
