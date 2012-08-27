@@ -14,7 +14,7 @@ If you want to install the library somewhere else, the R_LIBS environment variab
 
 The latest version of the software:
 
-> git clone git@github.com:mcvaneede/RMINC.git RMINC
+> git clone https://github.com/mcvaneede/RMINC.git RMINC
 > cd RMINC
 > ./autogen.sh
 > cd ../
