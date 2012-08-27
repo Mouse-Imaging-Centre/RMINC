@@ -1,4 +1,29 @@
-Statistics for MINC volumes: A library to integrate voxel-based statistics for MINC volumes into the R environment. Supports getting and writing of MINC volumes, running voxel-wise linear models, correlations, etc.; correcting for multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Jim Nikelski and Matthijs van Eede. Some additional information can be found here:
+Statistics for MINC volumes: A library to integrate voxel-based statistics for MINC volumes into the R environment. 
+Supports getting and writing of MINC volumes, running voxel-wise linear models, correlations, etc.; correcting for 
+multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Jim Nikelski and 
+Matthijs van Eede. Some additional information can be found here:
 
 https://wiki.phenogenomics.ca/display/MICePub/RMINC
 
+Installation:
+
+The R_LIBS variable determines where the library is installed. By default it will be installed under /usr/share. 
+If you want to install the library somewhere else, the R_LIBS environment variable should be set.
+
+> export R_LIBS=/build/directory
+
+The latest version of the software:
+
+> git clone git@github.com:mcvaneede/RMINC.git RMINC
+> cd RMINC
+> ./autogen.sh
+> cd ../
+> R CMD INSTALL RMINC /directory/where/sourcefiles/go --configure-args='--with-build-path=/install/directory/minc2'
+
+
+Installation of a release:
+
+Download the tarball from the Github RMINC website https://github.com/mcvaneede/RMINC/tree/master/releases
+Install the package (example is for the tarball version 0.5):
+
+> R CMD INSTALL RMINC_0.5.tar.gz --configure-args='--with-build-path=/install/directory/minc2'
