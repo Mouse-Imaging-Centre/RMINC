@@ -1,0 +1,4 @@
+2012-10-02 Matthijs van Eede <matthijs@phenogenomics.ca>
+
+	* added a couple of checks in the anatGetAll function to compare the list of labels that was found in an input file and the labels that are defined in the mapping. If there are any discrepancies, that can lead to hard to debug problems...
+

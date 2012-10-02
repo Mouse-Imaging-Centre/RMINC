@@ -89,6 +89,22 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mic
 
   for (i in 1:length(filenames)){
     vol <- anatGetFile(filenames[i], atlas, method, defs, dropLabels, side)
+
+    ### some quick error checking ###
+    # get the list of all the labels that was found in the current file
+    labels_found <- vol$V1
+    # find labels that occurred in the file, but not in the mapping
+    diff_between_file_and_mapping <- setdiff(labels_found, usedlabels)
+    if(length(diff_between_file_and_mapping) > 0) {
+      print(paste("WARNING: Labels found in the inputfile, but not in the mapping: ", diff_between_file_and_mapping))
+    }
+    # find labels that occurred in the mapping, but not in the file
+    diff_between_mapping_and_file <- setdiff(usedlabels,labels_found)
+    if(length(diff_between_mapping_and_file) > 0) {
+      print(paste("WARNING: Labels found in the mapping, but not in the file: ", diff_between_mapping_and_file))
+    }
+    ### end of error checking ###
+
     for (j in 1:length(usedlabels)){
        if(usedlabels[j] == vol[j,1]){
           output[j,i] <- vol[j,2]
