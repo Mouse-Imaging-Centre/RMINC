@@ -10,10 +10,7 @@
 
 % anatomical functions
 \alias{anatApply}
-\alias{anatCombineStructures}
-\alias{anatCreateVolume}
 \alias{anatFDR}
-\alias{anatGetAll}
 \alias{anatGetFile}
 \alias{anatLm}
 \alias{anatRenameRows}

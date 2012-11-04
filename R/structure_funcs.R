@@ -13,7 +13,13 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
     out <- read.csv("tmp.txt", header=FALSE)
   }
   else if (method == "means") {
-    system(paste("average_values_across_segmentation.py", filename, atlas, "tmp.txt", sep=" "))
+    system(paste("compute_values_across_segmentation", "-m",
+                 filename, atlas, "tmp.txt", sep=" "))
+    out <- read.csv("tmp.txt", header=FALSE)
+  }
+  else if (method == "sums") {
+    system(paste("compute_values_across_segmentation", "-s",
+                 filename, atlas, "tmp.txt", sep=" "))
     out <- read.csv("tmp.txt", header=FALSE)
   }
   else if (method == "text") {
@@ -135,7 +141,7 @@ anatCombineStructures <- function(vols, method="jacobians", defs="/projects/mice
       combined.labels[,i] <- vols[, labelNumbers == as.character(labels$right.label[i])]
     }
     else {
-      if (method == "jacobians" || method == "labels") {
+      if (method == "jacobians" || method == "labels" || method == "sums") {
         combined.labels[,i] <-
           vols[, labelNumbers == as.character(labels$right.label[i])] + vols[, labelNumbers == as.character(labels$left.label[i])]
       }

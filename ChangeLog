@@ -1,3 +1,7 @@
+2012-11-03 Jason Lerch <jason@phenogenomics.ca>
+	* bumped version to 1.0.5
+	* added anatGetAll man page
+	* added method=sums to anatGetAll, anatGetFile, and anatCombineStructures
 2012-10-02 Matthijs van Eede <matthijs@phenogenomics.ca>
 
 	* added a couple of checks in the anatGetAll function to compare the list of labels that was found in an input file and the labels that are defined in the mapping. If there are any discrepancies, that can lead to hard to debug problems...
