@@ -86,7 +86,7 @@ print.anatMatrix <- function(x, ...) {
 anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both") {
   # Get output dimensions from full set of label definitions
   labeldefs <- read.csv(defs) 
-  labels <- c(0, labeldefs$right.label, labeldefs$left.label)
+  labels <- c(labeldefs$right.label, labeldefs$left.label)
   labels.sorted <- sort(labels)
   usedlabels <- labels.sorted[!duplicated(labels.sorted)]
   
