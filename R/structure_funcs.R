@@ -83,7 +83,7 @@ print.anatMatrix <- function(x, ...) {
   print.table(x)
 }
 
-anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both") {
+anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=TRUE, side="both") {
   # Get output dimensions from full set of label definitions
   labeldefs <- read.csv(defs) 
   labels <- c(labeldefs$right.label, labeldefs$left.label)

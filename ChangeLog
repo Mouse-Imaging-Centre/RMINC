@@ -1,3 +1,6 @@
+2012-11-15 Matthijs van Eede <matthijs@phenogenomics.ca>
+	* The most popular/default behaviour of anatGetAll (getting volume information about the structures in Adrienne Dorr's mouse brain atlas using the c57_brain_atlas_labels.csv) has changed because of the previous commit (dropping label 0 by default). To regain default behaviour, the flag dropLabels for anatGetAll is now set to TRUE by default.
+
 2012-11-14 Matthijs van Eede <matthijs@phenogenomics.ca>
 	* The function AnatGetAll gets information about labels/segmentations for a list of input files. By default the label 0 (background) was added to the list of labels that would be returned by the function. This caused some issues when the parameter dropLabels was set to True. So now label 0 is not added to the list of labels by default anymore. If you care about the background, you will need to add 0 (for left and right) to your definitions.
 
