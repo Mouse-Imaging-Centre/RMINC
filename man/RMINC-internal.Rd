@@ -47,7 +47,6 @@
 \alias{minc.t.test}
 \alias{minc.wilcoxon.test}
 \alias{mincAnova}
-\alias{mincApply}
 \alias{mincApplyLme}
 \alias{mincConvertVoxelToWorld}
 \alias{mincConvertWorldToVoxel}

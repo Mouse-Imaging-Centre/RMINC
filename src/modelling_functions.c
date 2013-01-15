@@ -648,13 +648,14 @@ SEXP test_voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn) {
  * have_mask: a double of either 0 or 1 depending on whether a mask should
  *            be used.
  * mask: a string containing the mask filename.
+ * mask_value: the value inside the mask at which the function is to be evaled
  * rho: the environment - only used by method "eval"
  * nresults: the number of columns in the result - only used by method "eval"
  * method: a string containing one of "t-test", "wilcoxon", or "correlation"
  */
 SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
-		 SEXP have_mask, SEXP mask, 
-		 SEXP rho, SEXP nresults, SEXP method) {
+		 SEXP have_mask, SEXP mask, SEXP mask_lower_value,
+		 SEXP mask_upper_value, SEXP rho, SEXP nresults, SEXP method) {
   int                result;
   mihandle_t         *hvol, hmask;
   char               *method_name;
@@ -664,6 +665,8 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   int                num_files;
   double             *xn_groups;
   double             *xbuffer, *xoutput, **full_buffer, *xhave_mask, *xn;
+  double             *xmask_lower_value;
+  double             *xmask_upper_value;
   double             *mask_buffer;
   double             *groupings;
   midimhandle_t      dimensions[3];
@@ -697,6 +700,9 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     }
   }
   
+  /* get the value at which the mask is to be evaluated */
+  xmask_lower_value = REAL(mask_lower_value);
+  xmask_upper_value = REAL(mask_upper_value);
 
   /* open each volume */
   for(i=0; i < num_files; i++) {
@@ -872,7 +878,9 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 
 	/* only perform operation if not masked */
 	if(xhave_mask[0] == 0 
-	   || (xhave_mask[0] == 1 && mask_buffer[buffer_index] == 1)) {
+	   || (xhave_mask[0] == 1 && 
+	       mask_buffer[buffer_index] > xmask_lower_value[0] -0.5 &&
+	       mask_buffer[buffer_index] < xmask_upper_value[0] +0.5)) {
 	
 	  for (i=0; i < num_files; i++) {
 	    location[0] = v0;

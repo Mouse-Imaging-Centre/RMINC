@@ -1,3 +1,9 @@
+2013-01-14 Jason Lerch <jason@phenogenomics.ca>
+	* bumped version to 1.1
+	* mask in modelling functions by default now evaluated at above 0.5
+	* pMincApply: new function that executes mincApply in parallel
+	* added mincApply and pMincApply documentation.
+	
 2012-11-15 Matthijs van Eede <matthijs@phenogenomics.ca>
 	* The most popular/default behaviour of anatGetAll (getting volume information about the structures in Adrienne Dorr's mouse brain atlas using the c57_brain_atlas_labels.csv) has changed because of the previous commit (dropping label 0 by default). To regain default behaviour, the flag dropLabels for anatGetAll is now set to TRUE by default.
 

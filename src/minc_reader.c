@@ -263,18 +263,22 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
  * fn: string representing a function call to be evaluated. The variable "x"
  *     will be a vector of length number_volumes in the same order as the 
  *     filenames array.
+ * have_mask: 0 if there is no mask, 1 if there is
+ * mask: filename containing the mask
+ * mask_value: value in the mask where function is to be evaluated
  * rho: the R environment.
  */
      
 SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask, 
-		 SEXP mask, SEXP rho) {
+		 SEXP mask, SEXP mask_value, SEXP rho) {
   int                result;
   mihandle_t         *hvol, hmask;
   int                i, v0, v1, v2, output_index, buffer_index;
   unsigned long     start[3], count[3];
   unsigned long      location[3];
   int                num_files;
-  double             *xbuffer, *xoutput, **full_buffer, *xhave_mask;
+  double             *xbuffer, *xoutput, **full_buffer;
+  double             *xhave_mask, *xmask_value;
   double             *mask_buffer;
   midimhandle_t      dimensions[3];
   unsigned int      sizes[3];
@@ -297,6 +301,8 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
     }
   }
   
+  /* get the value inside that mask */
+  xmask_value = REAL(mask_value);
 
   /* open each volume */
   for(i=0; i < num_files; i++) {
@@ -373,7 +379,9 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
 
 	/* only perform operation if not masked */
 	if(xhave_mask[0] == 0 
-	   || (xhave_mask[0] == 1 && mask_buffer[buffer_index] == 1)) {
+	   || (xhave_mask[0] == 1 && 
+	       mask_buffer[buffer_index] > xmask_value[0] -0.5 &&
+	       mask_buffer[buffer_index] < xmask_value[0] + 0.5)) {
 	
 	  for (i=0; i < num_files; i++) {
 	    location[0] = v0;

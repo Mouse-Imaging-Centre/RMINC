@@ -335,13 +335,22 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   method <- "lm"
 
   mincFileCheck(filenames)
-
+  if (is.null(maskval)) {
+    minmask = 1
+    maxmask = 99999999
+  }
+  else {
+    minmask = maskval
+    maxmask = maskval
+  }
   result <- .Call("minc2_model",
                   as.character(filenames),
                   as.matrix(mmatrix),
                   NULL,
                   as.double(! is.null(mask)),
                   as.character(mask),
+                  as.double(minmask),
+                  as.double(maxmask),
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
   attr(result, "likeVolume") <- filenames[1]
@@ -586,13 +595,22 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }
-
+  if (is.null(maskval)) {
+    minmask = 1
+    maxmask = 99999999
+  }
+  else {
+    minmask = maskval
+    maxmask = maskval
+  }
   result <- .Call("minc2_model",
                   as.character(filenames),
                   as.double(grouping)-1,
                   NULL,
                   as.double(! is.null(mask)),
                   as.character(mask),
+                  as.double(minmask),
+                  as.double(maxmask),
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
   attr(result, "likeVolume") <- as.character(filenames[1])
@@ -621,8 +639,65 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
-mincApply <- function(filenames, function.string, mask=NULL) {
+pMincApply <- function(filenames, function.string,
+                       mask=NULL, cores=4, method="local") {
+  library(multicore)
+  library(doMC)
+  library(foreach)
+  registerDoMC(cores)
+  # if no mask exists use the entire volume
+  if (is.null(mask)) {
+    stop("err, need a mask. Sorry. Will fix it soon")
+  }
+  else {
+    maskV <- mincGetVolume(mask)
+  }
+  # create a mask that divides the problem into as many domains as cores
+  nVoxels <- sum(maskV>0.5)
+  maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores))
+  maskFilename <- "/tmp/pmincApplyTmpMask.mnc"
+  mincWriteVolume(maskV, maskFilename, clobber=TRUE)
+
+  if (method == "local") {
+    # run the job spread across each core
+    foreach(i=1:cores) %dopar% { pout <- mincApply(filenames, function.string,
+              mask=maskFilename, maskval=i) }
+  }
+  else if (method == "sge") {
+    stop("implementation of sge method completely broken ...")
+    i <- 4
+    pout <- list()
+    pids <- sge.submit(mincApply, filenames, function.string, mask=maskFilename,
+                       maskval=i, packages=c("RMINC"))
+    status <- sge.job.status(pids$pid)
+    while(status != 0) {
+      Sys.sleep(4)
+      status <- sge.job.status(pids$pid)
+    }
+    pout[[i]] <- sge.list.get.result(pids)
+  }
+  else {
+    stop("unknown execution method")
+  }
+  
+  # recombine the output into a single volume
+  for(i in 1:cores) {
+    maskV[maskV==i] <- pout[[i]][maskV==i]
+  }
+  unlink(maskFilename)
+  return(maskV)
+}
+
+mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL) {
   x <- mincGetVoxel(filenames, 0,0,0)
+  if (is.null(maskval)) {
+    minmask = 1
+    maxmask = 99999999
+  }
+  else {
+    minmask = maskval
+    maxmask = maskval
+  }
   test <- eval(function.string)
   results <- .Call("minc2_model",
                    as.character(filenames),
@@ -630,6 +705,8 @@ mincApply <- function(filenames, function.string, mask=NULL) {
                    NULL,
                    as.double(! is.null(mask)),
                    as.character(mask),
+                   as.double(minmask),
+                   as.double(maxmask),
                    .GlobalEnv,
                    as.double(length(test)),
                    as.character("eval"), PACKAGE="RMINC");
@@ -708,15 +785,25 @@ mincLme <- function(filenames, fixed.effect, random.effect, mask=NULL)
 
 }
 
-mincApplyLme <- function(filenames, function.string, mask=NULL) {
+mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
   x <- mincGetVoxel(filenames, 0,0,0)
   test <- eval(function.string)
+  if (is.null(maskval)) {
+    minmask = 1
+    maxmask = 99999999
+  }
+  else {
+    minmask = maskval
+    maxmask = maskval
+  }
   results <- .Call("minc2_model",
                    as.character(filenames),
                    function.string,
                    NULL,
                    as.double(! is.null(mask)),
                    as.character(mask),
+                   as.double(minmask),
+                   as.double(maxmask),
                    .GlobalEnv,
                    as.double(length(test)),
                    as.character("eval"), PACKAGE="RMINC");
