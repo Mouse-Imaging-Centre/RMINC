@@ -1,4 +1,5 @@
 \name{mincApply}
+\alias{mincApply}
 \alias{pMincApply}
 \title{Apply arbitrary R function at every voxel}
 \description{Can execute any R function at every voxel for a set of MINC
