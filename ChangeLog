@@ -1,3 +1,7 @@
+2013-01-16 Jason Lerch <jason@phenogenomics.ca>
+	* bumped version to 1.1.1
+	* minor bug fixes to pMincApply and mincLm
+	
 2013-01-14 Jason Lerch <jason@phenogenomics.ca>
 	* bumped version to 1.1
 	* mask in modelling functions by default now evaluated at above 0.5
