@@ -319,7 +319,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 }
 
 # run a linear model at each voxel
-mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL) {
+mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -640,7 +640,7 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, method="local") {
+                       mask=NULL, cores=4, tinyMask=FALSE, method="local") {
   library(multicore)
   library(doMC)
   library(foreach)
@@ -654,14 +654,23 @@ pMincApply <- function(filenames, function.string,
   }
   # create a mask that divides the problem into as many domains as cores
   nVoxels <- sum(maskV>0.5)
+
+  # optionally make the mask a fraction of the original size - for testing
+  if (tinyMask!=FALSE) {
+    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), tinyMask))
+    maskV[maskV>1.5] <- 0
+    nVoxels <- sum(maskV>0.5)
+  }
   maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores))
   maskFilename <- "/tmp/pmincApplyTmpMask.mnc"
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
-
+  pout <- list()
+  
   if (method == "local") {
     # run the job spread across each core
-    foreach(i=1:cores) %dopar% { pout <- mincApply(filenames, function.string,
-              mask=maskFilename, maskval=i) }
+    pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
+                      mask=maskFilename, maskval=i) }
+    #cat("length: ", length(pout), "\n")
   }
   else if (method == "sge") {
     stop("implementation of sge method completely broken ...")
