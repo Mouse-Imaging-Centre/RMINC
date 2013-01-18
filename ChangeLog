@@ -1,3 +1,6 @@
+2013-01-18 Jason Lerch <jason@phenogenomics.ca>
+	* changed pMincApply to work with snowfall
+	
 2013-01-16 Jason Lerch <jason@phenogenomics.ca>
 	* bumped version to 1.1.1
 	* minor bug fixes to pMincApply and mincLm

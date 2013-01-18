@@ -640,7 +640,7 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, tinyMask=FALSE, method="local") {
+                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall") {
   library(multicore)
   library(doMC)
   library(foreach)
@@ -662,11 +662,12 @@ pMincApply <- function(filenames, function.string,
     nVoxels <- sum(maskV>0.5)
   }
   maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores))
-  maskFilename <- "/tmp/pmincApplyTmpMask.mnc"
+  maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   pout <- list()
   
   if (method == "local") {
+    stop("Lovely code ... that generates inconsistent results because something somewhere is not thread safe ...")
     # run the job spread across each core
     pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
                       mask=maskFilename, maskval=i) }
@@ -684,6 +685,15 @@ pMincApply <- function(filenames, function.string,
       status <- sge.job.status(pids$pid)
     }
     pout[[i]] <- sge.list.get.result(pids)
+  }
+  else if (method == "snowfall") {
+    wrapper <- function(i) {
+      return(mincApply(filenames, function.string, mask=maskFilename,
+                       maskval=i))
+    }
+    
+    pout <- sfLapply(1:cores, wrapper)
+
   }
   else {
     stop("unknown execution method")
