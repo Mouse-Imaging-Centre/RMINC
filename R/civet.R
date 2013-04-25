@@ -521,8 +521,123 @@ civet.AllROIs <- function(gf, defprefix) {
   vols <- data.frame(tissues, structures, leftareas, rightareas, leftthickness, rightthickness)
   return(vols)
 }
+# =============================================================================
+# Purpose: 
+#	Organizes CIVET .dat file based on atlas
+#
+# Example:
+#	atlasFile <- "AAL.csv"
+#	dataFiles <- list of data files to organize
+#
+# =============================================================================
+civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="1.1.12") {
+	
+	#Initializaion
+	numberOfFiles = length(dataFiles)
+	gf = read.csv(atlasFile)
+	roiTable = matrix(data=NA,nrow=length(gf[,1]),ncol=numberOfFiles/2)
+	roiLabels = c()
+
+	# Label rows with ROI labels
+	for (i in 1:length(gf[,1])) { roiLabels[i] = as.character(gf[i,3])}
+	rownames(roiTable) = roiLabels
 
 
+	# Iterate through each file, look up ROI location and fill in  table
+	for (j in 1:numberOfFiles)
+	{
+		halfFiles = numberOfFiles / 2;
+		if(j > halfFiles)
+		{
+			columnIndex = j - numberOfFiles/2
+		}
+		else
+		{	
+			columnIndex = j;
+		}
+		if(file.exists(dataFiles[j]))
+		{
+			labels = read.table(dataFiles[j])[,1]
+			value = read.table(dataFiles[j])[,2]
+			labels = as.numeric(as.character(labels))
+			value = as.numeric(as.character(value))
+			for (i in 1:length(labels)) 
+			{ 
+				roiName = as.character( gf[which(gf == labels[i],arr.ind=FALSE),3])
+				tableIndex = which(rownames(roiTable) == roiName)
+				roiTable[tableIndex,columnIndex] = value[i]
+			}
+		}	
+	}
+
+	return(roiTable)
+}
+
+# =============================================================================
+# Purpose: 
+#	Reads a selection of CIVET .dat files and organizes data using a subject table, and atlas
+#
+# Example:
+#	atlasFile <- "AAL.csv"
+#	subjectTable <- .csv file with subject information - one column should have the subject id's and be labelled "id"
+# 	dataDirectory <- root directory of data
+#	prefix <- data-specific prefix
+#
+# =============================================================================
+civet.readCivetDatFilesAtlas = function(atlasFile,subjectTable,dataDirectory,prefix)
+{
+	# Read Subject Table 
+	gf = read.csv(subjectTable)
+	# Get list of file names using id column in subject table
+	gf$CIVET =  civet.getAllFilenames(gf, "id", prefix, dataDirectory,'TRUE',"1.1.12")
+
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# Lobe Area, Lobe Thickness, Lobe Volume
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVET$leftlobeArea40mm, gf$CIVET$rightlobeArea40mm))
+	gf$lobeArea40mm <- data.frame(gf, t(roiTable))
+
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVET$leftlobeThickness, gf$CIVET$rightlobeThickness))
+	gf$lobeThickness <- data.frame(gf, t(roiTable))
+
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVET$leftlobeVolume, gf$CIVET$rightlobeVolume))
+	gf$lobeVolume <- data.frame(gf, t(roiTable))
+
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# GI
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	
+	dataFiles = c(gf$CIVET$leftGI, gf$CIVET$rightGI);
+	numberOfFiles = length(dataFiles)
+
+	roiTable = matrix(data=NA,nrow=6,ncol=numberOfFiles/2)
+	rownames(roiTable) = c("leftGray", "leftMid","leftWhite","rightGray","rightMid","rightWhite")
+
+	for (j in 1:numberOfFiles)
+	{
+		halfFiles = numberOfFiles / 2;
+		if(j > halfFiles)
+		{
+			columnIndex = j - numberOfFiles/2
+			rowIndex = 4;
+		}
+		else
+		{	
+			columnIndex = j;
+			rowIndex = 1;
+		}
+
+		if(file.exists(dataFiles[j]))
+		{
+			value = read.table(dataFiles[j])[,4]
+			value = as.numeric(as.character(value))
+			roiTable[rowIndex:(rowIndex+2),columnIndex] = value
+		}	
+
+	}
+	gf$GI <- data.frame(gf, t(roiTable))
+	return(gf)
+}
 
 # =============================================================================
 # Purpose: 
@@ -549,8 +664,6 @@ civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion="1.1.9") {
 	# init returning list
 	return_list <-list()
 	
-	
-	
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 	# load the tissue classify volume info
 	#	
@@ -559,8 +672,8 @@ civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion="1.1.9") {
 	myFile <- list.files(subDir, pattern=glob2rx("*_cls_volumes.dat"))
 	myFile_fullPath <- file.path(subDir, myFile)
 	myDf <- read.table(myFile_fullPath,
-								row.names=c("csf", "gm", "wm"),
-								col.names=c("tissueType_code", "volume"))
+	row.names=c("csf", "gm", "wm"),
+	col.names=c("tissueType_code", "volume"))
 	#	
 	return_list$native_tissue_volumes <- myDf
 
@@ -593,8 +706,8 @@ civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion="1.1.9") {
 	cerebral_volumes <- list.files(subDir, pattern=glob2rx("*_cerebral_volume.dat"))
 	cerebral_volumes_fullPath <- file.path(subDir, cerebral_volumes)
 	cerebral_volumes.df <- read.table(cerebral_volumes_fullPath, 
-											row.names=c("extra_cerebral_csf", "cortical_gray", "wmSurface_plus_contents"),
-											col.names=c("code", "volume"))
+	row.names=c("extra_cerebral_csf", "cortical_gray", "wmSurface_plus_contents"),
+	col.names=c("code", "volume"))
 	#	
 	return_list$native_cerebral_volumes <- cerebral_volumes.df
 
