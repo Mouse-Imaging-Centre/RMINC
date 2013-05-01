@@ -18,6 +18,11 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
     out <- read.csv("tmp.txt", header=FALSE)
   }
   else if (method == "sums") {
+    system(paste("compute_counts_for_labels",
+                  atlas, filename, "> tmp.txt", sep=" "))
+    out <- read.csv("tmp.txt", header=FALSE)
+  }
+  else if (method == "slow_sums") {
     system(paste("compute_values_across_segmentation", "-s",
                  filename, atlas, "tmp.txt", sep=" "))
     out <- read.csv("tmp.txt", header=FALSE)
