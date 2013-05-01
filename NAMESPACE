@@ -1,0 +1,14 @@
+# very basic NAMESPACE file...
+
+# export all names that do not start with a period
+exportPattern("^[^\\.]")
+
+# import all required packages
+import(
+  grDevices,
+  methods,
+  grid,
+  lattice
+)
+
+
