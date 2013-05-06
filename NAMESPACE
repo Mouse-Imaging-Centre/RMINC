@@ -1,8 +1,61 @@
 # very basic NAMESPACE file...
 
-# export all names that do not start with a period
-exportPattern("^[^\\.]")
+#############################
+# export all main functions
 
+export( minc.dimensions.sizes )
+export( minc.get.hyperslab )
+export( minc.get.volumes )
+export( minc.ray.trace )
+export( mincAnova )
+export( mincApply )
+export( mincApplyLme )
+export( mincConvertVoxelToWorld )
+export( mincConvertWorldToVoxel )
+export( mincGetMask )
+export( mincGetVector )
+export( mincGetVolume )
+export( mincGetVoxel )
+export( mincGetWorldVoxel )
+export( mincFDR )
+export( mincFDR.mincMultiDim )
+export( mincFDR.mincSingleDim )
+export( mincFileCheck )
+export( mincLm )
+export( mincLme )
+export( mincMean )
+export( mincRayTraceStats )
+export( mincSd )
+export( mincSlowLme )
+export( mincSum )
+export( mincSummary )
+export( mincVar )
+export( mincWriteVolume )
+export( mincWriteVolume.default )
+export( mincWriteVolume.mincMultiDim )
+export( mincWriteVolume.mincSingleDim )
+export( pMincApply )
+export( print.mincMultiDim )
+export( print.mincQvals )
+export( print.mincSingleDim )
+export( print.mincVoxel )
+export( print.vertexMultiDim )
+export( pt2 )
+export( vertexFDR )
+export( vertexLm )
+export( vertexTable )
+export( wilcox.permutation.full )
+
+# rather not export the following...  the function name is a bit too desciptive...
+#export( f )
+
+
+#############################
+# load shared objects
+useDynLib(RMINC)
+
+
+#############################
 # import all required packages
 import(
   grDevices,
