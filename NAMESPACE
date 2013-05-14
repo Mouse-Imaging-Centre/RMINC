@@ -1,8 +1,54 @@
-# very basic NAMESPACE file...
-
 #############################
 # export all main functions
 
+# AllGeneric.R
+export( mincIO.asVolume )
+export( mincIO.getProperty )
+export( mincIO.getSliceFromSliceArray )
+export( mincIO.getSliceX )
+export( mincIO.getSliceY )
+export( mincIO.getSliceZ )
+export( mincIO.makeNewSliceZ )
+export( mincIO.makeNewVolume )
+export( mincIO.putSlice )
+export( mincIO.readBySlice )
+export( mincIO.readByVoxel )
+export( mincIO.readVolume )
+export( mincIO.setProperty )
+export( mincIO.writeVolume )
+
+
+# civet.R
+export( civetAllROIs )
+export( civet.AllROIs )
+export( civet.checkVersion )
+export( civet.computeNativeTissueVolumes )
+export( civet.computeNativeToStxRescalingFactor )
+export( civet.computeStxTissueVolumes )
+export( civet.getAllFilenames )
+export( civet.getFilenameCerebrumMask )
+export( civet.getFilenameClassify )
+export( civet.getFilenameCorticalThickness )
+export( civet.getFilenameCsfPve )
+export( civet.getFilenameGrayMatterPve )
+export( civet.getFilenameGrayMatterSurfaces )
+export( civet.getFilenameLinearTransform )
+export( civet.getFilenameMeanSurfaceCurvature )
+export( civet.getFilenameMidSurfaces )
+export( civet.getFilenameNonlinearTransform )
+export( civet.getFilenameSkullMask )
+export( civet.getFilenameStxT1 )
+export( civet.getFilenameWhiteMatterPve )
+export( civet.getFilenameWhiteMatterSurfaces )
+export( civet.organizeCivetDatFilesAtlas )
+export( civet.readCivetDatFiles )
+export( civet.readCivetDatFilesAtlas )
+export( civetFilenames )
+
+# fast_qvalue.R
+export( fast.qvalue )
+
+# minc_interface.R
 export( minc.dimensions.sizes )
 export( minc.get.hyperslab )
 export( minc.get.volumes )
@@ -45,9 +91,77 @@ export( vertexFDR )
 export( vertexLm )
 export( vertexTable )
 export( wilcox.permutation.full )
-
 # rather not export the following...  the function name is a bit too desciptive...
 #export( f )
+
+# minc_support.R
+export( rminc.asMinc2 )
+export( rminc.checkForExternalProgram )
+export( rminc.convertVoxelToWorld )
+export( rminc.convertWorldToVoxel )
+export( rminc.getDataClasses )
+export( rminc.getDataTypes )
+export( rminc.isMinc )
+export( rminc.isMinc1 )
+export( rminc.isMinc2 )
+export( rminc.isReadable )
+export( rminc.readLinearXfmFile )
+
+
+# mincInfo_class.R
+export( mincIO.printMincInfo )
+export( mincIO.readMincInfo )
+
+
+# mincSlice_class.R
+export( mincIO.plotSlicePretty )
+
+# mincVolumeIO_class.R
+export( mincIO.makeNewVolumeX )
+export( mincIO.readVolumeX )
+export( mincIO.writeVolumeX )
+
+# mincVoxelIO_class.R
+export( mincIO.readByVoxelX )
+
+# rmincLmeLoop.R
+#
+#
+# TODO not done yet...
+#
+#
+export( fitted.lme )
+export( fixef.lme )
+export( formula.lme )
+export( newgetFixDF )
+export( newMEdecomp )
+export( newMEdims )
+export( newMEEM )
+export( newMEestimate )
+export( rmincLme )
+export( rmincLmeApVar )
+export( rmincLmeControl )
+export( rmincLme.formula )
+export( rmincLmeLoop )
+export( rmincLmeScale )
+export( rmincLmeStruct )
+
+
+# structure_funcs.R
+export( anatApply )
+export( anatCombineStructures )
+export( anatCreateVolume )
+export( anatFDR )
+export( anatGetAll )
+export( anatGetFile )
+export( anatLm )
+export( anatRenameRows )
+
+# volumetric.R
+export( volume.combineMaskVolumes )
+export( volume.explodeLabelVolume )
+
+
 
 
 #############################
