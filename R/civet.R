@@ -425,18 +425,35 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civet
 	b <- paste(basedir, "/", ids, "/", sep="")
 
 	# insert fully-qualified file names
-	filenames.df <- data.frame(tissue=rep(0,nrow(gf)))
+	filenames.df <- data.frame(leftGIFiles=rep(0,nrow(gf)))
 
 	if (civetVersion == "1.1.12")
 	{	
-  		filenames.df$leftGI  <- paste(b, "surfaces/", prefix, "_", ids, "_gi_left.dat",sep = "")
-  		filenames.df$rightGI <- paste(b, "surfaces/", prefix, "_", ids, "_gi_right.dat",sep = "")
-  		filenames.df$leftlobeArea40mm  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_left.dat",sep = "")
-  		filenames.df$rightlobeArea40mm  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_right.dat",sep = "")
-  		filenames.df$leftlobeThickness  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat",sep = "")
-  		filenames.df$rightlobeThickness  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat",sep = "")
-  		filenames.df$leftlobeVolume  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_left.dat",sep = "")
-  		filenames.df$rightlobeVolume  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_right.dat",sep = "")
+  		filenames.df$leftGIFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_gi_left.dat",sep = "")
+  		filenames.df$rightGIFiles <- paste(b, "surfaces/", prefix, "_", ids, "_gi_right.dat",sep = "")
+  		filenames.df$leftlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_left.dat",sep = "")
+  		filenames.df$rightlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_right.dat",sep = "")
+  		filenames.df$leftlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat",sep = "")
+  		filenames.df$rightlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat",sep = "")
+  		filenames.df$leftlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_left.dat",sep = "")
+  		filenames.df$rightlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_right.dat",sep = "")
+		filenames.df$midSurfaceleftNativeArea = paste(b, "surfaces/", prefix, "_", ids, "_mid_surface_rsl_left_native_area_40mm.txt",sep = "")
+		filenames.df$midSurfacerightNativeArea = paste(b,"surfaces/", prefix, "_", ids, "_mid_surface_rsl_right_native_area_40mm.txt",sep = "")
+		filenames.df$SurfaceleftNativeVolume = paste(b, "surfaces/", prefix, "_", ids, "_surface_rsl_left_native_volume_40mm.txt",sep = "")
+		filenames.df$SurfacerightNativeVolume = paste(b,"surfaces/", prefix, "_", ids, "_surface_rsl_right_native_volume_40mm.txt",sep = "") 
+ 
+
+		filenames.df$cerebral_volume = paste(b, "thickness/", prefix, "_", ids, "_cerebral_volume.dat",sep = "")
+		filenames.df$nativeRMS_RSLtlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt",sep = "") 
+		filenames.df$nativeRMS_RSLtlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt",sep = "") 
+		filenames.df$nativeRMStlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_left.txt",sep = "") 
+		filenames.df$nativeRMStlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_right.txt",sep = "") 
+
+
+
+		gf$CIVETFILES = filenames.df;
+		return(gf)
+
 	}
 	
 	else
@@ -572,44 +589,17 @@ civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="
 
 	return(roiTable)
 }
-
 # =============================================================================
 # Purpose: 
-#	Reads a selection of CIVET .dat files and organizes data using a subject table, and atlas
+#	Organizes CIVET .dat file based on mid, white and grey labels
 #
 # Example:
-#	atlasFile <- "AAL.csv"
-#	subjectTable <- .csv file with subject information - one column should have the subject id's and be labelled "id"
-# 	dataDirectory <- root directory of data
-#	prefix <- data-specific prefix
+#	dataFiles <- list of data files to organize
 #
 # =============================================================================
-civet.readCivetDatFilesAtlas = function(atlasFile,subjectTable,dataDirectory,prefix)
-{
-	# Read Subject Table 
-	gf = read.csv(subjectTable)
-	# Get list of file names using id column in subject table
-	gf$CIVET =  civet.getAllFilenames(gf, "id", prefix, dataDirectory,'TRUE',"1.1.12")
+civet.organizeCivetDatFilesMidWhiteGrey <- function(dataFiles, civetVersion="1.1.12") {
 
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# Lobe Area, Lobe Thickness, Lobe Volume
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVET$leftlobeArea40mm, gf$CIVET$rightlobeArea40mm))
-	gf$lobeArea40mm <- data.frame(gf, t(roiTable))
-
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVET$leftlobeThickness, gf$CIVET$rightlobeThickness))
-	gf$lobeThickness <- data.frame(gf, t(roiTable))
-
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVET$leftlobeVolume, gf$CIVET$rightlobeVolume))
-	gf$lobeVolume <- data.frame(gf, t(roiTable))
-
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# GI
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	
-	dataFiles = c(gf$CIVET$leftGI, gf$CIVET$rightGI);
 	numberOfFiles = length(dataFiles)
-
 	roiTable = matrix(data=NA,nrow=6,ncol=numberOfFiles/2)
 	rownames(roiTable) = c("leftGray", "leftMid","leftWhite","rightGray","rightMid","rightWhite")
 
@@ -635,9 +625,97 @@ civet.readCivetDatFilesAtlas = function(atlasFile,subjectTable,dataDirectory,pre
 		}	
 
 	}
-	gf$GI <- data.frame(gf, t(roiTable))
+	return(roiTable)
+}
+# =============================================================================
+# Purpose: 
+#	Organizes CIVET .txt file with vertex measures
+#
+# Example:
+#	dataFiles <- list of data files to organize
+#
+# Note : Left Vertices are listed First
+# =============================================================================
+civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
+
+	numberOfFiles = length(dataFiles)
+	roiTable = matrix(data=NA,nrow=40962*2,ncol=numberOfFiles/2)
+
+	for (j in 1:numberOfFiles)
+	{
+		halfFiles = numberOfFiles / 2;
+		if(j > halfFiles)
+		{
+			columnIndex = j - numberOfFiles/2
+			rowIndex = 40963;
+		}
+		else
+		{	
+			columnIndex = j;
+			rowIndex = 1;
+		}
+
+		if(file.exists(dataFiles[j]))
+		{
+			value = read.table(dataFiles[j])[,1]
+			value = as.numeric(as.character(value))
+			roiTable[rowIndex:(rowIndex+40961),columnIndex] = value
+		}	
+
+	}
+	return(roiTable)
+}
+
+# =============================================================================
+# Purpose: 
+#	Reads a selection of CIVET .dat files and organizes data using a subject table, and atlas
+#
+# Example:
+#	atlasFile <- "AAL.csv"
+#	gf <- (Prepare using civet.getAllFilenames)i.e.
+#		gf =  read.csv(subjectTable)	
+#		gf =  civet.getAllFilenames(gf, "id", prefix, dataDirectory,'TRUE',"1.1.12")
+#
+# =============================================================================
+civet.readAllCivetFiles = function(atlasFile,gf)
+{
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# Lobe Area, Lobe Thickness, Lobe Volume
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVETFILES$leftlobeArea40mmFiles, gf$CIVETFILES$rightlobeArea40mmFiles))
+	gf$lobeArea40mm = t(roiTable)
+
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVETFILES$leftlobeThicknessFiles, gf$CIVETFILES$rightlobeThicknessFiles))
+	gf$lobeThickness = t(roiTable)
+
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVETFILES$leftlobeVolumeFiles, gf$CIVETFILES$rightlobeVolumeFiles))
+	gf$lobeVolume = t(roiTable)
+
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# GI
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	roiTable = civet.organizeCivetDatFilesMidWhiteGrey(c(gf$CIVETFILES$leftGIFiles, gf$CIVETFILES$rightGIFiles))	
+	gf$GI = t(roiTable)
+	
+
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# Vertex based Measures
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$midSurfaceleftNativeArea, gf$CIVETFILES$midSurfacerightNativeArea))
+	gf$midSurfaceNativeArea = t(roiTable)
+	
+	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$SurfaceleftNativeVolume, gf$CIVETFILES$SurfacerightNativeVolume))
+	gf$SurfaceNativeVolume = t(roiTable)
+
+	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$nativeRMS_RSLtlink20mmleft, gf$CIVETFILES$nativeRMS_RSLtlink20mmright))
+	gf$nativeRMS_RSLtlink20mm = t(roiTable)
+
+	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$nativeRMStlink20mmleft, gf$CIVETFILES$nativeRMStlink20mmright))
+	gf$nativeRMStlink20mm= t(roiTable)
+
 	return(gf)
 }
+
 
 # =============================================================================
 # Purpose: 
