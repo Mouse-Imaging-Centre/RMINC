@@ -1,3 +1,13 @@
+2013-05-01 Matthijs van Eede <matthijs@mouseimaging.ca>
+        * Added basic NAMESPACE file to the package
+        * moved the "sums" method in anatGetFile to "slow_sums". This function
+          uses a phyton script that runs extremely slowly when the number of 
+          defined labels gets large (for instance the  Allen Brain annotations)
+        * added a new "sums" method in anatGetFile that uses a minc tool written
+          in c code (compute_counts_for_labels). This function is part of the 
+          GitHub repository: minc-stuffs
+          
+
 2013-01-18 Jason Lerch <jason@phenogenomics.ca>
 	* changed pMincApply to work with snowfall
 	

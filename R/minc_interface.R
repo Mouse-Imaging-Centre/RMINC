@@ -568,29 +568,33 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
 }
    
 
-mincMean <- function(filenames, grouping=NULL, mask=NULL) {
-  result <- mincSummary(filenames, grouping, mask, method="mean")
+mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="mean", maskval=maskval)
   return(result)
 }
 
-mincVar <- function(filenames, grouping=NULL, mask=NULL) {
-  result <- mincSummary(filenames, grouping, mask, method="var")
+mincVar <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   return(result)
 }
 
-mincSum <- function(filenames, grouping=NULL, mask=NULL) {
-  result <- mincSummary(filenames, grouping, mask, method="sum")
+mincSum <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="sum", maskval=maskval)
   return(result)
 }
 
-mincSd <- function(filenames, grouping=NULL, mask=NULL) {
-  result <- mincSummary(filenames, grouping, mask, method="var")
+mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   result <- sqrt(result)
   return(result)
 }
 
-
-mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean") {
+#
+# maskval was introduced in order to run mincSummary (and mincApply) in parralel
+# another way that this argument can be used is to specify a particular label
+# for which mincSummary will be used
+#
+mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", maskval=NULL) {
   mincFileCheck(filenames)
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
