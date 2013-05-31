@@ -43,8 +43,11 @@ export( civet.getFilenameStxT1 )
 export( civet.getFilenameWhiteMatterPve )
 export( civet.getFilenameWhiteMatterSurfaces )
 export( civet.organizeCivetDatFilesAtlas )
+export( civet.organizeCivetDatFilesMidWhiteGrey )
+export( civet.organizeCivetTxtFilesVertex )
+export( civet.readAllCivetFiles )
 export( civet.readCivetDatFiles )
-export( civet.readCivetDatFilesAtlas )
+#export( civet.readCivetDatFilesAtlas )
 export( civetFilenames )
 
 #############################
