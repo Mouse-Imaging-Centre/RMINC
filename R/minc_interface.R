@@ -645,10 +645,6 @@ minc.get.volumes <- function(filenames) {
 
 pMincApply <- function(filenames, function.string,
                        mask=NULL, cores=4, tinyMask=FALSE, method="snowfall") {
-  library(multicore)
-  library(doMC)
-  library(foreach)
-  registerDoMC(cores)
   # if no mask exists use the entire volume
   if (is.null(mask)) {
     stop("err, need a mask. Sorry. Will fix it soon")
@@ -669,9 +665,16 @@ pMincApply <- function(filenames, function.string,
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   pout <- list()
+  test <- eval(function.string)
   
   if (method == "local") {
     stop("Lovely code ... that generates inconsistent results because something somewhere is not thread safe ...")
+
+    library(multicore)
+    library(doMC)
+    library(foreach)
+    registerDoMC(cores)
+
     # run the job spread across each core
     pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
                       mask=maskFilename, maskval=i) }
@@ -693,7 +696,11 @@ pMincApply <- function(filenames, function.string,
   else if (method == "snowfall") {
     wrapper <- function(i) {
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i))
+                       maskval=i, reduce=TRUE))
+    }
+    # use all cores in the current cluster if # of cores not specified
+    if (is.null(cores)) {
+      cores <- length(sfSocketHosts())
     }
     
     pout <- sfLapply(1:cores, wrapper)
@@ -704,14 +711,28 @@ pMincApply <- function(filenames, function.string,
   }
   
   # recombine the output into a single volume
+  if (length(test) > 1) {
+    output <- matrix(0, nrow=length(maskV), ncol=length(test))
+    class(output) <- class(pout[[1]])
+    attr(output, "likeVolume") <- attr(pout[[1]], "likeVolume")
+  }
+  else {
+    output <- maskV
+  }
+
   for(i in 1:cores) {
-    maskV[maskV==i] <- pout[[i]][maskV==i]
+    if (length(test)>1) {
+      output[maskV==i,] <- pout[[i]]
+    }
+    else {
+      output[maskV==i] <- pout[[i]]
+    }
   }
   unlink(maskFilename)
-  return(maskV)
+  return(output)
 }
 
-mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL) {
+mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
   x <- mincGetVoxel(filenames, 0,0,0)
   if (is.null(maskval)) {
     minmask = 1
@@ -734,13 +755,21 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL) {
                    as.double(length(test)),
                    as.character("eval"), PACKAGE="RMINC");
 
-  attr(results, "likeVolume") <- filenames[1]
   if (length(test) > 1) {
+    if (reduce==TRUE) {
+      maskV <- mincGetVolume(mask)
+      results <- results[maskV > (minmask-0.5) & maskV < (maxmask+0.5),]
+    }
     class(results) <- c("mincMultiDim", "matrix")
   }
   else {
+    if (reduce==TRUE) {
+      maskV <- mincGetVolume(mask)
+      results <- results[maskV > (minmask-0.5) & maskV < (maxmask+0.5)]
+    }
     class(results) <- c("mincSingleDim", "numeric")
   }
+  attr(results, "likeVolume") <- filenames[1]
   return(results)
 }
 
