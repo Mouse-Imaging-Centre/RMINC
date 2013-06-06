@@ -1020,8 +1020,47 @@ civet.computeNativeTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.
 }
 #
 
+# =============================================================================
+# Purpose: 
+# Create a brainView file to display cortical measures
+#
+# Example: 
+#	dataFile : R Variable or .txt file
+#	AtlasFile: AAL.csv
+# 	leftAtlasVertices:  AAL_atlas_left.txt
+#	rightAtlasVertices: AAL_atlas_right.txt
+# =============================================================================
+civet.CreateBrainViewFile = function(dataFile,atlasFile,atlasVertices,outputFileName,civetVersion="1.1.12") {
 
+vertices = read.csv(atlasVertices)
+AALAtlas = read.csv(atlasFile)
+reducedVertices = vertices[0:40961,1]
+roiObj =  rep(0,length(reducedVertices))
 
+#Input is a string specifying a file
+if(is.character(dataFile))
+
+{
+	dataTable = read.table(dataFile)
+	for (j in 1:dim(dataTable)[1])
+	{
+		reducedVerticesIndices = which(reducedVertices == dataTable[j,1],arr.ind=FALSE)
+		roiObj[reducedVerticesIndices] = dataTable[j,2]
+	}
+}
+
+#Input is a variablepmatch(names(dataFile[j],AALAtlas[,3])
+else
+{
+	for (j in 1:length(dataFile))
+	{
+		atlasIndex = pmatch(names(dataFile[j]),AALAtlas[,3])
+		reducedVerticesIndices = which(reducedVertices == atlasIndex,arr.ind=FALSE)
+		roiObj[reducedVerticesIndices] = dataFile[j]
+	}
+}
+write.table(roiObj,outputFileName,FALSE,TRUE," ","\n","NA",".",FALSE,FALSE)
+}
 
 # =============================================================================
 #

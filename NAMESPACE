@@ -41,8 +41,12 @@ export( civet.getFilenameStxT1 )
 export( civet.getFilenameWhiteMatterPve )
 export( civet.getFilenameWhiteMatterSurfaces )
 export( civet.organizeCivetDatFilesAtlas )
+export( organizeCivetTxtFilesVertex )
+export( civet.organizeCivetDatFilesMidWhiteGrey )
 export( civet.readCivetDatFiles )
-export( civet.readCivetDatFilesAtlas )
+export( civet.readAllCivetFiles )
+export( civet.CreateBrainViewFile )
+
 export( civetFilenames )
 
 # fast_qvalue.R
