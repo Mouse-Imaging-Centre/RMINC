@@ -1,6 +1,7 @@
 #############################
 # export all main functions
 
+#############################
 # AllGeneric.R
 export( mincIO.asVolume )
 export( mincIO.getProperty )
@@ -18,6 +19,7 @@ export( mincIO.setProperty )
 export( mincIO.writeVolume )
 
 
+#############################
 # civet.R
 export( civetAllROIs )
 export( civet.AllROIs )
@@ -46,12 +48,13 @@ export( civet.organizeCivetDatFilesMidWhiteGrey )
 export( civet.readCivetDatFiles )
 export( civet.readAllCivetFiles )
 export( civet.CreateBrainViewFile )
-
 export( civetFilenames )
 
+#############################
 # fast_qvalue.R
 export( fast.qvalue )
 
+#############################
 # minc_interface.R
 export( minc.dimensions.sizes )
 export( minc.get.hyperslab )
@@ -98,6 +101,7 @@ export( wilcox.permutation.full )
 # rather not export the following...  the function name is a bit too desciptive...
 #export( f )
 
+#############################
 # minc_support.R
 export( rminc.asMinc2 )
 export( rminc.checkForExternalProgram )
@@ -112,36 +116,145 @@ export( rminc.isReadable )
 export( rminc.readLinearXfmFile )
 
 
+#############################
 # mincInfo_class.R
 export( mincIO.printMincInfo )
 export( mincIO.readMincInfo )
 
 
+#############################
 # mincSlice_class.R
 export( mincIO.plotSlicePretty )
 
+#############################
 # mincVolumeIO_class.R
 export( mincIO.makeNewVolumeX )
 export( mincIO.readVolumeX )
 export( mincIO.writeVolumeX )
 
+#############################
 # mincVoxelIO_class.R
 export( mincIO.readByVoxelX )
 
+#############################
 # rmincLmeLoop.R
-#
-#
-# TODO not done yet...
-#
-#
+export( as.matrix.pdMat )
+export( as.matrix.reStruct )
+export( coef.modelStruct )
+export( corMatrix.pdMat )
+export( corMatrix.reStruct )
 export( fitted.lme )
+export( fitted.rmincLmeStruct )
 export( fixef.lme )
 export( formula.lme )
+export( formula.modelStruct )
+export( formula.pdMat )
+export( logDet.newpdNatural )
+export( logDet.pdMat )
+export( logDet.pdSymm )
+export( logLik.reStruct )
+export( logLik.rmincLme )
+export( logLik.rmincLmeStruct )
+export( logLik.rmincLmeStructInt )
+export( model.matrix.reStruct )
+export( needUpdate.modelStruct )
+export( needUpdate.reStruct )
+export( newACF )
+export( newallVarsRec )
+export( newasOneFormula )
+export( newasTable )
+export( newaugPred )
+export( newBIC )
+export( newBIC.lm )
+export( newBIC.logLik )
+export( newcoef.newpdNatural )
+export( newcoef.pdMat )
+export( newcoef.pdSymm )
+export( newcoef.reStruct )
+export( newcollapse )
+export( newcomparePred )
+export( newDim )
+export( newDim.default )
+export( newDim.newpdNatural )
+export( newDim.pdMat )
+export( newDim.pdSymm )
+export( newfdHess )
+export( newfixed.effects )
+export( newfixef )
+export( newformula.reStruct )
+export( newgetCovariate )
+export( newgetCovariate.data.frame )
+export( newgetCovariateFormula )
+export( newgetData )
 export( newgetFixDF )
+export( newgetGroups )
+export( newgetGroups.data.frame )
+export( newgetGroupsFormula )
+export( newgetGroupsFormula.default )
+export( newgetGroupsFormula.lme )
+export( newgetGroupsFormula.reStruct )
+export( newgetGroups.lme )
+export( newgetResponseFormula )
+export( newInitialize )
+export( newInitialize.reStruct )
+export( newInitialize.rmincLmeStruct )
+export( newintervals )
+export( newisBalanced )
+export( newisInitialized )
+export( newisInitialized.pdMat )
+export( newisInitialized.reStruct )
+export( newlogDet )
+export( newlogDet.reStruct )
 export( newMEdecomp )
 export( newMEdims )
 export( newMEEM )
 export( newMEestimate )
+export( newNames )
+export( newNames.formula )
+export( newNames.pdMat )
+export( newNames.reStruct )
+export( newneedUpdate )
+export( newneedUpdate.default )
+export( newpdConstruct )
+export( newpdConstruct.newpdLogChol )
+export( newpdConstruct.newpdNatural )
+export( newpdConstruct.pdMat )
+export( newpdConstruct.pdSymm )
+export( newpdFactor )
+export( newpdFactor.newpdLogChol )
+export( newpdFactor.newpdNatural )
+export( newpdFactor.pdMat )
+export( newpdFactor.pdSymm )
+export( newpdFactor.reStruct )
+export( newpdLogChol )
+export( newpdMatrix )
+export( newpdMatrix.newpdNatural )
+export( newpdMatrix.pdMat )
+export( newpdMatrix.pdSymm )
+export( newpdMatrix.reStruct )
+export( newpdNatural )
+export( newrandom.effects )
+export( newranef )
+export( newrecalc )
+export( newrecalc.modelStruct )
+export( newrecalc.reStruct )
+export( newsplitFormula )
+export( newvarFunc )
+export( newVariogram )
+export( newvarWeights )
+export( pdMat )
+export( pdSymm )
+export( plot.pdMat )
+export( print.correlation )
+export( print.modelStruct )
+export( print.pdMat )
+export( print.reStruct )
+export( print.rmincLme )
+export( print.summary.lme )
+export( print.summary.modelStruct )
+export( print.summary.pdMat )
+export( residuals.rmincLmeStruct )
+export( reStruct )
 export( rmincLme )
 export( rmincLmeApVar )
 export( rmincLmeControl )
@@ -149,8 +262,26 @@ export( rmincLme.formula )
 export( rmincLmeLoop )
 export( rmincLmeScale )
 export( rmincLmeStruct )
+export( solve.newpdLogChol )
+export( solve.newpdNatural )
+export( solve.pdMat )
+export( solve.pdSymm )
+export( solve.reStruct )
+export( summary.modelStruct )
+export( summary.newpdLogChol )
+export( summary.newpdNatural )
+export( summary.pdMat )
+export( summary.pdSymm )
+export( summary.reStruct )
+export( summary.rmincLme )
+export( update.modelStruct )
+export( update.reStruct )
+export( update.rmincLme )
+export( varWeights.rmincLmeStruct )
+export( varWeights.varFunc )
 
 
+#############################
 # structure_funcs.R
 export( anatApply )
 export( anatCombineStructures )
@@ -161,6 +292,7 @@ export( anatGetFile )
 export( anatLm )
 export( anatRenameRows )
 
+#############################
 # volumetric.R
 export( volume.combineMaskVolumes )
 export( volume.explodeLabelVolume )

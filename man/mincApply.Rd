@@ -5,8 +5,9 @@
 \description{Can execute any R function at every voxel for a set of MINC
   files}
 \usage{
-mincApply{filenames, quote(mean(x)), mask="mask.mnc"}
-pMincApply{filenames, quote(mean(x)), mask="mask.mnc", cores=4}
+mincApply(filenames, quote(mean(x)), mask="mask.mnc")
+pMincApply(filenames, quote(mean(x)), mask="mask.mnc", cores=4,
+method="snowfall", tinyMask=FALSE)
 }
 \arguments{
   \item{filenames}{The MINC files over which to apply the function. Have
@@ -21,6 +22,12 @@ pMincApply{filenames, quote(mean(x)), mask="mask.mnc", cores=4}
     works for mincApply, not pMincApply.}
   \item{cores}{The number of processes to split the function into. Only
     works for pMincApply, not for mincApply.}
+  \item{method}{The method to be used for parallization. At the moment
+    only "snowfall" works.}
+  \item{tinyMask}{Only for pMincApply; if set to some numeric value it
+    computes the function over that fraction of the mask. Useful for
+    debugging purposes only (i.e. if you want to test out whether a new
+    function works across the cluster.)}
 }
 \details{mincApply allows one to execute any R function at every voxel
   of a set of files. There are two variants: mincApply, which works
@@ -58,4 +65,14 @@ myfunc <- function(x) {
 # apply and write out
 out <- mincApply(gf$filenames, quote(myfunc(x)), mask="mask.mnc")
 mincWriteVolume(out, "means.mnc")
+
+### run the whole thing in parallel on the local machine
+library(snowfall)
+# use snowfall init function to use local multiprocessing with 4 cpus
+sfInit(parallel=TRUE, cpus=4)
+# need to export necessary variables for this function to run to cpus
+sfExport('gf', 'myfunc')
+# now go and run it and then write out
+pout <- pMincApply(gf$filenames, quote(myfunc(x)), mask="mask.mnc")
+mincWriteVolume(pout, "means.mnc")
 }}
