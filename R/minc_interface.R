@@ -881,6 +881,53 @@ vertexTable <- function(filenames) {
   return(output)
 }
 
+###########################################################################################
+vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
+  # Create Model
+  mf <- match.call(expand.dots=FALSE)
+  m <- match(c("formula", "data", "subset"), names(mf), 0)
+  mf <- mf[c(1, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1]] <- as.name("model.frame")
+  mf <- eval(mf, parent.frame())
+  mmatrix <- model.matrix(formula, mf)
+
+  # Load Vertex Data from Files
+  #filenames <- as.character(mf[,1])
+  data.matrix <- vertexTable(filenames)
+	  
+  v.firstVoxel <- data.matrix[1,]
+
+  result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
+
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- rep("F", ncol(result))
+
+  l <- lm.fit(mmatrix, v.firstVoxel)
+  asgn <- l$assign[l$qr$pivot]
+  dfr <- df.residual(l)
+  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
+  dflist <- vector("list", ncol(result))
+  
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+
+  dflist <- vector("list", ncol(result))
+  dflist[[1]] <- c(Fdf1, Fdf2)
+  dflist[2:length(dflist)] <- Fdf2
+  attr(result, "df") <- dflist
+
+  # Use the first voxel in order to get the dimension names
+  columns <- sub('mmatrix', '',
+              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+  colnames(result) <- c("F-statistic", columns)
+  return(result)
+}
+###########################################################################################
+
+
 vertexLm <- function(formula, data, subset=NULL) {
   # repeat code to extract the formula as in mincLm
   m <- match.call()
