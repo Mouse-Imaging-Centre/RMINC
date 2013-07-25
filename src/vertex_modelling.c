@@ -134,31 +134,28 @@ SEXP vertex_anova_loop(SEXP data, SEXP Sx,SEXP asgn) {
   se = malloc(sizeof(double) * p);
   t = malloc(sizeof(double) * p);
   
-
-
-  
-  comp = malloc(sizeof(double) * p);
-  ss = malloc(sizeof(double) * maxasgn);
-  df = malloc(sizeof(int) * maxasgn);
-  
   xasgn = INTEGER(asgn);
-  
   maxasgn = 0;
   for (i=0; i < p; i++) {
     if (xasgn[i] > maxasgn) {
       maxasgn = (int) xasgn[i];
     }
   }
-  maxasgn++;
 
 
+  comp = malloc(sizeof(double) * p);
+  ss = malloc(sizeof(double) * maxasgn+1);
+  df = malloc(sizeof(int) * maxasgn);
+  
+  
+  
   Rprintf("N: %d P: %d\n", n,p);
 
   // protect voxel_lm output
-  PROTECT(t_sexp = allocVector(REALSXP, p+1));;
+  PROTECT(t_sexp = allocVector(REALSXP, maxasgn+1));;
 
   // allocate data for output
-  PROTECT(output=allocMatrix(REALSXP, nVertices, p+1));
+  PROTECT(output=allocMatrix(REALSXP, nVertices, maxasgn));
   xoutput=REAL(output);
 
   // allocate data for the buffer (each vertex for all subjects)
@@ -166,7 +163,7 @@ SEXP vertex_anova_loop(SEXP data, SEXP Sx,SEXP asgn) {
   xbuffer=REAL(buffer);
 
   // begin the loop
-  Rprintf("Beginning vertex loop: %d %d\n", nVertices, p+1);
+  Rprintf("Beginning vertex loop: %d %d\n", nVertices, maxasgn+1);
   for(i=0; i<nVertices;i++) {
     // fill buffer
     for (j=0; j<n; j++) {
@@ -175,7 +172,7 @@ SEXP vertex_anova_loop(SEXP data, SEXP Sx,SEXP asgn) {
     }
     t_sexp = voxel_anova(buffer, Sx,asgn, coefficients, residuals, effects,
 		      work, qraux, v, pivot, se, t, comp, ss, df);
-    for (k=0; k<p+1; k++) {
+    for (k=0; k<maxasgn; k++) {
       //Rprintf("O: %d\n", i+nVertices*k);
       xoutput[i+nVertices*k] = REAL(t_sexp)[k];
     }
@@ -184,6 +181,7 @@ SEXP vertex_anova_loop(SEXP data, SEXP Sx,SEXP asgn) {
   Rprintf("Done with vertex loop\n");
   
   // free memory
+
   free(coefficients);
   free(residuals);
   free(effects);
@@ -194,9 +192,9 @@ SEXP vertex_anova_loop(SEXP data, SEXP Sx,SEXP asgn) {
   free(diag);
   free(se);
   free(t);
-  
   free(comp);
   free(ss);
+
   free(df);
   UNPROTECT(3);
   

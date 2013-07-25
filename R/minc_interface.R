@@ -900,29 +900,27 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
 
-  attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
   attr(result, "stat-type") <- rep("F", ncol(result))
 
-  l <- lm.fit(mmatrix, v.firstVoxel)
-  asgn <- l$assign[l$qr$pivot]
-  dfr <- df.residual(l)
-  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
-  dflist <- vector("list", ncol(result))
-  
-  Fdf1 <- ncol(attr(result, "model")) -1
-  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
-
-  dflist <- vector("list", ncol(result))
-  dflist[[1]] <- c(Fdf1, Fdf2)
-  dflist[2:length(dflist)] <- Fdf2
-  attr(result, "df") <- dflist
-
   # Use the first voxel in order to get the dimension names
   columns <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  colnames(result) <- c("F-statistic", columns)
+  assignVector = attr(mmatrix, "assign") + 1
+  columnName =  rep('', max(assignVector)-1)
+  dflist =  rep(0, max(assignVector)-1)
+  for (i in 2:max(assignVector)) { 
+	indices = which(assignVector == i)
+	for (j in 1:length(indices)) {
+		columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
+		
+	}
+	dflist[i-1] = length(indices)
+   }
+
+  attr(result, "df") <- dflist
+  colnames(result) <- columnName
   return(result)
 }
 ###########################################################################################
