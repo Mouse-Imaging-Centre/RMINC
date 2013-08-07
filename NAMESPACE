@@ -96,6 +96,7 @@ export( print.vertexMultiDim )
 export( pt2 )
 export( vertexFDR )
 export( vertexLm )
+export( vertexAnova )
 export( vertexTable )
 export( wilcox.permutation.full )
 # rather not export the following...  the function name is a bit too desciptive...
@@ -290,6 +291,7 @@ export( anatFDR )
 export( anatGetAll )
 export( anatGetFile )
 export( anatLm )
+export( anatAnova )
 export( anatRenameRows )
 
 #############################

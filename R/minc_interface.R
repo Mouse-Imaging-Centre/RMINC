@@ -895,7 +895,7 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   # Load Vertex Data from Files
   #filenames <- as.character(mf[,1])
   data.matrix <- vertexTable(filenames)
-	  
+  
   v.firstVoxel <- data.matrix[1,]
 
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
@@ -911,16 +911,16 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   columnName =  rep('', max(assignVector)-1)
   dflist =  rep(0, max(assignVector)-1)
   for (i in 2:max(assignVector)) { 
-	indices = which(assignVector == i)
-	for (j in 1:length(indices)) {
-		columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
-		
-	}
-	dflist[i-1] = length(indices)
-   }
+    indices = which(assignVector == i)
+    for (j in 1:length(indices)) {
+      columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
+    }
+    dflist[i-1] = length(indices)
+  }
 
   attr(result, "df") <- dflist
   colnames(result) <- columnName
+  class(result) <- c("vertexMultiDim", "matrix")
   return(result)
 }
 ###########################################################################################
