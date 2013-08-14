@@ -882,6 +882,20 @@ vertexTable <- function(filenames) {
 }
 
 ###########################################################################################
+#' Performs ANOVA on each vertex point specified 
+#' @param formula a model formula
+#' @param data a data.frame containing variables in formula 
+#' @param filenames list of vertex files
+#' @param subset rows to be used, by default all are used
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
+#' 	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' @seealso mincAnova,anatAnova 
+#' @examples 
+#' gf = read.csv("~/SubjectTable.csv") 
+#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+#' result = vertexAnova(~Primary.Diagnosis,gf,gf$CIVETFILES$nativeRMStlink20mmleft) 
+###########################################################################################
 vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
@@ -895,8 +909,6 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   # Load Vertex Data from Files
   #filenames <- as.character(mf[,1])
   data.matrix <- vertexTable(filenames)
-	  
-  v.firstVoxel <- data.matrix[1,]
 
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
 
@@ -905,6 +917,7 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   attr(result, "stat-type") <- rep("F", ncol(result))
 
   # Use the first voxel in order to get the dimension names
+  v.firstVoxel <- data.matrix[1,]
   columns <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   assignVector = attr(mmatrix, "assign") + 1
@@ -921,10 +934,8 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 
   attr(result, "df") <- dflist
   colnames(result) <- columnName
-  return(result)
+  return(result) 
 }
-###########################################################################################
-
 
 vertexLm <- function(formula, data, subset=NULL) {
   # repeat code to extract the formula as in mincLm
@@ -952,7 +963,7 @@ vertexLm <- function(formula, data, subset=NULL) {
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
-  attr(result, "stat-type") <- c("F", rep("t", ncol(result)-1))
+  attr(result, "stat-type") <- c("F", rep("t", (ncol(result)-1)/2),rep("beta", (ncol(result)-1)/2))
 
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
@@ -967,10 +978,13 @@ vertexLm <- function(formula, data, subset=NULL) {
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
 
-  colnames(result) <- c("F-statistic", rows)
+
+  
+  betaNames = paste('Beta-',rows)
+
+  colnames(result) <- c("F-statistic", rows,betaNames)
   class(result) <- c("vertexMultiDim", "matrix")
   return(result)
-  
 }
 
 # calls ray-trace to generate a pretty picture of a slice
