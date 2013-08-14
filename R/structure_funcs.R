@@ -219,6 +219,51 @@ anatLm <- function(formula, data, anat, subset=NULL) {
     
 }
 
+anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
+  # Create Model
+  m  <- match.call()
+  mf <- match.call(expand.dots=FALSE)
+  # in order to keep track of which subjects we need (when subsetting),
+  # we will store the row numbers
+  mf$rowcount <- seq(1, nrow(data))
+  m  <- match(c("formula", "data", "subset", "rowcount"), names(mf), 0)  
+  mf <- mf[c(1, m)]
+  mf$drop.unused.levels <- TRUE
+  mf[[1]] <- as.name("model.frame")
+  mf <- eval(mf, parent.frame())
+  mmatrix <- model.matrix(formula, mf)
+  
+  # Get the data from the anatomy matrix using the same
+  # subset as specified in the formula (using the rownumbers)
+  anatmatrix <- t(anat[mf[,"(rowcount)"],])
+  
+  # same stats as used for the vertices
+  result <- .Call("vertex_anova_loop", anatmatrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
+  
+  rownames(result) <- colnames(anat)
+  # unlike in the anatLm function, the column names here should be the terms of the model
+  colnames(result) <- attr(terms(formula), "term.labels")
+  class(result) <- c("anatModel", "matrix")
+  attr(result, "atlas") <- attr(anat, "atlas")
+  attr(result, "definitions") <- attr(anat, "definitions")
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "stat-type") <-  rep("F", ncol(result))
+  
+  # get the structure in order to get the degrees of freedom
+  firstStructure <- anatmatrix[1,] 
+  l <- lm.fit(mmatrix, firstStructure)
+  asgn <- l$assign[l$qr$pivot]
+  dfr <- df.residual(l)
+  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
+  dflist <- vector("list", ncol(result))
+  for (i in 1:ncol(result)) {
+    dflist[[i]] <- c(dfs[[i+1]], dfr)
+  }
+  attr(result, "df") <- dflist
+  
+  return(result)
+}
+
 anatCreateVolume <- function(anat, filename, column=1) {
   labels <- read.csv(attr(anat, "definitions"))
   volume <- mincGetVolume(attr(anat, "atlas"))

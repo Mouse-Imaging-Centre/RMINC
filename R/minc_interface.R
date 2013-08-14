@@ -665,7 +665,6 @@ pMincApply <- function(filenames, function.string,
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   pout <- list()
-  test <- eval(function.string)
   
   if (method == "local") {
     stop("Lovely code ... that generates inconsistent results because something somewhere is not thread safe ...")
@@ -709,7 +708,11 @@ pMincApply <- function(filenames, function.string,
   else {
     stop("unknown execution method")
   }
-  
+
+  # Need to get one voxel, x, to test number of values returned from function.string
+  x <- mincGetVoxel(filenames, 0,0,0)
+  test <- eval(function.string)  
+
   # recombine the output into a single volume
   if (length(test) > 1) {
     output <- matrix(0, nrow=length(maskV), ncol=length(test))
@@ -733,7 +736,6 @@ pMincApply <- function(filenames, function.string,
 }
 
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
-  x <- mincGetVoxel(filenames, 0,0,0)
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -742,6 +744,8 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
     minmask = maskval
     maxmask = maskval
   }
+  # Need to get one voxel, x, to test number of values returned from function.string
+  x <- mincGetVoxel(filenames, 0,0,0)
   test <- eval(function.string)
   results <- .Call("minc2_model",
                    as.character(filenames),
@@ -772,20 +776,6 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
   attr(results, "likeVolume") <- filenames[1]
   return(results)
 }
-
-# efficient way of applying an R function to every voxel
-## mincApply <- function(filenames, function.string, mask=NULL) {
-##   result <- list(method=paste("mincApply:", function.string))
-##   result$likeVolume <- filenames[1]
-##   result$filenames <- filenames
-##   result$data <- .Call("minc2_model",
-##                        as.character(filenames),
-##                        function.string,
-##                        as.double(! is.null(mask)),
-##                        as.character(mask),
-##                        parent.env(environment()),
-##                        as.character("eval"), PACKAGE="RMINC")
-## }
 
 # use the eval interface to run mixed effect models at every vertex.
 # NOTE: since it uses the eval interface it suffers from several
@@ -909,7 +899,6 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   # Load Vertex Data from Files
   #filenames <- as.character(mf[,1])
   data.matrix <- vertexTable(filenames)
-
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
 
   attr(result, "model") <- as.matrix(mmatrix)
@@ -924,17 +913,18 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   columnName =  rep('', max(assignVector)-1)
   dflist =  rep(0, max(assignVector)-1)
   for (i in 2:max(assignVector)) { 
-	indices = which(assignVector == i)
-	for (j in 1:length(indices)) {
-		columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
-		
-	}
-	dflist[i-1] = length(indices)
-   }
+    indices = which(assignVector == i)
+    for (j in 1:length(indices)) {
+      columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
+    }
+    dflist[i-1] = length(indices)
+  }
 
   attr(result, "df") <- dflist
   colnames(result) <- columnName
-  return(result) 
+
+  class(result) <- c("vertexMultiDim", "matrix")
+  return(result)
 }
 
 vertexLm <- function(formula, data, subset=NULL) {
