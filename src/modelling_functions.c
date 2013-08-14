@@ -404,7 +404,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   n = nrows(Sx);
   p = ncols(Sx);
 
-  PROTECT(output=allocVector(REALSXP, p+1));
+  PROTECT(output=allocVector(REALSXP, 2*p+1));
   xoutput = REAL(output);
 
   /* since x is destroyed in dqrls, create a copy here */
