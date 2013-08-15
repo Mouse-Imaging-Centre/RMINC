@@ -353,18 +353,23 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
                   as.double(maxmask),
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
-  attr(result, "likeVolume") <- filenames[1]
-  attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
-  attr(result, "stat-type") <- c("F", rep("t", ncol(result)-1))
 
-  Fdf1 <- ncol(attr(result, "model")) -1
-  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
-  dflist <- vector("list", ncol(result))
+  coefficients <- result[,(2+(ncol(result)-1)/2):ncol(result)]
+  statistics <- result[,1:(1+(ncol(result)-1)/2)]  
+
+  attr(statistics, "likeVolume") <- filenames[1]
+  attr(statistics, "model") <- as.matrix(mmatrix)
+  attr(statistics, "filenames") <- filenames
+  attr(statistics, "stat-type") <- c("F", rep("t", ncol(statistics)-1))
+
+  Fdf1 <- ncol(attr(statistics, "model")) -1
+  Fdf2 <- nrow(attr(statistics, "model")) - ncol(attr(statistics, "model"))
+
+  dflist <- vector("list", ncol(statistics))
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
-  attr(result, "df") <- dflist
+  attr(statistics, "df") <- dflist
   
       #df <- vector(length=2)
     #df[1] <- ncol(attributes(buffer)$model) -1
@@ -374,11 +379,14 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+  betaNames = paste('Beta-',rows)
 
-  colnames(result) <- c("F-statistic", rows)
-  class(result) <- c("mincMultiDim", "matrix")
-
-  return(result)
+  colnames(coefficients) <-  betaNames
+  colnames(statistics) <- c("F-statistic", rows)
+  class(coefficients) <- c("anatModel", "matrix")
+  class(statistics) <- c("mincMultiDim", "matrix")
+  attr(statistics, "coefficients") <- coefficients
+  return(statistics)
 }
 
 # two tailed version of pt

@@ -781,7 +781,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     PROTECT(t_sexp = allocVector(REALSXP, p));
 
     /* allocate the output buffer */
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), p+1));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p+1));
 
   }
   else if (strcmp(method_name, "anova") == 0) {
@@ -945,6 +945,12 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		      = REAL(t_sexp)[i];
 	    }
+
+	    //Output Coefficients
+	    for (int k=(p+1); k<(2*p+1); k++) {
+	      xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = coefficients[k-(p+1)];
+	    }
+
 	  }
 	  /*
 	  else if (strcmp(method_name, "anova") == 0) {
