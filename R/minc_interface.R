@@ -926,7 +926,25 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   class(result) <- c("vertexMultiDim", "matrix")
   return(result)
 }
+###########################################################################################
+#' Calculates statistics and coefficients for linear model of specified vertex files
+#' @param formula a model formula
+#' @param data a data.frame containing variables in formula 
+#' @param subset rows to be used, by default all are used
+#' @return Returns an object containing the F 
+#' and t statistcs that can be passed directly into vertexFDR. The coefficients can be found
+#' in the attribute 'coefficients'
+#' @seealso mincLm,anatLm,vertexFDR 
+#' @examples 
+#' gf = read.csv("~/SubjectTable.csv") 
+#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+#' gf$vertexFiles = as.factor(gf$CIVETFILES$nativeRMStlink20mmleft)
+#' result = vertexLm(vertexFiles~Primary.Diagnosis,gf) 
+#' vertexFDR(result)
+#' coefficients <- attr(results,'coefficients')
 
+###########################################################################################
 vertexLm <- function(formula, data, subset=NULL) {
   # repeat code to extract the formula as in mincLm
   m <- match.call()
@@ -950,31 +968,37 @@ vertexLm <- function(formula, data, subset=NULL) {
 
   result <- .Call("vertex_lm_loop", data.matrix, mmatrix, PACKAGE="RMINC");
 
-  attr(result, "likeVolume") <- filenames[1]
-  attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
-  attr(result, "stat-type") <- c("F", rep("t", (ncol(result)-1)/2),rep("beta", (ncol(result)-1)/2))
+  coefficients <- result[,(2+(ncol(result)-1)/2):ncol(result)]
+  statistics <- result[,1:(1+(ncol(result)-1)/2)]
 
-  Fdf1 <- ncol(attr(result, "model")) -1
-  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+  attr(statistics, "likeVolume") <- filenames[1]
+  attr(statistics, "model") <- as.matrix(mmatrix)
+  attr(statistics, "filenames") <- filenames
+  attr(statistics, "stat-type") <- c("F", rep("t", (ncol(result)-1)/2))
+ 
 
-  dflist <- vector("list", ncol(result))
+  Fdf1 <- ncol(attr(statistics, "model")) -1
+  Fdf2 <- nrow(attr(statistics, "model")) - ncol(attr(statistics, "model"))
+
+  dflist <- vector("list", ncol(statistics))
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
-  attr(result, "df") <- dflist
+  attr(statistics, "df") <- dflist
   
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
 
-
-  
   betaNames = paste('Beta-',rows)
 
-  colnames(result) <- c("F-statistic", rows,betaNames)
-  class(result) <- c("vertexMultiDim", "matrix")
-  return(result)
+  colnames(coefficients) <-  betaNames
+  colnames(statistics) <- c("F-statistic", rows)
+  class(statistics) <- c("vertexMultiDim", "matrix")
+  class(coefficients) <- c("vertexMultiDim", "matrix")
+ 
+  attr(statistics, "coefficients") = coefficients
+  return(statistics)
 }
 
 # calls ray-trace to generate a pretty picture of a slice
