@@ -318,7 +318,31 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
-# run a linear model at each voxel
+###########################################################################################
+#' @description Linear Model at Every Voxel
+#' @name mincLm
+#' @title Linear model at Every Voxel
+#' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
+#' @param data The dataframe which contains the model terms.
+#' @param subset Subset definition.
+#' @param mask Either a filename or a vector of values of the same length as the input files. The linear model will only be computed
+#' inside the mask.
+#' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
+#' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
+#' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
+#' column is the F-statistic of the significance of the entire volume, the following columns contain the marginal t-statistics for each of the terms in 
+#' the model 
+#' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
+#' @examples 
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run a linear model relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # see what's in the results
+#' vs
+#' # write the results to file
+#' mincWriteVolume(vs, "output.mnc", "Genotype+")
+###########################################################################################
 mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -371,10 +395,6 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   dflist[2:length(dflist)] <- Fdf2
   attr(statistics, "df") <- dflist
   
-      #df <- vector(length=2)
-    #df[1] <- ncol(attributes(buffer)$model) -1
-    #df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
-
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   rows <- sub('mmatrix', '',

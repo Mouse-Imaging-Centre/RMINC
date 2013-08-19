@@ -1,35 +1,43 @@
 \name{mincLm}
 \alias{mincLm}
 \title{Linear model at Every Voxel}
-\description{Perform a linear models at every voxel of a
-  set of MINC files}
 \usage{
-mincLm(formula, data=NULL, subset=NULL, mask=NULL)
+  mincLm(formula, data = NULL, subset = NULL, mask = NULL,
+    maskval = NULL)
 }
 \arguments{
-  \item{formula}{The linear model formula. The left-hand term consists
-    of the MINC filenames over which to compute the models at every
-    voxel.}
-  \item{data}{The dataframe which contains the model terms.}
+  \item{formula}{The linear model formula. The left-hand
+  term consists of the MINC filenames over which to compute
+  the models at every voxel.}
+
+  \item{data}{The dataframe which contains the model
+  terms.}
+
   \item{subset}{Subset definition.}
-  \item{mask}{Either a filename or a vector of values of the same length
-    as the input files. The linear model will only be computed inside
-    the mask.}
+
+  \item{mask}{Either a filename or a vector of values of
+  the same length as the input files. The linear model will
+  only be computed inside the mask.}
 }
-\details{This function computes a linear model at every voxel of a set
-  of files. The function is a close cousin to lm, the key difference
-  being that the left-hand side of the formula specification takes a
-  series of filenames for MINC files.}
 \value{
-  \item{out}{mincLm returns a mincMultiDim object which contains a series
-  of columns corresponding to the terms in the linear model. The first
-  column is the F-statistic of the significance of the entire volume,
-  the following columns contain the marginal t-statistics for each of
-  the terms in the model}.
+  mincLm returns a mincMultiDim object which contains a
+  series of columns corresponding to the terms in the
+  linear model. The first column is the F-statistic of the
+  significance of the entire volume, the following columns
+  contain the marginal t-statistics for each of the terms
+  in the model
 }
-\seealso{mincWriteVolume,mincFDR,mincMean, mincSd}
+\description{
+  Linear Model at Every Voxel
+}
+\details{
+  This function computes a linear model at every voxel of a
+  set of files. The function is a close cousin to lm, the
+  key difference being that the left-hand side of the
+  formula specification takes a series of filenames for
+  MINC files.
+}
 \examples{
-\dontrun{
 # read the text file describing the dataset
 gf <- read.csv("control-file.csv")
 # run a linear model relating the data in all voxels to Genotype
@@ -38,5 +46,8 @@ vs <- mincLm(filenames ~ Genotype, gf)
 vs
 # write the results to file
 mincWriteVolume(vs, "output.mnc", "Genotype+")
-}}
+}
+\seealso{
+  mincWriteVolume,mincFDR,mincMean, mincSd
+}
 
