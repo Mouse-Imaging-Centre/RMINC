@@ -67,14 +67,14 @@ SEXP vertex_lm_loop(SEXP data, SEXP Sx) {
     }
     t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
 		      work, qraux, v, pivot, se, t);
-    for (k=0; k<(p+1); k++) {
+    for (k=0; k<(p); k++) {
       //Rprintf("O: %d\n", i+nVertices*k);
-      xoutput[i+nVertices*k] = REAL(t_sexp)[k];
+      xoutput[i+nVertices*k] = coefficients[k];
     }
 
     //Output Coefficients
-    for (k=(p+1); k<(2*p+1); k++) {
-      xoutput[i+nVertices*k] = coefficients[k-(p+1)];
+    for (k=(p); k<(2*p+1); k++) {
+      xoutput[i+nVertices*k] = REAL(t_sexp)[k-(p)];
     }
 
 

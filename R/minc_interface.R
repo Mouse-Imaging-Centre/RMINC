@@ -378,35 +378,28 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
 
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c(rep("beta",(ncol(result)-1)/2),"F",rep("t", (ncol(result)-1)/2))
 
-  coefficients <- result[,(2+(ncol(result)-1)/2):ncol(result)]
-  statistics <- result[,1:(1+(ncol(result)-1)/2)]  
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
-  attr(statistics, "likeVolume") <- filenames[1]
-  attr(statistics, "model") <- as.matrix(mmatrix)
-  attr(statistics, "filenames") <- filenames
-  attr(statistics, "stat-type") <- c("F", rep("t", ncol(statistics)-1))
-
-  Fdf1 <- ncol(attr(statistics, "model")) -1
-  Fdf2 <- nrow(attr(statistics, "model")) - ncol(attr(statistics, "model"))
-
-  dflist <- vector("list", ncol(statistics))
+  dflist <- vector("list", (ncol(result)-1)/2 + 1)
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
-  attr(statistics, "df") <- dflist
+  attr(result, "df") <- dflist
   
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   betaNames = paste('Beta-',rows)
-
-  colnames(coefficients) <-  betaNames
-  colnames(statistics) <- c("F-statistic", rows)
-  class(coefficients) <- c("anatModel", "matrix")
-  class(statistics) <- c("mincMultiDim", "matrix")
-  attr(statistics, "coefficients") <- coefficients
-  return(statistics)
+  tnames = paste('t value-',rows)
+  colnames(result) <- c(betaNames,"F-statistic", tnames)
+  class(result) <- c("mincMultiDim", "matrix")
+  return(result)
 }
 
 # two tailed version of pt
@@ -455,6 +448,24 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       stop("The qvalue package must be installed for mincFDR to work")
     }
   }
+
+
+  # Remove coefficients from buffer
+  stattype = attr(buffer, "stat-type")
+  df  = attr(buffer,"df")
+  for (nStat in 1:length(stattype)) {
+	if(stattype[nStat] == 'beta') {
+		if(!exists('indicesToRemove')) {
+			indicesToRemove = nStat 
+		}
+		else {
+			indicesToRemove = c(indicesToRemove,nStat) 
+		}
+	}
+  }
+  buffer = buffer[,-indicesToRemove]	
+  attr(buffer, "stat-type") <- stattype[-indicesToRemove]
+  attr(buffer, "df") <- df
 
   # must know the type of statistic we are dealing with
   knownStats <- c("t", "F")
@@ -533,7 +544,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   for (i in 1:n.cols) {
     cat("  Computing threshold for ", columns[i], "\n")
     pvals <- 0
-    qobj <- 0
+    qobj <- vector("list", length(pvals))
 
     # convert statistics to p-values
     if (statType[i] == "t") {
@@ -554,6 +565,9 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       }
     }
     
+
+
+
     # determine corresponding q values
     if (method=="qvalue") {
       qobj <- qvalue(pvals)
@@ -959,9 +973,8 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
-#' @return Returns an object containing the F 
-#' and t statistcs that can be passed directly into vertexFDR. The coefficients can be found
-#' in the attribute 'coefficients'
+#' @return Returns an object containing the beta coefficients, F 
+#' and t statistcs that can be passed directly into vertexFDR.
 #' @seealso mincLm,anatLm,vertexFDR 
 #' @examples 
 #' gf = read.csv("~/SubjectTable.csv") 
@@ -970,8 +983,6 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 #' gf$vertexFiles = as.factor(gf$CIVETFILES$nativeRMStlink20mmleft)
 #' result = vertexLm(vertexFiles~Primary.Diagnosis,gf) 
 #' vertexFDR(result)
-#' coefficients <- attr(results,'coefficients')
-
 ###########################################################################################
 vertexLm <- function(formula, data, subset=NULL) {
   # repeat code to extract the formula as in mincLm
@@ -982,9 +993,8 @@ vertexLm <- function(formula, data, subset=NULL) {
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
-  #stop(sys.frames())
   mf <- eval(mf, parent.frame())
-  #mf <- eval(mf)
+
 
   filenames <- as.character(mf[,1])
   mmatrix <- model.matrix(formula, mf)
@@ -996,22 +1006,19 @@ vertexLm <- function(formula, data, subset=NULL) {
 
   result <- .Call("vertex_lm_loop", data.matrix, mmatrix, PACKAGE="RMINC");
 
-  coefficients <- result[,(2+(ncol(result)-1)/2):ncol(result)]
-  statistics <- result[,1:(1+(ncol(result)-1)/2)]
-
-  attr(statistics, "likeVolume") <- filenames[1]
-  attr(statistics, "model") <- as.matrix(mmatrix)
-  attr(statistics, "filenames") <- filenames
-  attr(statistics, "stat-type") <- c("F", rep("t", (ncol(result)-1)/2))
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c(rep("beta",(ncol(result)-1)/2),"F",rep("t", (ncol(result)-1)/2))
  
 
-  Fdf1 <- ncol(attr(statistics, "model")) -1
-  Fdf2 <- nrow(attr(statistics, "model")) - ncol(attr(statistics, "model"))
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
-  dflist <- vector("list", ncol(statistics))
+  dflist <- vector("list", (ncol(result)-1)/2+1)
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
-  attr(statistics, "df") <- dflist
+  attr(result, "df") <- dflist
   
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
@@ -1019,14 +1026,11 @@ vertexLm <- function(formula, data, subset=NULL) {
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
 
   betaNames = paste('Beta-',rows)
-
-  colnames(coefficients) <-  betaNames
-  colnames(statistics) <- c("F-statistic", rows)
-  class(statistics) <- c("vertexMultiDim", "matrix")
-  class(coefficients) <- c("vertexMultiDim", "matrix")
+  tnames = paste('t value-',rows);
+  colnames(result) <- c(betaNames,"F-statistic", tnames)
+  class(result) <- c("vertexMultiDim", "matrix")
  
-  attr(statistics, "coefficients") = coefficients
-  return(statistics)
+  return(result)
 }
 
 # calls ray-trace to generate a pretty picture of a slice

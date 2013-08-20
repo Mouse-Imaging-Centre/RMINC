@@ -181,9 +181,8 @@ anatApply <- function(vols, grouping, method=mean) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
-#' @return Returns an object containing the F 
-#' and t statistcs that can be passed directly into anatFDR. The coefficients can be found
-#' in the attribute 'coefficients'
+#' @return Returns an object containing the coefficients,F 
+#' and t statistcs that can be passed directly into anatFDR.
 #' @seealso mincLm,anatLm,anatFDR 
 #' @examples 
 #' gf = read.csv("~/SubjectTable.csv") 
@@ -191,7 +190,6 @@ anatApply <- function(vols, grouping, method=mean) {
 #' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
 #' result = anatLm(~Primary.Diagnosis,gf,gf$lobeVolume)
 #' anatFDR(result)
-#' coefficients <- attr(results,'coefficients')
 
 ###########################################################################################  
 anatLm <- function(formula, data, anat, subset=NULL) {
@@ -216,36 +214,36 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   coefficients <- result[,(2+(ncol(result)-1)/2):ncol(result)]
   statistics <- result[,1:(1+(ncol(result)-1)/2)]  
 
-  rownames(coefficients) <- colnames(anat)
-  rownames(statistics) <- colnames(anat)
+  rownames(result) <- colnames(anat)
+
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- anatmatrix[1,]
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  colnames(statistics) <- c("F-statistic", rows)
-  betaNames = paste('Beta-',rows)
-
-  colnames(coefficients) <-  betaNames
-
-  class(statistics) <- c("anatModel", "matrix")
-  class(coefficients) <- c("anatModel", "matrix")
-
-  attr(statistics, "atlas") <- attr(anat, "atlas")
-  attr(statistics, "definitions") <- attr(anat, "definitions")
-  attr(statistics, "model") <- as.matrix(mmatrix)
-  attr(statistics, "stat-type") <- c("F", rep("t", ncol(statistics)-1))
   
-  Fdf1 <- ncol(attr(statistics, "model")) -1
-  Fdf2 <- nrow(attr(statistics, "model")) - ncol(attr(statistics, "model"))
 
-  dflist <- vector("list", ncol(statistics))
+
+  betaNames = paste('Beta-',rows)
+  tnames = paste('t value-',rows)
+  
+  colnames(result) <- c(betaNames,"F-statistic", tnames)
+  
+  class(result) <- c("anatModel", "matrix")
+
+  attr(result, "atlas") <- attr(anat, "atlas")
+  attr(result, "definitions") <- attr(anat, "definitions")
+  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "stat-type") <- c(rep("beta",(ncol(result)-1)/2),"F",rep("t", (ncol(result)-1)/2))
+  
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+
+  dflist <- vector("list", (ncol(result)-1)/2 + 1)
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
-  attr(statistics, "df") <- dflist
-  attr(statistics, "coefficients") <- coefficients
+  attr(result, "df") <- dflist
   
-  return(statistics)
-    
+  return(result)
 }
 
 anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {

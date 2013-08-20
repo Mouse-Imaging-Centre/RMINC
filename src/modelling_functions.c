@@ -941,14 +941,14 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 	  else if (strcmp(method_name, "lm") == 0) {
 	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
 			      work, qraux, v, pivot, se, t);
-	    for(i=0; i < p+1; i++) {
+	    for(i=0; i < p; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		      = REAL(t_sexp)[i];
+		      = coefficients[i];
 	    }
 
 	    //Output Coefficients
-	    for (int k=(p+1); k<(2*p+1); k++) {
-	      xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = coefficients[k-(p+1)];
+	    for (int k=(p); k<(2*p+1); k++) {
+	      xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k-(p)];
 	    }
 
 	  }
