@@ -1032,6 +1032,52 @@ vertexLm <- function(formula, data, subset=NULL) {
  
   return(result)
 }
+###########################################################################################
+#' Writes vertex data to a file with an optional header
+#' @param vertexData vertex data to be written
+#' @param filename full path to file where data shall be written
+#' @param headers Whether or not to write header information
+#' @param mean.stats mean vertex data that may also be written
+#' @param gf glim matrix that can be written to the header
+#' @return A file is generated with the vertex data and optional headers
+#' @examples 
+#' gf = read.csv("~/SubjectTable.csv") 
+#' gfCIVET = civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gfCIVET = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gfCIVET)
+#' writeVertex(gfCIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
+###########################################################################################
+writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL, 
+    gf = NULL) 
+{
+    append.file = TRUE
+    if (headers == TRUE) {
+        write("<header>", file = filename)
+        if (is.object(mean.stats)) {
+            write("<mean>", file = filename, append = TRUE)
+            sink(filename, append = TRUE)
+            print(summary(mean.stats))
+            sink(NULL)
+            write("</mean>", file = filename, append = TRUE)
+            write("<formula>", file = filename, append = TRUE)
+            sink(filename, append = TRUE)
+            print(formula(mean.stats))
+            sink(NULL)
+            write("</formula>", file = filename, append = TRUE)
+        }
+        if (is.data.frame(glim.matrix)) {
+            write("<matrix>", file = filename, append = TRUE)
+            write.table(glim.matrix, file = filename, append = TRUE, 
+                row.names = FALSE)
+            write("</matrix>", file = filename, append = TRUE)
+        }
+        write("</header>", file = filename, append = TRUE)
+    }
+    else {
+        append.file = FALSE
+    }
+    write.table(vertexData, file = filename, append = append.file, 
+        quote = FALSE, row.names = FALSE, col.names = headers)
+}
 
 # calls ray-trace to generate a pretty picture of a slice
 minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
