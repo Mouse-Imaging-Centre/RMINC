@@ -211,9 +211,6 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   # Call C function for speed-up
   result <- .Call("vertex_lm_loop", anatmatrix, mmatrix, PACKAGE="RMINC")
 
-  coefficients <- result[,(2+(ncol(result)-1)/2):ncol(result)]
-  statistics <- result[,1:(1+(ncol(result)-1)/2)]  
-
   rownames(result) <- colnames(anat)
 
   # get the first voxel in order to get the dimension names
@@ -221,27 +218,33 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   
-
-
-  betaNames = paste('Beta-',rows)
-  tnames = paste('t value-',rows)
-  
-  colnames(result) <- c(betaNames,"F-statistic", tnames)
-  
+  # the order of return values is:
+  #
+  # f-statistic
+  # r-squared
+  # betas
+  # t-stats
+  #
+  betaNames = paste('beta-',rows, sep='')
+  tnames = paste('tvalue-',rows, sep='')
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("anatModel", "matrix")
-
   attr(result, "atlas") <- attr(anat, "atlas")
   attr(result, "definitions") <- attr(anat, "definitions")
   attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "stat-type") <- c(rep("beta",(ncol(result)-1)/2),"F",rep("t", (ncol(result)-1)/2))
+  attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
   
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
-  dflist <- vector("list", (ncol(result)-1)/2 + 1)
+  # degrees of freedom are needed for the fstat and tstats only
+  dflist <- vector("list", (ncol(result)-2)/2 + 1)
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
+  
+  # run the garbage collector...
+  gcout <- gc()
   
   return(result)
 }

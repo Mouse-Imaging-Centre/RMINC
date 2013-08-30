@@ -46,11 +46,22 @@ SEXP vertex_lm_loop(SEXP data, SEXP Sx) {
     
   Rprintf("N: %d P: %d\n", n,p);
 
-  // protect voxel_lm output
-  PROTECT(t_sexp = allocVector(REALSXP, 2*p+1));;
+  // protect voxel_lm output, currently returns:
+  // 
+  // f-statistic
+  // p * t-statistic
+  // r-squared
+  // 
+  PROTECT(t_sexp = allocVector(REALSXP, p + 2));;
 
-  // allocate data for output
-  PROTECT(output=allocMatrix(REALSXP, nVertices, 2*p+1));
+  // allocate data for output, will contain:
+  // 
+  // f-statistic
+  // r-squared
+  // betas
+  // t-stats
+  // 
+  PROTECT(output=allocMatrix(REALSXP, nVertices, 2*p + 2));
   xoutput=REAL(output);
 
   // allocate data for the buffer (each vertex for all subjects)
@@ -66,18 +77,23 @@ SEXP vertex_lm_loop(SEXP data, SEXP Sx) {
       //Rprintf("B: %d\n", i+nVertices*j);
     }
     t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
-		      work, qraux, v, pivot, se, t);
-    for (k=0; k<(p); k++) {
-      //Rprintf("O: %d\n", i+nVertices*k);
-      xoutput[i+nVertices*k] = coefficients[k];
+          work, qraux, v, pivot, se, t);
+          
+    // f-statistic
+    xoutput[i] = REAL(t_sexp)[0];
+    
+    // r-squared (last value from voxel_lm call: p+2 (stating at 0, so p+1))
+    xoutput[i + 1 * nVertices] = REAL(t_sexp)[p+1];
+    
+    // the betas/coefficients:
+    for (int k = 2; k < (p + 2); k++) {
+      xoutput[i + k * nVertices] = coefficients[k - 2];
     }
-
-    //Output Coefficients
-    for (k=(p); k<(2*p+1); k++) {
-      xoutput[i+nVertices*k] = REAL(t_sexp)[k-(p)];
+    
+    // t-stats
+    for(int k = 1; k < p + 1; k++) {
+      xoutput[i + (k + p + 1) * nVertices] = REAL(t_sexp)[k];
     }
-
-
   }
 
   Rprintf("Done with vertex loop\n");

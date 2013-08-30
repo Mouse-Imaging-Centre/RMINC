@@ -404,7 +404,14 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   n = nrows(Sx);
   p = ncols(Sx);
 
-  PROTECT(output=allocVector(REALSXP, p+1)); nprot++;
+  // the output will contain:
+  // 
+  // f-statistic
+  // p * t-statistic
+  // r-squared
+  //
+  // which is a total of p+2 values
+  PROTECT(output=allocVector(REALSXP, p+2)); nprot++;
   xoutput = REAL(output);
 
   /* since x (the model matrix, input variable Sx) is destroyed in dqrls, 
@@ -465,6 +472,9 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
     xoutput[i+1] = coefficients[i] / se[i];
   }
 
+  // last, but not least, the r-squared:
+  xoutput[p+1] = mss / (mss + rss);
+  
   UNPROTECT(nprot);
   return(output);
 }
@@ -758,10 +768,10 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     
     Rprintf("N: %d P: %d\n", n,p);
 
-    PROTECT(t_sexp = allocVector(REALSXP, p));
+    PROTECT(t_sexp = allocVector(REALSXP, p + 2));
 
     /* allocate the output buffer */
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p+1));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p + 2));
 
   }
   else if (strcmp(method_name, "anova") == 0) {
@@ -918,20 +928,36 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 		= REAL(t_sexp)[i];
 	    }
 	  }
-	  else if (strcmp(method_name, "lm") == 0) {
-	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
-			      work, qraux, v, pivot, se, t);
-	    for(i=0; i < p; i++) {
-	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		      = coefficients[i];
-	    }
-
-	    //Output Coefficients
-	    for (int k=(p); k<(2*p+1); k++) {
-	      xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k-(p)];
-	    }
-
-	  }
+    else if (strcmp(method_name, "lm") == 0) {
+    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
+            work, qraux, v, pivot, se, t);
+      
+      // most sensible output format (?): fist the full model measurements,
+      // then the individual measurement in the same order as summary.lm
+      // gives them:
+      //
+      // f-statistic
+      // r-squared
+      // betas
+      // t-stats
+      //
+      
+      // f-statistic
+      xoutput[output_index] = REAL(t_sexp)[0];
+      
+      // r-squared (last value from voxel_lm call: p+2 (stating at 0, so p+1))
+      xoutput[output_index + 1 * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[p + 1];
+      
+      // the betas/coefficients:
+      for (int k = 2; k < (p + 2); k++) {
+        xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = coefficients[k - 2];
+      }
+      
+      // t-stats
+      for(int k = 1; k < p + 1; k++) {
+        xoutput[output_index + (k + p + 1) * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k];
+      }
+  }
 	  /*
 	  else if (strcmp(method_name, "anova") == 0) {
 	    t_sexp = voxel_anova(buffer, Sx, asgn,
