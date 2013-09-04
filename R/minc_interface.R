@@ -471,17 +471,19 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   stattype = attr(buffer, "stat-type")
   df  = attr(buffer,"df")
   for (nStat in 1:length(stattype)) {
-	if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared') {
-		if(!exists('indicesToRemove')) {
-			indicesToRemove = nStat 
-		}
-		else {
-			indicesToRemove = c(indicesToRemove,nStat) 
-		}
-	}
+    if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared') {
+      if(!exists('indicesToRemove')) {
+        indicesToRemove = nStat 
+      }
+      else {
+        indicesToRemove = c(indicesToRemove,nStat) 
+      }
+    }
   }
-  buffer = buffer[,-indicesToRemove]	
-  attr(buffer, "stat-type") <- stattype[-indicesToRemove]
+  if(exists('indicesToRemove')) {
+    buffer = buffer[,-indicesToRemove]
+    attr(buffer, "stat-type") <- stattype[-indicesToRemove]
+  }
   attr(buffer, "df") <- df
 
   # must know the type of statistic we are dealing with
