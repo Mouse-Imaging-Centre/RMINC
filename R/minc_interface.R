@@ -689,23 +689,23 @@ pMincApply <- function(filenames, function.string,
                        mask=NULL, cores=4, tinyMask=FALSE, method="snowfall") {
   # if no mask exists use the entire volume
   if (is.null(mask)) {
-    stop("err, need a mask. Sorry. Will fix it soon")
+    maskV = mincGetVolume(filenames[1])
+    nVoxels = length(maskV)
+    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), cores)) 
   }
   else {
     maskV <- mincGetVolume(mask)
-  }
-  # create a mask that divides the problem into as many domains as cores
-  nVoxels <- sum(maskV>0.5)
-
-  # optionally make the mask a fraction of the original size - for testing
-  if (tinyMask!=FALSE) {
-    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), tinyMask))
-    maskV[maskV>1.5] <- 0
+    # optionally make the mask a fraction of the original size - for testing
+    if (tinyMask!=FALSE) {
+      maskV[maskV>1.5] <- 0
+    }
     nVoxels <- sum(maskV>0.5)
+    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores)) 
   }
-  maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores))
+ 
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
+  
   pout <- list()
   
   if (method == "local") {
@@ -722,22 +722,32 @@ pMincApply <- function(filenames, function.string,
     #cat("length: ", length(pout), "\n")
   }
   else if (method == "sge") {
-    stop("implementation of sge method completely broken ...")
-    i <- 4
-    pout <- list()
-    pids <- sge.submit(mincApply, filenames, function.string, mask=maskFilename,
-                       maskval=i, packages=c("RMINC"))
-    status <- sge.job.status(pids$pid)
-    while(status != 0) {
-      Sys.sleep(4)
-      status <- sge.job.status(pids$pid)
+    library(Rsge)
+    # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
+    function.string = enquote(function.string)
+    
+    l1 <- list(length=cores)
+    
+    # Submit one job to the queue for each segmented brain region
+    for(i in 1:cores) {
+       l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
+                       maskval=i, packages=c("RMINC"),global.savelist=as.character("myfunc"))
     }
-    pout[[i]] <- sge.list.get.result(pids)
+    
+    # Wait for all jobs to complete
+    r1 = lapply(l1,sge.job.status)
+    
+    while(! all (r1 == 0)) {
+      Sys.sleep(4)
+      r1 = lapply(l1,sge.job.status) }
+      pout <- lapply(l1, sge.list.get.result)
+
+    function.string = eval(function.string)
   }
   else if (method == "snowfall") {
     wrapper <- function(i) {
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i, reduce=TRUE))
+                       maskval=i, reduce=FALSE))
     }
     # use all cores in the current cluster if # of cores not specified
     if (is.null(cores)) {
@@ -753,7 +763,7 @@ pMincApply <- function(filenames, function.string,
 
   # Need to get one voxel, x, to test number of values returned from function.string
   x <- mincGetVoxel(filenames, 0,0,0)
-  test <- eval(function.string)  
+  test <- eval(function.string) 
 
   # recombine the output into a single volume
   if (length(test) > 1) {
@@ -770,7 +780,8 @@ pMincApply <- function(filenames, function.string,
       output[maskV==i,] <- pout[[i]]
     }
     else {
-      output[maskV==i] <- pout[[i]]
+      currentMask = pout[[i]]
+      output[maskV==i] <- currentMask[maskV==i]
     }
   }
   unlink(maskFilename)
@@ -778,6 +789,7 @@ pMincApply <- function(filenames, function.string,
 }
 
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
+ 
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
