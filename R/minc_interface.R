@@ -731,7 +731,8 @@ pMincApply <- function(filenames, function.string,
     # Submit one job to the queue for each segmented brain region
     for(i in 1:cores) {
        l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
-                       maskval=i, packages=c("RMINC"),global.savelist=as.character("myfunc"))
+                      maskval=i, packages=c("RMINC"),global.savelist=sub("\\(([A-Z]|[a-z])\\)","",function.string))
+   
     }
     
     # Wait for all jobs to complete
