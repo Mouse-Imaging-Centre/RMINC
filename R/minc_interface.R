@@ -25,11 +25,13 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
 
 # test to see whether files exist and are readable
 mincFileCheck <- function(filenames) {
-  if (sum(file.access(as.character(filenames), 4)) != 0
-      || is.null(filenames)) {
-    stop("Not all filenames are readable")
+  for(i in 1:length(filenames) ) {
+    if(file.access(as.character(filenames[i]), 4) == -1 ){
+        stop("The following file could not be read (full filename is between the dashes): ---", filenames[i], "---")
+    }
   }
 }
+
 
 # get the real value of one voxel from all files using world coordinates
 mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
@@ -315,6 +317,9 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   colnames(result) <- attr(terms(formula), "term.labels")
   class(result) <- c("mincMultiDim", "matrix")
 
+  # run the garbage collector...
+  gcout <- gc()
+
   return(result)
 }
 
@@ -381,12 +386,20 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
-  attr(result, "stat-type") <- c(rep("beta",(ncol(result)-1)/2),"F",rep("t", (ncol(result)-1)/2))
+  
+  # the order of return values is:
+  #
+  # f-statistic
+  # r-squared
+  # betas
+  # t-stats
+  #
+  attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
 
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
-  dflist <- vector("list", (ncol(result)-1)/2 + 1)
+  dflist <- vector("list", (ncol(result)-2)/2 + 1)
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
@@ -395,10 +408,14 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  betaNames = paste('Beta-',rows)
-  tnames = paste('t value-',rows)
-  colnames(result) <- c(betaNames,"F-statistic", tnames)
+  betaNames = paste('beta-',rows, sep='')
+  tnames = paste('tvalue-',rows, sep='')
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("mincMultiDim", "matrix")
+  
+  # run the garbage collector...
+  gcout <- gc()
+  
   return(result)
 }
 
@@ -454,17 +471,19 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   stattype = attr(buffer, "stat-type")
   df  = attr(buffer,"df")
   for (nStat in 1:length(stattype)) {
-	if(stattype[nStat] == 'beta') {
-		if(!exists('indicesToRemove')) {
-			indicesToRemove = nStat 
-		}
-		else {
-			indicesToRemove = c(indicesToRemove,nStat) 
-		}
-	}
+    if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared') {
+      if(!exists('indicesToRemove')) {
+        indicesToRemove = nStat 
+      }
+      else {
+        indicesToRemove = c(indicesToRemove,nStat) 
+      }
+    }
   }
-  buffer = buffer[,-indicesToRemove]	
-  attr(buffer, "stat-type") <- stattype[-indicesToRemove]
+  if(exists('indicesToRemove')) {
+    buffer = buffer[,-indicesToRemove]
+    attr(buffer, "stat-type") <- stattype[-indicesToRemove]
+  }
   attr(buffer, "df") <- df
 
   # must know the type of statistic we are dealing with
@@ -606,6 +625,10 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- df
   class(output) <- c("mincQvals", "mincMultiDim", "matrix")
+  
+  # run the garbage collector...
+  gcout <- gc()
+  
   return(output)
 }
    
@@ -829,6 +852,10 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
     class(results) <- c("mincSingleDim", "numeric")
   }
   attr(results, "likeVolume") <- filenames[1]
+  
+  # run the garbage collector...
+  gcout <- gc()
+  
   return(results)
 }
 
@@ -913,6 +940,10 @@ mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
     class(results) <- c("mincSingleDim", "numeric")
   }
   colnames(results) <- colnames(test)
+  
+  # run the garbage collector...
+  gcout <- gc()
+  
   return(results)
 }
   
@@ -1022,13 +1053,13 @@ vertexLm <- function(formula, data, subset=NULL) {
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
-  attr(result, "stat-type") <- c(rep("beta",(ncol(result)-1)/2),"F",rep("t", (ncol(result)-1)/2))
+  attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
  
-
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
-  dflist <- vector("list", (ncol(result)-1)/2+1)
+  # degrees of freedom are needed for the fstat and tstats only
+  dflist <- vector("list", (ncol(result)-2)/2+1)
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
@@ -1038,10 +1069,13 @@ vertexLm <- function(formula, data, subset=NULL) {
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
 
-  betaNames = paste('Beta-',rows)
-  tnames = paste('t value-',rows);
-  colnames(result) <- c(betaNames,"F-statistic", tnames)
+  betaNames = paste('beta-', rows, sep='')
+  tnames = paste('tvalue-', rows, sep='')
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("vertexMultiDim", "matrix")
+ 
+  # run the garbage collector...
+  gcout <- gc()
  
   return(result)
 }

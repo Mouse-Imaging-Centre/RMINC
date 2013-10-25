@@ -1,4 +1,6 @@
 #include "minc_reader.h"
+#include "R_ext/Lapack.h"
+#include "R_ext/Applic.h"
 
 /* minimum computation to speed up bits of qvalue */
 
@@ -101,7 +103,7 @@ SEXP paired_t_test(SEXP voxel, SEXP grouping) {
 /* compute a  t test given a voxel and grouping */
 SEXP t_test(SEXP voxel, SEXP grouping) {
   double *xvoxel, *xgrouping, *t;
-  double x_mean, x_var, y_mean, y_var, x_sum, y_sum, x_n, y_n, s_p;
+  double x_mean, x_var, y_mean, y_var, x_sum, y_sum, x_n, y_n;
   int i, n;
   SEXP output;
 
@@ -158,7 +160,6 @@ SEXP t_test(SEXP voxel, SEXP grouping) {
 	  x_var, y_var, x_mean, y_mean, x_n, y_n);
   */
 
-  //s_p = ( ((x_n - 1) * x_var) + ((y_n - 1) * y_var) ) / x_n + y_n - 2;
   t[0] = ( x_mean - y_mean ) / sqrt( (x_var / (x_n-1) ) + (y_var / (y_n-1)));
 
   UNPROTECT(1);
@@ -238,7 +239,6 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
 SEXP voxel_sum(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
   double *voxel, *groupings, *n_groups;
   double *sum_voxel;
-  int *subjects_per_group;
   int n_subjects, i;
   SEXP Soutput;
 
@@ -391,24 +391,32 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
 }
 
 SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients, 
-	      double *residuals, double *effects, 
-	      double *work, 
-	      double *qraux, double *v, int *pivot, double *se, double *t) {
+        double *residuals, double *effects, 
+        double *work, 
+        double *qraux, double *v, int *pivot, double *se, double *t) {
 
   double tol, rss, resvar, mss, mean_fitted, sum_fitted;
   double *x, *y, *xoutput;
   int n, p, ny, rank, i, j, rdf, index;
   SEXP new_x, output;
-
+  int nprot = 0;
 
   n = nrows(Sx);
   p = ncols(Sx);
 
-  PROTECT(output=allocVector(REALSXP, 2*p+1));
+  // the output will contain:
+  // 
+  // f-statistic
+  // p * t-statistic
+  // r-squared
+  //
+  // which is a total of p+2 values
+  PROTECT(output=allocVector(REALSXP, p+2)); nprot++;
   xoutput = REAL(output);
 
-  /* since x is destroyed in dqrls, create a copy here */
-  PROTECT(new_x=allocMatrix(REALSXP, n, p));
+  /* since x (the model matrix, input variable Sx) is destroyed in dqrls, 
+     create a copy here */
+  PROTECT(new_x=allocMatrix(REALSXP, n, p)); nprot++;
   for (i=0; i < n; i++) {
     for (j=0; j < p; j++) {
       REAL(new_x)[i+j*n] = REAL(Sx)[i+j*n];
@@ -421,70 +429,53 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   rank = 1;
   tol = 1e-07;
 
-  //  for (i=0; i<n; i++) {
-  //  effects[i] = y[i];
-  //  residuals[i] = y[i];
-  //}
+  // compute the least squares solution:
+  F77_CALL(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
+        &rank, pivot, qraux, work);
 
-  //Rprintf("Effects: %f\n", effects[0]);
-
-  F77_NAME(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
-	&rank, pivot, qraux, work);
-
-  //Rprintf("N: %d P: %d NY: %d\n", n,p,ny);
-  //Rprintf("Coefficients: ");
-  //for (i=0; i < n; i++) {
-  //  Rprintf("Effects: %f\n", effects[i]);
-  //}
-
-  
-
-  rss = 0;
-  rdf = 0;
-  mss = 0;
+  // Calculate the f-statistic first
+  rss = 0; // residual sum of squares
+  rdf = 0; // residual degrees of freedom
+  mss = 0; // (fitted - mean fitted sum) of squares
   sum_fitted = 0;
   for (i=0; i < n; i++) {
     rss += pow(residuals[i], 2);
     sum_fitted += (y[i] - residuals[i]);
-    //Rprintf("%f\n", residuals[i]);
   }
   mean_fitted = sum_fitted / n;
-  //Rprintf("Mean effects: %f\n", mean_fitted);
   for (i=0; i < n; i++) {
     mss += pow((y[i] - residuals[i]) - mean_fitted, 2);
   }
-  //Rprintf("%f\n", mss);
   rdf = n - p;
   resvar = rss/rdf;
-  //Rprintf("Fstat: %f\n", (mss/(p - 1))/resvar);
   /* first output is the f-stat of the whole model */
   xoutput[0] = (mss/(p - 1))/resvar;
-  //Rprintf("Fitted[25]: %f\n", (y[25] - residuals[25]));
-  /*
-  for (i=0; i < p; i++) {
-    Rprintf("%f  ", coefficients[i]);
+
+  // DPOTRI - compute the inverse of a real symmetric positive
+  // definite matrix A using the Cholesky factorization A =
+  // U**T*U or A = L*L**T computed by DPOTRF
+  int info;
+  F77_CALL(dpotri)("Upper", &p, x, &n, &info);
+
+  if (info != 0) {
+    UNPROTECT(nprot);
+    if (info > 0) {
+      error(("element (%d, %d) is zero, so the inverse cannot be computed"),info, info);
+    }
+    error(("argument %d of Lapack routine %s had invalid value"), -info, "dpotri");
   }
-  Rprintf("\n");
-  Rprintf("RSS: %f   RDF: %d\n", rss, rdf);
-  */
 
-  F77_NAME(ch2inv)(x, &n, &p, v);
-
-  //Rprintf("T-stats: ");
+  // on to the t-statistics for the intercept and other terms
   for (i=0; i < p; i++) {
-    index = (i * p) + i; /* erm? is this correct for matrix diagonals? */
-    se[i] = sqrt(v[index] *resvar);
-    //Rprintf("Diag: %f\n", v[index]);
-    //Rprintf("SE: %f\n", sqrt(v[index] *resvar));
+    index = (i * n) + i;
+    se[i] = sqrt(x[index] *resvar);
     xoutput[i+1] = coefficients[i] / se[i];
-    //    Rprintf("%f ", xoutput[i]);
   }
-  //Rprintf("\n");
 
-  //Rprintf("R: %f\n", v[0]);
-
-
-  UNPROTECT(2);
+  // last, but not least, the r-squared:
+  xoutput[p+1] = mss / (mss + rss);
+  
+  UNPROTECT(nprot);
   return(output);
 }
 
@@ -664,19 +655,18 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   unsigned long      location[3];
   int                num_files;
   double             *xn_groups;
-  double             *xbuffer, *xoutput, **full_buffer, *xhave_mask, *xn;
+  double             *xbuffer, *xoutput, **full_buffer, *xhave_mask;
   double             *xmask_lower_value;
   double             *xmask_upper_value;
   double             *mask_buffer;
   double             *groupings;
   midimhandle_t      dimensions[3];
   unsigned int       sizes[3];
-  SEXP               output, buffer, R_fcall, t_sexp, n_groups;
+  SEXP               output, buffer, t_sexp, n_groups;
   /* stuff for linear models only */
-  double             *y, *x, *coefficients, *residuals, *effects; 
+  double             *coefficients, *residuals, *effects; 
   double             *diag, *se, *t, *work, *qraux, *v, *ss, *comp;
-  double             tol, rss, resvar;
-  int                n, p, ny, rank, j, rdf, index, maxasgn;
+  int                n, p, maxasgn;
   int                *pivot, *xasgn, *df;
 
   num_files = LENGTH(filenames);
@@ -778,10 +768,10 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     
     Rprintf("N: %d P: %d\n", n,p);
 
-    PROTECT(t_sexp = allocVector(REALSXP, p));
+    PROTECT(t_sexp = allocVector(REALSXP, p + 2));
 
     /* allocate the output buffer */
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p+1));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p + 2));
 
   }
   else if (strcmp(method_name, "anova") == 0) {
@@ -938,20 +928,36 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 		= REAL(t_sexp)[i];
 	    }
 	  }
-	  else if (strcmp(method_name, "lm") == 0) {
-	    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
-			      work, qraux, v, pivot, se, t);
-	    for(i=0; i < p; i++) {
-	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		      = coefficients[i];
-	    }
-
-	    //Output Coefficients
-	    for (int k=(p); k<(2*p+1); k++) {
-	      xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k-(p)];
-	    }
-
-	  }
+    else if (strcmp(method_name, "lm") == 0) {
+    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
+            work, qraux, v, pivot, se, t);
+      
+      // most sensible output format (?): fist the full model measurements,
+      // then the individual measurement in the same order as summary.lm
+      // gives them:
+      //
+      // f-statistic
+      // r-squared
+      // betas
+      // t-stats
+      //
+      
+      // f-statistic
+      xoutput[output_index] = REAL(t_sexp)[0];
+      
+      // r-squared (last value from voxel_lm call: p+2 (stating at 0, so p+1))
+      xoutput[output_index + 1 * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[p + 1];
+      
+      // the betas/coefficients:
+      for (int k = 2; k < (p + 2); k++) {
+        xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = coefficients[k - 2];
+      }
+      
+      // t-stats
+      for(int k = 1; k < p + 1; k++) {
+        xoutput[output_index + (k + p + 1) * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k];
+      }
+  }
 	  /*
 	  else if (strcmp(method_name, "anova") == 0) {
 	    t_sexp = voxel_anova(buffer, Sx, asgn,
