@@ -709,7 +709,7 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall") {
+                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall",global="") {
   # if no mask exists use the entire volume
   if (is.null(mask)) {
     maskV = mincGetVolume(filenames[1])
@@ -754,7 +754,7 @@ pMincApply <- function(filenames, function.string,
     # Submit one job to the queue for each segmented brain region
     for(i in 1:cores) {
        l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
-                      maskval=i, packages=c("RMINC"),global.savelist=sub("\\(([A-Z]|[a-z])\\)","",function.string))
+                      maskval=i, packages=c("RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
    
     }
     
@@ -1071,7 +1071,7 @@ vertexLm <- function(formula, data, subset=NULL) {
 
   betaNames = paste('beta-', rows, sep='')
   tnames = paste('tvalue-', rows, sep='')
-  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
+  #colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("vertexMultiDim", "matrix")
  
   # run the garbage collector...
