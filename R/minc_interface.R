@@ -709,7 +709,7 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall",global="") {
+                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
   # if no mask exists use the entire volume
   if (is.null(mask)) {
     maskV = mincGetVolume(filenames[1])
@@ -725,7 +725,7 @@ pMincApply <- function(filenames, function.string,
     nVoxels <- sum(maskV>0.5)
     maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores)) 
   }
- 
+  
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   
@@ -733,15 +733,15 @@ pMincApply <- function(filenames, function.string,
   
   if (method == "local") {
     stop("Lovely code ... that generates inconsistent results because something somewhere is not thread safe ...")
-
+    
     library(multicore)
     library(doMC)
     library(foreach)
     registerDoMC(cores)
-
+    
     # run the job spread across each core
     pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
-                      mask=maskFilename, maskval=i) }
+                                                   mask=maskFilename, maskval=i) }
     #cat("length: ", length(pout), "\n")
   }
   else if (method == "sge") {
@@ -753,9 +753,9 @@ pMincApply <- function(filenames, function.string,
     
     # Submit one job to the queue for each segmented brain region
     for(i in 1:cores) {
-       l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
-                      maskval=i, packages=c("RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
-   
+      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
+                           maskval=i, packages=c(packages,"RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
+      
     }
     
     # Wait for all jobs to complete
@@ -764,8 +764,8 @@ pMincApply <- function(filenames, function.string,
     while(! all (r1 == 0)) {
       Sys.sleep(4)
       r1 = lapply(l1,sge.job.status) }
-      pout <- lapply(l1, sge.list.get.result)
-
+    pout <- lapply(l1, sge.list.get.result)
+    
     function.string = eval(function.string)
   }
   else if (method == "snowfall") {
@@ -779,16 +779,16 @@ pMincApply <- function(filenames, function.string,
     }
     
     pout <- sfLapply(1:cores, wrapper)
-
+    
   }
   else {
     stop("unknown execution method")
   }
-
+  
   # Need to get one voxel, x, to test number of values returned from function.string
   x <- mincGetVoxel(filenames, 0,0,0)
   test <- eval(function.string) 
-
+  
   # recombine the output into a single volume
   if (length(test) > 1) {
     output <- matrix(0, nrow=length(maskV), ncol=length(test))
@@ -798,7 +798,7 @@ pMincApply <- function(filenames, function.string,
   else {
     output <- maskV
   }
-
+  
   for(i in 1:cores) {
     if (length(test)>1) {
       output[maskV==i,] <- pout[[i]]
