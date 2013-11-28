@@ -7,6 +7,7 @@ AC_DEFUN([mni_REQUIRE_MINC],
     mni_REQUIRE_LIB(m,[#include <math.h>],[double x = sqrt(3.);])
     mni_REQUIRE_LIB(netcdf,[#include <netcdf.h>],[int i = ncopen("",0);])
     if test "$with_minc2" = "yes"; then
+        LIBS="$LIBS -ldl"
         mni_REQUIRE_LIB(z,[#include <zlib.h>],[int f = compress2;])
         mni_REQUIRE_LIB(hdf5,[#include <hdf5.h>],[int f = H5Fopen("",0,H5P_DEFAULT);])
         mni_REQUIRE_LIB(minc2,[#include <minc.h>],[int i = miicv_create();])
