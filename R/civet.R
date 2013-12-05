@@ -442,7 +442,7 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civet
 		filenames.df$SurfaceleftNativeVolume = paste(b, "surfaces/", prefix, "_", ids, "_surface_rsl_left_native_volume_40mm.txt",sep = "")
 		filenames.df$SurfacerightNativeVolume = paste(b,"surfaces/", prefix, "_", ids, "_surface_rsl_right_native_volume_40mm.txt",sep = "") 
  
-
+  		filenames.df$brain_volume = paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat",sep = "")
 		filenames.df$cerebral_volume = paste(b, "thickness/", prefix, "_", ids, "_cerebral_volume.dat",sep = "")
 		filenames.df$nativeRMS_RSLtlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt",sep = "") 
 		filenames.df$nativeRMS_RSLtlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt",sep = "") 
@@ -591,6 +591,34 @@ civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="
 }
 # =============================================================================
 # Purpose: 
+#  Organizes CIVET .dat file based on whole brain,grey and white volumes
+#
+# Example:
+#	dataFiles <- list of data files to organize
+#
+# =============================================================================
+civet.organizeCivetDatFilesWholeBrain<- function(dataFiles, civetVersion="1.1.12") {
+  
+  numberOfFiles = length(dataFiles)
+  roiTable = matrix(data=NA,nrow=3,ncol=numberOfFiles)
+  rownames(roiTable) = c("WholeWhiteMatterVolume","WholeBrainVolume","WholeGreyMatterVolume")
+  
+  for (j in 1:numberOfFiles)
+  {
+    
+    if(file.exists(dataFiles[j]))
+    {
+      value = read.table(dataFiles[j])[,2]
+      value = as.numeric(as.character(value))
+      roiTable[1:3,j] = value
+    }	
+    
+  }
+  return(roiTable)
+}
+
+# =============================================================================
+# Purpose: 
 #	Organizes CIVET .dat file based on mid, white and grey labels
 #
 # Example:
@@ -697,7 +725,19 @@ civet.readAllCivetFiles = function(atlasFile,gf)
 	roiTable = civet.organizeCivetDatFilesMidWhiteGrey(c(gf$CIVETFILES$leftGIFiles, gf$CIVETFILES$rightGIFiles))	
 	gf$GI = t(roiTable)
 	
-
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# Cerebral Volume
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+	#roiTable = civet.organizeCivetDatFilesWholeBrain(c(gf$CIVETFILES$cerebral_volume))  
+	#gf$cerebralVolume = t(roiTable)
+  
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# Brain Volume
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
+	roiTable = civet.organizeCivetDatFilesWholeBrain(c(gf$CIVETFILES$brain_volume))  
+	gf$BrainVolume = t(roiTable)
+  
+  
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 	# Vertex based Measures
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
