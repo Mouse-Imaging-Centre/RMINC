@@ -709,58 +709,69 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall") {
+                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
   # if no mask exists use the entire volume
   if (is.null(mask)) {
-    stop("err, need a mask. Sorry. Will fix it soon")
+    maskV = mincGetVolume(filenames[1])
+    nVoxels = length(maskV)
+    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), cores)) 
   }
   else {
     maskV <- mincGetVolume(mask)
-  }
-  # create a mask that divides the problem into as many domains as cores
-  nVoxels <- sum(maskV>0.5)
-
-  # optionally make the mask a fraction of the original size - for testing
-  if (tinyMask!=FALSE) {
-    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), tinyMask))
-    maskV[maskV>1.5] <- 0
+    # optionally make the mask a fraction of the original size - for testing
+    if (tinyMask!=FALSE) {
+      maskV[maskV>1.5] <- 0
+    }
     nVoxels <- sum(maskV>0.5)
+    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores)) 
   }
-  maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores))
+  
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
+  
   pout <- list()
   
   if (method == "local") {
     stop("Lovely code ... that generates inconsistent results because something somewhere is not thread safe ...")
-
+    
     library(multicore)
     library(doMC)
     library(foreach)
     registerDoMC(cores)
-
+    
     # run the job spread across each core
     pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
-                      mask=maskFilename, maskval=i) }
+                                                   mask=maskFilename, maskval=i) }
     #cat("length: ", length(pout), "\n")
   }
   else if (method == "sge") {
-    stop("implementation of sge method completely broken ...")
-    i <- 4
-    pout <- list()
-    pids <- sge.submit(mincApply, filenames, function.string, mask=maskFilename,
-                       maskval=i, packages=c("RMINC"))
-    status <- sge.job.status(pids$pid)
-    while(status != 0) {
-      Sys.sleep(4)
-      status <- sge.job.status(pids$pid)
+    library(Rsge)
+    # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
+    function.string = enquote(function.string)
+    
+    l1 <- list(length=cores)
+    
+    # Submit one job to the queue for each segmented brain region
+    for(i in 1:cores) {
+      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
+                           maskval=i, packages=c(packages,"RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
+      
     }
-    pout[[i]] <- sge.list.get.result(pids)
+    
+    # Wait for all jobs to complete
+    r1 = lapply(l1,sge.job.status)
+    
+    while(! all (r1 == 0)) {
+      Sys.sleep(4)
+      r1 = lapply(l1,sge.job.status) }
+    pout <- lapply(l1, sge.list.get.result)
+    
+    function.string = eval(function.string)
   }
   else if (method == "snowfall") {
     wrapper <- function(i) {
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i, reduce=TRUE))
+                       maskval=i, reduce=FALSE))
     }
     # use all cores in the current cluster if # of cores not specified
     if (is.null(cores)) {
@@ -768,16 +779,16 @@ pMincApply <- function(filenames, function.string,
     }
     
     pout <- sfLapply(1:cores, wrapper)
-
+    
   }
   else {
     stop("unknown execution method")
   }
-
+  
   # Need to get one voxel, x, to test number of values returned from function.string
   x <- mincGetVoxel(filenames, 0,0,0)
-  test <- eval(function.string)  
-
+  test <- eval(function.string) 
+  
   # recombine the output into a single volume
   if (length(test) > 1) {
     output <- matrix(0, nrow=length(maskV), ncol=length(test))
@@ -787,13 +798,14 @@ pMincApply <- function(filenames, function.string,
   else {
     output <- maskV
   }
-
+  
   for(i in 1:cores) {
     if (length(test)>1) {
       output[maskV==i,] <- pout[[i]]
     }
     else {
-      output[maskV==i] <- pout[[i]]
+      currentMask = pout[[i]]
+      output[maskV==i] <- currentMask[maskV==i]
     }
   }
   unlink(maskFilename)
@@ -801,6 +813,7 @@ pMincApply <- function(filenames, function.string,
 }
 
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
+ 
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -1058,13 +1071,59 @@ vertexLm <- function(formula, data, subset=NULL) {
 
   betaNames = paste('beta-', rows, sep='')
   tnames = paste('tvalue-', rows, sep='')
-  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
+  #colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("vertexMultiDim", "matrix")
  
   # run the garbage collector...
   gcout <- gc()
  
   return(result)
+}
+###########################################################################################
+#' Writes vertex data to a file with an optional header
+#' @param vertexData vertex data to be written
+#' @param filename full path to file where data shall be written
+#' @param headers Whether or not to write header information
+#' @param mean.stats mean vertex data that may also be written
+#' @param gf glim matrix that can be written to the header
+#' @return A file is generated with the vertex data and optional headers
+#' @examples 
+#' gf = read.csv("~/SubjectTable.csv") 
+#' gfCIVET = civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gfCIVET = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gfCIVET)
+#' writeVertex(gfCIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
+###########################################################################################
+writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL, 
+    gf = NULL) 
+{
+    append.file = TRUE
+    if (headers == TRUE) {
+        write("<header>", file = filename)
+        if (is.object(mean.stats)) {
+            write("<mean>", file = filename, append = TRUE)
+            sink(filename, append = TRUE)
+            print(summary(mean.stats))
+            sink(NULL)
+            write("</mean>", file = filename, append = TRUE)
+            write("<formula>", file = filename, append = TRUE)
+            sink(filename, append = TRUE)
+            print(formula(mean.stats))
+            sink(NULL)
+            write("</formula>", file = filename, append = TRUE)
+        }
+        if (is.data.frame(glim.matrix)) {
+            write("<matrix>", file = filename, append = TRUE)
+            write.table(glim.matrix, file = filename, append = TRUE, 
+                row.names = FALSE)
+            write("</matrix>", file = filename, append = TRUE)
+        }
+        write("</header>", file = filename, append = TRUE)
+    }
+    else {
+        append.file = FALSE
+    }
+    write.table(vertexData, file = filename, append = append.file, 
+        quote = FALSE, row.names = FALSE, col.names = headers)
 }
 
 # calls ray-trace to generate a pretty picture of a slice
