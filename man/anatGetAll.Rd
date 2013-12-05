@@ -57,5 +57,12 @@ anatGetAll(filenames, atlas, method=method, defs=defs, dropLabels=FALSE, side="b
 
 \examples{
 \dontrun{
+# read the text file describing the dataset
+gf <- read.csv("control-file.csv")
+
+# get a list of volumes using the Jacobian determinants
+# for each of the label values present in the input files
+anatGetAll(filename = gf$jacobian_determinant, atlas = "labels_for_input_file.mnc", method="jacobians", defs = "c57_brain_atlas_labels.csv", dropLabels = FALSE, side = "both")
+
 }}
 \keyword{}
