@@ -651,7 +651,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   mihandle_t         *hvol, hmask;
   char               *method_name;
   int                i, v0, v1, v2, output_index, buffer_index;
-  unsigned long      start[3], count[3];
+  misize_t           start[3], count[3];
   unsigned long      location[3];
   int                num_files;
   double             *xn_groups;
@@ -661,7 +661,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   double             *mask_buffer;
   double             *groupings;
   midimhandle_t      dimensions[3];
-  unsigned int       sizes[3];
+  misize_t           sizes[3];
   SEXP               output, buffer, t_sexp, n_groups;
   /* stuff for linear models only */
   double             *coefficients, *residuals, *effects; 
@@ -845,8 +845,8 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     for (i=0; i < num_files; i++) {
       if (miget_real_value_hyperslab(hvol[i], 
 				     MI_TYPE_DOUBLE, 
-				     (unsigned long *) start, 
-				     (unsigned long *) count, 
+				     start, 
+				     count, 
 				     full_buffer[i]) )
 	error("Error opening buffer.\n");
     }
@@ -854,8 +854,8 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     if (xhave_mask[0] == 1) {
       if (miget_real_value_hyperslab(hmask, 
 				     MI_TYPE_DOUBLE, 
-				     (unsigned long *) start, 
-				     (unsigned long *) count, 
+				     start, 
+				     count, 
 				     mask_buffer) )
 	error("Error opening mask buffer.\n");
     }

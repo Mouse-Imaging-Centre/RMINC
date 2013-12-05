@@ -33,8 +33,8 @@ SEXP write_volume(SEXP filename, SEXP nDimensions,
 	
 	// pointer to the volume data
 	double			*hSlab_p;
-	unsigned long	hSlab_start[MI2_MAX_VAR_DIMS];
-	unsigned long	hSlab_count[MI2_MAX_VAR_DIMS];
+	misize_t	hSlab_start[MI2_MAX_VAR_DIMS];
+	misize_t	hSlab_count[MI2_MAX_VAR_DIMS];
 
 
 	// start ...

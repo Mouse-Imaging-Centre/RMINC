@@ -80,11 +80,11 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
 }
 
 SEXP test_slice_loop(SEXP filenames) {
-  unsigned int sizes[3];
+  misize_t sizes[3];
   double *buffer = NULL;
   mihandle_t *hvol = NULL;
   int i, v0, v1, v2;
-  unsigned long buffer_index, output_index;
+  misize_t buffer_index, output_index;
   int num_files;
   SEXP output;
   double *xoutput;
@@ -143,13 +143,14 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
 		     SEXP have_mask, SEXP mask) {
 
   /* generic items for all slice_loop functions */
-  unsigned int sizes[3];
+  misize_t sizes[3];
   double **full_buffer;
   double *mask_buffer;
   mihandle_t *hvol, hmask;
   double *use_mask;
   int v0, v1, v2;
-  int num_files, i, buffer_index, output_index;
+  int num_files, i;
+  misize_t buffer_index, output_index;
 
   /* anova specific items */
   int n,p, maxasgn;
