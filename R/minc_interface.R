@@ -1029,26 +1029,108 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 #' vertexFDR(result)
 ###########################################################################################
 vertexLm <- function(formula, data, subset=NULL) {
-  # repeat code to extract the formula as in mincLm
-  m <- match.call()
-  mf <- match.call(expand.dots=FALSE)
-  m <- match(c("formula", "data", "subset"), names(mf), 0)
+  matrixFound = FALSE
+  mmatrix =  matrix()
 
-  mf <- mf[c(1, m)]
-  mf$drop.unused.levels <- TRUE
-  mf[[1]] <- as.name("model.frame")
-  mf <- eval(mf, parent.frame())
+  if(length(formula[[3]]) == 1) {
+	  rCommand = paste("term <- data$",formula[[3]],sep="")
+	  eval(parse(text=rCommand))	
+	  if (is.matrix(term))
+		matrixFound = TRUE
+}
+
+else {
+	
+
+  for (nTerm in 2:length(formula[[3]])){
+	  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+	  matrixName = formula[[3]][[nTerm]]
+	  eval(parse(text=rCommand))	
+	  if (is.matrix(term))
+		matrixFound = TRUE
+   }
+}
+
+  if(matrixFound){
 
 
-  filenames <- as.character(mf[,1])
-  mmatrix <- model.matrix(formula, mf)
+  if(length(formula[[3]]) == 1) {
+		  	m <- match.call()
+			mf <- match.call(expand.dots=FALSE)
+			m <- match(c("formula", "data", "subset"), names(mf), 0)
+			mf <- mf[c(1, m)]
+			mf$drop.unused.levels <- TRUE
+			mf[[1]] <- as.name("model.frame")
+			mf <- eval(mf, parent.frame())
+			filenames <- as.character(mf[,1])
+			data.matrix.left <- vertexTable(filenames)
+			filenames <- as.character(mf[,2])
+			data.matrix.right <- vertexTable(filenames)
+}
+else
+{
 
-  cat("Loading data from files\n")
-  data.matrix <- vertexTable(filenames)
 
-  cat("after loading\n")
 
-  result <- .Call("vertex_lm_loop", data.matrix, mmatrix, PACKAGE="RMINC");
+
+	  # Parse formula into files and static variables
+	  for (nTerm in 2:length(formula[[3]])){
+		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+		  eval(parse(text=rCommand))	
+		  if (is.matrix(term)) {
+		  	m <- match.call()
+			mf <- match.call(expand.dots=FALSE)
+			m <- match(c("formula", "data", "subset"), names(mf), 0)
+			mf <- mf[c(1, m)]
+			mf$drop.unused.levels <- TRUE
+			mf[[1]] <- as.name("model.frame")
+			mf <- eval(mf, parent.frame())
+			filenames <- as.character(mf[,1])
+			data.matrix.left <- vertexTable(filenames)
+			filenames <- as.character(mf[,nTerm])
+			data.matrix.right <- vertexTable(filenames)
+			}
+		  else {
+   			  tmpFormula = formula
+			  rCommand = paste("formula <-",formula[[2]],"~",formula[[3]][[nTerm]],sep="")
+		          eval(parse(text=rCommand))	
+			  m <- match.call()
+			  mf <- match.call(expand.dots=FALSE)
+			  m <- match(c("formula", "data", "subset"), names(mf), 0)
+
+			  mf <- mf[c(1, m)]
+			  mf$drop.unused.levels <- TRUE
+			  mf[[1]] <- as.name("model.frame")
+			  mf <- eval(mf, parent.frame())
+			  filenames <- as.character(mf[,1])
+  			 
+			  mmatrix <- model.matrix(formula, mf)	
+			  formula = tmpFormula	
+ 		  
+			}
+
+	   }
+}
+	result <- .Call("vertex_lm_loop_file",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+}
+  else {
+
+		          	
+			  m <- match.call()
+			  mf <- match.call(expand.dots=FALSE)
+			  m <- match(c("formula", "data", "subset"), names(mf), 0)
+
+			  mf <- mf[c(1, m)]
+			  mf$drop.unused.levels <- TRUE
+			  mf[[1]] <- as.name("model.frame")
+			  mf <- eval(mf, parent.frame())
+			  filenames <- as.character(mf[,1])
+			  mmatrix <- model.matrix(formula, mf)	
+			   data.matrix.left <- vertexTable(filenames)
+			  result <- .Call("vertex_lm_loop", data.matrix.left, mmatrix, PACKAGE="RMINC");
+			 
+}
+  
 
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
@@ -1065,13 +1147,16 @@ vertexLm <- function(formula, data, subset=NULL) {
   attr(result, "df") <- dflist
   
   # get the first voxel in order to get the dimension names
-  v.firstVoxel <- data.matrix[1,]
+  v.firstVoxel <- data.matrix.left[1,]
   rows <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
 
+  if(matrixFound){
+	rows = append(rows,matrixName)
+  }
   betaNames = paste('beta-', rows, sep='')
   tnames = paste('tvalue-', rows, sep='')
-  #colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("vertexMultiDim", "matrix")
  
   # run the garbage collector...

@@ -12,5 +12,8 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
 	      double *work, 
 	      double *qraux, double *v, int *pivot, double *se, double *t);
 
-
+SEXP voxel_lm_file(SEXP Sy, SEXP Sx,int n, int p, double *coefficients, 
+	      double *residuals, double *effects, 
+	      double *work, 
+	      double *qraux, double *v, int *pivot, double *se, double *t);
 #endif

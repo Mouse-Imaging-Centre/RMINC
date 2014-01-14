@@ -390,19 +390,23 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
   return(output);
 }
 
-SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients, 
+SEXP voxel_lm_file(SEXP Sy, SEXP Sx,int n,int p,double *coefficients, 
         double *residuals, double *effects, 
         double *work, 
         double *qraux, double *v, int *pivot, double *se, double *t) {
-
+ 
   double tol, rss, resvar, mss, mean_fitted, sum_fitted;
   double *x, *y, *xoutput;
-  int n, p, ny, rank, i, j, rdf, index;
+  int ny,ny1, rank, i, j, rdf, index;
   SEXP new_x, output;
   int nprot = 0;
 
-  n = nrows(Sx);
-  p = ncols(Sx);
+
+  ny = ncols(Sy);
+  ny1 = nrows(Sy);
+
+
+  Rprintf("n %d p %d\n", n,p);
 
   // the output will contain:
   // 
@@ -420,12 +424,14 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   for (i=0; i < n; i++) {
     for (j=0; j < p; j++) {
       REAL(new_x)[i+j*n] = REAL(Sx)[i+j*n];
+      //Rprintf("new_x %f\n", REAL(new_x)[i+j*n]);
     }
   }
 
   x = REAL(new_x);
   y = REAL(Sy);
-  ny = ncols(Sy);
+
+  Rprintf("coly %d rowy %d\n", ny,ny1);
   rank = 1;
   tol = 1e-07;
 
@@ -442,15 +448,23 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
     rss += pow(residuals[i], 2);
     sum_fitted += (y[i] - residuals[i]);
   }
+
   mean_fitted = sum_fitted / n;
   for (i=0; i < n; i++) {
     mss += pow((y[i] - residuals[i]) - mean_fitted, 2);
   }
+  
   rdf = n - p;
-  resvar = rss/rdf;
-  /* first output is the f-stat of the whole model */
-  xoutput[0] = (mss/(p - 1))/resvar;
 
+  Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
+  resvar = rss/rdf;
+  //Rprintf("mss %f p %d resvar %f %\n", mss,p,resvar);
+
+  /* first output is the f-stat of the whole model */
+
+  
+  xoutput[0] = (mss/(p - 1))/resvar;
+  
   // DPOTRI - compute the inverse of a real symmetric positive
   // definite matrix A using the Cholesky factorization A =
   // U**T*U or A = L*L**T computed by DPOTRF
@@ -478,6 +492,117 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   UNPROTECT(nprot);
   return(output);
 }
+
+SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients, 
+        double *residuals, double *effects, 
+        double *work, 
+        double *qraux, double *v, int *pivot, double *se, double *t) {
+ 
+  double tol, rss, resvar, mss, mean_fitted, sum_fitted;
+  double *x, *y, *xoutput;
+  int n, p, ny,ny1, rank, i, j, rdf, index;
+  SEXP new_x, output;
+  int nprot = 0;
+
+  //n = nrows(Sx);
+  //p = ncols(Sx);
+  n = nrows(Sx)/2;
+  p = ncols(Sx)*2;
+  n = 4;
+  p = 3;
+
+
+  ny = ncols(Sy);
+  ny1 = nrows(Sy);
+
+
+  Rprintf("n %d p %d\n", n,p);
+
+  // the output will contain:
+  // 
+  // f-statistic
+  // p * t-statistic
+  // r-squared
+  //
+  // which is a total of p+2 values
+  PROTECT(output=allocVector(REALSXP, p+2)); nprot++;
+  xoutput = REAL(output);
+
+  /* since x (the model matrix, input variable Sx) is destroyed in dqrls, 
+     create a copy here */
+  PROTECT(new_x=allocMatrix(REALSXP, n, p)); nprot++;
+  for (i=0; i < n; i++) {
+    for (j=0; j < p; j++) {
+      REAL(new_x)[i+j*n] = REAL(Sx)[i+j*n];
+      //Rprintf("new_x %f\n", REAL(new_x)[i+j*n]);
+    }
+  }
+
+  x = REAL(new_x);
+  y = REAL(Sy);
+
+  Rprintf("coly %d rowy %d\n", ny,ny1);
+  rank = 1;
+  tol = 1e-07;
+
+  // compute the least squares solution:
+  F77_CALL(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
+        &rank, pivot, qraux, work);
+
+  // Calculate the f-statistic first
+  rss = 0; // residual sum of squares
+  rdf = 0; // residual degrees of freedom
+  mss = 0; // (fitted - mean fitted sum) of squares
+  sum_fitted = 0;
+  for (i=0; i < n; i++) {
+    rss += pow(residuals[i], 2);
+    sum_fitted += (y[i] - residuals[i]);
+  }
+
+  mean_fitted = sum_fitted / n;
+  for (i=0; i < n; i++) {
+    mss += pow((y[i] - residuals[i]) - mean_fitted, 2);
+  }
+  
+  rdf = n - p;
+
+  Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
+  resvar = rss/rdf;
+  //Rprintf("mss %f p %d resvar %f %\n", mss,p,resvar);
+
+  /* first output is the f-stat of the whole model */
+
+  
+  xoutput[0] = (mss/(p - 1))/resvar;
+  
+  // DPOTRI - compute the inverse of a real symmetric positive
+  // definite matrix A using the Cholesky factorization A =
+  // U**T*U or A = L*L**T computed by DPOTRF
+  int info;
+  F77_CALL(dpotri)("Upper", &p, x, &n, &info);
+
+  if (info != 0) {
+    UNPROTECT(nprot);
+    if (info > 0) {
+      error(("element (%d, %d) is zero, so the inverse cannot be computed"),info, info);
+    }
+    error(("argument %d of Lapack routine %s had invalid value"), -info, "dpotri");
+  }
+
+  // on to the t-statistics for the intercept and other terms
+  for (i=0; i < p; i++) {
+    index = (i * n) + i;
+    se[i] = sqrt(x[index] *resvar);
+    xoutput[i+1] = coefficients[i] / se[i];
+  }
+
+  // last, but not least, the r-squared:
+  xoutput[p+1] = mss / (mss + rss);
+  
+  UNPROTECT(nprot);
+  return(output);
+}
+
 
 /*
 SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
