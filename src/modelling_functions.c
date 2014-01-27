@@ -406,7 +406,7 @@ SEXP voxel_lm_file(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   ny1 = nrows(Sy);
 
 
-  Rprintf("n %d p %d\n", n,p);
+  //Rprintf("n %d p %d\n", n,p);
 
   // the output will contain:
   // 
@@ -431,7 +431,7 @@ SEXP voxel_lm_file(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   x = REAL(new_x);
   y = REAL(Sy);
 
-  Rprintf("coly %d rowy %d\n", ny,ny1);
+  //Rprintf("coly %d rowy %d\n", ny,ny1);
   rank = 1;
   tol = 1e-07;
 
@@ -456,7 +456,7 @@ SEXP voxel_lm_file(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   
   rdf = n - p;
 
-  Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
+  //Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
   resvar = rss/rdf;
   //Rprintf("mss %f p %d resvar %f %\n", mss,p,resvar);
 
@@ -493,33 +493,23 @@ SEXP voxel_lm_file(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   return(output);
 }
 
-SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients, 
-        double *residuals, double *effects, 
-        double *work, 
+
+SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
+        double *residuals, double *effects,
+        double *work,
         double *qraux, double *v, int *pivot, double *se, double *t) {
- 
+
   double tol, rss, resvar, mss, mean_fitted, sum_fitted;
   double *x, *y, *xoutput;
-  int n, p, ny,ny1, rank, i, j, rdf, index;
+  int n, p, ny, rank, i, j, rdf, index;
   SEXP new_x, output;
   int nprot = 0;
 
-  //n = nrows(Sx);
-  //p = ncols(Sx);
-  n = nrows(Sx)/2;
-  p = ncols(Sx)*2;
-  n = 4;
-  p = 3;
-
-
-  ny = ncols(Sy);
-  ny1 = nrows(Sy);
-
-
-  Rprintf("n %d p %d\n", n,p);
+  n = nrows(Sx);
+  p = ncols(Sx);
 
   // the output will contain:
-  // 
+  //
   // f-statistic
   // p * t-statistic
   // r-squared
@@ -528,20 +518,18 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   PROTECT(output=allocVector(REALSXP, p+2)); nprot++;
   xoutput = REAL(output);
 
-  /* since x (the model matrix, input variable Sx) is destroyed in dqrls, 
-     create a copy here */
+  /* since x (the model matrix, input variable Sx) is destroyed in dqrls,
+create a copy here */
   PROTECT(new_x=allocMatrix(REALSXP, n, p)); nprot++;
   for (i=0; i < n; i++) {
     for (j=0; j < p; j++) {
       REAL(new_x)[i+j*n] = REAL(Sx)[i+j*n];
-      //Rprintf("new_x %f\n", REAL(new_x)[i+j*n]);
     }
   }
 
   x = REAL(new_x);
   y = REAL(Sy);
-
-  Rprintf("coly %d rowy %d\n", ny,ny1);
+  ny = ncols(Sy);
   rank = 1;
   tol = 1e-07;
 
@@ -558,23 +546,15 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
     rss += pow(residuals[i], 2);
     sum_fitted += (y[i] - residuals[i]);
   }
-
   mean_fitted = sum_fitted / n;
   for (i=0; i < n; i++) {
     mss += pow((y[i] - residuals[i]) - mean_fitted, 2);
   }
-  
   rdf = n - p;
-
-  Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
   resvar = rss/rdf;
-  //Rprintf("mss %f p %d resvar %f %\n", mss,p,resvar);
-
   /* first output is the f-stat of the whole model */
-
-  
   xoutput[0] = (mss/(p - 1))/resvar;
-  
+
   // DPOTRI - compute the inverse of a real symmetric positive
   // definite matrix A using the Cholesky factorization A =
   // U**T*U or A = L*L**T computed by DPOTRF
@@ -1154,5 +1134,296 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   }
 
   /* return the results */
+  return(output);
+}
+
+/* minc2_model: run one of a set of modelling function at every voxel
+ * filenames: character list of minc2 volumes.
+ * Sx: variable that each particular function will work on. The model matrix 
+ *     for method "lm", for example, or the function string for method "eval"
+ * asgn: assignments for factors - only used by anova.
+ * have_mask: a double of either 0 or 1 depending on whether a mask should
+ *            be used.
+ * mask: a string containing the mask filename.
+ * mask_value: the value inside the mask at which the function is to be evaled
+ * rho: the environment - only used by method "eval"
+ * nresults: the number of columns in the result - only used by method "eval"
+ * method: a string containing one of "t-test", "wilcoxon", or "correlation"
+ */
+SEXP minc2_model_file(SEXP filenames_left,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
+		 SEXP have_mask, SEXP mask, SEXP mask_lower_value,
+		 SEXP mask_upper_value, SEXP rho, SEXP nresults, SEXP method) {
+  int                result;
+  mihandle_t         *hvol, *hvol_left,*hvol_right,hmask;
+  char               *method_name;
+  int                i, v0, v1, v2, output_index, buffer_index;
+  unsigned long      start[3], count[3];
+  unsigned long      location[3];
+  int                num_files_left,num_files_right;
+  double             *xn_groups;
+  double             *xbuffer,*ybuffer, *xoutput, **full_buffer_left,**full_buffer_right, *xhave_mask;
+  double             *xmask_lower_value;
+  double             *xmask_upper_value;
+  double             *mask_buffer;
+  double             *groupings;
+  midimhandle_t      dimensions[3];
+  unsigned int       sizes[3];
+  SEXP               output, buffer,buffer1, t_sexp, n_groups;
+  /* stuff for linear models only */
+  double             *coefficients, *residuals, *effects; 
+  double             *diag, *se, *t, *work, *qraux, *v, *ss, *comp;
+  int                n, p, maxasgn,mmatrix_rows,mmatrix_cols;
+  int                *pivot, *xasgn, *df;
+  double 	     *pMmatrix;
+  num_files_left = LENGTH(filenames_left);
+
+  /* allocate memory for the volume handles */
+  hvol_left = malloc(num_files_left * sizeof(mihandle_t));
+  hvol_right = malloc(num_files_left * sizeof(mihandle_t));
+  Rprintf("Number of volumes: %i\n", num_files_left);
+
+  /* open the mask - if so desired */
+  xhave_mask = REAL(have_mask);
+  if (xhave_mask[0] == 1) {
+    result = miopen_volume(CHAR(STRING_ELT(mask, 0)),
+			   MI2_OPEN_READ, &hmask);
+    if (result != MI_NOERROR) {
+      error("Error opening mask: %s.\n", CHAR(STRING_ELT(mask, 0)));
+    }
+  }
+  
+  /* get the value at which the mask is to be evaluated */
+  xmask_lower_value = REAL(mask_lower_value);
+  xmask_upper_value = REAL(mask_upper_value);
+
+  /* open each volume */
+  for(i=0; i < num_files_left; i++) {
+    result = miopen_volume(CHAR(STRING_ELT(filenames_left, i)),
+      MI2_OPEN_READ, &hvol_left[i]);
+    if (result != MI_NOERROR) {
+      error("Error opening input file: %s.\n", CHAR(STRING_ELT(filenames_left,i)));
+    }
+  }
+  for(i=0; i < num_files_left; i++) {
+    result = miopen_volume(CHAR(STRING_ELT(filenames_right, i)),
+      MI2_OPEN_READ, &hvol_right[i]);
+    if (result != MI_NOERROR) {
+      error("Error opening input file: %s.\n", CHAR(STRING_ELT(filenames_right,i)));
+    }
+  }
+
+  /* get the file dimensions and their sizes - assume they are the same*/
+  miget_volume_dimensions( hvol_left[0], MI_DIMCLASS_SPATIAL,
+			   MI_DIMATTR_ALL, MI_DIMORDER_FILE,
+			   3, dimensions);
+  result = miget_dimension_sizes( dimensions, 3, sizes );
+  Rprintf("Volume sizes: %i %i %i\n", sizes[0], sizes[1], sizes[2]);
+
+
+  // determine numbers of rows, columns, and vertices
+
+  // Case 1: There is no static part
+  if(isLogical(mmatrix)) 
+	// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
+	p = 2;
+  // Case 2: There is a static part
+  else {
+        pMmatrix = REAL(mmatrix);
+  	mmatrix_cols = ncols(mmatrix);
+  	mmatrix_rows = nrows(mmatrix);
+        p = mmatrix_cols + 1;
+        Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows );
+  }
+  n = num_files_left;
+  /* allocate the local buffer that will be passed to the function */
+  PROTECT(buffer=allocVector(REALSXP, num_files_left));
+  PROTECT(buffer1=allocVector(REALSXP, num_files_left*p));
+  xbuffer = REAL(buffer); 
+  ybuffer=REAL(buffer1);
+
+
+   
+  coefficients = malloc(sizeof(double) * p);
+  residuals = malloc(sizeof(double) * n);
+  effects = malloc(sizeof(double) * n);
+  pivot = malloc(sizeof(int) * p);
+  work = malloc(sizeof(double) * (2*p));
+  qraux = malloc(sizeof(double) * p);
+  v = malloc(sizeof(double) * p * p);
+  diag = malloc(sizeof(double) * p);
+  se = malloc(sizeof(double) * p);
+  t = malloc(sizeof(double) * p);
+    
+  Rprintf("N: %d P: %d\n", n,p);
+
+  PROTECT(t_sexp = allocVector(REALSXP, p + 2));
+ 
+
+
+  /* allocate the output buffer */
+  PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p + 2));
+
+  
+  xoutput = REAL(output);
+    
+  //PROTECT(R_fcall = lang2(fn, R_NilValue));
+
+
+  /* allocate first dimension of the buffer */
+  full_buffer_left = malloc(num_files_left * sizeof(double));
+  full_buffer_right = malloc(num_files_left * sizeof(double));
+  /* allocate second dimension of the buffer 
+     - big enough to hold one slice per subject at a time */
+  for (i=0; i < num_files_left; i++) {
+    full_buffer_left[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
+    full_buffer_right[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
+  }
+  
+  /* allocate buffer for mask - if necessary */
+  if (xhave_mask[0] == 1) {
+    mask_buffer = malloc(sizes[1] * sizes[2] * sizeof(double));
+  }
+	
+  /* set start and count. start[0] will change during the loop */
+  start[0] = 0; start[1] = 0; start[2] = 0;
+  count[0] = 1; count[1] = sizes[1]; count[2] = sizes[2];
+
+  /* loop across all files and voxels */
+
+
+  Rprintf("In slice \n");
+  for (v0=0; v0 < sizes[0]; v0++) {
+    start[0] = v0;
+    for (i=0; i < num_files_left; i++) {
+      if (miget_real_value_hyperslab(hvol_left[i], 
+				     MI_TYPE_DOUBLE, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
+				     full_buffer_left[i]) )
+	error("Error opening buffer.\n");
+      if (miget_real_value_hyperslab(hvol_right[i], 
+				     MI_TYPE_DOUBLE, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
+				     full_buffer_right[i]) )
+	error("Error opening buffer.\n");
+    }
+   
+    if (xhave_mask[0] == 1) {
+      if (miget_real_value_hyperslab(hmask, 
+				     MI_TYPE_DOUBLE, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
+				     mask_buffer) )
+	error("Error opening mask buffer.\n");
+    }
+
+    Rprintf(" %d ", v0);
+    for (v1=0; v1 < sizes[1]; v1++) {
+      for (v2=0; v2 < sizes[2]; v2++) {
+	output_index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
+	buffer_index = sizes[2] * v1 + v2;
+
+	if(xhave_mask[0] == 0 
+	   || (xhave_mask[0] == 1 && 
+	       mask_buffer[buffer_index] > xmask_lower_value[0] -0.5 &&
+	       mask_buffer[buffer_index] < xmask_upper_value[0] +0.5)) {
+	
+	  for (i=0; i < num_files_left; i++) {
+	    location[0] = v0;
+	    location[1] = v1;
+	    location[2] = v2;
+
+	    xbuffer[i] = full_buffer_left[i][buffer_index];
+	    }
+
+	    if(isLogical(mmatrix))  { 
+		    // fill y buffer
+		    // Intercept
+		    for (int j=0; j < n; j++) {
+			ybuffer[j] = 1.0;
+			//Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
+		    }    
+		    // Current Vertex Data
+		    for (int j=0; j<n; j++) {
+		      ybuffer[j+n] = full_buffer_right[j][buffer_index];
+		      //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
+		    }    
+	    }
+	    else {
+		// Fill with static part
+	    	for (int j=0; j < mmatrix_cols*mmatrix_rows; j++) {
+			ybuffer[j] = pMmatrix[j];
+		        //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
+		    }  
+		// Fill with dynamic part  
+	    	for (int j=0; j < n ; j++) {
+			ybuffer[j+mmatrix_cols*mmatrix_rows] = full_buffer_right[j][buffer_index];
+		        //Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
+		    }   
+	    }
+
+
+	    //Rprintf("V%i: %f\n", i, full_buffer[i][index]);
+
+
+    t_sexp = voxel_lm_file(buffer, buffer1,n,p ,coefficients, residuals, effects,
+          work, qraux, v, pivot, se, t);
+      
+      // most sensible output format (?): fist the full model measurements,
+      // then the individual measurement in the same order as summary.lm
+      // gives them:
+      //
+      // f-statistic
+      // r-squared
+      // betas
+      // t-stats
+      //
+      
+      // f-statistic
+      xoutput[output_index] = REAL(t_sexp)[0];
+      
+      // r-squared (last value from voxel_lm call: p+2 (stating at 0, so p+1))
+      xoutput[output_index + 1 * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[p + 1];
+      
+      // the betas/coefficients:
+      for (int k = 2; k < (p + 2); k++) {
+        xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = coefficients[k - 2];
+      }
+      
+      // t-stats
+      for(int k = 1; k < p + 1; k++) {
+        xoutput[output_index + (k + p + 1) * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k];
+      }
+  }
+   }
+ 
+}	  
+
+}
+  Rprintf("\nDone\n");
+
+
+  for (i=0; i<num_files_left; i++) {
+    miclose_volume(hvol_left[i]);
+    miclose_volume(hvol_right[i]);
+    free(full_buffer_left[i]);
+    free(full_buffer_right[i]);
+  }
+
+    free(full_buffer_left);
+    free(full_buffer_right);
+    free(coefficients);
+    free(residuals);
+    free(effects);
+    free(pivot);
+    free(work);
+    free(qraux);
+    free(v);
+    free(diag);
+    free(se);
+    free(t);
+    UNPROTECT(3);
+
   return(output);
 }

@@ -215,24 +215,24 @@ SEXP vertex_lm_loop_file(SEXP data_left, SEXP data_right,SEXP mmatrix) {
 	    // Intercept
 	    for (j=0; j < n; j++) {
 		ybuffer[j] = 1.0;
-		Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
+		//Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
 	    }    
 	    // Current Vertex Data
 	    for (j=0; j<n; j++) {
 	      ybuffer[j+n] = ydata[i+nVertices*j];
-	      Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
+	      //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
 	    }    
     }
     else {
 	// Fill with static part
     	for (j=0; j < mmatrix_cols*mmatrix_rows; j++) {
 		ybuffer[j] = pMmatrix[j];
-                Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
+                //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
 	    }  
         // Fill with dynamic part  
     	for (j=0; j < n ; j++) {
 		ybuffer[j+mmatrix_cols*mmatrix_rows] = ydata[i+nVertices*j];
-                Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
+                //Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
 	    }   
     }
     t_sexp = voxel_lm_file(buffer, buffer1,n,p ,coefficients, residuals, effects,
