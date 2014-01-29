@@ -18,4 +18,5 @@ LazyLoad: yes
 OS_type: unix
 SystemRequirements: 
 URL: https://github.com/mcvaneede/RMINC, https://wiki.phenogenomics.ca/display/MICePub/RMINC
+BuildVignettes: False
 
