@@ -7,7 +7,7 @@ gcc -shared -fPIC -I/usr/lib/R/include/ -I/projects/mice/share/arch/linux64/incl
 void get_volume_sizes(char **filename, unsigned int *sizes) {
   int result;
   mihandle_t  hvol;
-  misize_t tmp_sizes[3];
+  unsigned int tmp_sizes[3];
   midimhandle_t dimensions[3];
    /* open the existing volume */
   result = miopen_volume(filename[0],
@@ -30,7 +30,7 @@ void get_volume_sizes(char **filename, unsigned int *sizes) {
 
 SEXP get_vector_from_files(SEXP filenames,  SEXP num_files,  SEXP vec_length,
 			  SEXP v1, SEXP v2, SEXP v3) {
-  misize_t location[4];
+  unsigned long location[4];
   mihandle_t hvol;
   int result;
   int i, j, vector_length, number_files; 
@@ -74,7 +74,7 @@ SEXP get_vector_from_files(SEXP filenames,  SEXP num_files,  SEXP vec_length,
 /* get a voxel from all files, voxel coordinates */
 void get_voxel_from_files(char **filenames, int *num_files,
 			  int *v1, int *v2, int *v3, double *voxel) {
-  misize_t location[3];
+  unsigned long location[3];
   mihandle_t hvol;
   int result;
   int i;
@@ -148,7 +148,7 @@ void get_world_voxel_from_files(char **filenames, int *num_files,
 				double *v1, double *v2, double *v3, 
 				double *voxel) {
   double location[3], voxel_coord_tmp[3];
-  misize_t voxel_coord[3];
+  unsigned long voxel_coord[3];
   mihandle_t hvol;
   int result;
   int i, j;
@@ -205,8 +205,8 @@ void get_hyperslab(char **filename, int *start, int *count, double *slab) {
   Rprintf("Count: %i %i %i\n", count[0], count[1], count[2]);
   if (miget_real_value_hyperslab(hvol, 
 				 MI_TYPE_DOUBLE, 
-				 (misize_t *) tmp_start, 
-				 (misize_t *) tmp_count, 
+				 (unsigned long *) tmp_start, 
+				 (unsigned long *) tmp_count, 
 				 slab)
       < 0) {
     error("Could not get hyperslab.\n");
@@ -219,8 +219,8 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
   int                result;
   mihandle_t         hvol;
   int                i;
-  misize_t      tmp_start[3];
-  misize_t      tmp_count[3];
+  unsigned long      tmp_start[3];
+  unsigned long      tmp_count[3];
 
   /*
   char **c_filename;
@@ -247,8 +247,8 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
   Rprintf("Count: %i %i %i\n", INTEGER(count)[0], INTEGER(count)[1], INTEGER(count)[2]);
   if (miget_real_value_hyperslab(hvol, 
 				 MI_TYPE_DOUBLE, 
-				 tmp_start, 
-				 tmp_count, 
+				 (unsigned long *) tmp_start, 
+				 (unsigned long *) tmp_count, 
 				 REAL(slab))
       < 0) {
     error("Could not get hyperslab.\n");
@@ -275,13 +275,13 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
   mihandle_t         *hvol, hmask;
   int                i, v0, v1, v2, output_index, buffer_index;
   unsigned long     start[3], count[3];
-  //unsigned long      location[3];
+//  unsigned long      location[3];
   int                num_files;
   double             *xbuffer, *xoutput, **full_buffer;
   double             *xhave_mask, *xmask_value;
   double             *mask_buffer;
   midimhandle_t      dimensions[3];
-  misize_t            sizes[3];
+  unsigned int            sizes[3];
   SEXP               output, buffer;
   //SEXP               R_fcall;
   
@@ -357,8 +357,8 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
     for (i=0; i < num_files; i++) {
       if (miget_real_value_hyperslab(hvol[i], 
 				     MI_TYPE_DOUBLE, 
-				     (misize_t *) start, 
-				     (misize_t *) count, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
 				     full_buffer[i]) )
 	error("Error opening buffer.\n");
     }
@@ -366,8 +366,8 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
     if (xhave_mask[0] == 1) {
       if (miget_real_value_hyperslab(hmask, 
 				     MI_TYPE_DOUBLE, 
-				     (misize_t *) start, 
-				     (misize_t *) count, 
+				     (unsigned long *) start, 
+				     (unsigned long *) count, 
 				     mask_buffer) )
 	error("Error opening mask buffer.\n");
     }
@@ -477,8 +477,8 @@ void write_minc2_volume(char **output, char **like_filename,
     tmp_count[i] = (unsigned long) count[i];
   }
   if (miset_real_value_hyperslab(hvol_new, MI_TYPE_DOUBLE, 
-				 (misize_t *) tmp_start, 
-				 (misize_t *) tmp_count,
+				 (unsigned long *) tmp_start, 
+				 (unsigned long *) tmp_count,
 				 slab) < 0) {
     error("Error writing buffer to volume\n");
   }

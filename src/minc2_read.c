@@ -22,8 +22,8 @@ SEXP read_voxel_from_files(SEXP filenames,  SEXP voxCoords,  SEXP noFiles,  SEXP
 	int				no_frames;
 	int				no_rows;
 	int				no_cols;
-	misize_t	hSlab_start[MI2_MAX_VAR_DIMS];
-	misize_t	hSlab_count[MI2_MAX_VAR_DIMS];
+	unsigned long	hSlab_start[MI2_MAX_VAR_DIMS];
+	unsigned long	hSlab_count[MI2_MAX_VAR_DIMS];
 	int				hSlab_buffer_size;
 	static char *dimorder3d[] = { "zspace","yspace","xspace" };
 	static char *dimorder4d[] = { "time", "zspace","yspace","xspace" };
@@ -172,8 +172,8 @@ SEXP read_hyperslab(SEXP filename,  SEXP start,  SEXP count, SEXP nDimensions) {
 
 	SEXP			hSlab_buffer;
 	double			*hSlab_buffer_ptr;
-	misize_t	hSlab_start[MI2_MAX_VAR_DIMS];
-	misize_t	hSlab_count[MI2_MAX_VAR_DIMS];
+	unsigned long	hSlab_start[MI2_MAX_VAR_DIMS];
+	unsigned long	hSlab_count[MI2_MAX_VAR_DIMS];
 	int				hSlab_buffer_size;
 	static char *dimorder3d[] = { "zspace","yspace","xspace" };
 	static char *dimorder4d[] = { "time", "zspace","yspace","xspace" };
