@@ -771,7 +771,7 @@ pMincApply <- function(filenames, function.string,
   else if (method == "snowfall") {
     wrapper <- function(i) {
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i, reduce=FALSE))
+                       maskval=i, reduce=TRUE))
     }
     # use all cores in the current cluster if # of cores not specified
     if (is.null(cores)) {
@@ -804,8 +804,7 @@ pMincApply <- function(filenames, function.string,
       output[maskV==i,] <- pout[[i]]
     }
     else {
-      currentMask = pout[[i]]
-      output[maskV==i] <- currentMask[maskV==i]
+      output[maskV==i] <- pout[[i]]
     }
   }
   unlink(maskFilename)
