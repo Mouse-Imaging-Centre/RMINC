@@ -241,6 +241,12 @@ given below:
 <<echo=FALSE>>=
 options(width=60)
 
+# retain the current directory. If setwd() is used in a Sweave 
+# document, and not reset to the original directory, Sweave will
+# complain at the end about not being able to find the .tex file
+# that is created
+originalDir <- getwd()
+
 # get path to volumeData subdir within package
 volDir <- system.file("packageData/volumes", package="RMINC")
 dataDir <- system.file("packageData", package="RMINC")
@@ -418,7 +424,7 @@ vs <- mincLm(Filename ~ Gender, gf)
 print(vs)
 #
 fileOut <- file.path("/tmp", "simple-lm.mnc")
-mincWriteVolume(vs, fileOut, "GenderMale")
+mincWriteVolume(vs, fileOut, "tvalue-GenderMale")
 @ 
 
 mincLm is the command to run linear models in RMINC. Its basic use is
@@ -559,7 +565,7 @@ qvals <- mincFDR(vs, mask="volumes/mask.mnc", method="pFDR")
 print(qvals)
 #
 fileOut <- file.path("/tmp", "Gender-FDR.mnc")
-mincWriteVolume(qvals, fileOut, "GenderMale")
+mincWriteVolume(qvals, fileOut, "tvalue-GenderMale", like.filename="volumes/mask.mnc")
 @ 
 
 The first command computes a linear model using \texttt{mincLm}. The
@@ -585,7 +591,9 @@ setwd(dataDir)
 volname <-file.path("/tmp", "simple-lm.mnc")
 volume <- mincGetVolume(volname)
 #
-qvals <- mincFDR(volume, df=21, statType="t")
+attr(volume, "stat-type") <- c("t")
+attr(volume, "df") <- c(21)
+qvals <- mincFDR(volume, df=21, statType="t", method="FDR")
 print(qvals)
 @
 
@@ -644,6 +652,10 @@ which has the following properties:
 \item It returns a vector.
 \end{itemize}
 
+
+<<echo=FALSE>>=
+setwd(originalDir)
+@
 
 
 \printindex

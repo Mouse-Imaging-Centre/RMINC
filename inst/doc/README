@@ -1,0 +1,7 @@
+Prerequisites in order to compile these documents:
+
+R packages:
+xtable
+(qvalue... not available through CRAN anymore)
+
+
