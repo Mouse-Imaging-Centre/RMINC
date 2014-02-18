@@ -257,16 +257,14 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 
 
   # Call subroutine based on whether matrix was found
-  if(matrixFound) {
-	   result <- .Call("vertex_lm_loop_file",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
-	}
-  else  {      	
+  if(!matrixFound) {    	
 	mmatrix <- model.matrix(formula, mf)	
 	data.matrix.left <- t(anat[mf[,"(rowcount)"],])
-	rows = colnames(mmatrix)
-	result <- .Call("vertex_lm_loop", data.matrix.left, mmatrix, PACKAGE="RMINC");		 
+	rows = colnames(mmatrix) 
+        data.matrix.right = matrix()
         }
 
+  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
   rownames(result) <- colnames(anat)
 
   # the order of return values is:

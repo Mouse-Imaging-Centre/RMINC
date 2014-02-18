@@ -351,9 +351,6 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
 
   #INITIALIZATION
-  matrixFound = FALSE
-  mmatrix =  matrix()
-  data.matrix.right = matrix()
   method <- "lm"
 
   # Build model.frame
@@ -1052,10 +1049,6 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 ###########################################################################################
 vertexLm <- function(formula, data, subset=NULL) {
 
-  #INITIALIZATION
-  matrixFound = FALSE
-  mmatrix =  matrix()
-
   # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -1069,74 +1062,23 @@ vertexLm <- function(formula, data, subset=NULL) {
 	stop("$ Not Permitted in Formula")  
   }
 
-
-
+  attach(parseLmFormula(formula,data,mf)) 
   
 
 
-  # Only 1 Term on the RHS
-  if(length(formula[[3]]) == 1) {
-	  rCommand = paste("term <- data$",formula[[3]],sep="")
-	  eval(parse(text=rCommand))
-
-	  fileinfo = file.info(as.character(term[1]))
-
-	  if (!is.na(fileinfo$size)) {
-		# Save term name for later
-		rows = c('Intercept',formula[[3]])
-		matrixName = formula[[3]]
-                matrixFound = TRUE
-		data.matrix.left <- vertexTable(as.character(mf[,1]))
-		data.matrix.right <- vertexTable(as.character(mf[,2]))
-	        }  
-          }
-  # Multiple Terms on RHS
-  else {
-	  for (nTerm in 2:length(formula[[3]])){
-		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
-		  eval(parse(text=rCommand))	
-		  fileinfo = file.info(as.character(term[1]))
-		  if (!is.na(fileinfo$size)) {
-			
-			if(length(grep('\\+',formula[[3]][[1]])) == 0)
-				stop("Only + sign allowed when using filenames")
-						
-			if(length(formula[[3]]) > 3)
-				stop("Only 2 terms allowed when using filenames on the RHS")			
-
-                        matrixName = formula[[3]][[nTerm]]
-			matrixFound = TRUE
- 			filenames <- as.character(mf[,1])
-			data.matrix.left <- vertexTable(filenames)
-			filenames <- as.character(mf[,nTerm])
-			data.matrix.right <- vertexTable(filenames)
-
-			}
-		  else  {
-   			tmpFormula = formula
-			rCommand = paste("formula <-",formula[[2]],"~",formula[[3]][[nTerm]],sep="")
-		        eval(parse(text=rCommand))	
-			mmatrix <- model.matrix(formula, mf)	
-			formula = tmpFormula	
-			}
-		}
-	   rows = colnames(mmatrix)
-	   rows = append(rows,matrixName)
-	}	
-
-
-  # Call subroutine based on whether matrix was found
   if(matrixFound) {
-	   result <- .Call("vertex_lm_loop_file",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+        data.matrix.left  <- vertexTable(data.matrix.left)
+  	data.matrix.right <- vertexTable(data.matrix.right)
 	}
-  else  {      	
+  else {
 	filenames <- as.character(mf[,1])
 	mmatrix <- model.matrix(formula, mf)	
 	data.matrix.left <- vertexTable(filenames)
-	rows = colnames(mmatrix)
-	result <- .Call("vertex_lm_loop", data.matrix.left, mmatrix, PACKAGE="RMINC");		 
-        }
-  
+        rows = colnames(mmatrix)
+
+
+  } 
+  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
 
   attr(result, "likeVolume") <- as.character(mf[,1])[1]
   attr(result, "model") <- as.matrix(mmatrix)
@@ -1533,7 +1475,7 @@ parseLmFormula <- function(formula,data,mf)
 	   rows = colnames(mmatrix)
 	   rows = append(rows,matrixName)
 	}
-return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound =matrixFound,mmatrix = mmatrix))
+return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
 
 }
 
