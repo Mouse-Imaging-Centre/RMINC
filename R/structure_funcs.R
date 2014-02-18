@@ -193,7 +193,12 @@ anatApply <- function(vols, grouping, method=mean) {
 
 ###########################################################################################  
 anatLm <- function(formula, data, anat, subset=NULL) {
-  # Extract formula from input arguement
+  
+  #INITIALIZATION
+  matrixFound = FALSE
+  mmatrix =  matrix()
+
+  # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   # Add a row to keep track of what subsetting does
@@ -203,21 +208,65 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
-  
-  mmatrix <- model.matrix(formula, mf)
-  # get the data from the anatomy matrix using the same subset as specified
-  # in the formula
-  anatmatrix <- t(anat[mf[,"(rowcount)"],])
-  # Call C function for speed-up
-  result <- .Call("vertex_lm_loop", anatmatrix, mmatrix, PACKAGE="RMINC")
 
+   if(length(grep("\\$",formula[[2]])) > 0) {
+	stop("$ Not Permitted in Formula")  
+  }
+
+
+  # Only 1 Term on the RHS
+  if(length(formula[[2]]) == 1) {
+	  rCommand = paste("term <- data$",formula[[2]],sep="")
+	  eval(parse(text=rCommand))
+
+	  if (is.matrix(term)) {
+		# Save term name for later
+		rows = c('Intercept',formula[[2]])
+		matrixName = formula[[2]]
+                matrixFound = TRUE
+		data.matrix.left <- t(anat[mf[,"(rowcount)"],])
+		#data.matrix.left <- vertexTable(filenames)
+		data.matrix.right <- t(term)
+	        }  
+          }
+  # Multiple Terms on RHS
+  else {
+	  for (nTerm in 2:length(formula[[2]])){
+		  rCommand = paste("term <- data$",formula[[2]][[nTerm]],sep="")
+		  eval(parse(text=rCommand))	
+		  if (is.matrix(term)) {
+                        matrixName = formula[[2]][[nTerm]]
+			matrixFound = TRUE
+			#data.matrix.left <- vertexTable(filenames)
+			data.matrix.left <- t(anat[mf[,"(rowcount)"],])
+			data.matrix.right <- t(term)
+
+			}
+		  else  {
+   			tmpFormula = formula
+			rCommand = paste("formula <-",formula[[1]],"~",formula[[2]][[nTerm]],sep="")
+		        eval(parse(text=rCommand))	
+			mmatrix <- model.matrix(formula, mf)	
+			formula = tmpFormula	
+			}
+		}
+	   rows = colnames(mmatrix)
+	   rows = append(rows,matrixName)
+	}	
+
+
+
+  # Call subroutine based on whether matrix was found
+  if(!matrixFound) {    	
+	mmatrix <- model.matrix(formula, mf)	
+	data.matrix.left <- t(anat[mf[,"(rowcount)"],])
+	rows = colnames(mmatrix) 
+        data.matrix.right = matrix()
+        }
+
+  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
   rownames(result) <- colnames(anat)
 
-  # get the first voxel in order to get the dimension names
-  v.firstVoxel <- anatmatrix[1,]
-  rows <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  
   # the order of return values is:
   #
   # f-statistic

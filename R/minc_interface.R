@@ -348,22 +348,21 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' # write the results to file
 #' mincWriteVolume(vs, "output.mnc", "Genotype+")
 ###########################################################################################
-mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
+mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
+
+  #INITIALIZATION
+  method <- "lm"
+
+  # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
-
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
 
-  filenames <- as.character(mf[,1])
-  mmatrix <- model.matrix(formula, mf)
 
-  method <- "lm"
-
-  mincFileCheck(filenames)
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -372,8 +371,27 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
     minmask = maskval
     maxmask = maskval
   }
-  result <- .Call("minc2_model",
-                  as.character(filenames),
+
+  attach(parseLmFormula(formula,data,mf)) 
+  
+
+  # Call subroutine based on whether matrix was found
+  if(matrixFound) {
+	   mincFileCheck(data.matrix.left)
+	   mincFileCheck(data.matrix.right)
+
+	}
+  else  {      	
+	
+	mmatrix <- model.matrix(formula, mf)	
+	data.matrix.left <- as.character(mf[,1])
+ 	mincFileCheck(data.matrix.left)
+	rows = colnames(mmatrix)
+	}
+ 
+  	   result <- .Call("minc2_model",
+                  as.character(data.matrix.left),
+		  data.matrix.right,
                   as.matrix(mmatrix),
                   NULL,
                   as.double(! is.null(mask)),
@@ -383,9 +401,10 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
 
-  attr(result, "likeVolume") <- filenames[1]
+
+  attr(result, "likeVolume") <- data.matrix.left[1]
   attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
+  attr(result, "filenames") <- data.matrix.left
   
   # the order of return values is:
   #
@@ -405,9 +424,9 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   attr(result, "df") <- dflist
   
   # get the first voxel in order to get the dimension names
-  v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
-  rows <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+  #v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
+  #rows <- sub('mmatrix', '',
+  #            rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   betaNames = paste('beta-',rows, sep='')
   tnames = paste('tvalue-',rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
@@ -1028,30 +1047,41 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 #' vertexFDR(result)
 ###########################################################################################
 vertexLm <- function(formula, data, subset=NULL) {
-  # repeat code to extract the formula as in mincLm
+
+  # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
-
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
 
+  if(length(grep("\\$",formula[[3]])) > 0) {
+	stop("$ Not Permitted in Formula")  
+  }
 
-  filenames <- as.character(mf[,1])
-  mmatrix <- model.matrix(formula, mf)
+  attach(parseLmFormula(formula,data,mf)) 
+  
 
-  cat("Loading data from files\n")
-  data.matrix <- vertexTable(filenames)
 
-  cat("after loading\n")
+  if(matrixFound) {
+        data.matrix.left  <- vertexTable(data.matrix.left)
+  	data.matrix.right <- vertexTable(data.matrix.right)
+	}
+  else {
+	filenames <- as.character(mf[,1])
+	mmatrix <- model.matrix(formula, mf)	
+	data.matrix.left <- vertexTable(filenames)
+        rows = colnames(mmatrix)
 
-  result <- .Call("vertex_lm_loop", data.matrix, mmatrix, PACKAGE="RMINC");
 
-  attr(result, "likeVolume") <- filenames[1]
+  } 
+  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+
+  attr(result, "likeVolume") <- as.character(mf[,1])[1]
   attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
+  attr(result, "filenames") <- as.character(mf[,1])
   attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
  
   Fdf1 <- ncol(attr(result, "model")) -1
@@ -1063,11 +1093,6 @@ vertexLm <- function(formula, data, subset=NULL) {
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
   
-  # get the first voxel in order to get the dimension names
-  v.firstVoxel <- data.matrix[1,]
-  rows <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-
   betaNames = paste('beta-', rows, sep='')
   tnames = paste('tvalue-', rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
@@ -1078,6 +1103,7 @@ vertexLm <- function(formula, data, subset=NULL) {
  
   return(result)
 }
+
 ###########################################################################################
 #' Writes vertex data to a file with an optional header
 #' @param vertexData vertex data to be written
@@ -1394,3 +1420,61 @@ mincRayTraceStats <- function(v, anatomy.volume,
 							paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
   
 }
+
+parseLmFormula <- function(formula,data,mf) 
+{
+  mmatrix = matrix()
+  data.matrix.right = matrix()
+  data.matrix.left = matrix()
+  rows = NULL
+  matrixFound = FALSE
+  # Only 1 Term on the RHS
+  if(length(formula[[3]]) == 1) {
+	  rCommand = paste("term <- data$",formula[[3]],sep="")
+	  eval(parse(text=rCommand))
+
+	  fileinfo = file.info(as.character(term[1]))
+	  if (!is.na(fileinfo$size)) {
+		# Save term name for later
+		rows = c('Intercept',formula[[3]])
+		matrixName = formula[[3]]
+                matrixFound = TRUE
+		data.matrix.left <- as.character(mf[,1])
+		data.matrix.right <- as.character(mf[,2])
+	        }  
+          }
+  # Multiple Terms on RHS
+  else {
+	  for (nTerm in 2:length(formula[[3]])){
+		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+		  eval(parse(text=rCommand))	
+		  fileinfo = file.info(as.character(term[1]))
+		  if (!is.na(fileinfo$size)) {
+
+			if(length(grep('\\+',formula[[3]][[1]])) == 0)
+				stop("Only + sign allowed when using filenames")
+						
+			if(length(formula[[3]]) > 3)
+				stop("Only 2 terms allowed when using filenames on the RHS")	
+
+                        matrixName = formula[[3]][[nTerm]]
+			matrixFound = TRUE
+			data.matrix.left <- as.character(mf[,1])
+			data.matrix.right <- as.character(mf[,nTerm])
+
+			}
+		  else  {
+   			tmpFormula = formula
+			rCommand = paste("formula <-",formula[[2]],"~",formula[[3]][[nTerm]],sep="")
+		        eval(parse(text=rCommand))	
+			mmatrix <- model.matrix(formula, mf)	
+			formula = tmpFormula	
+			}
+		}
+	   rows = colnames(mmatrix)
+	   rows = append(rows,matrixName)
+	}
+return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
+
+}
+

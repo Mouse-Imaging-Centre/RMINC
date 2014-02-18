@@ -5,7 +5,7 @@
 //#include <R_ext/Utils.h>
 #include "modelling_functions.h"
 
-SEXP vertex_lm_loop(SEXP data, SEXP Sx) {
+SEXP vertex_lm_loop(SEXP data_left, SEXP data_right,SEXP mmatrix)  {
 
   double *coefficients;
   double *residuals;
@@ -18,20 +18,45 @@ SEXP vertex_lm_loop(SEXP data, SEXP Sx) {
   double *se;
   double *t;
   double *xdata;
+  double *ydata;
+  double *pMmatrix;
   SEXP   output;
   double *xoutput;
   SEXP   buffer;
   double *xbuffer;
+  SEXP   buffer1;
+  double *ybuffer;  
   SEXP   t_sexp;
-  int    p,n,nVertices,i,j,k;
+  int    p,n,nVertices,i,j,k,mmatrix_rows,mmatrix_cols;
 
-  xdata = REAL(data);
+  xdata = REAL(data_left);
+  if(!isLogical(data_right)) 
+	  ydata = REAL(data_right);
 
-  // determine numbers of rows, columns, and vertices
-  n = nrows(Sx);
-  p = ncols(Sx);
-  nVertices = nrows(data);
-  
+  // Case 1: There is no static part
+  if(isLogical(mmatrix)) 
+	// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
+	p = 2;
+  // Case 2: There is a static part
+  else {
+ 	if(isLogical(data_right)) 
+{
+         pMmatrix = REAL(mmatrix);
+  	 mmatrix_cols = ncols(mmatrix);
+  	 mmatrix_rows = nrows(mmatrix);
+  	  p =  mmatrix_cols ;}
+else {
+        pMmatrix = REAL(mmatrix);
+  	mmatrix_cols = ncols(mmatrix);
+  	mmatrix_rows = nrows(mmatrix);
+        p = mmatrix_cols + 1;
+        Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); }
+  }
+ 
+  n = ncols(data_left);
+  nVertices = nrows(data_left);
+
+
   // allocate memory for lm
   coefficients = malloc(sizeof(double) * p);
   residuals = malloc(sizeof(double) * n);
@@ -68,6 +93,10 @@ SEXP vertex_lm_loop(SEXP data, SEXP Sx) {
   PROTECT(buffer=allocVector(REALSXP, n));
   xbuffer=REAL(buffer);
 
+  PROTECT(buffer1=allocVector(REALSXP, n*p));
+  ybuffer=REAL(buffer1);
+
+
   // begin the loop
   Rprintf("Beginning vertex loop: %d %d\n", nVertices, p+1);
   for(i=0; i<nVertices;i++) {
@@ -76,7 +105,36 @@ SEXP vertex_lm_loop(SEXP data, SEXP Sx) {
       xbuffer[j] = xdata[i+nVertices*j];
       //Rprintf("B: %d\n", i+nVertices*j);
     }
-    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
+	    // If no mmatrix have to build it ourselves 
+	    if(isLogical(mmatrix))  { 
+		    // fill y buffer
+		    // Intercept
+		    for (j=0; j < n; j++) {
+			ybuffer[j] = 1.0;
+			//Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
+		    }    
+		    // Current Vertex Data
+		    for (j=0; j<n; j++) {
+		      ybuffer[j+n] = ydata[i+nVertices*j];
+		      //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
+		    }    
+	    }
+	    else {
+		// Fill with static part
+	    	for (j=0; j < mmatrix_cols*mmatrix_rows; j++) {
+			ybuffer[j] = pMmatrix[j];
+		        //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
+		    }  
+		// Fill with dynamic part  (if exists)
+ 		if(!isLogical(data_right)) {
+		    	for (j=0; j < n ; j++) {
+				ybuffer[j+mmatrix_cols*mmatrix_rows] = ydata[i+nVertices*j];
+				//Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
+			    }   
+		}
+	    }
+
+    t_sexp = voxel_lm(buffer,buffer1,n,p,coefficients, residuals, effects,
           work, qraux, v, pivot, se, t);
           
     // f-statistic

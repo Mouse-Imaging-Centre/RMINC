@@ -390,19 +390,23 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
   return(output);
 }
 
-SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients, 
+SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients, 
         double *residuals, double *effects, 
         double *work, 
         double *qraux, double *v, int *pivot, double *se, double *t) {
-
+ 
   double tol, rss, resvar, mss, mean_fitted, sum_fitted;
   double *x, *y, *xoutput;
-  int n, p, ny, rank, i, j, rdf, index;
+  int ny,ny1, rank, i, j, rdf, index;
   SEXP new_x, output;
   int nprot = 0;
 
-  n = nrows(Sx);
-  p = ncols(Sx);
+
+  ny = ncols(Sy);
+  ny1 = nrows(Sy);
+
+
+  //Rprintf("n %d p %d\n", n,p);
 
   // the output will contain:
   // 
@@ -420,12 +424,14 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
   for (i=0; i < n; i++) {
     for (j=0; j < p; j++) {
       REAL(new_x)[i+j*n] = REAL(Sx)[i+j*n];
+      //Rprintf("new_x %f\n", REAL(new_x)[i+j*n]);
     }
   }
 
   x = REAL(new_x);
   y = REAL(Sy);
-  ny = ncols(Sy);
+
+  //Rprintf("coly %d rowy %d\n", ny,ny1);
   rank = 1;
   tol = 1e-07;
 
@@ -442,15 +448,23 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx, double *coefficients,
     rss += pow(residuals[i], 2);
     sum_fitted += (y[i] - residuals[i]);
   }
+
   mean_fitted = sum_fitted / n;
   for (i=0; i < n; i++) {
     mss += pow((y[i] - residuals[i]) - mean_fitted, 2);
   }
+  
   rdf = n - p;
-  resvar = rss/rdf;
-  /* first output is the f-stat of the whole model */
-  xoutput[0] = (mss/(p - 1))/resvar;
 
+  //Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
+  resvar = rss/rdf;
+  //Rprintf("mss %f p %d resvar %f %\n", mss,p,resvar);
+
+  /* first output is the f-stat of the whole model */
+
+  
+  xoutput[0] = (mss/(p - 1))/resvar;
+  
   // DPOTRI - compute the inverse of a real symmetric positive
   // definite matrix A using the Cholesky factorization A =
   // U**T*U or A = L*L**T computed by DPOTRF
@@ -644,39 +658,46 @@ SEXP test_voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn) {
  * nresults: the number of columns in the result - only used by method "eval"
  * method: a string containing one of "t-test", "wilcoxon", or "correlation"
  */
-SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
+SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
 		 SEXP have_mask, SEXP mask, SEXP mask_lower_value,
 		 SEXP mask_upper_value, SEXP rho, SEXP nresults, SEXP method) {
   int                result;
-  mihandle_t         *hvol, hmask;
+  mihandle_t         *hvol, *hvol_left,*hvol_right,hmask;
   char               *method_name;
   int                i, v0, v1, v2, output_index, buffer_index;
   unsigned long      start[3], count[3];
   unsigned long      location[3];
-  int                num_files;
+  int                num_files,num_files_right,num_files_left;
   double             *xn_groups;
-  double             *xbuffer, *xoutput, **full_buffer, *xhave_mask;
+  double             *xbuffer,*ybuffer, *xoutput, **full_buffer,**full_buffer_right, *xhave_mask;
   double             *xmask_lower_value;
   double             *xmask_upper_value;
   double             *mask_buffer;
   double             *groupings;
   midimhandle_t      dimensions[3];
   unsigned int       sizes[3];
-  SEXP               output, buffer, t_sexp, n_groups;
+  SEXP               output, buffer,buffer1, t_sexp, n_groups;
   /* stuff for linear models only */
   double             *coefficients, *residuals, *effects; 
   double             *diag, *se, *t, *work, *qraux, *v, *ss, *comp;
-  int                n, p, maxasgn;
+  int                n, p, maxasgn,mmatrix_rows,mmatrix_cols;
   int                *pivot, *xasgn, *df;
+  double 	     *pMmatrix;
 
   num_files = LENGTH(filenames);
-
+  num_files_left = num_files; 
   /* get the method that should be used at each voxel */
   method_name = CHAR(STRING_ELT(method, 0));
   Rprintf("Method: %s\n", method_name);
 
   /* allocate memory for the volume handles */
   hvol = malloc(num_files * sizeof(mihandle_t));
+  
+  if(!isLogical(filenames_right)) {
+ 	  Rprintf("Number of volumes: %i\n", num_files);
+	  hvol_right = malloc(num_files_left * sizeof(mihandle_t));
+}
+
 
   Rprintf("Number of volumes: %i\n", num_files);
 
@@ -703,6 +724,18 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     }
   }
 
+  if(!isLogical(filenames_right)) {
+
+  for(i=0; i < num_files_left; i++) {
+    result = miopen_volume(CHAR(STRING_ELT(filenames_right, i)),
+      MI2_OPEN_READ, &hvol_right[i]);
+    if (result != MI_NOERROR) {
+      error("Error opening input file: %s.\n", CHAR(STRING_ELT(filenames_right,i)));
+    }
+  }		
+
+}
+
   /* get the file dimensions and their sizes - assume they are the same*/
   miget_volume_dimensions( hvol[0], MI_DIMCLASS_SPATIAL,
 			   MI_DIMATTR_ALL, MI_DIMORDER_FILE,
@@ -711,9 +744,41 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   Rprintf("Volume sizes: %i %i %i\n", sizes[0], sizes[1], sizes[2]);
 
 
+
+
+  // Case 1: There is no static part
+  if(isLogical(mmatrix)) 
+	// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
+	p = 2;
+  // Case 2: There is a static part
+  else {
+ 	if(isLogical(filenames_right)) 
+{
+         pMmatrix = REAL(mmatrix);
+  	 mmatrix_cols = ncols(mmatrix);
+  	 mmatrix_rows = nrows(mmatrix);
+  	  p =  mmatrix_cols ;}
+else {
+        pMmatrix = REAL(mmatrix);
+  	mmatrix_cols = ncols(mmatrix);
+  	mmatrix_rows = nrows(mmatrix);
+        p = mmatrix_cols + 1;
+        Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); }
+  }
+ n = num_files_left;
+
+
+
+
+
+
   /* allocate the local buffer that will be passed to the function */
   PROTECT(buffer=allocVector(REALSXP, num_files));
   xbuffer = REAL(buffer); 
+
+	  PROTECT(buffer1=allocVector(REALSXP, num_files_left*p));
+	  ybuffer=REAL(buffer1);
+
 
   /* allocate stuff for means and standard deviations */
   if (strcmp(method_name, "mean") == 0 ||
@@ -721,7 +786,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
       strcmp(method_name, "var") == 0) {
     PROTECT(n_groups=allocVector(REALSXP, 1));
     xn_groups = REAL(n_groups);
-    groupings = REAL(Sx);
+    groupings = REAL(filenames);
 
     xn_groups[0] = 0;
 
@@ -730,7 +795,7 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
        but take the max of that to get the number of groups. Note that we
        have to add 1 to the number of groups, as the first group will have 
        a value of 0 */
-    for(i=0; i < LENGTH(Sx); i++) {
+    for(i=0; i < LENGTH(filenames); i++) {
       if (groupings[i] > xn_groups[0]) {
 	xn_groups[0]++;
       }
@@ -752,8 +817,8 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   }
   /* allocate stuff necessary for fitting linear models */
   else if (strcmp(method_name, "lm") == 0) {
-    n = nrows(Sx);
-    p = ncols(Sx);
+    //%n = nrows(Sx);
+    //p = ncols(Sx);
     
     coefficients = malloc(sizeof(double) * p);
     residuals = malloc(sizeof(double) * n);
@@ -775,8 +840,8 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 
   }
   else if (strcmp(method_name, "anova") == 0) {
-    n = nrows(Sx);
-    p = ncols(Sx);
+    //n = nrows(Sx);
+    //p = ncols(Sx);
     xasgn = INTEGER(asgn);
 
     maxasgn = 0;
@@ -829,6 +894,13 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
     full_buffer[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
   }
   
+
+  if(!isLogical(filenames_right)) {
+	  full_buffer_right = malloc(num_files_left * sizeof(double));
+  	for (i=0; i < num_files_left; i++) {
+    		full_buffer_right[i] = malloc(sizes[1] * sizes[2] * sizeof(double)); }
+  }
+
   /* allocate buffer for mask - if necessary */
   if (xhave_mask[0] == 1) {
     mask_buffer = malloc(sizes[1] * sizes[2] * sizeof(double));
@@ -849,7 +921,17 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 				     (unsigned long *) count, 
 				     full_buffer[i]) )
 	error("Error opening buffer.\n");
-    }
+
+  	if(!isLogical(filenames_right)) {
+	      if (miget_real_value_hyperslab(hvol_right[i], 
+					     MI_TYPE_DOUBLE, 
+					     (unsigned long *) start, 
+					     (unsigned long *) count, 
+					     full_buffer_right[i]) )
+		error("Error opening buffer.\n");
+	    }
+	}
+
     /* get mask - if desired */
     if (xhave_mask[0] == 1) {
       if (miget_real_value_hyperslab(hmask, 
@@ -879,41 +961,41 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 
 	    xbuffer[i] = full_buffer[i][buffer_index];
 	    
-	    //Rprintf("V%i: %f\n", i, full_buffer[i][index]);
+	    //Rprintf("V%i: %f\n", i, full_buffer[i][buffer_index]);
 
 	  }
 
 	  /* compute either a t test of wilcoxon rank sum test */
 	  if (strcmp(method_name, "t-test") == 0) {
-	    xoutput[output_index] = REAL(t_test(buffer, Sx))[0]; 
+	    xoutput[output_index] = REAL(t_test(buffer, filenames))[0]; 
 	  }
 	  else if (strcmp(method_name, "paired-t-test") == 0) {
-	    xoutput[output_index] = REAL(paired_t_test(buffer, Sx))[0];
+	    xoutput[output_index] = REAL(paired_t_test(buffer, filenames))[0];
 	  }
 	  else if (strcmp(method_name, "wilcoxon") == 0) {
 	    xoutput[output_index] = 
-	      REAL(wilcoxon_rank_test(buffer, Sx))[0];
+	      REAL(wilcoxon_rank_test(buffer, filenames))[0];
 	  }
 	  else if (strcmp(method_name, "correlation") == 0) {
 	    xoutput[output_index] = 
-	      REAL(voxel_correlation(buffer, Sx))[0];
+	      REAL(voxel_correlation(buffer, filenames))[0];
 	  }
 	  else if (strcmp(method_name, "mean") == 0) {
-	    t_sexp = voxel_mean(buffer, n_groups, Sx);
+	    t_sexp = voxel_mean(buffer, n_groups, filenames);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
 	    }
 	  }
 	  else if (strcmp(method_name, "sum") == 0) {
-	    t_sexp = voxel_sum(buffer, n_groups, Sx);
+	    t_sexp = voxel_sum(buffer, n_groups, filenames);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
 	    }
 	  }
 	  else if (strcmp(method_name, "var") == 0) {
-	    t_sexp = voxel_var(buffer, n_groups, Sx);
+	    t_sexp = voxel_var(buffer, n_groups, filenames);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
@@ -922,15 +1004,45 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
 	  else if (strcmp(method_name, "eval") == 0) {
 	    /* install the variable "x" into environment */
 	    defineVar(install("x"), buffer, rho);
-	    t_sexp = eval(Sx, rho);
+	    t_sexp = eval(filenames, rho);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
 	    }
 	  }
     else if (strcmp(method_name, "lm") == 0) {
-    t_sexp = voxel_lm(buffer, Sx, coefficients, residuals, effects,
-            work, qraux, v, pivot, se, t);
+
+	    if(isLogical(mmatrix))  { 
+		    // fill y buffer
+		    // Intercept
+		    for (int j=0; j < n; j++) {
+			ybuffer[j] = 1.0;
+			//Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
+		    }    
+		    // Current Vertex Data
+		    for (int j=0; j<n; j++) {
+		      ybuffer[j+n] = full_buffer_right[j][buffer_index];
+		      //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
+		    }    
+	    }
+	    else {
+		// Fill with static part
+	    	for (int j=0; j < mmatrix_cols*mmatrix_rows; j++) {
+			ybuffer[j] = pMmatrix[j];
+		        //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
+		    }  
+		if(!isLogical(filenames_right)) 
+		{
+			// Fill with dynamic part  
+		    	for (int j=0; j < n ; j++) {
+				ybuffer[j+mmatrix_cols*mmatrix_rows] = full_buffer_right[j][buffer_index];
+				//Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
+			    }   
+		}
+	    }
+
+    t_sexp = voxel_lm(buffer, buffer1,n,p ,coefficients, residuals, effects,
+          work, qraux, v, pivot, se, t);
       
       // most sensible output format (?): fist the full model measurements,
       // then the individual measurement in the same order as summary.lm
@@ -983,6 +1095,12 @@ SEXP minc2_model(SEXP filenames, SEXP Sx, SEXP asgn,
   for (i=0; i<num_files; i++) {
     miclose_volume(hvol[i]);
     free(full_buffer[i]);
+if(!isLogical(filenames_right)) 
+{
+
+    miclose_volume(hvol_right[i]);
+    free(full_buffer_right[i]);
+}
   }
   if (strcmp(method_name, "lm")==0) {
     free(full_buffer);
