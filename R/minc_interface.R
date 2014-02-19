@@ -327,7 +327,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' @description Linear Model at Every Voxel
 #' @name mincLm
 #' @title Linear model at Every Voxel
-#' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
+#' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.The RHS of the formula may contain one term with filenames. If so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data The dataframe which contains the model terms.
 #' @param subset Subset definition.
 #' @param mask Either a filename or a vector of values of the same length as the input files. The linear model will only be computed
@@ -1032,7 +1032,8 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 }
 ###########################################################################################
 #' Calculates statistics and coefficients for linear model of specified vertex files
-#' @param formula a model formula
+#' @param formula a model formula. The RHS of the formula may contain one term with filenames. If
+#' so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
 #' @return Returns an object containing the beta coefficients, F 

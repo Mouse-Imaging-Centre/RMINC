@@ -177,7 +177,8 @@ anatApply <- function(vols, grouping, method=mean) {
 }
 ###########################################################################################
 #' Calculates statistics and coefficients for linear model of specified anat structure
-#' @param formula a model formula
+#' @param formula a model formula. The RHS of the formula may contain one term with a matrix. If
+#' so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
