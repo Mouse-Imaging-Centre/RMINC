@@ -971,7 +971,7 @@ vertexTable <- function(filenames) {
 #' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
 #' result = vertexAnova(~Primary.Diagnosis,gf,gf$CIVETFILES$nativeRMStlink20mmleft) 
 ###########################################################################################
-vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
+vertexAnova <- function(formula, data, subset=NULL) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -982,7 +982,7 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   mmatrix <- model.matrix(formula, mf)
 
   # Load Vertex Data from Files
-  #filenames <- as.character(mf[,1])
+  filenames <- as.character(mf[,1])
   data.matrix <- vertexTable(filenames)
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
 
@@ -996,14 +996,16 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   assignVector = attr(mmatrix, "assign") + 1
   columnName =  rep('', max(assignVector)-1)
-  dflist =  rep(0, max(assignVector)-1)
-  for (i in 2:max(assignVector)) { 
-    indices = which(assignVector == i)
-    for (j in 1:length(indices)) {
-      columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
-    }
-    dflist[i-1] = length(indices)
-  }
+ 
+  Fdf1 <- ncol(attr(result, "model")) -1
+  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+
+  # degrees of freedom are needed for the fstat and tstats only
+  dflist <- vector("list", (ncol(result)))
+
+  for (i in 1:ncol(result)) {
+  	dflist[[i]] <- c(Fdf1, Fdf2) }
+  attr(result, "df") <- dflist
 
   attr(result, "df") <- dflist
   colnames(result) <- columnName
