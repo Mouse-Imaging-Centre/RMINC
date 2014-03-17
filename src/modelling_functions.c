@@ -1114,7 +1114,7 @@ if(!isLogical(filenames_right))
     free(diag);
     free(se);
     free(t);
-    UNPROTECT(3);
+    UNPROTECT(4);
   }
   else if (strcmp(method_name, "anova")==0) {
     free(full_buffer);

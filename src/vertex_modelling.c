@@ -167,7 +167,7 @@ else {
   free(diag);
   free(se);
   free(t);
-  UNPROTECT(3);
+  UNPROTECT(4);
   
   return(output);
 }
