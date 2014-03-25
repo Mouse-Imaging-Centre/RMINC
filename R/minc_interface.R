@@ -434,7 +434,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
   
   # run the garbage collector...
   gcout <- gc()
-  
+  detach(data.matrix.left)
   return(result)
 }
 
@@ -1058,10 +1058,14 @@ vertexLm <- function(formula, data, subset=NULL) {
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
 
+  
+
   if(length(grep("\\$",formula[[3]])) > 0) {
 	stop("$ Not Permitted in Formula")  
   }
 
+
+  
   attach(parseLmFormula(formula,data,mf)) 
   
 
@@ -1101,7 +1105,7 @@ vertexLm <- function(formula, data, subset=NULL) {
  
   # run the garbage collector...
   gcout <- gc()
- 
+  detach()
   return(result)
 }
 
