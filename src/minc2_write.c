@@ -168,10 +168,14 @@ SEXP write_volume(SEXP filename, SEXP nDimensions,
 
 
 	// free resources
-	mifree_volume_props(volume_properties);								// free the property list
-	for ( ndx=0; ndx<no_dimensions; ++ndx) {							// free the dimhandles
-		mifree_dimension_handle(dim[ndx]);
-	}
+        //
+        // in the current version of minc (libsrc2/volume.c), these volume properties
+        // as well as the dimension handles are already freed by the miclose_volume function.
+        //
+	//mifree_volume_props(volume_properties);								// free the property list
+	//for ( ndx=0; ndx<no_dimensions; ++ndx) {							// free the dimhandles
+	//	mifree_dimension_handle(dim[ndx]);
+	//}
 	// close new volume
 	result = miclose_volume(minc_volume);
 	if (result != MI_NOERROR) {
