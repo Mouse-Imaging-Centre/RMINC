@@ -992,22 +992,35 @@ vertexAnova <- function(formula, data, subset=NULL) {
 
   # Use the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
+
+  l <- lm.fit(mmatrix, v.firstVoxel)
+  asgn <- l$assign[l$qr$pivot]
+  dfr <- df.residual(l)
+  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
+  dflist <- vector("list", ncol(result))
+  for (i in 1:ncol(result)) {
+        dflist[[i]] <- c(dfs[[i + 1]], dfr)
+    }
+  attr(result, "df") <- dflist
+
+
+
   columns <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   assignVector = attr(mmatrix, "assign") + 1
   columnName =  rep('', max(assignVector)-1)
  
-  Fdf1 <- ncol(attr(result, "model")) -1
-  Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
+  #Fdf1 <- ncol(attr(result, "model")) -1
+  #Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
   # degrees of freedom are needed for the fstat and tstats only
-  dflist <- vector("list", (ncol(result)))
+  #dflist <- vector("list", (ncol(result)))
 
-  for (i in 1:ncol(result)) {
-  	dflist[[i]] <- c(Fdf1, Fdf2) }
-  attr(result, "df") <- dflist
+  #for (i in 1:ncol(result)) {
+  #	dflist[[i]] <- c(Fdf1, Fdf2) }
+  #attr(result, "df") <- dflist
 
-  attr(result, "df") <- dflist
+  #attr(result, "df") <- dflist
   colnames(result) <- columnName
 
   class(result) <- c("vertexMultiDim", "matrix")
@@ -1064,7 +1077,8 @@ vertexLm <- function(formula, data, subset=NULL) {
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
-  
+  # Use the first voxel in order to get the dimension names
+  v.firstVoxel <- data.matrix[1,]
   # get the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
   rows <- sub('mmatrix', '',
