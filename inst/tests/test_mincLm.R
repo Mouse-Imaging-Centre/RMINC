@@ -1,4 +1,4 @@
-context("mincLm")
+context("mincLm - two group test")
 
 gf <- read.csv("/projects/moush/matthijs/2013-08-test-csv-RMINC/test_data_set.csv")
 voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
@@ -11,7 +11,8 @@ gftest$voxel_right = (gf$jacobians_fixed_2[11:20])
 gftest$voxel_left_file = gf$jacobians_fixed_2[1:10]
 
 rLm = summary(lm(voxel_left  ~ Sex))
-rmincLm = mincLm(voxel_left_file ~ Sex, gftest)
+# silence the output of mincLm, in order to make the test output information is more clear to read
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file ~ Sex, gftest); sink();
 
 test_that("mincLm Two Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
@@ -23,7 +24,10 @@ test_that("mincLm Two Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-rmincLm = mincLm(voxel_left_file~Sex*Scale,gftest)
+context("mincLm - two group test with interaction")
+
+# silence the output of mincLm, in order to make the test output information is more clear to read
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Sex*Scale,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Sex*Scale,gftest))
 
@@ -41,7 +45,10 @@ test_that("mincLm interaction",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-rmincLm = mincLm(voxel_left_file~Coil,gftest)
+context("mincLm - three group test")
+
+# silence the output of mincLm, in order to make the test output information is more clear to read
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Coil,gftest))
 
@@ -57,9 +64,10 @@ test_that("mincLm Three Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
+context("mincLm - three group test with interaction")
 
-
-rmincLm = mincLm(voxel_left_file~Scale*Coil,gftest)
+# silence the output of mincLm, in order to make the test output information is more clear to read
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Scale*Coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Scale*Coil,gftest))
 
@@ -80,3 +88,5 @@ test_that("mincLm Three Factors Interaction",{
 	expect_that(rmincLm[1,14],is_equivalent_to(rLm$coefficients[6,3]))
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
+
+
