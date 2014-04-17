@@ -488,14 +488,7 @@ void write_minc2_volume(char **output, char **like_filename,
   if (miclose_volume(hvol_new) < 0) {
     error("Error closing new volume\n");
   }
-  for (i=0; i < 3; i++) {
-    if (mifree_dimension_handle(dimensions_new[i]) == MI_ERROR) {
-      Rprintf("Error deleting dimension %d\n", i);
-    }
-    if (mifree_dimension_handle(dimensions_like[i]) == MI_ERROR) {
-      Rprintf("Error deleting dimension %d\n", i);
-    }
-  }
+
   free(dimensions_new);
   free(dimensions_like);
   return;
