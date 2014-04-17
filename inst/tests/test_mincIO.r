@@ -32,10 +32,10 @@ reread_mincextract_output_voxel_10_31_33 <- as.numeric(system("mincextract  -sta
 reread_mincextract_output_voxel_37_40_28 <- as.numeric(system("mincextract  -start 37,40,28 -count 1,1,1 /tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc", intern=TRUE))
 
 test_that("mincGetVolume extracts the same value as mincextract", {
-    expect_that(reread_mincextract_output_voxel_0_0_0, equals(mincextract_output_voxel_0_0_0))
-    expect_that(reread_mincextract_output_voxel_10_10_10, equals(mincextract_output_voxel_10_10_10))
-    expect_that(reread_mincextract_output_voxel_10_31_33, equals(mincextract_output_voxel_10_31_33))
-    expect_that(reread_mincextract_output_voxel_37_40_28, equals(mincextract_output_voxel_37_40_28))
+    expect_that(object = reread_mincextract_output_voxel_0_0_0, equals(mincextract_output_voxel_0_0_0, tolerance = 0.0001))
+    expect_that(reread_mincextract_output_voxel_10_10_10, equals(mincextract_output_voxel_10_10_10, tolerance = 0.0001))
+    expect_that(reread_mincextract_output_voxel_10_31_33, equals(mincextract_output_voxel_10_31_33, tolerance = 0.0001))
+    expect_that(reread_mincextract_output_voxel_37_40_28, equals(mincextract_output_voxel_37_40_28, tolerance = 0.0001))
 })
 
 #
@@ -98,17 +98,17 @@ pons_volume_file_3 <- pons_sum_file_3 * voxel_volume
 
 
 test_that("anatGetAll extracts the same value as a combination of mincmath and mincstats", {
-    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][1], equals(left_parieto_volume_file_1))
-    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][2], equals(left_parieto_volume_file_2))
-    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][3], equals(left_parieto_volume_file_3))
+    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][1], equals(left_parieto_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][2], equals(left_parieto_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][3], equals(left_parieto_volume_file_3, tolerance = 0.0001))
 
-    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][1], equals(right_parieto_volume_file_1))
-    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][2], equals(right_parieto_volume_file_2))
-    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][3], equals(right_parieto_volume_file_3))
+    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][1], equals(right_parieto_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][2], equals(right_parieto_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][3], equals(right_parieto_volume_file_3, tolerance = 0.0001))
 
-    expect_that(volumes[, "pons"][1], equals(pons_volume_file_1))
-    expect_that(volumes[, "pons"][2], equals(pons_volume_file_2))
-    expect_that(volumes[, "pons"][3], equals(pons_volume_file_3))
+    expect_that(volumes[, "pons"][1], equals(pons_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes[, "pons"][2], equals(pons_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes[, "pons"][3], equals(pons_volume_file_3, tolerance = 0.0001))
 })
 
 
@@ -120,13 +120,13 @@ context("MINC I/O determine volume of segmentation - anatCombineStructures using
 volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians")
 
 test_that("anatGetAll extracts the same value as a combination of mincmath and mincstats", {
-    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][1], equals(left_parieto_volume_file_1 + right_parieto_volume_file_1))
-    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][2], equals(left_parieto_volume_file_2 + right_parieto_volume_file_2))
-    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][3], equals(left_parieto_volume_file_3 + right_parieto_volume_file_3))
+    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][1], equals(left_parieto_volume_file_1 + right_parieto_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][2], equals(left_parieto_volume_file_2 + right_parieto_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][3], equals(left_parieto_volume_file_3 + right_parieto_volume_file_3, tolerance = 0.0001))
 
-    expect_that(volumes_combined[, "pons"][1], equals(pons_volume_file_1))
-    expect_that(volumes_combined[, "pons"][2], equals(pons_volume_file_2))
-    expect_that(volumes_combined[, "pons"][3], equals(pons_volume_file_3))
+    expect_that(volumes_combined[, "pons"][1], equals(pons_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes_combined[, "pons"][2], equals(pons_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes_combined[, "pons"][3], equals(pons_volume_file_3, tolerance = 0.0001))
 })
 
 
