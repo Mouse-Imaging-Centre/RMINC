@@ -4,7 +4,7 @@ gf = read.csv("/home/dcassel/Projects/POND/MR160/SubjectInfo/POND-imaging.csv")
 gf = civet.getAllFilenames(gf,"POND.ID","POND","~/Projects/POND/MR160/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/home/dcassel/resource/Atlases/AAL/AAL.csv",gf)
 
-rmincLm = anatLm(~ Sex,gf,gf$lobeThickness)
+sink("/dev/null"); rmincLm = anatLm(~ Sex,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -13,7 +13,7 @@ rLm = summary(lm(lobeThickness~Sex))
 rLmFDR1 = p.adjust( pt2(rmincLm[,5],attr(rmincLm,"df")[[2]]),"fdr")
 rLmFDR2 = p.adjust( pt2(rmincLm[,6],attr(rmincLm,"df")[[3]]),"fdr")
 
-rmincFDR = anatFDR(rmincLm)
+sink("/dev/null"); rmincFDR = anatFDR(rmincLm); sink();
 
 test_that("anatFDR Two Factors",{
 	expect_that(rLmFDR1[1],is_equivalent_to(rmincFDR[1,2]))
@@ -24,7 +24,7 @@ test_that("anatFDR Two Factors",{
 	expect_that(rLmFDR2[3],is_equivalent_to(rmincFDR[3,3]))
 })
 
-rmincLm = anatLm(~ Age*Sex,gf,gf$lobeThickness)
+sink("/dev/null"); rmincLm = anatLm(~ Age*Sex,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -35,7 +35,7 @@ rLmFDR2 = p.adjust( pt2(rmincLm[,8],attr(rmincLm,"df")[[3]]),"fdr")
 rLmFDR3 = p.adjust( pt2(rmincLm[,9],attr(rmincLm,"df")[[4]]),"fdr")
 rLmFDR4 = p.adjust( pt2(rmincLm[,10],attr(rmincLm,"df")[[5]]),"fdr")
 
-rmincFDR = anatFDR(rmincLm)
+sink("/dev/null"); rmincFDR = anatFDR(rmincLm); sink();
 
 
 test_that("anatFDR Interaction",{
@@ -53,7 +53,7 @@ test_that("anatFDR Interaction",{
 	expect_that(rLmFDR4[3],is_equivalent_to(rmincFDR[3,5]))
 })
 
-rmincLm = anatLm(~ Primary.Diagnosis,gf,gf$lobeThickness)
+sink("/dev/null"); rmincLm = anatLm(~ Primary.Diagnosis,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis
 rLm = summary(lm(lobeThickness~Primary.Diagnosis))
@@ -62,7 +62,7 @@ rLmFDR1 = p.adjust( pt2(rmincLm[,6],attr(rmincLm,"df")[[2]]),"fdr")
 rLmFDR2 = p.adjust( pt2(rmincLm[,7],attr(rmincLm,"df")[[3]]),"fdr")
 rLmFDR3 = p.adjust( pt2(rmincLm[,8],attr(rmincLm,"df")[[4]]),"fdr")
 
-rmincFDR = anatFDR(rmincLm)
+sink("/dev/null"); rmincFDR = anatFDR(rmincLm); sink();
 
 test_that("anatFDR Three Factors",{
 	expect_that(rLmFDR1[1],is_equivalent_to(rmincFDR[1,2]))
@@ -76,7 +76,7 @@ test_that("anatFDR Three Factors",{
 	expect_that(rLmFDR3[3],is_equivalent_to(rmincFDR[3,4]))
 })
 
-rmincLm = anatLm(~Primary.Diagnosis*Age,gf,gf$lobeThickness)
+sink("/dev/null"); rmincLm = anatLm(~Primary.Diagnosis*Age,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis
 rLm = summary(lm(lobeThickness~Primary.Diagnosis*Age))
@@ -89,7 +89,7 @@ rLmFDR5 = p.adjust( pt2(rmincLm[,13],attr(rmincLm,"df")[[6]]),"fdr")
 rLmFDR6 = p.adjust( pt2(rmincLm[,14],attr(rmincLm,"df")[[7]]),"fdr")
 
 
-rmincFDR = anatFDR(rmincLm)
+sink("/dev/null"); rmincFDR = anatFDR(rmincLm); sink();
 
 test_that("anatFDR Three Factors Interaction",{
 	expect_that(rLmFDR1[1],is_equivalent_to(rmincFDR[1,2]))

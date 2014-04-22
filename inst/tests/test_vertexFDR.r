@@ -15,13 +15,13 @@ subjectFile[10,1] = '/home/dcassel/R/Scripts/Testing/vertex1.txt'
 gftest$testFilesLeft = (subjectFile)
 
 
-rmincLm = vertexLm(testFilesLeft ~ Sex,gftest)
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Sex,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Sex,gftest))
 rLmFDR1 = p.adjust( pt2(rmincLm[,5],attr(rmincLm,"df")[[2]]),"fdr")
 rLmFDR2 = p.adjust( pt2(rmincLm[,6],attr(rmincLm,"df")[[3]]),"fdr")
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = vertexFDR(rmincLm) ; sink();
 
 test_that("vertexFDR Two Factors",{
 	expect_that(rLmFDR1[1],is_equivalent_to(rmincFDR[1,2]))
@@ -32,7 +32,7 @@ test_that("vertexFDR Two Factors",{
 	expect_that(rLmFDR2[3],is_equivalent_to(rmincFDR[3,3]))
 })
 
-rmincLm = vertexLm(testFilesLeft ~ Age*Sex,gftest)
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age*Sex,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Age*Sex,gftest))
 
@@ -41,7 +41,7 @@ rLmFDR2 = p.adjust( pt2(rmincLm[,8],attr(rmincLm,"df")[[3]]),"fdr")
 rLmFDR3 = p.adjust( pt2(rmincLm[,9],attr(rmincLm,"df")[[4]]),"fdr")
 rLmFDR4 = p.adjust( pt2(rmincLm[,10],attr(rmincLm,"df")[[5]]),"fdr")
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = vertexFDR(rmincLm) ; sink();
 
 
 test_that("vertexFDR Interaction",{
@@ -59,7 +59,7 @@ test_that("vertexFDR Interaction",{
 	expect_that(rLmFDR4[3],is_equivalent_to(rmincFDR[3,5]))
 })
 
-rmincLm = vertexLm(testFilesLeft ~ Group,gftest)
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Group,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Group,gftest))
 
@@ -67,7 +67,7 @@ rLmFDR1 = p.adjust( pt2(rmincLm[,6],attr(rmincLm,"df")[[2]]),"fdr")
 rLmFDR2 = p.adjust( pt2(rmincLm[,7],attr(rmincLm,"df")[[3]]),"fdr")
 rLmFDR3 = p.adjust( pt2(rmincLm[,8],attr(rmincLm,"df")[[4]]),"fdr")
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = vertexFDR(rmincLm) ; sink();
 
 test_that("vertexFDR Three Factors",{
 	expect_that(rLmFDR1[1],is_equivalent_to(rmincFDR[1,2]))
@@ -82,7 +82,7 @@ test_that("vertexFDR Three Factors",{
 })
 
 
-rmincLm = vertexLm(testFilesLeft ~ Age*Group,gftest)
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age*Group,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Age*Group,gftest))
 
@@ -94,7 +94,7 @@ rLmFDR5 = p.adjust( pt2(rmincLm[,13],attr(rmincLm,"df")[[6]]),"fdr")
 rLmFDR6 = p.adjust( pt2(rmincLm[,14],attr(rmincLm,"df")[[7]]),"fdr")
 
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = vertexFDR(rmincLm) ; sink();
 
 
 test_that("vertexLm Three Factors Interaction",{

@@ -2,9 +2,9 @@ context("anatAnova")
 
 gf = read.csv("/home/dcassel/Projects/POND/MR160/SubjectInfo/POND-imaging.csv")
 gf = civet.getAllFilenames(gf,"POND.ID","POND","/home/dcassel/Projects/POND/MR160/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/home/dcassel/Atlases/AAL/AAL.csv",gf)
+gf = civet.readAllCivetFiles("/home/dcassel/resource/Atlases/AAL/AAL.csv",gf)
 
-rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness)
+sink("/dev/null"); rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -16,7 +16,7 @@ test_that("anatAnova Two Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-rmincAnova = anatAnova(~ Age*Sex,gf,gf$lobeThickness)
+sink("/dev/null");  rmincAnova = anatAnova(~ Age*Sex,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -34,7 +34,7 @@ test_that("anatAnova Interaction",{
 	expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4]))
 })
 
-rmincAnova = anatAnova(~ Primary.Diagnosis,gf,gf$lobeThickness)
+sink("/dev/null"); rmincAnova = anatAnova(~ Primary.Diagnosis,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis
 rAnova = anova(lm(lobeThickness~Primary.Diagnosis))
@@ -45,7 +45,7 @@ test_that("anatAnova Three Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-rmincAnova = anatAnova(~Age*Primary.Diagnosis,gf,gf$lobeThickness)
+sink("/dev/null"); rmincAnova = anatAnova(~Age*Primary.Diagnosis,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = as.factor(gf$Primary.Diagnosis)
 rAnova = anova(lm(lobeThickness~Age*Primary.Diagnosis))

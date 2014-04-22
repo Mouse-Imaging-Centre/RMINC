@@ -992,20 +992,23 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 
   # Use the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
+  
+  # Get the degrees of freedom
+  l <- lm.fit(mmatrix, v.firstVoxel)
+  asgn <- l$assign[l$qr$pivot]
+  dfr <- df.residual(l)
+  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
+  dflist <- vector("list", ncol(result))
+  for (i in 1:ncol(result)) {
+        dflist[[i]] <- c(dfs[[i + 1]], dfr)
+    }
+  attr(result, "df") <- dflist
+  
   columns <- sub('mmatrix', '',
               rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   assignVector = attr(mmatrix, "assign") + 1
   columnName =  rep('', max(assignVector)-1)
-  dflist =  rep(0, max(assignVector)-1)
-  for (i in 2:max(assignVector)) { 
-    indices = which(assignVector == i)
-    for (j in 1:length(indices)) {
-      columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
-    }
-    dflist[i-1] = length(indices)
-  }
-
-  attr(result, "df") <- dflist
+  
   colnames(result) <- columnName
 
   class(result) <- c("vertexMultiDim", "matrix")

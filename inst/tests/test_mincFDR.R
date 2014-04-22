@@ -11,14 +11,14 @@ gftest$voxel_right = (gf$jacobians_fixed_2[11:20])
 gftest$voxel_left_file = gf$jacobians_fixed_2[1:10]
 
 rLm = summary(lm(voxel_left  ~ Sex))
-rmincLm = mincLm(voxel_left_file ~ Sex, gftest)
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file ~ Sex, gftest); sink();
 
 
 
 rLmFDR1 = p.adjust( pt2(rmincLm[,5],attr(rmincLm,"df")[[2]]),"fdr")
 rLmFDR2 = p.adjust( pt2(rmincLm[,6],attr(rmincLm,"df")[[3]]),"fdr")
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = mincFDR(rmincLm); sink();
 
 
 test_that("mincFDR Two Factors",{
@@ -30,7 +30,7 @@ test_that("mincFDR Two Factors",{
 	expect_that(rLmFDR2[3],is_equivalent_to(rmincFDR[3,3]))
 })
 
-rmincLm = mincLm(voxel_left_file~Sex*Scale,gftest)
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Sex*Scale,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Sex*Scale,gftest))
 
@@ -39,7 +39,7 @@ rLmFDR2 = p.adjust( pt2(rmincLm[,8],attr(rmincLm,"df")[[3]]),"fdr")
 rLmFDR3 = p.adjust( pt2(rmincLm[,9],attr(rmincLm,"df")[[4]]),"fdr")
 rLmFDR4 = p.adjust( pt2(rmincLm[,10],attr(rmincLm,"df")[[5]]),"fdr")
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = mincFDR(rmincLm) ;sink();
 
 
 test_that("mincFDR interaction",{
@@ -57,7 +57,7 @@ test_that("mincFDR interaction",{
 	expect_that(rLmFDR4[3],is_equivalent_to(rmincFDR[3,5]))
 })
 
-rmincLm = mincLm(voxel_left_file~Coil,gftest)
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Coil,gftest))
 
@@ -66,7 +66,7 @@ rLmFDR1 = p.adjust( pt2(rmincLm[,6],attr(rmincLm,"df")[[2]]),"fdr")
 rLmFDR2 = p.adjust( pt2(rmincLm[,7],attr(rmincLm,"df")[[3]]),"fdr")
 rLmFDR3 = p.adjust( pt2(rmincLm[,8],attr(rmincLm,"df")[[4]]),"fdr")
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = mincFDR(rmincLm) ;sink();
 
 test_that("mincFDR Three Factors",{
 	expect_that(rLmFDR1[1],is_equivalent_to(rmincFDR[1,2]))
@@ -82,7 +82,7 @@ test_that("mincFDR Three Factors",{
 
 
 
-rmincLm = mincLm(voxel_left_file~Scale*Coil,gftest)
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Scale*Coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Scale*Coil,gftest))
 
@@ -95,7 +95,7 @@ rLmFDR5 = p.adjust( pt2(rmincLm[,13],attr(rmincLm,"df")[[6]]),"fdr")
 rLmFDR6 = p.adjust( pt2(rmincLm[,14],attr(rmincLm,"df")[[7]]),"fdr")
 
 
-rmincFDR = vertexFDR(rmincLm)
+sink("/dev/null"); rmincFDR = mincFDR(rmincLm); sink();
 
 test_that("mincLm Three Factors Interaction",{
 	expect_that(rLmFDR1[1],is_equivalent_to(rmincFDR[1,2]))

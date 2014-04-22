@@ -15,7 +15,7 @@ subjectFile[10,1] = '/home/dcassel/R/Scripts/Testing/vertex1.txt'
 gftest$testFilesLeft = (subjectFile)
 
 
-rmincAnova = vertexAnova(testFilesLeft ~ Sex,gftest)
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Sex,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Sex,gftest))
 
@@ -26,7 +26,7 @@ test_that("vertexAnova Two Factors",{
 })
 
 
-rmincAnova = vertexAnova(testFilesLeft ~ Age*Sex,gftest)
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Age*Sex,gftest); sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Age*Sex,gftest))
 
@@ -43,7 +43,7 @@ test_that("vertexAnova Interaction",{
 })
 
 
-rmincAnova = vertexAnova(testFilesLeft ~ Group,gftest)
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Group,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Group,gftest))
 
@@ -52,7 +52,7 @@ test_that("vertexAnova Three Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-rmincAnova = vertexAnova(testFilesLeft ~ Age*Group,gftest)
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Age*Group,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Age*Group,gftest))
 

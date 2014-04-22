@@ -12,7 +12,7 @@ gftest$voxel_left_file = gf$jacobians_fixed_2[1:10]
 gftest$Coil = Coil
 
 rAnova = anova(lm(voxel_left  ~ Sex))
-rmincAnova = mincAnova(voxel_left_file ~ Sex, gftest)
+sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file ~ Sex, gftest); sink();
 
 test_that("mincAnova Two Factors",{
 	expect_that(rmincAnova[1,1],is_equivalent_to(rAnova$F[1]))
@@ -20,7 +20,7 @@ test_that("mincAnova Two Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-rmincAnova = mincAnova(voxel_left_file~Sex*Scale,gftest)
+sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file~Sex*Scale,gftest); sink();
 gftest$voxel_left = voxel_left
 rAnova = anova(lm(voxel_left~Sex*Scale,gftest))
 
@@ -36,7 +36,7 @@ test_that("mincAnova interaction",{
 	expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4]))
 })
 
-rmincAnova = mincAnova(voxel_left_file~Coil,gftest)
+sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file~Coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rAnova = anova(lm(voxel_left~Coil,gftest))
 
@@ -46,7 +46,7 @@ test_that("mincAnova Three Factors",{
 })
 
 
-rmincAnova = mincAnova(voxel_left_file~Scale*Coil,gftest)
+sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file~Scale*Coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rAnova = anova(lm(voxel_left~Scale*Coil,gftest))
 
