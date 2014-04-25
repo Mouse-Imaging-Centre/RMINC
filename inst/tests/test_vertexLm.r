@@ -18,7 +18,7 @@ gftest$testFilesLeft = (subjectFile)
 sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age,gftest); sink();
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
-rLm = summary(lm(testLeft[,1]~Sex,gftest))
+rLm = summary(lm(testLeft[,1]~Age,gftest))
 
 test_that("vertexLm Two Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
