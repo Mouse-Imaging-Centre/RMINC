@@ -401,11 +401,6 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
 
-
-  attr(result, "likeVolume") <- data.matrix.left[1]
-  attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- data.matrix.left
-  
   # the order of return values is:
   #
   # f-statistic
@@ -990,7 +985,7 @@ vertexTable <- function(filenames) {
 #' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
 #' result = vertexAnova(~Primary.Diagnosis,gf,gf$CIVETFILES$nativeRMStlink20mmleft) 
 ###########################################################################################
-vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
+vertexAnova <- function(formula, data, subset=NULL) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -1001,7 +996,7 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   mmatrix <- model.matrix(formula, mf)
 
   # Load Vertex Data from Files
-  #filenames <- as.character(mf[,1])
+  filenames <- as.character(mf[,1])
   data.matrix <- vertexTable(filenames)
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
 
@@ -1431,6 +1426,7 @@ mincRayTraceStats <- function(v, anatomy.volume,
 
 parseLmFormula <- function(formula,data,mf) 
 {
+  matrixName = ''
   mmatrix = matrix()
   data.matrix.right = matrix()
   data.matrix.left = matrix()

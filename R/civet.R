@@ -1095,7 +1095,7 @@ else
 	for (j in 1:length(dataFile))
 	{
 		atlasIndex = pmatch(names(dataFile[j]),AALAtlas[,3])
-		reducedVerticesIndices = which(reducedVertices == atlasIndex,arr.ind=FALSE)
+		reducedVerticesIndices = which(reducedVertices == AALAtlas[atlasIndex,1],arr.ind=FALSE)
 		roiObj[reducedVerticesIndices] = dataFile[j]
 	}
 }

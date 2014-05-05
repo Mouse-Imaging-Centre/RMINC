@@ -198,6 +198,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   #INITIALIZATION
   matrixFound = FALSE
   mmatrix =  matrix()
+  matrixName = '';
 
   # Build model.frame
   m <- match.call()

@@ -406,7 +406,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   ny1 = nrows(Sy);
 
 
-  //Rprintf("n %d p %d\n", n,p);
+  Rprintf("n %d p %d\n", n,p);
 
   // the output will contain:
   // 
@@ -686,6 +686,8 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
 
   num_files = LENGTH(filenames);
   num_files_left = num_files; 
+
+  Rprintf("Test:\n");
   /* get the method that should be used at each voxel */
   method_name = CHAR(STRING_ELT(method, 0));
   Rprintf("Method: %s\n", method_name);
