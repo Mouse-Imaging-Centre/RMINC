@@ -401,6 +401,11 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
 
+  attr(result, "likeVolume") <- data.matrix.left[1]
+  attr(result, "filenames") <- data.matrix.left
+  attr(result, "model") <- as.matrix(mmatrix)
+ 
+
   # the order of return values is:
   #
   # f-statistic
@@ -427,9 +432,10 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("mincMultiDim", "matrix")
   
+  #detach(data.matrix.left)
   # run the garbage collector...
   gcout <- gc()
-  detach(data.matrix.left)
+  
   return(result)
 }
 
@@ -688,6 +694,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   }
   result <- .Call("minc2_model",
                   as.character(filenames),
+		  matrix(),
                   as.double(grouping)-1,
                   NULL,
                   as.double(! is.null(mask)),
@@ -840,6 +847,7 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
   test <- eval(function.string)
   results <- .Call("minc2_model",
                    as.character(filenames),
+		   matrix(),
                    function.string,
                    NULL,
                    as.double(! is.null(mask)),
@@ -935,6 +943,7 @@ mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
   }
   results <- .Call("minc2_model",
                    as.character(filenames),
+		   matrix(),
                    function.string,
                    NULL,
                    as.double(! is.null(mask)),
@@ -1451,6 +1460,8 @@ parseLmFormula <- function(formula,data,mf)
   else {
 	  for (nTerm in 2:length(formula[[3]])){
 		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+		  if(!as.character(formula[[3]][[nTerm]]) %in% names(gf))
+			next
 		  eval(parse(text=rCommand))	
 		  fileinfo = file.info(as.character(term[1]))
 		  if (!is.na(fileinfo$size)) {
@@ -1481,4 +1492,20 @@ parseLmFormula <- function(formula,data,mf)
 return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
 
 }
+
+# Run Testbed
+runTestbed <- function() {
+# Download Tarball from Wiki
+system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
+
+# Untar
+system('tar -xvf /tmp/rminctestdata/rminctestdata.tar.gz')
+library(testthat)
+
+# Run Tests
+rmincPath = find.package("RMINC")
+test_dir(paste(rmincPath,"/","tests/",sep=""))
+rmincPath = "~/Software/RMINC"
+}
+
 
