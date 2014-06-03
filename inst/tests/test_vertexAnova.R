@@ -1,30 +1,36 @@
-context("mincAnova")
+context("vertexAnova")
 
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
-voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
-Sex <- gf$Sex[1:10]
-Scale <- gf$scale[1:10]
-Coil <- as.factor(gf$coil[1:10])
-gftest = gf[1:10,]
-gftest$voxel_right = (gf$jacobians_fixed_2[11:20])
-gftest$voxel_left_file = gf$jacobians_fixed_2[1:10]
-gftest$Coil = Coil
+gftest = read.csv('/tmp/rminctestdata/subject.csv')
+subjectFile = matrix(data=NA,nrow=10,1)
+subjectFile[1,1] = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[2,1] = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[3,1] = '/tmp/rminctestdata/vertex4.txt'
+subjectFile[4,1] = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[5,1] = '/tmp/rminctestdata/vertex1.txt'
+subjectFile[6,1] = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[7,1] = '/tmp/rminctestdata/vertex4.txt'
+subjectFile[8,1] = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[9,1] = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
+gftest$testFilesLeft = (subjectFile)
 
-rAnova = anova(lm(voxel_left  ~ Sex))
-sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file ~ Sex, gftest); sink();
 
-test_that("mincAnova Two Factors",{
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Sex,gftest) ; sink();
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rAnova = anova(lm(testLeft[,1]~Sex,gftest))
+
+test_that("vertexAnova Two Factors",{
 	expect_that(rmincAnova[1,1],is_equivalent_to(rAnova$F[1]))
 	expect_that(attr(rmincAnova,"df")[[1]][2],is_equivalent_to(rAnova$Df[2]))
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file~Sex*Scale,gftest); sink();
-gftest$voxel_left = voxel_left
-rAnova = anova(lm(voxel_left~Sex*Scale,gftest))
 
-test_that("mincAnova interaction",{
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Age*Sex,gftest); sink();
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rAnova = anova(lm(testLeft[,1]~Age*Sex,gftest))
+
+test_that("vertexAnova Interaction",{
 	expect_that(rmincAnova[1,1],is_equivalent_to(rAnova$F[1]))
 	expect_that(rmincAnova[1,2],is_equivalent_to(rAnova$F[2]))
 	expect_that(rmincAnova[1,3],is_equivalent_to(rAnova$F[3]))
@@ -36,21 +42,21 @@ test_that("mincAnova interaction",{
 	expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4]))
 })
 
-sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file~Coil,gftest); sink();
-gftest$voxel_left = voxel_left
-rAnova = anova(lm(voxel_left~Coil,gftest))
 
-test_that("mincAnova Three Factors",{
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Group,gftest) ; sink();
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rAnova = anova(lm(testLeft[,1]~Group,gftest))
+
+test_that("vertexAnova Three Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][2],is_equivalent_to(rAnova$Df[2]))
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
+sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Age*Group,gftest) ; sink();
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rAnova = anova(lm(testLeft[,1]~Age*Group,gftest))
 
-sink("/dev/null"); rmincAnova = mincAnova(voxel_left_file~Scale*Coil,gftest); sink();
-gftest$voxel_left = voxel_left
-rAnova = anova(lm(voxel_left~Scale*Coil,gftest))
-
-test_that("mincAnova Three Factors Interaction",{
+test_that("vertexAnova Three Factors Interaction",{
          expect_that(rmincAnova[1,1],is_equivalent_to(rAnova$F[1]))
          expect_that(rmincAnova[1,2],is_equivalent_to(rAnova$F[2]))
          expect_that(rmincAnova[1,3],is_equivalent_to(rAnova$F[3]))
@@ -61,3 +67,8 @@ test_that("mincAnova Three Factors Interaction",{
          expect_that(attr(rmincAnova,"df")[[3]][1],is_equivalent_to(rAnova$Df[3]))
          expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4])) 
 })
+
+
+
+
+

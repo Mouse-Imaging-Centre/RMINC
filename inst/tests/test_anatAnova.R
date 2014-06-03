@@ -1,8 +1,8 @@
 context("anatAnova")
 
-gf = read.csv("/home/dcassel/Projects/POND/MR160/SubjectInfo/POND-imaging.csv")
-gf = civet.getAllFilenames(gf,"POND.ID","POND","/home/dcassel/Projects/POND/MR160/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/home/dcassel/resource/Atlases/AAL/AAL.csv",gf)
+gf = read.csv("/tmp/rminctestdata/POND-imaging.csv")
+gf = civet.getAllFilenames(gf,"POND.ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 
 sink("/dev/null"); rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]

@@ -1,11 +1,13 @@
 context("mincLm - two group test")
 
-gf <- read.csv("/projects/moush/matthijs/2013-08-test-csv-RMINC/test_data_set.csv")
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
 voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
 Sex <- gf$Sex[1:10]
 Scale <- gf$scale[1:10]
 Coil <- as.factor(gf$coil[1:10])
+
+gf$coil = as.factor(gf$coil)
 gftest = gf[1:10,]
 gftest$voxel_right = (gf$jacobians_fixed_2[11:20])
 gftest$voxel_left_file = gf$jacobians_fixed_2[1:10]
@@ -48,7 +50,7 @@ test_that("mincLm interaction",{
 context("mincLm - three group test")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
-sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Coil,gftest); sink();
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Coil,gftest))
 

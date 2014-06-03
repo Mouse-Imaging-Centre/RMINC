@@ -2,7 +2,7 @@
 # mincMean, mincSd, mincVar, mincSum 
 context("mincSummary (Mean, Sd, Var, Sum)")
 
-gf <- read.csv("/micehome/mfriedel/software-development/MICe-git-repos/RMINC_test_data/BXA14_24_only_for_test.csv") # Note: this will change. Need standard data set. 
+gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") # Note: this will change. Need standard data set. 
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0) # I think we should make sure this is a voxel where we are sure something is happening
 
 #Calculate mean, sd, variance, and sum 

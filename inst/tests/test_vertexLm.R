@@ -1,16 +1,26 @@
-context("anatLm")
+context("vertexLm")
 
-gf = read.csv("/tmp/rminctestdata/POND-imaging.csv")
-gf = civet.getAllFilenames(gf,"POND.ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+gftest = read.csv('/tmp/rminctestdata/subject.csv')
+subjectFile = matrix(data=NA,nrow=10,1)
+subjectFile[1,1]  = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[2,1]  = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[3,1]  = '/tmp/rminctestdata/vertex4.txt'
+subjectFile[4,1]  = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[5,1]  = '/tmp/rminctestdata/vertex1.txt'
+subjectFile[6,1]  = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[7,1]  = '/tmp/rminctestdata/vertex4.txt'
+subjectFile[8,1]  = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[9,1]  = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
+gftest$testFilesLeft = (subjectFile)
 
-sink("/dev/null"); rmincLm = anatLm(~ Sex,gf,gf$lobeThickness); sink();
-lobeThickness = gf$lobeThickness[,1]
-Age = gf$Age
-Sex = gf$Sex
-rLm = summary(lm(lobeThickness~Sex))
 
-test_that("anatLm Two Factors",{
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age,gftest); sink();
+
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rLm = summary(lm(testLeft[,1]~Age,gftest))
+
+test_that("vertexLm Two Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
 	expect_that(rmincLm[1,2],is_equivalent_to(rLm$r.squared[1]))
 	expect_that(rmincLm[1,3],is_equivalent_to(rLm$coefficients[1,1]))
@@ -20,13 +30,11 @@ test_that("anatLm Two Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = anatLm(~ Age*Sex,gf,gf$lobeThickness); sink();
-lobeThickness = gf$lobeThickness[,1]
-Age = gf$Age
-Sex = gf$Sex
-rLm = summary(lm(lobeThickness~Age*Sex))
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age*Sex,gftest); sink();
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rLm = summary(lm(testLeft[,1]~Age*Sex,gftest))
 
-test_that("anatLm Interaction",{
+test_that("vertexLm Interaction",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
 	expect_that(rmincLm[1,2],is_equivalent_to(rLm$r.squared[1]))
 	expect_that(rmincLm[1,3],is_equivalent_to(rLm$coefficients[1,1]))
@@ -40,13 +48,11 @@ test_that("anatLm Interaction",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = anatLm(~ Primary.Diagnosis,gf,gf$lobeThickness); sink();
-lobeThickness = gf$lobeThickness[,1]
-Primary.Diagnosis = gf$Primary.Diagnosis
-rLm = summary(lm(lobeThickness~Primary.Diagnosis))
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Group,gftest); sink();
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rLm = summary(lm(testLeft[,1]~Group,gftest))
 
-
-test_that("anatLm Three Factors",{
+test_that("vertexLm Three Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
 	expect_that(rmincLm[1,2],is_equivalent_to(rLm$r.squared[1]))
 	expect_that(rmincLm[1,3],is_equivalent_to(rLm$coefficients[1,1]))
@@ -58,12 +64,12 @@ test_that("anatLm Three Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = anatLm(~Primary.Diagnosis*Age,gf,gf$lobeThickness); sink();
-lobeThickness = gf$lobeThickness[,1]
-Primary.Diagnosis = gf$Primary.Diagnosis
-rLm = summary(lm(lobeThickness~Primary.Diagnosis*Age))
 
-test_that("anatLm Three Factors Interaction",{
+sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age*Group,gftest); sink();
+gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+rLm = summary(lm(testLeft[,1]~Age*Group,gftest))
+
+test_that("vertexLm Three Factors Interaction",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
 	expect_that(rmincLm[1,2],is_equivalent_to(rLm$r.squared[1]))
 	expect_that(rmincLm[1,3],is_equivalent_to(rLm$coefficients[1,1]))
