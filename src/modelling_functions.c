@@ -405,9 +405,6 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   ny = ncols(Sy);
   ny1 = nrows(Sy);
 
-
-  Rprintf("n %d p %d\n", n,p);
-
   // the output will contain:
   // 
   // f-statistic
@@ -687,7 +684,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   num_files = LENGTH(filenames);
   num_files_left = num_files; 
 
-  Rprintf("Test:\n");
+ 
   /* get the method that should be used at each voxel */
   method_name = CHAR(STRING_ELT(method, 0));
   Rprintf("Method: %s\n", method_name);
@@ -788,7 +785,8 @@ else {
       strcmp(method_name, "var") == 0) {
     PROTECT(n_groups=allocVector(REALSXP, 1));
     xn_groups = REAL(n_groups);
-    groupings = REAL(filenames);
+    Rprintf("Test:\n");
+    groupings = REAL(mmatrix);
 
     xn_groups[0] = 0;
 
@@ -969,35 +967,35 @@ else {
 
 	  /* compute either a t test of wilcoxon rank sum test */
 	  if (strcmp(method_name, "t-test") == 0) {
-	    xoutput[output_index] = REAL(t_test(buffer, filenames))[0]; 
+	    xoutput[output_index] = REAL(t_test(buffer, mmatrix))[0]; 
 	  }
 	  else if (strcmp(method_name, "paired-t-test") == 0) {
-	    xoutput[output_index] = REAL(paired_t_test(buffer, filenames))[0];
+	    xoutput[output_index] = REAL(paired_t_test(buffer, mmatrix))[0];
 	  }
 	  else if (strcmp(method_name, "wilcoxon") == 0) {
 	    xoutput[output_index] = 
-	      REAL(wilcoxon_rank_test(buffer, filenames))[0];
+	      REAL(wilcoxon_rank_test(buffer, mmatrix))[0];
 	  }
 	  else if (strcmp(method_name, "correlation") == 0) {
 	    xoutput[output_index] = 
-	      REAL(voxel_correlation(buffer, filenames))[0];
+	      REAL(voxel_correlation(buffer, mmatrix))[0];
 	  }
 	  else if (strcmp(method_name, "mean") == 0) {
-	    t_sexp = voxel_mean(buffer, n_groups, filenames);
+	    t_sexp = voxel_mean(buffer, n_groups, mmatrix);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
 	    }
 	  }
 	  else if (strcmp(method_name, "sum") == 0) {
-	    t_sexp = voxel_sum(buffer, n_groups, filenames);
+	    t_sexp = voxel_sum(buffer, n_groups, mmatrix);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
 	    }
 	  }
 	  else if (strcmp(method_name, "var") == 0) {
-	    t_sexp = voxel_var(buffer, n_groups, filenames);
+	    t_sexp = voxel_var(buffer, n_groups, mmatrix);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
@@ -1139,7 +1137,7 @@ if(!isLogical(filenames_right))
   else if (strcmp(method_name, "mean") == 0 ||
 	   strcmp(method_name, "var") == 0 ||
 	   strcmp(method_name, "sum") == 0) {
-    UNPROTECT(4);
+    UNPROTECT(5);
   }
   else if (strcmp(method_name, "eval") == 0) {
     UNPROTECT(3);
