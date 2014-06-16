@@ -60,7 +60,7 @@ system("rm -f /tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc")
 context("MINC I/O determine volume of segmentation - anatGetAll using jacobians")
 
 filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
-volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", method="jacobians")
+volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 
 # calculate the volume of a structure using minc tools:
 # 1) get the exponent of the absolute jacobian file (these are log values)
@@ -72,19 +72,19 @@ system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_
 system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_3.mnc /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc") 
 
 # left (180) and right (181) parieto-temporal lobe
-left_parieto_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 180 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
-left_parieto_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 180 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
-left_parieto_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 180 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
+left_parieto_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
+left_parieto_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
+left_parieto_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
 right_parieto_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
 right_parieto_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
 right_parieto_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
 
 # pons (187) has no separate label for left and right 
-pons_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
-pons_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
-pons_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
+pons_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
+pons_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
+pons_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
 
-voxel_volume <- 0.056*0.056*0.056
+voxel_volume <- 1
 
 left_parieto_volume_file_1 <- left_parieto_sum_file_1 * voxel_volume
 left_parieto_volume_file_2 <- left_parieto_sum_file_2 * voxel_volume
@@ -98,17 +98,17 @@ pons_volume_file_3 <- pons_sum_file_3 * voxel_volume
 
 
 test_that("anatGetAll extracts the same value as a combination of mincmath and mincstats", {
-    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][1], equals(left_parieto_volume_file_1, tolerance = 0.0001))
-    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][2], equals(left_parieto_volume_file_2, tolerance = 0.0001))
-    expect_that(volumes[, "left cerebral cortex: parieto-temporal lobe"][3], equals(left_parieto_volume_file_3, tolerance = 0.0001))
+    expect_that(volumes[, "left Label27"][1], equals(left_parieto_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes[, "left Label27"][2], equals(left_parieto_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes[, "left Label27"][3], equals(left_parieto_volume_file_3, tolerance = 0.0001))
 
-    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][1], equals(right_parieto_volume_file_1, tolerance = 0.0001))
-    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][2], equals(right_parieto_volume_file_2, tolerance = 0.0001))
-    expect_that(volumes[, "right cerebral cortex: parieto-temporal lobe"][3], equals(right_parieto_volume_file_3, tolerance = 0.0001))
+    expect_that(volumes[, "right Label27"][1], equals(right_parieto_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes[, "right Label27"][2], equals(right_parieto_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes[, "right Label27"][3], equals(right_parieto_volume_file_3, tolerance = 0.0001))
 
-    expect_that(volumes[, "pons"][1], equals(pons_volume_file_1, tolerance = 0.0001))
-    expect_that(volumes[, "pons"][2], equals(pons_volume_file_2, tolerance = 0.0001))
-    expect_that(volumes[, "pons"][3], equals(pons_volume_file_3, tolerance = 0.0001))
+    expect_that(volumes[, "Label34"][1], equals(pons_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes[, "Label34"][2], equals(pons_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes[, "Label34"][3], equals(pons_volume_file_3, tolerance = 0.0001))
 })
 
 
@@ -117,16 +117,16 @@ test_that("anatGetAll extracts the same value as a combination of mincmath and m
 #
 context("MINC I/O determine volume of segmentation - anatCombineStructures using jacobians")
 
-volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians")
+volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 
 test_that("anatGetAll extracts the same value as a combination of mincmath and mincstats", {
-    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][1], equals(left_parieto_volume_file_1 + right_parieto_volume_file_1, tolerance = 0.0001))
-    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][2], equals(left_parieto_volume_file_2 + right_parieto_volume_file_2, tolerance = 0.0001))
-    expect_that(volumes_combined[, "cerebral cortex: parieto-temporal lobe"][3], equals(left_parieto_volume_file_3 + right_parieto_volume_file_3, tolerance = 0.0001))
+    expect_that(volumes_combined[, "Label27"][1], equals(left_parieto_volume_file_1 + right_parieto_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes_combined[, "Label27"][2], equals(left_parieto_volume_file_2 + right_parieto_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes_combined[, "Label27"][3], equals(left_parieto_volume_file_3 + right_parieto_volume_file_3, tolerance = 0.0001))
 
-    expect_that(volumes_combined[, "pons"][1], equals(pons_volume_file_1, tolerance = 0.0001))
-    expect_that(volumes_combined[, "pons"][2], equals(pons_volume_file_2, tolerance = 0.0001))
-    expect_that(volumes_combined[, "pons"][3], equals(pons_volume_file_3, tolerance = 0.0001))
+    expect_that(volumes_combined[, "Label34"][1], equals(pons_volume_file_1, tolerance = 0.0001))
+    expect_that(volumes_combined[, "Label34"][2], equals(pons_volume_file_2, tolerance = 0.0001))
+    expect_that(volumes_combined[, "Label34"][3], equals(pons_volume_file_3, tolerance = 0.0001))
 })
 
 
