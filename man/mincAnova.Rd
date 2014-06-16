@@ -1,0 +1,47 @@
+\name{mincAnova}
+\alias{mincAnova}
+\title{Anova at Every Voxel}
+\usage{
+  mincAnova(formula, data = NULL, subset = NULL,
+    mask = NULL)
+}
+\arguments{
+  \item{formula}{The anova formula. The left-hand term
+  consists of the MINC filenames over which to compute the
+  models at every voxel.}
+
+  \item{data}{The dataframe which contains the model
+  terms.}
+
+  \item{subset}{Subset definition.}
+
+  \item{mask}{Either a filename or a vector of values of
+  the same length as the input files. ANOVA will only be
+  computed inside the mask.}
+}
+\value{
+  Returns an array with the F-statistic for each model
+  specified by formula with the following attributes: model
+  – design matrix, filenames – vertex file names input,
+  stat-type: type of statistic used, df – degrees of
+  freedom of each statistic.
+}
+\description{
+  compute a sequential ANOVA at each voxel
+}
+\details{
+  This function computes a sequential ANOVA over a set of
+  files.
+}
+\examples{
+# read the text file describing the dataset
+gf <- read.csv("control-file.csv")
+# run aan ANOVA relating the data in all voxels to Genotype
+vs <- mincLm(filenames ~ Genotype, gf)
+# see what's in the results
+vs
+}
+\seealso{
+  mincWriteVolume,mincFDR,mincMean, mincSd
+}
+

@@ -1,60 +1,59 @@
 \name{mincFDR}
 \alias{mincFDR}
-\alias{mincFDR.mincSingleDim}
-\alias{mincFDR.mincMultiDim}
-
+\alias{mincFDR,mincFDR.mincSingleDim,mincFDR.mincMultiDim,vertexFDR,anatFDR}
 \title{Compute the False Discovery Rate for a mincLm object}
-
-\description{Takes the output of a mincLm run and computes the False
-  Discovery Rate on the results.}
-
 \usage{
-\method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
-
-\method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
+  \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL,
+    method="qvalue", \dots)
+    \method{mincFDR}{mincMultiDim}(buffer, columns=NULL,
+    mask=NULL, df=NULL,method="FDR", statType=NULL)
 }
-
 \arguments{
   \item{buffer}{The results of a mincLm run.}
-  \item{columns}{A vector of column names. By default the threshold will
-    be computed for all columns; with this argument the computation can
-    be limited to a subset.}
-  \item{mask}{Either a filename or a numeric vector representing a mask
-    - only values inside the mask will be used to compute the
-    threshold.}
-  \item{df}{The degrees of freedom - normally this can be determined
-    from the input object.}
-  \item{method}{The method used to compute the false discovery
-    rate. Options are "FDR" and "pFDR".}
-  \item{statType}{This should be either a "t" or an "F", depending upon the type
-                  of statistic being thresholded.}
-  \item{\dots}{Extra arguments of interest, such as "statType".}
+
+  \item{columns}{A vector of column names. By default the
+  threshold will be computed for all columns; with this
+  argument the computation can be limited to a subset.}
+
+  \item{mask}{Either a filename or a numeric vector
+  representing a mask only values inside the mask will be
+  used to compute the threshold.}
+
+  \item{df}{The degrees of freedom - normally this can be
+  determined from the input object.}
+
+  \item{method}{The method used to compute the false
+  discovery rate. Options are "FDR" and "pFDR".}
+
+  \item{statType}{This should be either a "t" or an "F",
+  depending upon the type of statistic being thresholded.}
 }
-
-\details{This function uses the \code{qvalue} package to compute the
-  False Discovery Rate threshold for the results of a \link{mincLm}
-  computation. The False Discovery Rate represents the percentage of
-  results expected to be a false positive. Two implementations can be
-  used as specified by the method argument. "FDR" uses the
-  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
-  postivie False Discovery Rate as found in John Storey's \code{qvalue}
-  package.} 
-
 \value{
-  \item{qvals}{mincFDR returns an object with the same number of columns
-    as the input (or the subset specified by the columns argument to
-    mincFDR). Each column now contains the qvalues for each voxel. Areas
-    outside the mask (if a mask was specified) will be represented by a
-    value of 1. The result also has an attribute called "thresholds"
-    which contains the 1, 5, 10, 15, and 20 percent false discovery rate
-    thresholds.}
+  qvals mincFDR returns an object with the same number of
+  columns as the input (or the subset specified by the
+  columns argument to mincFDR). Each column now contains
+  the qvalues for each voxel. Areas outside the mask (if a
+  mask was specified) will be represented by a value of 1.
+  The result also has an attribute called "thresholds"
+  which contains the 1, 5, 10, 15, and 20 percent false
+  discovery rate thresholds.
 }
-\seealso{
-     \code{\link{mincWriteVolume}}, \code{\link{mincLm}}
+\description{
+  Takes the output of a mincLm run and computes the False
+  Discovery Rate on the results.
 }
-
+\details{
+  This function uses the \code{qvalue} package to compute
+  the False Discovery Rate threshold for the results of a
+  \link{mincLm} computation. The False Discovery Rate
+  represents the percentage of results expected to be a
+  false positive. Two implementations can be used as
+  specified by the method argument. "FDR" uses the
+  implementation in \code{p.adjust}, whereas "pFDR" is a
+  version of the postivie False Discovery Rate as found in
+  John Storey's \code{qvalue} package.
+}
 \examples{
-\dontrun{
 # read the text file describing the dataset
 gf <- read.csv("control-file.csv")
 # run a linear model relating the data in all voxels to Genotype
@@ -63,4 +62,8 @@ vs <- mincLm(filenames ~ Genotype, gf)
 qvals <- mincFDR(vs, mask="mask.mnc")
 # write the Gentoype column of the qvals to file
 mincWriteVolume(qvals, "FDR-results.mnc", "Genotype+")
-}}
+}
+\seealso{
+  mincWriteVolume,mincLm
+}
+

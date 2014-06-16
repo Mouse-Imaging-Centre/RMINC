@@ -1,19 +1,21 @@
 \name{mincGetVolume}
 \alias{mincGetVolume}
-
-\title{Read a MINC volume into a 1D array}
-
-\description{Load a 3-dimensional MINC2 volume and returns it as a 1D
-  array}
-
+\title{Return a volume as a 1D array}
 \usage{
-   mincGetVolume(filename)
+  mincGetVolume(filename)
 }
-
 \arguments{
-  \item{filename}{A string corresponding to the location of the MINC2
-    file to be read.}
+  \item{filename}{A string corresponding to the location of
+  the MINC2 file to be read.}
+}
+\value{
+  mincLm Returns a vector of mincSingleDim class
+}
+\description{
+  Load a 3-dimensional MINC2 volume and returns it as a 1D
+  array
+}
+\seealso{
+  mincWriteVolume
 }
 
-\value{Probably returns a vector of mincSingleDim class.}
-\keyword{file}

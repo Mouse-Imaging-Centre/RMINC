@@ -1,0 +1,35 @@
+\name{writeVertex}
+\alias{writeVertex}
+\title{Writes vertex data to a file with an optional header}
+\usage{
+  writeVertex(vertexData, filename, headers = TRUE,
+    mean.stats = NULL, gf = NULL)
+}
+\arguments{
+  \item{vertexData}{vertex data to be written}
+
+  \item{filename}{full path to file where data shall be
+  written}
+
+  \item{headers}{Whether or not to write header
+  information}
+
+  \item{mean.stats}{mean vertex data that may also be
+  written}
+
+  \item{gf}{glim matrix that can be written to the header}
+}
+\value{
+  A file is generated with the vertex data and optional
+  headers
+}
+\description{
+  Writes vertex data to a file with an optional header
+}
+\examples{
+gf = read.csv("~/SubjectTable.csv")
+gfCIVET = civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
+gfCIVET = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gfCIVET)
+writeVertex(gfCIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
+}
+
