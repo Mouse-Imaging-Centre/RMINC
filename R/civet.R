@@ -391,28 +391,29 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 }
 
 
-
+###########################################################################################
+#' @description Generates list of filenames output by CIVET
+#' @name civet.getAllFilenames
+#' @title civet.getAllFilenames
+#' @usage civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE, civetVersion = "1.1.9")
+#' @param gf Data Frame with subject information
+#' @param idvar column name in gf with subject IDs
+#' @param prefix Prefix specified when CIVET was run
+#' @param basedir directory where all CIVET output was stored
+#' @param append Whether to append the results to the input gf
+#' @param civetVersion Version of CIVET 
+#' @details Prior to running, read.csv  may be called to generate the input argument gf. 
+#' The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf. 
+#' Currently only CIVET versions 1.1.9 and 1.1.12 are supported.
+#' @return gf is returned with CIVET filenames 
+#' @seealso civet.readAllCivetFiles
+#' @examples
+#' gf = read.csv("~/SubjectTable.csv") 
+#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+###########################################################################################
 
 civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9") {
-	# =============================================================================
-	# Purpose: This function returns a selection of Civet filenames by appending
-	#			new columns to the end of the passed glim file.
-	#
-	#			Unlike the civet.getFilename* functions, here we do not test
-	#			for the existence of the file.
-	#
-	# Example:
-	#	idvar <- "subjectID"
-	#	prefix <- "ADNI"
-	#	basedir <- "~/tmp/ADNI/civet/pipeOut"
-	#	newGlim.df <- civetFilenames(glim.df, idColName, prefix, basedir)
-	#
-	#
-	# Note: Original code written by Jason Lerch, I (Jim) just changed the name
-	#		to use the new civet.* prefix.
-	#
-	# =============================================================================
-	#
 	# designed for use with CIVET 1.1.9 and CIVET 1.1.12
 	if ( civetVersion != "1.1.9"  && civetVersion != "1.1.12" ) {
 		warning("This function has only been tested with Civet version 1.1.9. and 1.1.12 Use at your own risk.", immediate.=TRUE)
@@ -601,8 +602,7 @@ civet.organizeCivetDatFilesWholeBrain<- function(dataFiles, civetVersion="1.1.12
   
   numberOfFiles = length(dataFiles)
   roiTable = matrix(data=NA,nrow=3,ncol=numberOfFiles)
-  rownames(roiTable) = c("WholeWhiteMatterVolume","WholeBrainVolume","WholeGreyMatterVolume")
-  
+  rownames(roiTable) = c("CSF","GM","WM")
   for (j in 1:numberOfFiles)
   {
     
@@ -623,16 +623,37 @@ civet.organizeCivetDatFilesWholeBrain<- function(dataFiles, civetVersion="1.1.12
 #
 # Example:
 #	dataFiles <- list of data files to organize
-#
+############################################################################################
+#' @description Generates list of filenames output by CIVET
+#' @name civet.getAllFilenames
+#' @title civet.getAllFilenames
+#' @usage civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE, civetVersion = "1.1.9")
+#' @param gf Data Frame with subject information
+#' @param idvar column name in gf with subject IDs
+#' @param prefix Prefix specified when CIVET was run
+#' @param basedir directory where all CIVET output was stored
+#' @param append Whether to append the results to the input gf
+#' @param civetVersion Version of CIVET 
+#' @details Prior to running, read.csv  may be called to generate the input argument gf. 
+#' The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf. 
+#' Currently only CIVET versions 1.1.9 and 1.1.12 are supported.
+#' @return gf is returned with CIVET filenames 
+#' @return mincLm Returns a vector of mincSingleDim class
+#' @seealso civet.readAllCivetFiles
+#' @examples
+#' gf = read.csv("~/SubjectTable.csv") 
+#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+###########################################################################################
 # =============================================================================
 civet.organizeCivetDatFilesMidWhiteGrey <- function(dataFiles, civetVersion="1.1.12") {
 
 	numberOfFiles = length(dataFiles)
 	roiTable = matrix(data=NA,nrow=6,ncol=numberOfFiles/2)
-	rownames(roiTable) = c("leftGray", "leftMid","leftWhite","rightGray","rightMid","rightWhite")
+	rownames(roiTable) = c("leftGray", "leftWhite","leftMid","rightGray","rightWhite","rightMid")
 
 	for (j in 1:numberOfFiles)
-	{
+	{	
 		halfFiles = numberOfFiles / 2;
 		if(j > halfFiles)
 		{
@@ -649,7 +670,8 @@ civet.organizeCivetDatFilesMidWhiteGrey <- function(dataFiles, civetVersion="1.1
 		{
 			value = read.table(dataFiles[j])[,4]
 			value = as.numeric(as.character(value))
-			roiTable[rowIndex:(rowIndex+2),columnIndex] = value
+			if(length(value) == 3)
+				roiTable[rowIndex:(rowIndex+2),columnIndex] = value
 		}	
 
 	}
@@ -694,17 +716,23 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 	return(roiTable)
 }
 
-# =============================================================================
-# Purpose: 
-#	Reads a selection of CIVET .dat files and organizes data using a subject table, and atlas
-#
-# Example:
-#	atlasFile <- "AAL.csv"
-#	gf <- (Prepare using civet.getAllFilenames)i.e.
-#		gf =  read.csv(subjectTable)	
-#		gf =  civet.getAllFilenames(gf, "id", prefix, dataDirectory,'TRUE',"1.1.12")
-#
-# =============================================================================
+###########################################################################################
+#' @description Parses outputs from CIVET pipeline 
+#' @name civet.readAllCivetFiles
+#' @title Read  all CIVET files into R
+#' @usage civet.readAllCivetFiles(atlasFile, gf)
+#' @param gf Data Frame containing list of all CIVET file names, and where results will be stored
+#' @param atlasFile Full path to the atlas on which CIVET was run ;
+#' @details Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
+#' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
+#' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
+#' @return gf is returned with CIVET values
+#' @seealso  civet.getAllFilenames
+#' @examples
+#' gf = read.csv("~/SubjectTable.csv") 
+#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+###########################################################################################
 civet.readAllCivetFiles = function(atlasFile,gf)
 {
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -731,7 +759,7 @@ civet.readAllCivetFiles = function(atlasFile,gf)
 	#roiTable = civet.organizeCivetDatFilesWholeBrain(c(gf$CIVETFILES$cerebral_volume))  
 	#gf$cerebralVolume = t(roiTable)
   
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =civet.readAllCivetFiles
 	# Brain Volume
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
 	roiTable = civet.organizeCivetDatFilesWholeBrain(c(gf$CIVETFILES$brain_volume))  
@@ -1072,9 +1100,9 @@ civet.computeNativeTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.
 # =============================================================================
 civet.CreateBrainViewFile = function(dataFile,atlasFile,atlasVertices,outputFileName,civetVersion="1.1.12") {
 
-vertices = read.csv(atlasVertices)
+vertices = read.csv(atlasVertices,header=FALSE)
 AALAtlas = read.csv(atlasFile)
-reducedVertices = vertices[0:40961,1]
+reducedVertices = vertices[1:40962,1]
 roiObj =  rep(0,length(reducedVertices))
 
 #Input is a string specifying a file
