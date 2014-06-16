@@ -52,7 +52,6 @@
 \alias{mincGetVoxel}
 \alias{mincGetWorldVoxel}
 \alias{mincSlowLme}
-\alias{mincSummary}
 \alias{mincWriteVolume.default}
 
 % mincIO internals

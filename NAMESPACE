@@ -94,12 +94,17 @@ export( print.mincSingleDim )
 export( print.mincVoxel )
 export( print.vertexMultiDim )
 export( pt2 )
+export( runTestbed )
 export( vertexFDR )
 export( vertexLm )
 export( vertexAnova )
+export( vertexMean )
+export( vertexSum )
+export( vertexSD )
+export( vertexVar )
 export( vertexTable )
 export( wilcox.permutation.full )
-# rather not export the following...  the function name is a bit too desciptive...
+# rather not export the following... the function name is a bit too desciptive...
 #export( f )
 
 #############################
@@ -293,7 +298,10 @@ export( anatGetFile )
 export( anatLm )
 export( anatAnova )
 export( anatRenameRows )
-
+export( anatMean )
+export( anatSD )
+export( anatVar )
+export( anatSum )
 #############################
 # volumetric.R
 export( volume.combineMaskVolumes )
@@ -315,5 +323,3 @@ import(
   grid,
   lattice
 )
-
-

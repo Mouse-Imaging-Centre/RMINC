@@ -899,6 +899,7 @@ pMincApply <- function(filenames, function.string,
     function.string = eval(function.string)
   }
   else if (method == "snowfall") {
+   
     wrapper <- function(i) {
       return(mincApply(filenames, function.string, mask=maskFilename,
                        maskval=i, reduce=TRUE))
@@ -1633,6 +1634,10 @@ return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix
 
 # Run Testbed
 runTestbed <- function() {
+
+# Make sure environment is clear
+rm(list=ls())
+
 # Download Tarball from Wiki
 system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
 
