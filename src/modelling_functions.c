@@ -785,7 +785,6 @@ else {
       strcmp(method_name, "var") == 0) {
     PROTECT(n_groups=allocVector(REALSXP, 1));
     xn_groups = REAL(n_groups);
-    Rprintf("Test:\n");
     groupings = REAL(mmatrix);
 
     xn_groups[0] = 0;
