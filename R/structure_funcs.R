@@ -299,7 +299,21 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   
   return(result)
 }
-
+###########################################################################################
+#' Performs ANOVA on each region specified 
+#' @param formula a model formula
+#' @param data a data.frame containing variables in formula 
+#' @param ant  an array of atlas labels vs subject data
+#' @param subset rows to be used, by default all are used
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
+#' 	, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' @seealso mincAnova,vertexAnova 
+#' @examples 
+#' gf = read.csv("~/SubjectTable.csv") 
+#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
+#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+#' result = anatAnova(~Primary.Diagnosis,gf,gf$lobeThickness) 
+###########################################################################################
 anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
   # Create Model
   m  <- match.call()
@@ -362,4 +376,20 @@ anatCreateVolume <- function(anat, filename, column=1) {
 
 anatFDR <- function(buffer, method="FDR") {
   vertexFDR(buffer, method)
+}
+
+
+anatMean <- function(anat) {
+   return(rowMeans(t(anat)))
+}
+anatSum <- function(anat) {
+   return(rowSums(t(anat)))
+}
+
+anatVar <- function(anat) {
+   return(apply(t(anat),1,var))
+}
+
+anatSD <- function(anat) {
+   return(apply(t(anat),1,sd))
 }

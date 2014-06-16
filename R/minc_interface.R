@@ -107,7 +107,16 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
   return(round(output))
 }
 
-# return a volume as a 1D array.
+# 
+###########################################################################################
+#' @description Load a 3-dimensional MINC2 volume and returns it as a 1D array
+#' @name mincGetVolume
+#' @title Return a volume as a 1D array
+#' @param filename A string corresponding to the location of the MINC2 file to
+#' be read.
+#' @return mincLm Returns a vector of mincSingleDim class
+#' @seealso mincWriteVolume
+###########################################################################################
 mincGetVolume <- function(filename) {
   mincFileCheck(filename)
   sizes <- minc.dimensions.sizes(filename)
@@ -150,6 +159,37 @@ print.mincQvals <- function(x, ...) {
   print(attr(x, "thresholds"))
 }
 
+
+###########################################################################################
+#' @description Writes a MINC volume to file
+#' @name mincWriteVolume
+#' @aliases mincWriteVolume.mincSingleDim,mincWriteVolume.mincMultiDim
+#' @title Write a MINC volume to file
+#' @param buffer The data to be written to file. Usually the result of
+#' \link{mincLm} or some such command
+#' @param output.filename The filename to which to write the data to
+#' @param column Optional name of the column of a multidimensional MINC
+#' object to write out. By default the first column is used
+#' @param like.filename An existing MINC filename which has the same
+#' dimensions as the data to be written out. Normally this information
+#' is stored inside MINC data objects
+#' @param clobber Overwrite existing output file when set to TRUE, will not 
+#' overwrite when set to FALSE and will prompt when NULL
+#' @details This function takes numeric data, usually the results computed
+#' from one of the other mincFunctions, and writes it to file so that it
+#' can be viewed or manipulated with the standard MINC tools
+#' @return mincLm Returns a vector of mincSingleDim class
+#' @seealso mincWriteVolume,mincLm,mincFDR,mincMean,mincSd
+#' @examples
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run a linear model relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # see what's in the results
+#' vs
+#' # write the results to file
+#' mincWriteVolume(vs, "output.mnc", "Genotype+")
+###########################################################################################
 mincWriteVolume <- function(buffer, ...) {
   UseMethod("mincWriteVolume")
 }
@@ -202,7 +242,7 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                as.double(b.min),
                as.double(buffer), PACKAGE="RMINC")
 }
-
+###########################################################################################
 
 # get the dimension sizes of a particular file.
 minc.dimensions.sizes <- function(filename) {
@@ -260,7 +300,28 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
-# compute a sequential ANOVA at each voxel
+###########################################################################################
+#' @description compute a sequential ANOVA at each voxel
+#' @name mincAnova
+#' @title Anova at Every Voxel
+#' @param formula The anova formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
+#' @param data The dataframe which contains the model terms.
+#' @param subset Subset definition.
+#' @param mask Either a filename or a vector of values of the same length as the input files. ANOVA will only be computed
+#' inside the mask.
+#' @details This function computes a sequential ANOVA over a set of files.
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
+#' 	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
+#' @examples 
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run aan ANOVA relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # see what's in the results
+#' vs
+###########################################################################################
+
 mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -352,7 +413,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
 
   #INITIALIZATION
   method <- "lm"
-
+   
   # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -374,7 +435,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
 
   attach(parseLmFormula(formula,data,mf)) 
   
-
+ 
   # Call subroutine based on whether matrix was found
   if(matrixFound) {
 	   mincFileCheck(data.matrix.left)
@@ -422,7 +483,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
-  
+
   # get the first voxel in order to get the dimension names
   #v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   #rows <- sub('mmatrix', '',
@@ -431,12 +492,13 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
   tnames = paste('tvalue-',rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("mincMultiDim", "matrix")
-  
+   
   #detach(data.matrix.left)
   # run the garbage collector...
   gcout <- gc()
-  
+ 
   return(result)
+
 }
 
 # two tailed version of pt
@@ -455,6 +517,52 @@ mincGetMask <- function(mask) {
   }
 }
 
+###########################################################################################
+#' @description Takes the output of a mincLm run and computes the False Discovery Rate on the results.
+#' @name mincFDR
+#' @aliases mincFDR,mincFDR.mincSingleDim,mincFDR.mincMultiDim,vertexFDR,anatFDR
+#' @title Compute the False Discovery Rate for a mincLm object
+#' @usage \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
+#' 	  \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
+#' @param buffer The results of a mincLm run.
+#' @param columns A vector of column names. By default the threshold will
+#' be computed for all columns; with this argument the computation can
+#' be limited to a subset.
+#' @param mask Either a filename or a numeric vector representing a mask
+#' only values inside the mask will be used to compute the
+#' threshold.
+#' @param df The degrees of freedom - normally this can be determined
+#' from the input object.
+#' @param method The method used to compute the false discovery
+#' rate. Options are "FDR" and "pFDR".
+#' @param statType This should be either a "t" or an "F", depending upon the type
+#' of statistic being thresholded.
+#' @details This function uses the \code{qvalue} package to compute the
+#'  False Discovery Rate threshold for the results of a \link{mincLm}
+#'  computation. The False Discovery Rate represents the percentage of
+#'  results expected to be a false positive. Two implementations can be
+#'  used as specified by the method argument. "FDR" uses the
+#'  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
+#'  postivie False Discovery Rate as found in John Storey's \code{qvalue}
+#'  package. 
+#' @return qvals mincFDR returns an object with the same number of columns
+#'  as the input (or the subset specified by the columns argument to
+#'  mincFDR). Each column now contains the qvalues for each voxel. Areas
+#'  outside the mask (if a mask was specified) will be represented by a
+#'  value of 1. The result also has an attribute called "thresholds"
+#'  which contains the 1, 5, 10, 15, and 20 percent false discovery rate
+#'  thresholds.
+#' @seealso mincWriteVolume,mincLm
+#' @examples 
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run a linear model relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # compute the False Discovery Rate
+#' qvals <- mincFDR(vs, mask="mask.mnc")
+#' # write the Gentoype column of the qvals to file
+#' mincWriteVolume(qvals, "FDR-results.mnc", "Genotype+")
+###########################################################################################
 mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
@@ -651,7 +759,8 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   
   return(output)
 }
-   
+###########################################################################################
+
 
 mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="mean", maskval=maskval)
@@ -1116,6 +1225,35 @@ vertexLm <- function(formula, data, subset=NULL) {
   return(result)
 }
 
+vertexMean <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(rowMeans(vertexData))
+
+} 
+
+
+vertexSum <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(rowSums(vertexData))
+
+} 
+
+vertexVar <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(apply(vertexData,1,var))
+
+} 
+
+vertexSD<- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(apply(vertexData,1,sd))
+
+} 
+
 ###########################################################################################
 #' Writes vertex data to a file with an optional header
 #' @param vertexData vertex data to be written
@@ -1460,7 +1598,7 @@ parseLmFormula <- function(formula,data,mf)
   else {
 	  for (nTerm in 2:length(formula[[3]])){
 		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
-		  if(!as.character(formula[[3]][[nTerm]]) %in% names(gf))
+		  if(!as.character(formula[[3]][[nTerm]]) %in% names(data))
 			next
 		  eval(parse(text=rCommand))	
 		  fileinfo = file.info(as.character(term[1]))
@@ -1499,13 +1637,12 @@ runTestbed <- function() {
 system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
 
 # Untar
-system('tar -xvf /tmp/rminctestdata/rminctestdata.tar.gz')
+system('tar -xvf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/rminctestdata/')
 library(testthat)
 
 # Run Tests
 rmincPath = find.package("RMINC")
 test_dir(paste(rmincPath,"/","tests/",sep=""))
-rmincPath = "~/Software/RMINC"
 }
 
 
