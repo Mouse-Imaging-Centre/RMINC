@@ -743,27 +743,28 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   Rprintf("Volume sizes: %i %i %i\n", sizes[0], sizes[1], sizes[2]);
 
 
-
-
-  // Case 1: There is no static part
-  if(isLogical(mmatrix)) 
-	// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
-	p = 2;
-  // Case 2: There is a static part
-  else {
- 	if(isLogical(filenames_right)) 
-{
-         pMmatrix = REAL(mmatrix);
-  	 mmatrix_cols = ncols(mmatrix);
-  	 mmatrix_rows = nrows(mmatrix);
-  	  p =  mmatrix_cols ;}
-else {
-        pMmatrix = REAL(mmatrix);
-  	mmatrix_cols = ncols(mmatrix);
-  	mmatrix_rows = nrows(mmatrix);
-        p = mmatrix_cols + 1;
-        Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); }
-  }
+  // minc2_model is also used for mincApply, which passes a string through this variable
+  if(isNumeric(mmatrix)) {
+	  // Case 1: There is no static part
+	  if(isLogical(mmatrix)) 
+		// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
+		p = 2;
+	  // Case 2: There is a static part
+	  else {
+	 	if(isLogical(filenames_right)) 
+	{
+		 pMmatrix = REAL(mmatrix);
+	  	 mmatrix_cols = ncols(mmatrix);
+	  	 mmatrix_rows = nrows(mmatrix);
+	  	  p =  mmatrix_cols ;}
+	else {
+		pMmatrix = REAL(mmatrix);
+	  	mmatrix_cols = ncols(mmatrix);
+	  	mmatrix_rows = nrows(mmatrix);
+		p = mmatrix_cols + 1;
+		Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); }
+	  }
+}
  n = num_files_left;
 
 
@@ -1003,7 +1004,7 @@ else {
 	  else if (strcmp(method_name, "eval") == 0) {
 	    /* install the variable "x" into environment */
 	    defineVar(install("x"), buffer, rho);
-	    t_sexp = eval(filenames, rho);
+	    t_sexp = eval(mmatrix, rho);
 	    for(i=0; i < xn_groups[0]; i++) {
 	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
 		= REAL(t_sexp)[i];
@@ -1139,7 +1140,7 @@ if(!isLogical(filenames_right))
     UNPROTECT(5);
   }
   else if (strcmp(method_name, "eval") == 0) {
-    UNPROTECT(3);
+    UNPROTECT(4);
   }
   else {
     UNPROTECT(2);

@@ -839,12 +839,12 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
+                       mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
   # if no mask exists use the entire volume
   if (is.null(mask)) {
     maskV = mincGetVolume(filenames[1])
     nVoxels = length(maskV)
-    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), cores)) 
+    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   else {
     maskV <- mincGetVolume(mask)
@@ -853,7 +853,7 @@ pMincApply <- function(filenames, function.string,
       maskV[maskV>1.5] <- 0
     }
     nVoxels <- sum(maskV>0.5)
-    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores)) 
+    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
@@ -867,10 +867,10 @@ pMincApply <- function(filenames, function.string,
     library(multicore)
     library(doMC)
     library(foreach)
-    registerDoMC(cores)
+    registerDoMC(workers)
     
     # run the job spread across each core
-    pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
+    pout <- foreach(i=1:workers) %dopar% { mincApply(filenames, function.string,
                                                    mask=maskFilename, maskval=i) }
     #cat("length: ", length(pout), "\n")
   }
@@ -879,10 +879,10 @@ pMincApply <- function(filenames, function.string,
     # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
     function.string = enquote(function.string)
     
-    l1 <- list(length=cores)
+    l1 <- list(length=workers)
     
     # Submit one job to the queue for each segmented brain region
-    for(i in 1:cores) {
+    for(i in 1:workers) {
       l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
                            maskval=i, packages=c(packages,"RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
       
@@ -901,15 +901,16 @@ pMincApply <- function(filenames, function.string,
   else if (method == "snowfall") {
    
     wrapper <- function(i) {
+      cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
                        maskval=i, reduce=TRUE))
     }
-    # use all cores in the current cluster if # of cores not specified
-    if (is.null(cores)) {
-      cores <- length(sfSocketHosts())
+    # use all workers in the current cluster if # of workers not specified
+    if (is.null(workers)) {
+      workers <- length(sfSocketHosts())
     }
     
-    pout <- sfLapply(1:cores, wrapper)
+    pout <- sfLapply(1:workers, wrapper)
     
   }
   else {
@@ -930,7 +931,7 @@ pMincApply <- function(filenames, function.string,
     output <- maskV
   }
   
-  for(i in 1:cores) {
+  for(i in 1:workers) {
     if (length(test)>1) {
       output[maskV==i,] <- pout[[i]]
     }
@@ -958,7 +959,7 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
   results <- .Call("minc2_model",
                    as.character(filenames),
 		   matrix(),
-                   function.string,
+		   function.string,	
                    NULL,
                    as.double(! is.null(mask)),
                    as.character(mask),
