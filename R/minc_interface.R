@@ -840,6 +840,9 @@ minc.get.volumes <- function(filenames) {
 
 pMincApply <- function(filenames, function.string,
                        mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
+  
+   REDUCE = FALSE; # For now this option is not exposed
+
   # if no mask exists use the entire volume
   if (is.null(mask)) {
     maskV = mincGetVolume(filenames[1])
@@ -876,15 +879,44 @@ pMincApply <- function(filenames, function.string,
   }
   else if (method == "sge") {
     library(Rsge)
+
+	options(sge.use.cluster = TRUE)
+	options(sge.block.size = 100)
+	options(sge.user.options= "-S /bin/bash")
+	options(sge.ret.ext= "sge.ret")
+	options(sge.use.qacct= FALSE)
+	options(sge.trace = TRUE) 
+	options(sge.save.global = FALSE)
+	options(sge.qsub.options = "-cwd")
+	options(sge.qsub.blocking = "-sync y -t 1-")
+	options(sge.monitor.script = "MonitorJob.sh")
+	options(sge.script="RunSgeJob")
+	options(sge.file.prefix="Rsge_data")
+	options(sge.debug=TRUE)
+	options(sge.remove.files=FALSE)
+	options(sge.qacct= "qacct")
+	options(sge.qstat= "qstat")
+	options(sge.qsub= "qsub")
+
     # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
     function.string = enquote(function.string)
     
     l1 <- list(length=workers)
     
+    if(packages == "")
+	packageList = c("RMINC")
+    else
+        packageList=c(packages,"RMINC")
+
+    if(global == "") 
+	globallist = c(sub("\\(([A-Z]|[a-z])\\)","",function.string))
+    else
+        globallist = c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string))
+
     # Submit one job to the queue for each segmented brain region
     for(i in 1:workers) {
-      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
-                           maskval=i, packages=c(packages,"RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
+      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,reduce=TRUE,
+                           maskval=i, packages=packageList,global.savelist= globallist)
       
     }
     
@@ -903,7 +935,7 @@ pMincApply <- function(filenames, function.string,
     wrapper <- function(i) {
       cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i, reduce=TRUE))
+                       maskval=i, reduce=REDUCE))
     }
     # use all workers in the current cluster if # of workers not specified
     if (is.null(workers)) {
@@ -933,7 +965,10 @@ pMincApply <- function(filenames, function.string,
   
   for(i in 1:workers) {
     if (length(test)>1) {
-      output[maskV==i,] <- pout[[i]]
+      if(REDUCE == TRUE)	
+      	output[maskV == i,] <- pout[[i]]
+      else
+      	output[maskV == i,] <- pout[[i]][maskV == i, ] 
     }
     else {
       output[maskV==i] <- pout[[i]]
@@ -944,7 +979,6 @@ pMincApply <- function(filenames, function.string,
 }
 
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
- 
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -956,19 +990,34 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
   # Need to get one voxel, x, to test number of values returned from function.string
   x <- mincGetVoxel(filenames, 0,0,0)
   test <- eval(function.string)
-  results <- .Call("minc2_model",
-                   as.character(filenames),
-		   matrix(),
-		   function.string,	
-                   NULL,
-                   as.double(! is.null(mask)),
-                   as.character(mask),
-                   as.double(minmask),
-                   as.double(maxmask),
-                   .GlobalEnv,
-                   as.double(length(test)),
-                   as.character("eval"), PACKAGE="RMINC");
 
+  # When calling mincApply via pMincApply using sge, this part seems to randomly fail.
+  # Not sure why, but simplying running it multiple times is the workaround
+  # Additionally we only check 20 times so we don't get stuck in an infinite loop
+  tryresults = FALSE
+  trycount = 0;
+  while (tryresults == FALSE) {
+
+  trycatchresults = tryCatch({
+	  trycount = trycount + 1
+	  if(trycount > 20)
+		stop ("mincApply Failed more than 20 times")
+	  results <- .Call("minc2_model",
+		           as.character(filenames),
+			   matrix(),
+			   function.string,	
+		           NULL,
+		           as.double(! is.null(mask)),
+		           as.character(mask),
+		           as.double(minmask),
+		           as.double(maxmask),
+		           .GlobalEnv,
+		           as.double(length(test)),
+		           as.character("eval"), PACKAGE="RMINC");
+			   tryresults = TRUE;
+	}, error = function(e) {
+		return (FALSE) })
+}
   if (length(test) > 1) {
     if (reduce==TRUE) {
       maskV <- mincGetVolume(mask)
