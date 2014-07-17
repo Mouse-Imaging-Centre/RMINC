@@ -230,6 +230,8 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
   //Rprintf("RANK SUM: %f\nEXPECTED SUM: %f\nW: %f\n", 
   //  rank_sum, expected_rank_sum, expected_rank_sum - rank_sum);
   xW[0] = expected_rank_sum - rank_sum;
+  if(xW[0] > (na*nb - xW[0]))
+	xW[0] = na*nb - xW[0];
   free(voxel_copy);
   free(index);
   UNPROTECT(2);

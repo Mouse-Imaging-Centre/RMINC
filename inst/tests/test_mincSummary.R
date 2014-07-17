@@ -68,9 +68,7 @@ gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
 gf_paired = gf[1:20,];
 sink("/dev/null"); mw <- mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain); sink();
 tw <- wilcox.test(vox~Strain,data=gf_paired)
-gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
-gf_paired = gf[1:20,];
 test_that("wilcoxon", {
-    expect_equivalent(100-tw[[1]], mw[15*15*5 + 15*5 + 6])
+    expect_equivalent(tw[[1]], mw[15*15*5 + 15*5 + 6])
 })
 
