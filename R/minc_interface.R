@@ -863,7 +863,7 @@ minc.get.volumes <- function(filenames) {
 pMincApply <- function(filenames, function.string,
                        mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
   
-   REDUCE = FALSE; # For now this option is not exposed
+   REDUCE = TRUE; # For now this option is not exposed
 
   # if no mask exists use the entire volume
   if (is.null(mask)) {
@@ -1209,13 +1209,8 @@ vertexAnova <- function(formula, data, subset=NULL) {
     }
   attr(result, "df") <- dflist
   
-  columns <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  assignVector = attr(mmatrix, "assign") + 1
-  columnName =  rep('', max(assignVector)-1)
-  
-  colnames(result) <- columnName
-
+  colnames(result) <- attr(terms(formula), "term.labels")
+ 
   class(result) <- c("vertexMultiDim", "matrix")
   return(result)
 }
@@ -1670,7 +1665,11 @@ parseLmFormula <- function(formula,data,mf)
   # Multiple Terms on RHS
   else {
 	  for (nTerm in 2:length(formula[[3]])){
+		  # Skip if it is an interaction term
+		  if(length(formula[[3]][[nTerm]] > 1))
+			next
 		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+ 		  # Skip if it is a formula symbol (i.e. *)
 		  if(!as.character(formula[[3]][[nTerm]]) %in% names(data))
 			next
 		  eval(parse(text=rCommand))	
@@ -1708,7 +1707,10 @@ return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix
 runTestbed <- function() {
 
 # Make sure environment is clear
-rm(list=ls())
+#rm(list=ls())
+
+system('mkdir /tmp/rminctestdata');
+
 
 # Download Tarball from Wiki
 system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")

@@ -11,8 +11,7 @@ test_that("mincApply one output",{
 })
 
 
-testFunc = function (x) { return(c(1,2))}
-
+testFunc <<- function (x) { return(c(1,2))}
 sink("/dev/null"); ma <- mincApply(gf$jacobians_fixed_2,quote(testFunc(x))); sink();
 
 test_that("mincApply two output",{
@@ -31,7 +30,7 @@ test_that("pmincapply snowfall",{
 })
 
 
-sink("/dev/null"); ma <- pMincApply(gf$jacobians_fixed_2,testFunc(mean(x))); sink();
+sink("/dev/null"); ma <- pMincApply(gf$jacobians_fixed_2,quote(testFunc(x)),global = "testFunc"); sink();
 test_that("pmincApply snowfall two output",{
     for (nVox in 1:dim(ma)[1]) {
  	   expect_equal(ma[nVox,1], 1) 

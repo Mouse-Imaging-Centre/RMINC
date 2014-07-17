@@ -1,7 +1,7 @@
 context("anatAnova")
 
-gf = read.csv("/tmp/rminctestdata/POND-imaging.csv")
-gf = civet.getAllFilenames(gf,"POND.ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf = civet.getAllFilenames(gf,"ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 
 sink("/dev/null"); rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness); sink();
@@ -61,3 +61,5 @@ test_that("anatAnova Three Factors Interaction",{
          expect_that(attr(rmincAnova,"df")[[3]][1],is_equivalent_to(rAnova$Df[3]))
          expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4])) 
 })
+
+

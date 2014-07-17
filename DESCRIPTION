@@ -1,12 +1,12 @@
 Package: RMINC
-Version: 1.1.1
-Date: 2010-12-02
+Version: 1.2.1
+Date: 2014-06-23
 Title: Package for reading and analyzing MINC2 files
-Author: Jason Lerch <jason@phenogenomics.ca>, Jim Nikelski <nikelski@bic.mni.mcgill.ca>
-Maintainer: Jason lerch <jason@phenogenomics.ca>
+Author: Jason Lerch <jason@mouseimaging.ca>, Jim Nikelski <nikelski@bic.mni.mcgill.ca>
+Maintainer: Jason lerch <jason@mouseimaging.ca>
 Description: A package for reading and writing MINC2 files 
 	and running arbitrary R functions at every voxel of a set of files.
-Depends: R (>= 2.9.2), grDevices, methods, grid, lattice
+Depends: R (>= 3.0.1), grDevices, methods, grid, lattice
 Suggests: nlme, qvalue
 License: BSD
 Collate: AllGeneric.R
