@@ -785,11 +785,33 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 
 mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="t-test", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("t") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  rttest <- t.test(vox~grouping,data=gf,paired=FALSE)
+  attr(result, "df") <- rttest$parameter
+  colnames(result) <- c("T-statistic")
+  class(result) <- c("mincMultiDim", "matrix")
   return(result)
 }
 
 mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="paired-t-test", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("t") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  rttest <- t.test(vox~grouping,data=gf,paired=TRUE)
+  attr(result, "df") <- rttest$parameter
+  colnames(result) <- c("T-statistic")
+  class(result) <- c("mincMultiDim", "matrix")
   return(result)
 }
 
