@@ -49,7 +49,7 @@ test_that("ttest", {
 
 
 gf_paired = gf[1:20,];
-sink("/dev/null"); mtt <- mincPairedTtest(gf_paired $jacobians_0.2,gf_paired $Strain); sink(); # To Do: Ask case where unequal lengths
+sink("/dev/null"); mtt <- mincPairedTtest(gf_paired$jacobians_0.2,gf_paired$Strain); sink(); # To Do: Ask case where unequal lengths
 ttt <- t.test(vox~Strain,data=gf_paired ,paired=TRUE)
 
 test_that("paired ttest", {
@@ -62,6 +62,14 @@ tc <- cor(gf$Weight,gf$vox)
 
 test_that("correlation", {
     expect_equivalent(tc, mc[1])
+})
+
+
+gf_paired$vox_round = round(gf_paired$vox,8)
+tw <- wilcox.test(vox_round~Strain,data=gf_paired)
+sink("/dev/null"); mw <- mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain); sink();
+test_that("wilcoxon-ties", {
+    expect_equivalent(tw[[1]], mw[1])
 })
 
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)

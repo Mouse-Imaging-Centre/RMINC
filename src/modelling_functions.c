@@ -176,8 +176,8 @@ SEXP t_test(SEXP voxel, SEXP grouping) {
  */
 
 SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
-  double *xvoxel, *voxel_copy, *xgrouping, rank_sum, expected_rank_sum, *xW;
-  int    *xindices;
+  double *xvoxel, *voxel_copy, *xgrouping, rank_sum, expected_rank_sum, *xW, *ties,  *xindices;
+ 
   int *index;
   unsigned long    n, i, na, nb;
   SEXP   indices, output;
@@ -199,7 +199,6 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
       error("Each element in grouping must be either 0 or 1\n");
   }
 
-  //Rprintf("NA: %f NB: %f\n", na, nb);
   expected_rank_sum = na * nb + ((na * (na + 1)) / 2);
 
   n = LENGTH(voxel);
@@ -210,12 +209,17 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
     voxel_copy[i] = xvoxel[i];
     index[i] = i;
   }
-
+  
   PROTECT(indices=allocVector(INTSXP, n));
-  xindices = INTEGER(indices);
+  xindices = REAL(voxel);
+  ties = REAL(voxel);
 
   rsort_with_index(voxel_copy, (int*) index, n);
   rank_sum = 0;
+  
+  int tieStart = -1;
+  int tieEnd = 0;
+  double tieRankSum = 0.0;
   
   for (i=0; i < n; i++) {
     //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
@@ -223,18 +227,59 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
     //if (xgrouping[i] == 0) 
     //expected_rank_sum += i+1;
   }
+for (i=0; i < n; i++) {
+    //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
+    //Rprintf("xindices: %f\n", xindices[i]);
+    //if (xgrouping[i] == 0) 
+    //expected_rank_sum += i+1;
+  }
+
+  // Ties
+  for (i=0; i < n; i++) {
+	if((i < (n-1)) && voxel_copy[i] == voxel_copy[i+1]) {
+                if(tieStart == -1)
+		{
+			tieStart = i;
+			tieRankSum = tieRankSum + xindices[index[i]];
+		}
+		tieEnd = i+1;
+		tieRankSum = tieRankSum + xindices[index[i+1]];
+	}
+	else 
+	{
+	    if(tieStart != -1) {
+		
+		for (int j=tieStart;j <= tieEnd;j++) {
+ 			
+			xindices[index[j]] = tieRankSum/(double)(tieEnd-tieStart+1);
+			;}
+		tieStart = -1;}
+	}	
+   }	
+
+
+for (i=0; i < n; i++) {
+    //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
+    //Rprintf("xindices: %f\n", xindices[i]);
+    //if (xgrouping[i] == 0) 
+    //expected_rank_sum += i+1;
+  }
+
+
   for (i=0;  i< n; i++) {
+
     if (xgrouping[i] == 0)
       rank_sum += xindices[i];
   }
   //Rprintf("RANK SUM: %f\nEXPECTED SUM: %f\nW: %f\n", 
-  //  rank_sum, expected_rank_sum, expected_rank_sum - rank_sum);
+    //rank_sum, expected_rank_sum, expected_rank_sum - rank_sum);
   xW[0] = expected_rank_sum - rank_sum;
   if(xW[0] > (na*nb - xW[0]))
-	xW[0] = na*nb - xW[0];
+  	xW[0] = na*nb - xW[0];
   free(voxel_copy);
   free(index);
   UNPROTECT(2);
+  //ties = INTEGER(voxel);
   return(output);
 }
 
@@ -1145,7 +1190,7 @@ if(!isLogical(filenames_right))
     UNPROTECT(4);
   }
   else {
-    UNPROTECT(2);
+    UNPROTECT(3);
   }
 
   /* return the results */
