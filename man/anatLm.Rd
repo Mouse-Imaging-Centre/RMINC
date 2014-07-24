@@ -5,7 +5,10 @@
   anatLm(formula, data, anat, subset = NULL)
 }
 \arguments{
-  \item{formula}{a model formula}
+  \item{formula}{a model formula. The RHS of the formula
+  may contain one term with a matrix. If so only the +
+  operator may be used, and only two terms may appear on
+  the RHS}
 
   \item{data}{a data.frame containing variables in formula}
 
@@ -14,9 +17,8 @@
   \item{subset}{rows to be used, by default all are used}
 }
 \value{
-  Returns an object containing the F and t statistcs that
-  can be passed directly into anatFDR. The coefficients can
-  be found in the attribute 'coefficients'
+  Returns an object containing the coefficients,F and t
+  statistcs that can be passed directly into anatFDR.
 }
 \description{
   Calculates statistics and coefficients for linear model
@@ -28,7 +30,6 @@ civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
 result = anatLm(~Primary.Diagnosis,gf,gf$lobeVolume)
 anatFDR(result)
-coefficients <- attr(results,'coefficients')
 }
 \seealso{
   mincLm,anatLm,anatFDR

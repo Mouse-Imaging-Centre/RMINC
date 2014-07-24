@@ -107,7 +107,16 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
   return(round(output))
 }
 
-# return a volume as a 1D array.
+# 
+###########################################################################################
+#' @description Load a 3-dimensional MINC2 volume and returns it as a 1D array
+#' @name mincGetVolume
+#' @title Return a volume as a 1D array
+#' @param filename A string corresponding to the location of the MINC2 file to
+#' be read.
+#' @return mincLm Returns a vector of mincSingleDim class
+#' @seealso mincWriteVolume
+###########################################################################################
 mincGetVolume <- function(filename) {
   mincFileCheck(filename)
   sizes <- minc.dimensions.sizes(filename)
@@ -150,6 +159,37 @@ print.mincQvals <- function(x, ...) {
   print(attr(x, "thresholds"))
 }
 
+
+###########################################################################################
+#' @description Writes a MINC volume to file
+#' @name mincWriteVolume
+#' @aliases mincWriteVolume.mincSingleDim,mincWriteVolume.mincMultiDim
+#' @title Write a MINC volume to file
+#' @param buffer The data to be written to file. Usually the result of
+#' \link{mincLm} or some such command
+#' @param output.filename The filename to which to write the data to
+#' @param column Optional name of the column of a multidimensional MINC
+#' object to write out. By default the first column is used
+#' @param like.filename An existing MINC filename which has the same
+#' dimensions as the data to be written out. Normally this information
+#' is stored inside MINC data objects
+#' @param clobber Overwrite existing output file when set to TRUE, will not 
+#' overwrite when set to FALSE and will prompt when NULL
+#' @details This function takes numeric data, usually the results computed
+#' from one of the other mincFunctions, and writes it to file so that it
+#' can be viewed or manipulated with the standard MINC tools
+#' @return mincLm Returns a vector of mincSingleDim class
+#' @seealso mincWriteVolume,mincLm,mincFDR,mincMean,mincSd
+#' @examples
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run a linear model relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # see what's in the results
+#' vs
+#' # write the results to file
+#' mincWriteVolume(vs, "output.mnc", "Genotype+")
+###########################################################################################
 mincWriteVolume <- function(buffer, ...) {
   UseMethod("mincWriteVolume")
 }
@@ -202,7 +242,7 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                as.double(b.min),
                as.double(buffer), PACKAGE="RMINC")
 }
-
+###########################################################################################
 
 # get the dimension sizes of a particular file.
 minc.dimensions.sizes <- function(filename) {
@@ -260,7 +300,28 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
-# compute a sequential ANOVA at each voxel
+###########################################################################################
+#' @description compute a sequential ANOVA at each voxel
+#' @name mincAnova
+#' @title Anova at Every Voxel
+#' @param formula The anova formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
+#' @param data The dataframe which contains the model terms.
+#' @param subset Subset definition.
+#' @param mask Either a filename or a vector of values of the same length as the input files. ANOVA will only be computed
+#' inside the mask.
+#' @details This function computes a sequential ANOVA over a set of files.
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
+#' 	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
+#' @examples 
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run aan ANOVA relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # see what's in the results
+#' vs
+###########################################################################################
+
 mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -327,7 +388,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' @description Linear Model at Every Voxel
 #' @name mincLm
 #' @title Linear model at Every Voxel
-#' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
+#' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.The RHS of the formula may contain one term with filenames. If so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data The dataframe which contains the model terms.
 #' @param subset Subset definition.
 #' @param mask Either a filename or a vector of values of the same length as the input files. The linear model will only be computed
@@ -348,22 +409,21 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' # write the results to file
 #' mincWriteVolume(vs, "output.mnc", "Genotype+")
 ###########################################################################################
-mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
+mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
+
+  #INITIALIZATION
+  method <- "lm"
+   
+  # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
-
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
 
-  filenames <- as.character(mf[,1])
-  mmatrix <- model.matrix(formula, mf)
 
-  method <- "lm"
-
-  mincFileCheck(filenames)
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -372,8 +432,27 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
     minmask = maskval
     maxmask = maskval
   }
-  result <- .Call("minc2_model",
-                  as.character(filenames),
+
+  attach(parseLmFormula(formula,data,mf)) 
+  
+ 
+  # Call subroutine based on whether matrix was found
+  if(matrixFound) {
+	   mincFileCheck(data.matrix.left)
+	   mincFileCheck(data.matrix.right)
+
+	}
+  else  {      	
+	
+	mmatrix <- model.matrix(formula, mf)	
+	data.matrix.left <- as.character(mf[,1])
+ 	mincFileCheck(data.matrix.left)
+	rows = colnames(mmatrix)
+	}
+ 
+  	   result <- .Call("minc2_model",
+                  as.character(data.matrix.left),
+		  data.matrix.right,
                   as.matrix(mmatrix),
                   NULL,
                   as.double(! is.null(mask)),
@@ -383,10 +462,11 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
 
-  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "likeVolume") <- data.matrix.left[1]
+  attr(result, "filenames") <- data.matrix.left
   attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
-  
+ 
+
   # the order of return values is:
   #
   # f-statistic
@@ -403,20 +483,22 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
-  
+
   # get the first voxel in order to get the dimension names
-  v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
-  rows <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+  #v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
+  #rows <- sub('mmatrix', '',
+  #            rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   betaNames = paste('beta-',rows, sep='')
   tnames = paste('tvalue-',rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("mincMultiDim", "matrix")
-  
+   
+  #detach(data.matrix.left)
   # run the garbage collector...
   gcout <- gc()
-  
+ 
   return(result)
+
 }
 
 # two tailed version of pt
@@ -435,6 +517,52 @@ mincGetMask <- function(mask) {
   }
 }
 
+###########################################################################################
+#' @description Takes the output of a mincLm run and computes the False Discovery Rate on the results.
+#' @name mincFDR
+#' @aliases mincFDR,mincFDR.mincSingleDim,mincFDR.mincMultiDim,vertexFDR,anatFDR
+#' @title Compute the False Discovery Rate for a mincLm object
+#' @usage \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
+#' 	  \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
+#' @param buffer The results of a mincLm run.
+#' @param columns A vector of column names. By default the threshold will
+#' be computed for all columns; with this argument the computation can
+#' be limited to a subset.
+#' @param mask Either a filename or a numeric vector representing a mask
+#' only values inside the mask will be used to compute the
+#' threshold.
+#' @param df The degrees of freedom - normally this can be determined
+#' from the input object.
+#' @param method The method used to compute the false discovery
+#' rate. Options are "FDR" and "pFDR".
+#' @param statType This should be either a "t" or an "F", depending upon the type
+#' of statistic being thresholded.
+#' @details This function uses the \code{qvalue} package to compute the
+#'  False Discovery Rate threshold for the results of a \link{mincLm}
+#'  computation. The False Discovery Rate represents the percentage of
+#'  results expected to be a false positive. Two implementations can be
+#'  used as specified by the method argument. "FDR" uses the
+#'  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
+#'  postivie False Discovery Rate as found in John Storey's \code{qvalue}
+#'  package. 
+#' @return qvals mincFDR returns an object with the same number of columns
+#'  as the input (or the subset specified by the columns argument to
+#'  mincFDR). Each column now contains the qvalues for each voxel. Areas
+#'  outside the mask (if a mask was specified) will be represented by a
+#'  value of 1. The result also has an attribute called "thresholds"
+#'  which contains the 1, 5, 10, 15, and 20 percent false discovery rate
+#'  thresholds.
+#' @seealso mincWriteVolume,mincLm
+#' @examples 
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run a linear model relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # compute the False Discovery Rate
+#' qvals <- mincFDR(vs, mask="mask.mnc")
+#' # write the Gentoype column of the qvals to file
+#' mincWriteVolume(qvals, "FDR-results.mnc", "Genotype+")
+###########################################################################################
 mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
@@ -631,7 +759,8 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   
   return(output)
 }
-   
+###########################################################################################
+
 
 mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="mean", maskval=maskval)
@@ -674,6 +803,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   }
   result <- .Call("minc2_model",
                   as.character(filenames),
+		  matrix(),
                   as.double(grouping)-1,
                   NULL,
                   as.double(! is.null(mask)),
@@ -709,12 +839,15 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
+                       mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
+  
+   REDUCE = TRUE; # For now this option is not exposed
+
   # if no mask exists use the entire volume
   if (is.null(mask)) {
     maskV = mincGetVolume(filenames[1])
     nVoxels = length(maskV)
-    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), cores)) 
+    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   else {
     maskV <- mincGetVolume(mask)
@@ -723,7 +856,7 @@ pMincApply <- function(filenames, function.string,
       maskV[maskV>1.5] <- 0
     }
     nVoxels <- sum(maskV>0.5)
-    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores)) 
+    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
@@ -737,24 +870,53 @@ pMincApply <- function(filenames, function.string,
     library(multicore)
     library(doMC)
     library(foreach)
-    registerDoMC(cores)
+    registerDoMC(workers)
     
     # run the job spread across each core
-    pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
+    pout <- foreach(i=1:workers) %dopar% { mincApply(filenames, function.string,
                                                    mask=maskFilename, maskval=i) }
     #cat("length: ", length(pout), "\n")
   }
   else if (method == "sge") {
     library(Rsge)
+
+	options(sge.use.cluster = TRUE)
+	options(sge.block.size = 100)
+	options(sge.user.options= "-S /bin/bash")
+	options(sge.ret.ext= "sge.ret")
+	options(sge.use.qacct= FALSE)
+	options(sge.trace = TRUE) 
+	options(sge.save.global = FALSE)
+	options(sge.qsub.options = "-cwd")
+	options(sge.qsub.blocking = "-sync y -t 1-")
+	options(sge.monitor.script = "MonitorJob.sh")
+	options(sge.script="RunSgeJob")
+	options(sge.file.prefix="Rsge_data")
+	options(sge.debug=TRUE)
+	options(sge.remove.files=FALSE)
+	options(sge.qacct= "qacct")
+	options(sge.qstat= "qstat")
+	options(sge.qsub= "qsub")
+
     # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
     function.string = enquote(function.string)
     
-    l1 <- list(length=cores)
+    l1 <- list(length=workers)
     
+    if(packages == "")
+	packageList = c("RMINC")
+    else
+        packageList=c(packages,"RMINC")
+
+    if(global == "") 
+	globallist = c(sub("\\(([A-Z]|[a-z])\\)","",function.string))
+    else
+        globallist = c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string))
+
     # Submit one job to the queue for each segmented brain region
-    for(i in 1:cores) {
-      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
-                           maskval=i, packages=c(packages,"RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
+    for(i in 1:workers) {
+      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,reduce=TRUE,
+                           maskval=i, packages=packageList,global.savelist= globallist)
       
     }
     
@@ -769,16 +931,18 @@ pMincApply <- function(filenames, function.string,
     function.string = eval(function.string)
   }
   else if (method == "snowfall") {
+   
     wrapper <- function(i) {
+      cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i, reduce=FALSE))
+                       maskval=i, reduce=REDUCE))
     }
-    # use all cores in the current cluster if # of cores not specified
-    if (is.null(cores)) {
-      cores <- length(sfSocketHosts())
+    # use all workers in the current cluster if # of workers not specified
+    if (is.null(workers)) {
+      workers <- length(sfSocketHosts())
     }
     
-    pout <- sfLapply(1:cores, wrapper)
+    pout <- sfLapply(1:workers, wrapper)
     
   }
   else {
@@ -799,13 +963,15 @@ pMincApply <- function(filenames, function.string,
     output <- maskV
   }
   
-  for(i in 1:cores) {
+  for(i in 1:workers) {
     if (length(test)>1) {
-      output[maskV==i,] <- pout[[i]]
+      if(REDUCE == TRUE)	
+      	output[maskV == i,] <- pout[[i]]
+      else
+      	output[maskV == i,] <- pout[[i]][maskV == i, ] 
     }
     else {
-      currentMask = pout[[i]]
-      output[maskV==i] <- currentMask[maskV==i]
+      output[maskV==i] <- pout[[i]]
     }
   }
   unlink(maskFilename)
@@ -813,7 +979,6 @@ pMincApply <- function(filenames, function.string,
 }
 
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
- 
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -825,18 +990,34 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
   # Need to get one voxel, x, to test number of values returned from function.string
   x <- mincGetVoxel(filenames, 0,0,0)
   test <- eval(function.string)
-  results <- .Call("minc2_model",
-                   as.character(filenames),
-                   function.string,
-                   NULL,
-                   as.double(! is.null(mask)),
-                   as.character(mask),
-                   as.double(minmask),
-                   as.double(maxmask),
-                   .GlobalEnv,
-                   as.double(length(test)),
-                   as.character("eval"), PACKAGE="RMINC");
 
+  # When calling mincApply via pMincApply using sge, this part seems to randomly fail.
+  # Not sure why, but simplying running it multiple times is the workaround
+  # Additionally we only check 20 times so we don't get stuck in an infinite loop
+  tryresults = FALSE
+  trycount = 0;
+  while (tryresults == FALSE) {
+
+  trycatchresults = tryCatch({
+	  trycount = trycount + 1
+	  if(trycount > 20)
+		stop ("mincApply Failed more than 20 times")
+	  results <- .Call("minc2_model",
+		           as.character(filenames),
+			   matrix(),
+			   function.string,	
+		           NULL,
+		           as.double(! is.null(mask)),
+		           as.character(mask),
+		           as.double(minmask),
+		           as.double(maxmask),
+		           .GlobalEnv,
+		           as.double(length(test)),
+		           as.character("eval"), PACKAGE="RMINC");
+			   tryresults = TRUE;
+	}, error = function(e) {
+		return (FALSE) })
+}
   if (length(test) > 1) {
     if (reduce==TRUE) {
       maskV <- mincGetVolume(mask)
@@ -922,6 +1103,7 @@ mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
   }
   results <- .Call("minc2_model",
                    as.character(filenames),
+		   matrix(),
                    function.string,
                    NULL,
                    as.double(! is.null(mask)),
@@ -972,7 +1154,7 @@ vertexTable <- function(filenames) {
 #' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
 #' result = vertexAnova(~Primary.Diagnosis,gf,gf$CIVETFILES$nativeRMStlink20mmleft) 
 ###########################################################################################
-vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
+vertexAnova <- function(formula, data, subset=NULL) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -983,7 +1165,7 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   mmatrix <- model.matrix(formula, mf)
 
   # Load Vertex Data from Files
-  #filenames <- as.character(mf[,1])
+  filenames <- as.character(mf[,1])
   data.matrix <- vertexTable(filenames)
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
 
@@ -993,28 +1175,27 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 
   # Use the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
-  columns <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  assignVector = attr(mmatrix, "assign") + 1
-  columnName =  rep('', max(assignVector)-1)
-  dflist =  rep(0, max(assignVector)-1)
-  for (i in 2:max(assignVector)) { 
-    indices = which(assignVector == i)
-    for (j in 1:length(indices)) {
-      columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
+  
+  # Get the degrees of freedom
+  l <- lm.fit(mmatrix, v.firstVoxel)
+  asgn <- l$assign[l$qr$pivot]
+  dfr <- df.residual(l)
+  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
+  dflist <- vector("list", ncol(result))
+  for (i in 1:ncol(result)) {
+        dflist[[i]] <- c(dfs[[i + 1]], dfr)
     }
-    dflist[i-1] = length(indices)
-  }
-
   attr(result, "df") <- dflist
-  colnames(result) <- columnName
-
+  
+  colnames(result) <- attr(terms(formula), "term.labels")
+ 
   class(result) <- c("vertexMultiDim", "matrix")
   return(result)
 }
 ###########################################################################################
 #' Calculates statistics and coefficients for linear model of specified vertex files
-#' @param formula a model formula
+#' @param formula a model formula. The RHS of the formula may contain one term with filenames. If
+#' so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
 #' @return Returns an object containing the beta coefficients, F 
@@ -1029,30 +1210,45 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 #' vertexFDR(result)
 ###########################################################################################
 vertexLm <- function(formula, data, subset=NULL) {
-  # repeat code to extract the formula as in mincLm
+
+  # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
-
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
 
+  
 
-  filenames <- as.character(mf[,1])
-  mmatrix <- model.matrix(formula, mf)
+  if(length(grep("\\$",formula[[3]])) > 0) {
+	stop("$ Not Permitted in Formula")  
+  }
 
-  cat("Loading data from files\n")
-  data.matrix <- vertexTable(filenames)
 
-  cat("after loading\n")
+  
+  attach(parseLmFormula(formula,data,mf)) 
+  
 
-  result <- .Call("vertex_lm_loop", data.matrix, mmatrix, PACKAGE="RMINC");
 
-  attr(result, "likeVolume") <- filenames[1]
+  if(matrixFound) {
+        data.matrix.left  <- vertexTable(data.matrix.left)
+  	data.matrix.right <- vertexTable(data.matrix.right)
+	}
+  else {
+	filenames <- as.character(mf[,1])
+	mmatrix <- model.matrix(formula, mf)	
+	data.matrix.left <- vertexTable(filenames)
+        rows = colnames(mmatrix)
+
+
+  } 
+  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+
+  attr(result, "likeVolume") <- as.character(mf[,1])[1]
   attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
+  attr(result, "filenames") <- as.character(mf[,1])
   attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
  
   Fdf1 <- ncol(attr(result, "model")) -1
@@ -1064,21 +1260,46 @@ vertexLm <- function(formula, data, subset=NULL) {
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
   
-  # get the first voxel in order to get the dimension names
-  v.firstVoxel <- data.matrix[1,]
-  rows <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-
   betaNames = paste('beta-', rows, sep='')
   tnames = paste('tvalue-', rows, sep='')
-  #colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("vertexMultiDim", "matrix")
  
   # run the garbage collector...
   gcout <- gc()
- 
+  detach()
   return(result)
 }
+
+vertexMean <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(rowMeans(vertexData))
+
+} 
+
+
+vertexSum <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(rowSums(vertexData))
+
+} 
+
+vertexVar <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(apply(vertexData,1,var))
+
+} 
+
+vertexSD<- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(apply(vertexData,1,sd))
+
+} 
+
 ###########################################################################################
 #' Writes vertex data to a file with an optional header
 #' @param vertexData vertex data to be written
@@ -1395,3 +1616,90 @@ mincRayTraceStats <- function(v, anatomy.volume,
 							paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
   
 }
+
+parseLmFormula <- function(formula,data,mf) 
+{
+  matrixName = ''
+  mmatrix = matrix()
+  data.matrix.right = matrix()
+  data.matrix.left = matrix()
+  rows = NULL
+  matrixFound = FALSE
+  # Only 1 Term on the RHS
+  if(length(formula[[3]]) == 1) {
+	  rCommand = paste("term <- data$",formula[[3]],sep="")
+	  eval(parse(text=rCommand))
+
+	  fileinfo = file.info(as.character(term[1]))
+	  if (!is.na(fileinfo$size)) {
+		# Save term name for later
+		rows = c('Intercept',formula[[3]])
+		matrixName = formula[[3]]
+                matrixFound = TRUE
+		data.matrix.left <- as.character(mf[,1])
+		data.matrix.right <- as.character(mf[,2])
+	        }  
+          }
+  # Multiple Terms on RHS
+  else {
+	  for (nTerm in 2:length(formula[[3]])){
+		  # Skip if it is an interaction term
+		  if(length(formula[[3]][[nTerm]] > 1))
+			next
+		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+ 		  # Skip if it is a formula symbol (i.e. *)
+		  if(!as.character(formula[[3]][[nTerm]]) %in% names(data))
+			next
+		  eval(parse(text=rCommand))	
+		  fileinfo = file.info(as.character(term[1]))
+		  if (!is.na(fileinfo$size)) {
+
+			if(length(grep('\\+',formula[[3]][[1]])) == 0)
+				stop("Only + sign allowed when using filenames")
+						
+			if(length(formula[[3]]) > 3)
+				stop("Only 2 terms allowed when using filenames on the RHS")	
+
+                        matrixName = formula[[3]][[nTerm]]
+			matrixFound = TRUE
+			data.matrix.left <- as.character(mf[,1])
+			data.matrix.right <- as.character(mf[,nTerm])
+
+			}
+		  else  {
+   			tmpFormula = formula
+			rCommand = paste("formula <-",formula[[2]],"~",formula[[3]][[nTerm]],sep="")
+		        eval(parse(text=rCommand))	
+			mmatrix <- model.matrix(formula, mf)	
+			formula = tmpFormula	
+			}
+		}
+	   rows = colnames(mmatrix)
+	   rows = append(rows,matrixName)
+	}
+return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
+
+}
+
+# Run Testbed
+runTestbed <- function() {
+
+# Make sure environment is clear
+#rm(list=ls())
+
+system('mkdir /tmp/rminctestdata');
+
+
+# Download Tarball from Wiki
+system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
+
+# Untar
+system('tar -xvf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
+library(testthat)
+
+# Run Tests
+rmincPath = find.package("RMINC")
+test_dir(paste(rmincPath,"/","tests/",sep=""))
+}
+
+

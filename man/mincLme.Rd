@@ -35,10 +35,14 @@ mincLme(filenames, fixed.effect, random.effect, mask=NULL)
 
 \examples{
 \dontrun{
+# load lme library
+library(nlme)
 # read the text file describing the dataset
 gf <- read.csv("control-file.csv")
+# make your data frame columns directly readable by R
+attach(gf)
 # run a linear model relating the data in all voxels to Genotype
-vs <- mincLme(mincLme(files, x ~ covariate, random = ~ 1 | term)
+vs <- mincLme(files, x ~ covariate, random = ~ 1 | term)
 # see what's in the results
 vs
 # write the results to file

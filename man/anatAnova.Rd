@@ -1,35 +1,36 @@
-\name{vertexAnova}
-\alias{vertexAnova}
-\title{Performs ANOVA on each vertex point specified}
+\name{anatAnova}
+\alias{anatAnova}
+\title{Performs ANOVA on each region specified}
 \usage{
-  vertexAnova(formula, data, subset = NULL)
+  anatAnova(formula, data = NULL, anat = NULL,
+    subset = NULL)
 }
 \arguments{
   \item{formula}{a model formula}
 
   \item{data}{a data.frame containing variables in formula}
 
-  \item{filenames}{list of vertex files}
+  \item{ant}{an array of atlas labels vs subject data}
 
   \item{subset}{rows to be used, by default all are used}
 }
 \value{
   Returns an array with the F-statistic for each model
   specified by formula with the following attributes: model
-  – design matrix, filenames – vertex file names input,
-  stat-type: type of statistic used, df – degrees of
-  freedom of each statistic.
+  – design matrix, filenames – , stat-type: type of
+  statistic used, df – degrees of freedom of each
+  statistic.
 }
 \description{
-  Performs ANOVA on each vertex point specified
+  Performs ANOVA on each region specified
 }
 \examples{
 gf = read.csv("~/SubjectTable.csv")
 civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-result = vertexAnova(~Primary.Diagnosis,gf,gf$CIVETFILES$nativeRMStlink20mmleft)
+result = anatAnova(~Primary.Diagnosis,gf,gf$lobeThickness)
 }
 \seealso{
-  mincAnova,anatAnova
+  mincAnova,vertexAnova
 }
 
