@@ -26,7 +26,7 @@ sink("/dev/null"); ma <- pMincApply(gf$jacobians_fixed_2,quote(mean(x))); sink()
 
 test_that("pmincapply snowfall",{
     for (nVox in 1:length(mm)) {
- 	   expect_equal(ma[nVox], mm[nVox]) }
+ 	   expect_that(ma[nVox],equals(mm[nVox],tolerance = 0.00001))}
 })
 
 
@@ -36,6 +36,4 @@ test_that("pmincApply snowfall two output",{
  	   expect_equal(ma[nVox,1], 1) 
 	   expect_equal(ma[nVox,2], 2)}
 })
-
-gf <- read.csv("/projects/moush/matthijs/2013-08-test-csv-RMINC/test_data_set.csv")
 
