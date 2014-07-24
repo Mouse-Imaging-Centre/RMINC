@@ -1694,7 +1694,7 @@ system('mkdir /tmp/rminctestdata');
 system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
 
 # Untar
-system('tar -xvf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/rminctestdata/')
+system('tar -xvf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
 library(testthat)
 
 # Run Tests
