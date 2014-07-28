@@ -21,19 +21,27 @@ test_that("mincApply two output",{
 })
 
 
-library(snowfall)
-sink("/dev/null"); ma <- pMincApply(gf$jacobians_fixed_2,quote(mean(x))); sink();
+sink("/dev/null"); library(snowfall); sink();
 
-test_that("pmincapply snowfall",{
-    for (nVox in 1:length(mm)) {
- 	   expect_that(ma[nVox],equals(mm[nVox],tolerance = 0.00001))}
+test_that("snowfall is installed",{
+	expect_true("package:snowfall" %in% search())
 })
 
 
-sink("/dev/null"); ma <- pMincApply(gf$jacobians_fixed_2,quote(testFunc(x)),global = "testFunc"); sink();
-test_that("pmincApply snowfall two output",{
-    for (nVox in 1:dim(ma)[1]) {
- 	   expect_equal(ma[nVox,1], 1) 
-	   expect_equal(ma[nVox,2], 2)}
-})
+if("package:snowfall" %in% search()) {
 
+	sink("/dev/null"); ma <- pMincApply(gf$jacobians_fixed_2,quote(mean(x))); sink();
+
+	test_that("pmincapply snowfall",{
+	    for (nVox in 1:length(mm)) {
+	 	   expect_that(ma[nVox],equals(mm[nVox],tolerance = 0.00001))}
+	})
+
+
+	sink("/dev/null"); ma <- pMincApply(gf$jacobians_fixed_2,quote(testFunc(x)),global = "testFunc"); sink();
+	test_that("pmincApply snowfall two output",{
+	    for (nVox in 1:dim(ma)[1]) {
+	 	   expect_equal(ma[nVox,1], 1) 
+		   expect_equal(ma[nVox,2], 2)}
+	})
+}

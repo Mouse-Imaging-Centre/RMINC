@@ -1013,7 +1013,7 @@ pMincApply <- function(filenames, function.string,
     function.string = eval(function.string)
   }
   else if (method == "snowfall") {
-   
+    sfInit();
     wrapper <- function(i) {
       cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
@@ -1024,8 +1024,11 @@ pMincApply <- function(filenames, function.string,
       workers <- length(sfSocketHosts())
     }
     
-    pout <- sfLapply(1:workers, wrapper)
+   
+
+    sink("/dev/null"); pout <- sfLapply(1:workers, wrapper)
     
+    sfStop();
   }
   else {
     stop("unknown execution method")
@@ -1782,6 +1785,9 @@ library(testthat)
 # Run Tests
 rmincPath = find.package("RMINC")
 test_dir(paste(rmincPath,"/","tests/",sep=""))
+
+system('rm -rf /tmp/rminctestdata')
+system('rm -rf /tmp/RMINC_test_bed_MINC_IO*mnc')
 }
 
 
