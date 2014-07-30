@@ -433,9 +433,10 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
     maxmask = maskval
   }
 
-  attach(parseLmFormula(formula,data,mf)) 
+
+
   
- 
+	attach(parseLmFormula(formula,data,mf)) 
   # Call subroutine based on whether matrix was found
   if(matrixFound) {
 	   mincFileCheck(data.matrix.left)
@@ -1627,6 +1628,10 @@ parseLmFormula <- function(formula,data,mf)
   matrixFound = FALSE
   # Only 1 Term on the RHS
   if(length(formula[[3]]) == 1) {
+	 if(is.null(data))
+
+rCommand = paste("term <-",formula[[3]],sep="")
+else
 	  rCommand = paste("term <- data$",formula[[3]],sep="")
 	  eval(parse(text=rCommand))
 
