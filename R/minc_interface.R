@@ -744,23 +744,26 @@ else {
     for (j in 1:length(p.thresholds)) {
       if (statType[i] == "F") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
 		# cat(sprintf("Number of sub-threshold F p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) >= 1 ) {
-			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=FALSE)
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <- qf(max(subTholdPvaluesNumbers), df[[i]][1], df[[i]][2], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
       else if (statType[i] == "t") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
 		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) >= 1 ) {
-			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=FALSE)
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <-qt(max(subTholdPvaluesNumbers)/2, df[[i]], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
       else if (statType[i] == "u") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
 		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) >= 1 ) {
-			thresholds[j,i] <-qwilcox(max(subTholdPvalues)/2,m,n,lower.tail = TRUE)
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <-qwilcox(max(subTholdPvaluesNumbers),m,n,lower.tail = TRUE)
 		} else { thresholds[j,i] <- NA }
       }
 
