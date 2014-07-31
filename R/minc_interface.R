@@ -1648,64 +1648,80 @@ parseLmFormula <- function(formula,data,mf)
   data.matrix.left = matrix()
   rows = NULL
   matrixFound = FALSE
-  # Only 1 Term on the RHS
+  
   if(length(formula[[3]]) == 1) {
-	 if(is.null(data))
-
-rCommand = paste("term <-",formula[[3]],sep="")
-else
-	  rCommand = paste("term <- data$",formula[[3]],sep="")
-	  eval(parse(text=rCommand))
-
-	  fileinfo = file.info(as.character(term[1]))
-	  if (!is.na(fileinfo$size)) {
-		# Save term name for later
-		rows = c('Intercept',formula[[3]])
-		matrixName = formula[[3]]
-                matrixFound = TRUE
-		data.matrix.left <- as.character(mf[,1])
-		data.matrix.right <- as.character(mf[,2])
-	        }  
-          }
+    # Only 1 Term on the RHS
+    # If the formula has the form LHS ~ RHS (for instance jacobians ~ Genotype)
+    # it will get split up as follows:
+    # formula[[1]] -> ~
+    # formula[[2]] -> LHS (jacobians)
+    # formula[[3]] -> RHS (Genotype)
+    #
+    # It is possible to have something like: jacobians ~ Genotype * Age
+    # where the RHS (formula[[3]]) would be "Genotype * Age". Here, we 
+    # deal with cases where there is only a single term on the right hand side
+    if(is.null(data)) {
+      # This was a bug discovered in the end of July 2014. The general way
+      # we call mincLm is by using a dataframe that contains all terms. So 
+      # it could be: mincLm(jacobians ~ Genotype, gf). But it's quite
+      # possible not to have this dataframe around. The command in the 
+      # else block was the standard way to retrieve the right hand side
+      # of the formula, this if block fixes the case where there is no dataframe
+      # provided.
+      rCommand = paste("term <-",formula[[3]],sep="")
+    }
+    else {
+      rCommand = paste("term <- data$",formula[[3]],sep="")
+    }
+    
+    eval(parse(text=rCommand))
+    fileinfo = file.info(as.character(term[1]))
+    if (!is.na(fileinfo$size)) {
+      # Save term name for later
+      rows = c('Intercept',formula[[3]])
+      matrixName = formula[[3]]
+      matrixFound = TRUE
+      data.matrix.left <- as.character(mf[,1])
+      data.matrix.right <- as.character(mf[,2])
+    }
+  }
   # Multiple Terms on RHS
   else {
-	  for (nTerm in 2:length(formula[[3]])){
-		  # Skip if it is an interaction term
-		  if(length(formula[[3]][[nTerm]] > 1))
-			next
-		  rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
- 		  # Skip if it is a formula symbol (i.e. *)
-		  if(!as.character(formula[[3]][[nTerm]]) %in% names(data))
-			next
-		  eval(parse(text=rCommand))	
-		  fileinfo = file.info(as.character(term[1]))
-		  if (!is.na(fileinfo$size)) {
-
-			if(length(grep('\\+',formula[[3]][[1]])) == 0)
-				stop("Only + sign allowed when using filenames")
-						
-			if(length(formula[[3]]) > 3)
-				stop("Only 2 terms allowed when using filenames on the RHS")	
-
-                        matrixName = formula[[3]][[nTerm]]
-			matrixFound = TRUE
-			data.matrix.left <- as.character(mf[,1])
-			data.matrix.right <- as.character(mf[,nTerm])
-
-			}
-		  else  {
-   			tmpFormula = formula
-			rCommand = paste("formula <-",formula[[2]],"~",formula[[3]][[nTerm]],sep="")
-		        eval(parse(text=rCommand))	
-			mmatrix <- model.matrix(formula, mf)	
-			formula = tmpFormula	
-			}
-		}
-	   rows = colnames(mmatrix)
-	   rows = append(rows,matrixName)
-	}
-return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
-
+    for (nTerm in 2:length(formula[[3]])){
+      # Skip if it is an interaction term
+      if(length(formula[[3]][[nTerm]] > 1))
+        next
+      rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+      # Skip if it is a formula symbol (i.e. *)
+      if(!as.character(formula[[3]][[nTerm]]) %in% names(data)) {
+        next
+      }
+      eval(parse(text=rCommand))	
+      fileinfo = file.info(as.character(term[1]))
+      if (!is.na(fileinfo$size)) {
+        if(length(grep('\\+',formula[[3]][[1]])) == 0) {
+          stop("Only + sign allowed when using filenames")
+        }
+        if(length(formula[[3]]) > 3) {
+          stop("Only 2 terms allowed when using filenames on the RHS")	
+        }
+        matrixName = formula[[3]][[nTerm]]
+        matrixFound = TRUE
+        data.matrix.left <- as.character(mf[,1])
+        data.matrix.right <- as.character(mf[,nTerm])
+      }
+      else {
+        tmpFormula = formula
+        rCommand = paste("formula <-",formula[[2]],"~",formula[[3]][[nTerm]],sep="")
+        eval(parse(text=rCommand))	
+        mmatrix <- model.matrix(formula, mf)	
+        formula = tmpFormula	
+      }
+    }
+    rows = colnames(mmatrix)
+    rows = append(rows,matrixName)
+  }
+  return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
 }
 
 # Run Testbed
