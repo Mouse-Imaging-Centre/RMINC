@@ -784,6 +784,27 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   return(result)
 }
 
+mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="t-test", maskval=maskval)
+  return(result)
+}
+
+mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="paired-t-test", maskval=maskval)
+  return(result)
+}
+
+mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="correlation", maskval=maskval)
+  return(result)
+}
+
+mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="wilcoxon", maskval=maskval)
+  return(result)
+}
+
+
 #
 # maskval was introduced in order to run mincSummary (and mincApply) in parralel
 # another way that this argument can be used is to specify a particular label
@@ -822,7 +843,8 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   }
   else {
     class(result) <- c("mincMultiDim", "matrix")
-    colnames(result) <- levels(grouping)
+    if(!grepl("t-test",method) && !grepl("correlation",method) && !grepl("wilcoxon",method))
+    	colnames(result) <- levels(grouping)
   }
   return(result)
 }

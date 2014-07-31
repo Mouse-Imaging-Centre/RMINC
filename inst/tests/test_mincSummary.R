@@ -1,9 +1,9 @@
 #testthat test script for functions that call mincSummary
 # mincMean, mincSd, mincVar, mincSum 
-context("mincSummary (Mean, Sd, Var, Sum)")
+context("mincSummary (Mean, Sd, Var, Sum,t-test,correlation,wilcoxon)")
 
-gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") # Note: this will change. Need standard data set. 
-gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0) # I think we should make sure this is a voxel where we are sure something is happening
+gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0)
 
 #Calculate mean, sd, variance, and sum 
 sink("/dev/null"); mm <- mincMean(gf$jacobians_0.2); sink();
@@ -40,4 +40,37 @@ test_that("mincSummary functions", {
 })
 
 
+sink("/dev/null"); mtt <- mincTtest(gf$jacobians_0.2,gf$Strain); sink();
+ttt <- t.test(vox~Strain,data=gf)
+
+test_that("ttest", {
+    expect_equivalent(ttt$statistic, mtt[1])
+})
+
+
+gf_paired = gf[1:20,];
+sink("/dev/null"); mtt <- mincPairedTtest(gf_paired $jacobians_0.2,gf_paired $Strain); sink(); # To Do: Ask case where unequal lengths
+ttt <- t.test(vox~Strain,data=gf_paired ,paired=TRUE)
+
+test_that("paired ttest", {
+    expect_equivalent(ttt$statistic, mtt[1])
+})
+
+
+sink("/dev/null"); mc <- mincCorrelation(gf$jacobians_0.2,gf$Weight); sink();
+tc <- cor(gf$Weight,gf$vox)
+
+test_that("correlation", {
+    expect_equivalent(tc, mc[1])
+})
+
+gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
+gf_paired = gf[1:20,];
+sink("/dev/null"); mw <- mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain); sink();
+tw <- wilcox.test(vox~Strain,data=gf_paired)
+gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
+gf_paired = gf[1:20,];
+test_that("wilcoxon", {
+    expect_equivalent(100-tw[[1]], mw[15*15*5 + 15*5 + 6])
+})
 
