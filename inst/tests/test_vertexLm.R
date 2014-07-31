@@ -1,24 +1,24 @@
 context("vertexLm")
 
-gftest = read.csv('/micehome/dcassel/R/Scripts/Testing/subject.csv')
+gftest = read.csv('/tmp/rminctestdata/subject.csv')
 subjectFile = matrix(data=NA,nrow=10,1)
-subjectFile[1,1] = '/micehome/dcassel/R/Scripts/Testing/vertex2.txt'
-subjectFile[2,1] = '/micehome/dcassel/R/Scripts/Testing/vertex3.txt'
-subjectFile[3,1] = '/micehome/dcassel/R/Scripts/Testing/vertex4.txt'
-subjectFile[4,1] = '/micehome/dcassel/R/Scripts/Testing/vertex3.txt'
-subjectFile[5,1] = '/micehome/dcassel/R/Scripts/Testing/vertex1.txt'
-subjectFile[6,1] = '/micehome/dcassel/R/Scripts/Testing/vertex2.txt'
-subjectFile[7,1] = '/micehome/dcassel/R/Scripts/Testing/vertex4.txt'
-subjectFile[8,1] = '/micehome/dcassel/R/Scripts/Testing/vertex2.txt'
-subjectFile[9,1] = '/micehome/dcassel/R/Scripts/Testing/vertex3.txt'
-subjectFile[10,1] = '/micehome/dcassel/R/Scripts/Testing/vertex1.txt'
+subjectFile[1,1]  = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[2,1]  = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[3,1]  = '/tmp/rminctestdata/vertex4.txt'
+subjectFile[4,1]  = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[5,1]  = '/tmp/rminctestdata/vertex1.txt'
+subjectFile[6,1]  = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[7,1]  = '/tmp/rminctestdata/vertex4.txt'
+subjectFile[8,1]  = '/tmp/rminctestdata/vertex2.txt'
+subjectFile[9,1]  = '/tmp/rminctestdata/vertex3.txt'
+subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
 gftest$testFilesLeft = (subjectFile)
 
 
 sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age,gftest); sink();
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
-rLm = summary(lm(testLeft[,1]~Sex,gftest))
+rLm = summary(lm(testLeft[,1]~Age,gftest))
 
 test_that("vertexLm Two Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))

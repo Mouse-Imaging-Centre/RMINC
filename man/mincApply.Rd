@@ -6,7 +6,7 @@
   files}
 \usage{
 mincApply(filenames, quote(mean(x)), mask="mask.mnc")
-pMincApply(filenames, quote(mean(x)), mask="mask.mnc", cores=4,
+pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
 method="snowfall", tinyMask=FALSE)
 }
 \arguments{
@@ -20,7 +20,7 @@ method="snowfall", tinyMask=FALSE)
     to apply the function. If left blank (the default) then anything
     above 0.5 will be considered inside the mask. This argument only
     works for mincApply, not pMincApply.}
-  \item{cores}{The number of processes to split the function into. Only
+  \item{workers}{The number of processes to split the function into. Only
     works for pMincApply, not for mincApply.}
   \item{method}{The method to be used for parallization. At the moment
     only "snowfall" works.}

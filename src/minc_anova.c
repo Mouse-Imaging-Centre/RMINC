@@ -40,7 +40,7 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
   xf_sexp = REAL(f_sexp);
   
   //Rprintf("before voxel_lm\n");
-  voxel_lm(Sy, Sx, coefficients, residuals, effects,
+  voxel_lm(Sy, Sx,n,p, coefficients, residuals, effects,
 	   work, qraux, v, pivot, se, t);
   //Rprintf("after voxel_lm\n");
 

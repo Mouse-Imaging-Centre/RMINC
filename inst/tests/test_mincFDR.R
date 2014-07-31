@@ -1,11 +1,12 @@
 context("mincFDR")
 
-gf <- read.csv("/projects/moush/matthijs/2013-08-test-csv-RMINC/test_data_set.csv")
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
 voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
 Sex <- gf$Sex[1:10]
 Scale <- gf$scale[1:10]
 Coil <- as.factor(gf$coil[1:10])
+gf$coil <- as.factor(gf$coil)
 gftest = gf[1:10,]
 gftest$voxel_right = (gf$jacobians_fixed_2[11:20])
 gftest$voxel_left_file = gf$jacobians_fixed_2[1:10]
@@ -57,7 +58,7 @@ test_that("mincFDR interaction",{
 	expect_that(rLmFDR4[3],is_equivalent_to(rmincFDR[3,5]))
 })
 
-sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Coil,gftest); sink();
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Coil,gftest))
 
@@ -82,7 +83,7 @@ test_that("mincFDR Three Factors",{
 
 
 
-sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Scale*Coil,gftest); sink();
+sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Scale*coil,gftest); sink();
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Scale*Coil,gftest))
 
