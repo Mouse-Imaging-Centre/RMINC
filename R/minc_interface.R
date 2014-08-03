@@ -1724,6 +1724,82 @@ parseLmFormula <- function(formula,data,mf)
   return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
 }
 
+### lmer functions stuff starts here
+
+# the outside part of the loop - setting up various matrices, etc., whatever that is
+# constant for all voxels goes here
+mincLmer <- function(formula, data, mask=NULL,
+                     REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
+  # code ripped straight from lme4::lmer
+  mc <- mcout <- match.call()
+  mc$control <- lmerControl()
+  mc[[1]] <- quote(lme4::lFormula)
+  lmod <- eval(mc, parent.frame(1L))
+  mincLmerList <<- list(lmod, mcout, control, start, verbose)
+
+  # for some reason there is a namespace issue if I call diag directly, but only if inside
+  # a function that is part of RMINC (i.e. if I source the code it works fine). So here's a
+  # workaround to get the method first, give it a new name, and assign to global namespace.
+  tmpDiag <<- getMethod("diag", "dsyMatrix")
+
+  
+  out <- mincApply(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
+                   quote(mincLmerOptimize(x)),
+                   mask=mask)
+
+  termnames <- colnames(lmod$X)
+  betaNames <- paste("beta-", termnames, sep="")
+  tnames <- paste("tvalue-", termnames, sep="")
+  colnames(out) <- c(betaNames, tnames)
+  return(out)
+}
+
+
+
+# the actual optimization of the mixed effects models; everything that has to be recomputed
+# for every voxel goes here. Works on x (each voxel is assigned x during the loop), and
+# assumes that all the other info is in a variable called mincLmerList in the global
+# environment. This last part is a hack to get around the lack of multiple function arguments
+# for mincApply and friends.
+mincLmerOptimize <- function(x) {
+  # code ripped straight from lme4::lmer
+  # assignments from global variable set in mincLmer
+  lmod <- mincLmerList[[1]]
+  mcout <- mincLmerList[[2]]
+  control <- mincLmerList[[3]]
+  start <- mincLmerList[[4]]
+  verbose <- mincLmerList[[5]]
+
+  # assign the vector of voxel values
+  lmod$fr[,1] <- x
+  
+  devfun <- do.call(mkLmerDevfun, c(lmod,
+                                    list(start = start, 
+                                         verbose = verbose,
+                                         control = control)))
+
+  opt <- optimizeLmer(devfun, optimizer = control$optimizer, 
+                      restart_edge = control$restart_edge,
+                      boundary.tol = control$boundary.tol, 
+                      control = control$optCtrl, verbose = verbose,
+                      start = start, 
+                      calc.derivs = control$calc.derivs,
+                      use.last.params = control$use.last.params)
+  cc <- lme4:::checkConv(attr(opt, "derivs"), opt$par,
+                         ctrl = control$checkConv, 
+                         lbound = environment(devfun)$lower)
+  mmod <- mkMerMod(environment(devfun), opt, lmod$reTrms,
+                   fr = lmod$fr, mcout, lme4conv = cc)
+  se <- sqrt(tmpDiag(vcov(mmod, T)))
+  fe <- mmod@beta
+  t <- fe / se
+  return(c(fe,t))
+  #return(c(fe))
+}
+
+### end of lmer bits of code
+
+
 # Run Testbed
 runTestbed <- function() {
 
