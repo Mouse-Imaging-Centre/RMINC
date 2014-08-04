@@ -616,7 +616,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   attr(buffer, "df") <- df
 
   # must know the type of statistic we are dealing with
-  knownStats <- c("t", "F")
+  knownStats <- c("t", "F", "chisq")
   if (is.null(statType)) {
     # stat type not specified - must be an attribute to the buffer
     if (is.null(attr(buffer, "stat-type"))) {
@@ -712,6 +712,14 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
         pvals <- pf(buffer[mask>0.5], df[[i]][1], df[[i]][2], lower.tail=FALSE)
       }
     }
+    else if (statType[i] == "chisq") {
+      if (is.matrix(buffer)) {
+        pvals <- pchisq(buffer[mask>0.5, i], df[[i]], lower.tail=F)
+      }
+      else {
+        pvals <- pchisq(buffer[mask>0.5], df[[i]], lower.tail=F)
+      }
+    }  
     
 
 
@@ -743,6 +751,13 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
 			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
+      else if (statType[i] == "chisq") {
+ 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
+		if ( length(subTholdPvalues) >= 1 ) {
+			thresholds[j,i] <-qchisq(max(subTholdPvalues), df[[i]], lower.tail=FALSE)
+		} else { thresholds[j,i] <- NA }       
+              }
     }
     output[mask>0.5,i] <- qobj$qvalue
   }
@@ -759,7 +774,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   gcout <- gc()
   
   return(output)
-}
+  }
 ###########################################################################################
 
 
@@ -1725,11 +1740,35 @@ parseLmFormula <- function(formula,data,mf)
 }
 
 ### lmer functions stuff starts here
-
-# the outside part of the loop - setting up various matrices, etc., whatever that is
-# constant for all voxels goes here
-mincLmer <- function(formula, data, mask=NULL,
+#' mincified version of lmer from lme4
+#'
+#' mincLmer should be used the same way as a straight lmer call, except
+#' that the left hand side of the equation contains minc filenames rather than
+#' an actual response variable.
+#'
+#' @param formula the lmer formula, filenames go on left hand side
+#' @param data the data frame, all items in formula should be in here
+#' @param mask the mask within which lmer is solved
+#' @param parallel how many processors to run on (default=single processor)
+#' @param REML whether to use use Restricted Maximum Likelihood or Maximum Likelihood
+#' @param control lmer control function
+#' @param start lmer start function
+#' @param verbose lmer verbosity control
+#'
+#' @return a matrix where rows correspond to number of voxels in the file and columns to number of terms in the formula
+#'
+#' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
+#'
+#' @examples
+#' \dontrun{
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
+#' mincWriteVolume(vs, "age-term.mnc", "tvalue-age")
+#' }
+mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
+  # the outside part of the loop - setting up various matrices, etc., whatever that is
+  # constant for all voxels goes here
+
   # code ripped straight from lme4::lmer
   mc <- mcout <- match.call()
   mc$control <- lmerControl()
@@ -1742,15 +1781,41 @@ mincLmer <- function(formula, data, mask=NULL,
   # workaround to get the method first, give it a new name, and assign to global namespace.
   tmpDiag <<- getMethod("diag", "dsyMatrix")
 
-  
-  out <- mincApply(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
-                   quote(mincLmerOptimize(x)),
-                   mask=mask)
+  if (!is.null(parallel)) {
+    if (is.numeric(parallel)) {
+      # if the argument to parallel is an integer then use snowfall to run in parallel
+      # on local machine with the number of processes equal to the argument to parallel.
+      library(snowfall)
+      sfInit(parallel=TRUE, cpus=parallel)
+      sfExport("mincLmerList", "tmpDiag")
+      sfLibrary(lme4)
+      sfLibrary(RMINC)
+      out <- pMincApply(lmod$fr[,1],
+                        quote(mincLmerOptimizeAndExtract(x)),
+                        mask=mask,
+                        method="snowfall",
+                        workers=parallel)
+      sfStop()
+    }
+  }
+  else {
+    out <- mincApply(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
+                     quote(mincLmerOptimizeAndExtract(x)),
+                     mask=mask)
+  }
 
   termnames <- colnames(lmod$X)
   betaNames <- paste("beta-", termnames, sep="")
   tnames <- paste("tvalue-", termnames, sep="")
-  colnames(out) <- c(betaNames, tnames)
+  colnames(out) <- c(betaNames, tnames, "logLik")
+
+  # generate some random numbers for a single fit in order to extract some extra info
+  mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])))
+  attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)), "logLik")
+  # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
+  attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
+  attr(out, "REML") <- REML
+  
   return(out)
 }
 
@@ -1777,6 +1842,7 @@ mincLmerOptimize <- function(x) {
                                     list(start = start, 
                                          verbose = verbose,
                                          control = control)))
+  #devfun <- mkLmerDevfun(lmod$fr, lmod$X, lmod$reTrms, lmod$REML, start, verbose, control)
 
   opt <- optimizeLmer(devfun, optimizer = control$optimizer, 
                       restart_edge = control$restart_edge,
@@ -1790,12 +1856,103 @@ mincLmerOptimize <- function(x) {
                          lbound = environment(devfun)$lower)
   mmod <- mkMerMod(environment(devfun), opt, lmod$reTrms,
                    fr = lmod$fr, mcout, lme4conv = cc)
+  return(mmod)
+}
+
+mincLmerExtractVariables <- function(mmod) {
   se <- sqrt(tmpDiag(vcov(mmod, T)))
   fe <- mmod@beta
   t <- fe / se
-  return(c(fe,t))
-  #return(c(fe))
+  ll <- logLik(mmod)
+  return(c(fe,t, ll))
 }
+
+mincLmerOptimizeAndExtract <- function(x) {
+  mmod <- mincLmerOptimize(x)
+  return(mincLmerExtractVariables(mmod))
+}
+
+#' run log likelihood ratio tests for different mincLmer objects
+#'
+#' Computes the log likelihood ratio of 2 or more voxel-wise lmer calls, testing the hypothesis that
+#' the more complex model better fits the data. Note that it requires the mixed effects to have been
+#' fitted with maximum likelihood, and not restricted maximum likelihood; in other words, if you want
+#' to use these log likelihood tests, make sure to specify REML=FALSE in mincLmer.
+#'
+#' @return the voxel wise log likelihood test. Will have a number of columns corresponding to the
+#' number of inputs -1. Note that it resorts the inputs from lowest to highest degrees of freedom
+#'
+#' @seealso \code{\link{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
+#' \code{\link{mincFDR}} for using the False Discovery Rate to correct for multiple comparisons,
+#' and \code{\link{mincWriteVolume}} for outputting the values to MINC files.
+#'
+#' @examples
+#' \dontrun{
+#' m1 <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
+#' m2 <- mincLmer(filenames ~ age + I(age^2) + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
+#' m3 <- mincLmer(filenames ~ age + I(age^2) + I(age^3) + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
+#' llr <- mincLogLikRatio(m1, m2, m3)
+#' mincFDR(llr)
+#' mincWriteVolume(llr, "m2vsm3.mnc", "m3")
+#' }
+mincLogLikRatio <- function(...) {
+  dots <- list(...)
+
+  # get the names of the actual objects passed it; used for naming output columns
+  dotslist <- substitute(list(...))[-1];
+  inputnames <- sapply(dotslist, deparse) 
+
+  # test for REML vs ML, exit if REML. 
+  for (i in 1:length(dots)) {
+    REML <- attr(dots[[i]], "REML")
+    if (is.null(REML)) {
+      stop("all arguments must be the outputs of mincLmer")
+    }
+    else if (REML == TRUE) {
+      stop("Log likelihood ratio tests only work reliably if fitted with maximum likelihood, but not if fitted with restricted maximum likelihood. Rerun your model with REML=FALSE")
+    }
+  }
+
+  # sort the degrees of freedom of each of the models from lowest to highest
+  df <- vector(length=length(dots))
+  for (i in 1:length(dots)) {
+    df[i] <- attr(dots[[i]], "logLikDF")
+  }
+  dfs <- sort(df, index.return=T)
+  # create the output matrix - number of columns equal to number of objects passed in minus 1
+  logLikMatrix <- matrix(nrow=nrow(dots[[1]]), ncol=length(dots))
+  for (i in 1:length(dots)) {
+    logLikMatrix[,i] <- dots[[dfs$ix[i]]][,"logLik"]
+  }
+                             
+  # compute the log likelihood ratio test
+  flogLikRatio <- function(x) { 2 * pmax(0, diff(x)) }
+  # apply at every voxel
+  # erm - apply is slow as a dog here ... replace with manual rolled function
+  #out <- t(apply(logLikMatrix, 1, flogLikRatio))
+  out <- matrix(nrow=nrow(dots[[1]]), ncol=length(dots)-1)
+  outnames <- vector(length=length(dots)-1)
+  for (i in 2:length(dots)) {
+    out[, i-1] <- 2 * abs(logLikMatrix[, i] - logLikMatrix[, i-1])
+    outnames[i-1]  <- inputnames[dfs$ix[i]]
+  }
+
+  
+  
+  # set attributes and class types
+  attr(out, "likeVolume") <- attr(dots[[1]], "likeVolume")
+  attr(out, "stat-type") <- rep("chisq", ncol(out))
+  attr(out, "df") <- diff(dfs$x)
+  if (length(dots) == 2) {
+    class(out) <- c("mincSingleDim", "numeric")
+  }
+  else {
+    class(out) <- c("mincMultiDim", "matrix")
+  }
+  colnames(out) <- outnames
+  return(out)
+}
+  
 
 ### end of lmer bits of code
 
