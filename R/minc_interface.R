@@ -1804,6 +1804,9 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      mask=mask)
   }
 
+  # set Inf to 0 (Inf's are generated when vcov can't compute)
+  out[is.infinite(out)] <- 0
+  
   termnames <- colnames(lmod$X)
   betaNames <- paste("beta-", termnames, sep="")
   tnames <- paste("tvalue-", termnames, sep="")
@@ -1860,7 +1863,13 @@ mincLmerOptimize <- function(x) {
 }
 
 mincLmerExtractVariables <- function(mmod) {
-  se <- sqrt(tmpDiag(vcov(mmod, T)))
+  se <- tryCatch({
+    sqrt(tmpDiag(vcov(mmod, T)))
+  }, warning=function(w) {
+    return(0)
+  }, error=function(e) {
+    return(0)
+  })
   fe <- mmod@beta
   t <- fe / se
   ll <- logLik(mmod)
