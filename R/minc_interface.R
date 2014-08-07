@@ -600,7 +600,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   stattype = attr(buffer, "stat-type")
   df  = attr(buffer,"df")
   for (nStat in 1:length(stattype)) {
-    if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared') {
+    if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared' || stattype[nStat] == "logLik") {
       if(!exists('indicesToRemove')) {
         indicesToRemove = nStat 
       }
@@ -616,7 +616,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   attr(buffer, "df") <- df
 
   # must know the type of statistic we are dealing with
-  knownStats <- c("t", "F", "chisq")
+  knownStats <- c("t", "F", "chisq", "tlmer")
   if (is.null(statType)) {
     # stat type not specified - must be an attribute to the buffer
     if (is.null(attr(buffer, "stat-type"))) {
@@ -627,7 +627,8 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
     # make sure that the stat type is recognized
     if (! all(statType %in% knownStats)) {
-      stop("Error: not all the stat types are recognized. Currently allowed are: ", paste(knownStats, collapse=" "))
+      stop("Error: not all the stat types are recognized. Currently allowed are: ",
+           paste(knownStats, collapse=" "))
     }
     # make sure that there are either just one stat type
     # or as many as there are columns
@@ -646,7 +647,12 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   if (is.null(df)) {
     df <- attr(buffer, "df")
     if (is.null(df)) {
-      stop("Error: need to specify the degrees of freedom")
+      if (any(statType %in% "tlmer")) {
+        stop("Error: no degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
+      }
+      else {
+        stop("Error: need to specify the degrees of freedom")
+      }
     }
     if (length(df) == 1 & ncol(buffer) != 1) {
       df <- rep(list(df), ncol(buffer))
@@ -688,6 +694,10 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   output <- matrix(1, nrow=n.row, ncol=n.cols)
   p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
   thresholds <- matrix(nrow=length(p.thresholds), ncol=n.cols)
+
+  if (any("tlmer" %in% statType)) {
+    warning("Warning: computing p-values from a mincLmer call. Mixed-effects models are notoriously difficult to correctly obtain p-values from, so this is based on an approximation and might be incorrect. Read the documentation and, if in doubt, use log likelihood testing for a more correct approach.")
+  }
   
   for (i in 1:n.cols) {
     cat("  Computing threshold for ", columns[i], "\n")
@@ -695,7 +705,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     qobj <- vector("list", length(pvals))
 
     # convert statistics to p-values
-    if (statType[i] == "t") {
+    if (statType[i] %in% c("t", "tlmer")) {
       if (is.matrix(buffer)) {
         pvals <- pt2(buffer[mask>0.5, i], df[[i]])
       }
@@ -744,7 +754,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
 			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
-      else if (statType[i] == "t") {
+      else if (statType[i] %in% c("t", "tlmer")) {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
 		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
 		if ( length(subTholdPvalues) >= 1 ) {
@@ -1814,16 +1824,101 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
 
   # generate some random numbers for a single fit in order to extract some extra info
   mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])))
+  
   attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)), "logLik")
   # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
   attr(out, "REML") <- REML
-  
+  attr(out, "mask") <- mask
+  attr(out, "mincLmerList") <- mincLmerList
+
   return(out)
 }
 
+#' estimate the degrees of freedom for parameters in a mincLmer model
+#'
+#' There is much uncertainty in how to compute p-values for mixed-effects
+#' statistics, related to the correct calculation of the degrees of freedom
+#' of the model (see here \link{http://glmm.wikidot.com/faq#df}). mincLmer by
+#' default does not return the degrees of freedom as part of its model, instead
+#' requiring an explicit call to a separate function (such as this one).
+#' The implementation here is the Satterthwaite approximation. This approximation
+#' is computed from the data, to avoid the significant run-time requirement of computing
+#' it separate for every voxel, here it is only computed on a small number of voxels
+#' within the mask and the min DF returned for every variable.
+#' 
+#' @param model the output of mincLmer
+#'
+#' @return the same mincLmer model, now with degrees of freedom set
+#'
+#' @seealso \code{\link{mincLmer}} for mixed effects modelling, \code{\link{mincFDR}}
+#' for multiple comparisons corrections.
+#'
+#' @examples
+#' \dontrun{
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
+#' vs <- mincLmerEstimateDF(vs)
+#' qvals <- mincFDR(vs, mask=attr(vs, "mask"))
+#' qvals
+#' }
+mincLmerEstimateDF <- function(model) {
+  # set the DF based on the Satterthwaite approximation
+  # load lmerTest library if not loaded; lmerTest takes over some lmer functions, so unload if
+  # it wasn't loaded in the first place
+  lmerTestLoaded <- "package:lmerTest" %in% search()
+  if (lmerTestLoaded == FALSE) {
+    library(lmerTest)
+  }
 
+  # put the lmod variable back in the global environment
+  lmod <<- attr(model, "mincLmerList")[[1]]
+  mask <- attr(model, "mask")
+  
+  # the estimated DF depends on the input data. It would take a long time to estimate it for
+  # every voxel, so instead the mean of all voxels within the mask will be used and set for
+  # the entire object.
+  ## meanVoxels <- vector(length=length(lmod$fr[,1]))
+  ## for (i in 1:length(lmod$fr[,1])) {
+  ##   if (is.null(mask)) {
+  ##     meanVoxels[i] <- mean(mincGetVolume(lmod$fr[i,]))
+  ##   }
+  ##   else {
+  ##     meanVoxels[i] <- anatGetFile(lmod$fr[i,1], mask)[2,2]
+  ##   }
+  ## }
+  ## mmod <- mincLmerOptimize(meanVoxels)
 
+  # estimated DF depends on the input data. Rather than estimate separately at every voxel,
+  # instead select a small number of voxels and estimate DF for those voxels, then keep the
+  # min
+  nvoxels <- 50
+  rvoxels <- mincSelectRandomVoxels(mask, nvoxels)
+  dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
+  for (i in 1:nvoxels) {
+    voxelData <- mincGetVoxel(lmod$fr[,1], rvoxels[i,])
+    mmod <- mincLmerOptimize(voxelData)
+    # code directly from lmerTest library
+    rho <- lmerTest:::rhoInit(mmod)
+    hessian <- lmerTest:::myhess
+    Dev <- lmerTest:::Dev
+    h  <-  hessian(function(x) Dev(rho,x), rho$param$vec.matr)
+    rho$A <- 2*solve(h)
+    dfs[i,] <- lmerTest:::calculateTtest(rho, diag(rep(1, length(rho$fixEffs))),
+                                         length(rho$fixEffs), "simple")[,1]
+    
+  }
+  df <- apply(dfs, 2, min)
+  cat("Mean df: ", apply(dfs, 2, mean), "\n")
+  cat("Min df: ", apply(dfs, 2, min), "\n")
+  cat("Max df: ", apply(dfs, 2, max), "\n")
+  cat("Sd df: ", apply(dfs, 2, sd), "\n")
+  
+  attr(model, "df") <- df
+  if (lmerTestLoaded == FALSE) {
+    detach("package:lmerTest")
+  }
+  return(model)
+}
 # the actual optimization of the mixed effects models; everything that has to be recomputed
 # for every voxel goes here. Works on x (each voxel is assigned x during the loop), and
 # assumes that all the other info is in a variable called mincLmerList in the global
@@ -1862,8 +1957,10 @@ mincLmerOptimize <- function(x) {
   return(mmod)
 }
 
+# takes a merMod object, gets beta, t, and logLikelihood values, and
+# returns them as a vector
 mincLmerExtractVariables <- function(mmod) {
-  se <- tryCatch({
+  se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
     sqrt(tmpDiag(vcov(mmod, T)))
   }, warning=function(w) {
     return(0)
@@ -1871,7 +1968,7 @@ mincLmerExtractVariables <- function(mmod) {
     return(0)
   })
   fe <- mmod@beta
-  t <- fe / se
+  t <- fe / se # returns Inf if se=0 (see error handling above); mincLmer removes Inf
   ll <- logLik(mmod)
   return(c(fe,t, ll))
 }
@@ -1965,6 +2062,29 @@ mincLogLikRatio <- function(...) {
 
 ### end of lmer bits of code
 
+
+mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
+  sizes <- minc.dimensions.sizes(volumeFileName)
+  i1 <- vectorCoord %/% (sizes[2]*sizes[3])
+  i1r <- vectorCoord %% (sizes[2]*sizes[3])
+  i2 <- i1r %/% sizes[2]
+  i3 <- i1r %% sizes[2]
+  return(c(i1, i2, i3))
+}
+
+mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50) {
+  #load volume - should be a binary mask
+  mvol <- mincGetVolume(volumeFileName) 
+  # get the indices of voxels inside mask
+  vinmask <- which(mvol %in% 1)
+  # keep a random set of voxels
+  indicesToKeep <-  vinmask[ floor(runif(nvoxels, min=1, max=length(vinmask))) ]
+  out <- matrix(nrow=nvoxels, ncol=3)
+  for (i in 1:nvoxels) {
+    out[i,] <- mincVectorToVoxelCoordinates(volumeFileName, indicesToKeep[i])
+  }
+  return(out)
+}
 
 # Run Testbed
 runTestbed <- function() {
