@@ -1759,7 +1759,7 @@ parseLmFormula <- function(formula,data,mf)
 #' @param formula the lmer formula, filenames go on left hand side
 #' @param data the data frame, all items in formula should be in here
 #' @param mask the mask within which lmer is solved
-#' @param parallel how many processors to run on (default=single processor)
+#' @param parallel how many processors to run on (default=single processor). 
 #' @param REML whether to use use Restricted Maximum Likelihood or Maximum Likelihood
 #' @param control lmer control function
 #' @param start lmer start function
@@ -1792,11 +1792,20 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   tmpDiag <<- getMethod("diag", "dsyMatrix")
 
   if (!is.null(parallel)) {
-    if (is.numeric(parallel)) {
-      # if the argument to parallel is an integer then use snowfall to run in parallel
-      # on local machine with the number of processes equal to the argument to parallel.
+    # a vector with two elements: the methods followed by the # of workers
+    if (parallel[1] == "sge") {
+      out <- pMincApply(lmod$fr[,1],
+                        quote(mincLmerOptimizeAndExtract(x)),
+                        mask=mask,
+                        method="sge",
+                        worker=as.numeric(parallel[2]),
+                        global=c("mincLmerList", "tmpDiag", "mincLmerOptimize",
+                          "mincLmerExtractVariables"),
+                        packages=c("lme4", "RMINC"))
+    }
+    else if (parallel[1] %in% c("local", "snowfall")) {
       library(snowfall)
-      sfInit(parallel=TRUE, cpus=parallel)
+      sfInit(parallel=TRUE, cpus=as.numeric(parallel[2]))
       sfExport("mincLmerList", "tmpDiag")
       sfLibrary(lme4)
       sfLibrary(RMINC)
@@ -1804,7 +1813,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                         quote(mincLmerOptimizeAndExtract(x)),
                         mask=mask,
                         method="snowfall",
-                        workers=parallel)
+                        workers=as.numeric(parallel[2]))
       sfStop()
     }
   }
