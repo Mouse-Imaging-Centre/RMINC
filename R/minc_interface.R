@@ -1791,7 +1791,18 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   mc$control <- lmerControl()
   mc[[1]] <- quote(lme4::lFormula)
   lmod <- eval(mc, parent.frame(1L))
-  mincLmerList <<- list(lmod, mcout, control, start, verbose)
+
+  # code ripped from lme4:::mkLmerDevFun
+  rho <- new.env(parent = parent.env(environment()))
+  rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
+                                                  "Lambdat", "Lind")],
+                                    n = nrow(lmod$X), list(X = lmod$X)))
+  REMLpass <- if (REML) 
+    ncol(lmod$X)
+  else 0L
+
+
+  mincLmerList <<- list(lmod, mcout, control, start, verbose, rho, REMLpass)
 
   # for some reason there is a namespace issue if I call diag directly, but only if inside
   # a function that is part of RMINC (i.e. if I source the code it works fine). So here's a
@@ -1948,14 +1959,24 @@ mincLmerOptimize <- function(x) {
   control <- mincLmerList[[3]]
   start <- mincLmerList[[4]]
   verbose <- mincLmerList[[5]]
-
+  rho <- mincLmerList[[6]]
+  REMLpass <- mincLmerList[[7]]
+  
   # assign the vector of voxel values
   lmod$fr[,1] <- x
-  
-  devfun <- do.call(mkLmerDevfun, c(lmod,
-                                    list(start = start, 
-                                         verbose = verbose,
-                                         control = control)))
+
+  # code from lme4:::mkLmerDevFun
+  rho$resp <- mkRespMod(lmod$fr, REML = REMLpass)
+  devfun <- lme4:::mkdevfun(rho, 0L, verbose, control)
+  theta <- lme4:::getStart(lmod$start, lmod$reTrms$lower, rho$pp)
+  if (length(rho$resp$y) > 0) 
+    devfun(rho$pp$theta)
+  rho$lower <- lmod$reTrms$lower
+
+  #devfun <- do.call(mkLmerDevfun, c(lmod,
+  #                                  list(start = start, 
+  #                                       verbose = verbose,
+  #                                       control = control)))
   #devfun <- mkLmerDevfun(lmod$fr, lmod$X, lmod$reTrms, lmod$REML, start, verbose, control)
 
   opt <- optimizeLmer(devfun, optimizer = control$optimizer, 
