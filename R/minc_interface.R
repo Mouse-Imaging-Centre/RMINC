@@ -1759,7 +1759,10 @@ parseLmFormula <- function(formula,data,mf)
 #' @param formula the lmer formula, filenames go on left hand side
 #' @param data the data frame, all items in formula should be in here
 #' @param mask the mask within which lmer is solved
-#' @param parallel how many processors to run on (default=single processor). 
+#' @param parallel how many processors to run on (default=single processor).
+#' Specified as a two element vector, with the first element corresponding to
+#' the type of parallelization (sge or snowfall), and the second to the number
+#' of processors to use. 
 #' @param REML whether to use use Restricted Maximum Likelihood or Maximum Likelihood
 #' @param control lmer control function
 #' @param start lmer start function
@@ -1773,6 +1776,10 @@ parseLmFormula <- function(formula,data,mf)
 #' \dontrun{
 #' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
 #' mincWriteVolume(vs, "age-term.mnc", "tvalue-age")
+#' # run in parallel with multiple processors on the local machine
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", parallel=c("snowfall", 4))
+#' # run in parallel with multiple processors over the sge batch queueing system
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", parallel=c("sge", 4))
 #' }
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
@@ -2071,7 +2078,22 @@ mincLogLikRatio <- function(...) {
 
 ### end of lmer bits of code
 
-
+#' converts a vector index to the voxel indices in MINC
+#'
+#' RMINC stores volume data as 1d arrays. This function gives the
+#' corresponding voxel coordinates (in the dimension order of the volume)
+#' for an index into the 1d array.
+#'
+#' @param volumeFileName the filename of the MINC volume
+#' @param vectorCoord the integer array index to convert
+#'
+#' @return a vector of length 3 containing the MINC indices in volume dimension order
+#'
+#' @examples
+#' \dontrun{
+#' index <- mincVectorToVoxelCoordinates("filename.mnc", 345322)
+#' voxel <- mincGetVoxel(gf$filenames, index)
+#' }
 mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
   sizes <- minc.dimensions.sizes(volumeFileName)
   i1 <- vectorCoord %/% (sizes[2]*sizes[3])
@@ -2081,6 +2103,13 @@ mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
   return(c(i1, i2, i3))
 }
 
+#' selects a few random indices from a volume
+#'
+#' Given a filename, select a few random indices using the uniform distribution
+#' from voxels that have a value of 1 (i.e. from a mask volume)
+#'
+#' @param volumeFileName the filename for a MINC volume
+#' @param nvoxel the number of voxels to select
 mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50) {
   #load volume - should be a binary mask
   mvol <- mincGetVolume(volumeFileName) 
