@@ -1898,7 +1898,8 @@ mincLmerEstimateDF <- function(model) {
   }
 
   # put the lmod variable back in the global environment
-  lmod <<- attr(model, "mincLmerList")[[1]]
+  #lmod <<- attr(model, "mincLmerList")[[1]]
+  mincLmerList <<- attr(model, "mincLmerList")
   mask <- attr(model, "mask")
   
   # the estimated DF depends on the input data. It would take a long time to estimate it for
@@ -1965,6 +1966,7 @@ mincLmerOptimize <- function(x) {
   # assign the vector of voxel values
   lmod$fr[,1] <- x
 
+  # finish building the dev function by adding the response term
   # code from lme4:::mkLmerDevFun
   rho$resp <- mkRespMod(lmod$fr, REML = REMLpass)
   devfun <- lme4:::mkdevfun(rho, 0L, verbose, control)
@@ -1973,12 +1975,15 @@ mincLmerOptimize <- function(x) {
     devfun(rho$pp$theta)
   rho$lower <- lmod$reTrms$lower
 
+  # kept the old full mkLmerDevFun call around here in case the divided call
+  # ends up with unexpected side effects down the road.
   #devfun <- do.call(mkLmerDevfun, c(lmod,
   #                                  list(start = start, 
   #                                       verbose = verbose,
   #                                       control = control)))
   #devfun <- mkLmerDevfun(lmod$fr, lmod$X, lmod$reTrms, lmod$REML, start, verbose, control)
 
+  # the optimization of the function - straight from lme4:::lmer
   opt <- optimizeLmer(devfun, optimizer = control$optimizer, 
                       restart_edge = control$restart_edge,
                       boundary.tol = control$boundary.tol, 
@@ -2080,12 +2085,18 @@ mincLogLikRatio <- function(...) {
     outnames[i-1]  <- inputnames[dfs$ix[i]]
   }
 
-  
-  
   # set attributes and class types
   attr(out, "likeVolume") <- attr(dots[[1]], "likeVolume")
   attr(out, "stat-type") <- rep("chisq", ncol(out))
   attr(out, "df") <- diff(dfs$x)
+  attr(out, "mask") <- attr(dots[[1]], "mask")
+
+  # keep the mincLmerList for every object
+  mincLmerLists <- list()
+  for (i in 1:length(dots)) {
+    mincLmerLists[[i]] <- attr(dots[[dfs$ix[i]]], "mincLmerList")
+  }
+  attr(out, "mincLmerLists") <- mincLmerLists
   if (length(dots) == 2) {
     class(out) <- c("mincSingleDim", "numeric")
   }
@@ -2096,7 +2107,53 @@ mincLogLikRatio <- function(...) {
   return(out)
 }
   
+mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
+                                               nsims=1000, nvoxels=100) {
+  mincLmerLists <- attr(logLikOutput, "mincLmerLists")
+  mask <- attr(logLikOutput, "mask")
+  if (length(mincLmerLists) != 2) {
+    stop("Error: parametric bootstrap only implemented for the two model comparison case")
+  }
+  if (selection == "random") {
+    out <- matrix(nrow=nvoxels, ncol=2)
+    simLogLik <- matrix(nrow=nsims, ncol=2)
+    simLogLikRatio <- numeric(nvoxels)
+    voxelMatrix <- matrix(nrow=nsims, ncol=nrow(attr(logLikOutput, "mincLmerLists")[[1]][[1]]$X))
+    voxels <- mincSelectRandomVoxels(mask, nvoxels, convert=F)
+    #cat(voxels)
+    for (i in 1:nvoxels) {
+      # refit the null model first since we'll need the merMod object for simulations
+      mincLmerList <<- mincLmerLists[[1]]
+      voxel <- mincGetVoxel(mincLmerList[[1]]$fr[,1], mincVectorToVoxelCoordinates(mask, voxels[i]))
+      mmod <- mincLmerOptimize(voxel)
+      for (j in 1:nsims) {
+        # create the simulated data from the null model
+        voxelMatrix[j,] <- unlist(simulate(mmod))
+        # compute the log likelihood for the null model
+        simLogLik[j,1] <- logLik(mincLmerOptimize(voxelMatrix[j,]))
+      }
+      # do it all again for the alternate model (happens in separate loop since
+      # mincLmerOptimize relies on the global variable mincLmerList)
+      mincLmerList <<- mincLmerLists[[2]]
+      for (j in 1:nsims) {
+        simLogLik[j,2] <- logLik(mincLmerOptimize(voxelMatrix[j,]))
+      }
+      # compute the normally estimated chisq p value
+      out[i,1] <- pchisq(logLikOutput[voxels[i]], attr(logLikOutput, "df"), lower=F)
+      # compute the parametric log likelihood ratio
+      simLogLikRatio <- 2 * abs(simLogLik[,1] - simLogLik[,2])
+      # compute the parametric bootstrap p value
+      out[i,2] <- mean( simLogLikRatio >= logLikOutput[voxels[i]] )
+      colnames(out) <- c("chisq", "parametricBootstrap")
+    }
+  }
+  else {
+    stop("Error: unknown voxel selection mechanism")
+  }
+  return(out)
+}
 
+  
 ### end of lmer bits of code
 
 #' converts a vector index to the voxel indices in MINC
@@ -2131,18 +2188,24 @@ mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
 #'
 #' @param volumeFileName the filename for a MINC volume
 #' @param nvoxel the number of voxels to select
-mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50) {
+#' @param convert whether to convert to MINC voxel space (default) or keep in index space  
+mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
   #load volume - should be a binary mask
   mvol <- mincGetVolume(volumeFileName) 
   # get the indices of voxels inside mask
   vinmask <- which(mvol %in% 1)
   # keep a random set of voxels
   indicesToKeep <-  vinmask[ floor(runif(nvoxels, min=1, max=length(vinmask))) ]
-  out <- matrix(nrow=nvoxels, ncol=3)
-  for (i in 1:nvoxels) {
-    out[i,] <- mincVectorToVoxelCoordinates(volumeFileName, indicesToKeep[i])
+  if (convert == TRUE) {
+    out <- matrix(nrow=nvoxels, ncol=3)
+    for (i in 1:nvoxels) {
+      out[i,] <- mincVectorToVoxelCoordinates(volumeFileName, indicesToKeep[i])
+    }
+    return(out)
   }
-  return(out)
+  else {
+    return(indicesToKeep)
+  }
 }
 
 # Run Testbed
