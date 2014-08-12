@@ -434,27 +434,31 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
   }
 
 
+  # the following returns:
+  #
+  # list(data.matrix.left = data.matrix.left, 
+  #      data.matrix.right = data.matrix.right,
+  #      rows = rows,
+  #      matrixFound = matrixFound,
+  #      mmatrix = mmatrix)
+  parseLmOutput <- parseLmFormula(formula,data,mf)
 
-  
-	attach(parseLmFormula(formula,data,mf)) 
   # Call subroutine based on whether matrix was found
-  if(matrixFound) {
-	   mincFileCheck(data.matrix.left)
-	   mincFileCheck(data.matrix.right)
+  if(parseLmOutput$matrixFound) {
+    mincFileCheck(parseLmOutput$data.matrix.left)
+    mincFileCheck(parseLmOutput$data.matrix.right)
+  }
+  else  {
+    parseLmOutput$mmatrix <- model.matrix(formula, mf)	
+    parseLmOutput$data.matrix.left <- as.character(mf[,1])
+    mincFileCheck(parseLmOutput$data.matrix.left)
+    parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
+  }
 
-	}
-  else  {      	
-	
-	mmatrix <- model.matrix(formula, mf)	
-	data.matrix.left <- as.character(mf[,1])
- 	mincFileCheck(data.matrix.left)
-	rows = colnames(mmatrix)
-	}
- 
-  	   result <- .Call("minc2_model",
-                  as.character(data.matrix.left),
-		  data.matrix.right,
-                  as.matrix(mmatrix),
+  result <- .Call("minc2_model",
+                  as.character(parseLmOutput$data.matrix.left),
+                  parseLmOutput$data.matrix.right,
+                  as.matrix(parseLmOutput$mmatrix),
                   NULL,
                   as.double(! is.null(mask)),
                   as.character(mask),
@@ -463,9 +467,9 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
 
-  attr(result, "likeVolume") <- data.matrix.left[1]
-  attr(result, "filenames") <- data.matrix.left
-  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "likeVolume") <- parseLmOutput$data.matrix.left[1]
+  attr(result, "filenames") <- parseLmOutput$data.matrix.left
+  attr(result, "model") <- as.matrix(parseLmOutput$mmatrix)
  
 
   # the order of return values is:
@@ -489,12 +493,11 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
   #v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   #rows <- sub('mmatrix', '',
   #            rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  betaNames = paste('beta-',rows, sep='')
-  tnames = paste('tvalue-',rows, sep='')
+  betaNames = paste('beta-',parseLmOutput$rows, sep='')
+  tnames = paste('tvalue-',parseLmOutput$rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("mincMultiDim", "matrix")
-   
-  #detach(data.matrix.left)
+  
   # run the garbage collector...
   gcout <- gc()
  
@@ -888,7 +891,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   }
   result <- .Call("minc2_model",
                   as.character(filenames),
-		  matrix(),
+                  matrix(),
                   as.double(grouping)-1,
                   NULL,
                   as.double(! is.null(mask)),
@@ -906,8 +909,9 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   }
   else {
     class(result) <- c("mincMultiDim", "matrix")
-    if(!grepl("t-test",method) && !grepl("correlation",method) && !grepl("wilcoxon",method))
-    	colnames(result) <- levels(grouping)
+    if(!grepl("t-test",method) && !grepl("correlation",method) && !grepl("wilcoxon",method)) {
+      colnames(result) <- levels(grouping)
+    }
   }
   return(result)
 }
@@ -1312,31 +1316,37 @@ vertexLm <- function(formula, data, subset=NULL) {
   
 
   if(length(grep("\\$",formula[[3]])) > 0) {
-	stop("$ Not Permitted in Formula")  
+    stop("$ Not Permitted in Formula")  
   }
 
+  # the following returns:
+  #
+  # list(data.matrix.left = data.matrix.left, 
+  #      data.matrix.right = data.matrix.right,
+  #      rows = rows,
+  #      matrixFound = matrixFound,
+  #      mmatrix = mmatrix)
+  parseLmOutput <- parseLmFormula(formula,data,mf)  
 
-  
-  attach(parseLmFormula(formula,data,mf)) 
-  
-
-
-  if(matrixFound) {
-        data.matrix.left  <- vertexTable(data.matrix.left)
-  	data.matrix.right <- vertexTable(data.matrix.right)
-	}
+  if(parseLmOutput$matrixFound) {
+    parseLmOutput$data.matrix.left  <- vertexTable(parseLmOutput$data.matrix.left)
+    parseLmOutput$data.matrix.right <- vertexTable(parseLmOutput$data.matrix.right)
+  }
   else {
-	filenames <- as.character(mf[,1])
-	mmatrix <- model.matrix(formula, mf)	
-	data.matrix.left <- vertexTable(filenames)
-        rows = colnames(mmatrix)
-
-
+    filenames <- as.character(mf[,1])
+    parseLmOutput$mmatrix <- model.matrix(formula, mf)	
+    parseLmOutput$data.matrix.left <- vertexTable(filenames)
+    parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
   } 
-  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  
+  result <- .Call("vertex_lm_loop",
+                  parseLmOutput$data.matrix.left,
+                  parseLmOutput$data.matrix.right,
+                  parseLmOutput$mmatrix,
+                  PACKAGE="RMINC") 
 
   attr(result, "likeVolume") <- as.character(mf[,1])[1]
-  attr(result, "model") <- as.matrix(mmatrix)
+  attr(result, "model") <- as.matrix(parseLmOutput$mmatrix)
   attr(result, "filenames") <- as.character(mf[,1])
   attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
  
@@ -1349,14 +1359,14 @@ vertexLm <- function(formula, data, subset=NULL) {
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
   
-  betaNames = paste('beta-', rows, sep='')
-  tnames = paste('tvalue-', rows, sep='')
+  betaNames = paste('beta-', parseLmOutput$rows, sep='')
+  tnames = paste('tvalue-', parseLmOutput$rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("vertexMultiDim", "matrix")
- 
+
   # run the garbage collector...
   gcout <- gc()
-  detach()
+  
   return(result)
 }
 
@@ -1791,27 +1801,30 @@ parseLmFormula <- function(formula,data,mf)
 }
 
 # Run Testbed
-runTestbed <- function() {
+runRMINCTestbed <- function() {
 
-# Make sure environment is clear
-#rm(list=ls())
+  # Make sure environment is clear
+  #rm(list=ls())
 
-system('mkdir /tmp/rminctestdata');
+  system('mkdir /tmp/rminctestdata')
 
 
-# Download Tarball from Wiki
-system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
+  # Download Tarball from Wiki
+  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
 
-# Untar
-system('tar -xvf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
-library(testthat)
+  # Untar
+  system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
+  library(testthat)
 
-# Run Tests
-rmincPath = find.package("RMINC")
-test_dir(paste(rmincPath,"/","tests/",sep=""))
-
-system('rm -rf /tmp/rminctestdata')
-system('rm -rf /tmp/RMINC_test_bed_MINC_IO*mnc')
+  # Run Tests
+  rmincPath = find.package("RMINC")
+  print(rmincPath)
+  test_dir(paste(rmincPath,"/","tests/",sep=""))
+  
+  # Remove temp data, and downloaded files
+  print("Removing temporary directory /tmp/rminctestdata")
+#   system('rm -fr /tmp/rminctestdata')
+  
 }
 
 

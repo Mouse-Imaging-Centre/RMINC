@@ -45,3 +45,6 @@ if("package:snowfall" %in% search()) {
 		   expect_equal(ma[nVox,2], 2)}
 	})
 }
+
+sink()
+sink()

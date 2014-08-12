@@ -792,39 +792,38 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
 
   // minc2_model is also used for mincApply, which passes a string through this variable
   if(isNumeric(mmatrix)) {
-	  // Case 1: There is no static part
-	  if(isLogical(mmatrix)) 
-		// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
-		p = 2;
-	  // Case 2: There is a static part
-	  else {
-	 	if(isLogical(filenames_right)) 
-	{
-		 pMmatrix = REAL(mmatrix);
-	  	 mmatrix_cols = ncols(mmatrix);
-	  	 mmatrix_rows = nrows(mmatrix);
-	  	  p =  mmatrix_cols ;}
-	else {
-		pMmatrix = REAL(mmatrix);
-	  	mmatrix_cols = ncols(mmatrix);
-	  	mmatrix_rows = nrows(mmatrix);
-		p = mmatrix_cols + 1;
-		Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); }
-	  }
-}
- n = num_files_left;
-
-
-
-
+    // Case 1: There is no static part
+    if(isLogical(mmatrix)) {
+      // For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
+      p = 2;
+    }
+    // Case 2: There is a static part
+    else {
+      if(isLogical(filenames_right)) {
+        pMmatrix = REAL(mmatrix);
+        mmatrix_cols = ncols(mmatrix);
+        mmatrix_rows = nrows(mmatrix);
+        p =  mmatrix_cols ;
+      }
+      else {
+        pMmatrix = REAL(mmatrix);
+        mmatrix_cols = ncols(mmatrix);
+        mmatrix_rows = nrows(mmatrix);
+        p = mmatrix_cols + 1;
+        Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); 
+      }
+    }
+  }
+  
+  n = num_files_left;
 
 
   /* allocate the local buffer that will be passed to the function */
   PROTECT(buffer=allocVector(REALSXP, num_files));
   xbuffer = REAL(buffer); 
 
-	  PROTECT(buffer1=allocVector(REALSXP, num_files_left*p));
-	  ybuffer=REAL(buffer1);
+  PROTECT(buffer1=allocVector(REALSXP, num_files_left*p));
+  ybuffer=REAL(buffer1);
 
 
   /* allocate stuff for means and standard deviations */

@@ -98,7 +98,7 @@ export( print.mincSingleDim )
 export( print.mincVoxel )
 export( print.vertexMultiDim )
 export( pt2 )
-export( runTestbed )
+export( runRMINCTestbed )
 export( vertexFDR )
 export( vertexLm )
 export( vertexAnova )
@@ -327,3 +327,7 @@ useDynLib(RMINC)
 # import all required packages
 import(
   grDevices,
+  methods,
+  grid,
+  lattice
+)
