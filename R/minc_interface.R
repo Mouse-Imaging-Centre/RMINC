@@ -613,10 +613,10 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     buffer = buffer[,-indicesToRemove]
     attr(buffer, "stat-type") <- stattype[-indicesToRemove]
   }
-  attr(buffer, "df") <- df
+
 
   # must know the type of statistic we are dealing with
-  knownStats <- c("t", "F")
+  knownStats <- c("t", "F","u")
   if (is.null(statType)) {
     # stat type not specified - must be an attribute to the buffer
     if (is.null(attr(buffer, "stat-type"))) {
@@ -642,27 +642,35 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
   }
 
+
+
+
+
+  if (statType != "u") {
   # need to know the degrees of freedom
   if (is.null(df)) {
-    df <- attr(buffer, "df")
-    if (is.null(df)) {
-      stop("Error: need to specify the degrees of freedom")
-    }
-    if (length(df) == 1 & ncol(buffer) != 1) {
-      df <- rep(list(df), ncol(buffer))
-    }
-    else if (length(df) == ncol(buffer)) {
-      # do nothing
-    }
-    else {
-      stop("Error: df needs to be of either length 1 or the same length as number of columns in the buffer")
-    }
-    #df <- vector(length=2)
-    #df[1] <- ncol(attributes(buffer)$model) -1
-    #df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
+	    df <- attr(buffer, "df")
+	    if (is.null(df)) {
+	      stop("Error: need to specify the degrees of freedom")
+	    }
+	    if (length(df) == 1 & ncol(buffer) != 1) {
+	      df <- rep(list(df), ncol(buffer))
+	    }
+	    else if (length(df) == ncol(buffer)) {
+	      # do nothing
+	    }
+	    else {
+	      stop("Error: df needs to be of either length 1 or the same length as number of columns in the buffer")
+	    }
+	    #df <- vector(length=2)
+	    #df[1] <- ncol(attributes(buffer)$model) -1
+	    #df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
+	  }
+	}
+else {
+  m <- attr(buffer, "m") 
+  n <- attr(buffer, "n") 
   }
-
-  
   if (is.null(columns)) {
     columns <- colnames(buffer)
     cat("\nComputing FDR threshold for all columns\n")
@@ -699,6 +707,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       if (is.matrix(buffer)) {
         pvals <- pt2(buffer[mask>0.5, i], df[[i]])
       }
+
       else {
         pvals <- pt2(buffer[mask>0.5], df[[i]])
       }
@@ -708,11 +717,16 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
         pvals <- pf(buffer[mask>0.5, i], df[[i]][1], df[[i]][2],
                     lower.tail=FALSE)
       }
+
+
       else {
         pvals <- pf(buffer[mask>0.5], df[[i]][1], df[[i]][2], lower.tail=FALSE)
       }
+
     }
-    
+    if (statType[i] == "u") {
+	pvals <- 1 - pwilcox(buffer[mask>0.5,i],m,n,lower.tail = FALSE)
+	}
 
 
 
@@ -731,18 +745,29 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     for (j in 1:length(p.thresholds)) {
       if (statType[i] == "F") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
 		# cat(sprintf("Number of sub-threshold F p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) >= 1 ) {
-			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=FALSE)
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <- qf(max(subTholdPvaluesNumbers), df[[i]][1], df[[i]][2], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
       else if (statType[i] == "t") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
 		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) >= 1 ) {
-			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=FALSE)
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <-qt(max(subTholdPvaluesNumbers)/2, df[[i]], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
+      else if (statType[i] == "u") {
+		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <-qwilcox(max(subTholdPvaluesNumbers),m,n,lower.tail = TRUE)
+		} else { thresholds[j,i] <- NA }
+      }
+
     }
     output[mask>0.5,i] <- qobj$qvalue
   }
@@ -786,11 +811,33 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 
 mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="t-test", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("t") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  rttest <- t.test(vox~grouping,data=gf,paired=FALSE)
+  attr(result, "df") <- rttest$parameter
+  colnames(result) <- c("T-statistic")
+  class(result) <- c("mincMultiDim", "matrix")
   return(result)
 }
 
 mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="paired-t-test", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("t") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  rttest <- t.test(vox~grouping,data=gf,paired=TRUE)
+  attr(result, "df") <- rttest$parameter
+  colnames(result) <- c("T-statistic")
+  class(result) <- c("mincMultiDim", "matrix")
   return(result)
 }
 
@@ -801,6 +848,22 @@ mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 
 mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="wilcoxon", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("u") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  a = levels(gf$grouping)
+  attr(result, "m") <- nrow(gf[gf$grouping == a[1],])
+  attr(result, "n") <- nrow(gf[gf$grouping == a[2],])
+  colnames(result) <- c("Mann-Whitney")
+  class(result) <- c("mincMultiDim", "matrix")
+  return(result)
+
+
+
   return(result)
 }
 
@@ -954,7 +1017,7 @@ pMincApply <- function(filenames, function.string,
     function.string = eval(function.string)
   }
   else if (method == "snowfall") {
-   
+    sfInit();
     wrapper <- function(i) {
       cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
@@ -965,8 +1028,11 @@ pMincApply <- function(filenames, function.string,
       workers <- length(sfSocketHosts())
     }
     
-    pout <- sfLapply(1:workers, wrapper)
+   
+
+    sink("/dev/null"); pout <- sfLapply(1:workers, wrapper)
     
+    sfStop();
   }
   else {
     stop("unknown execution method")
@@ -1743,6 +1809,9 @@ library(testthat)
 # Run Tests
 rmincPath = find.package("RMINC")
 test_dir(paste(rmincPath,"/","tests/",sep=""))
+
+system('rm -rf /tmp/rminctestdata')
+system('rm -rf /tmp/RMINC_test_bed_MINC_IO*mnc')
 }
 
 

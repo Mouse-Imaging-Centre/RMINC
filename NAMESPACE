@@ -262,6 +262,10 @@ export( print.reStruct )
 export( print.rmincLme )
 export( print.summary.lme )
 export( print.summary.modelStruct )
+export( print.reStruct )
+export( print.rmincLme )
+export( print.summary.lme )
+export( print.summary.modelStruct )
 export( print.summary.pdMat )
 export( residuals.rmincLmeStruct )
 export( reStruct )
@@ -323,7 +327,3 @@ useDynLib(RMINC)
 # import all required packages
 import(
   grDevices,
-  methods,
-  grid,
-  lattice
-)
