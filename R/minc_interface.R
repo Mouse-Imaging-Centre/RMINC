@@ -931,7 +931,7 @@ minc.get.volumes <- function(filenames) {
 pMincApply <- function(filenames, function.string,
                        mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
   
-   REDUCE = TRUE; # For now this option is not exposed
+  REDUCE = TRUE; # For now this option is not exposed
 
   # if no mask exists use the entire volume
   if (is.null(mask)) {
@@ -1021,7 +1021,11 @@ pMincApply <- function(filenames, function.string,
     function.string = eval(function.string)
   }
   else if (method == "snowfall") {
-    sfInit();
+    # TODO: commenting this out for now. When we converge on the best way
+    # to call pMincApply, it should probably be something like this:
+    # sfInit(parallel=TRUE, cpus=workers)
+    # sfLibrary(...packageList...)
+    # sfExport(...globallist...)
     wrapper <- function(i) {
       cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
@@ -1818,12 +1822,15 @@ runRMINCTestbed <- function() {
 
   # Run Tests
   rmincPath = find.package("RMINC")
-  print(rmincPath)
+  cat("\n\nRunning tests in: ", paste(rmincPath,"/","tests/",sep=""), "\n\n\n")
   test_dir(paste(rmincPath,"/","tests/",sep=""))
   
+  cat("\n*********************************************\n")
+  cat("The RMINC test bed finished running all tests\n")
+  cat("*********************************************\n\n\n")
   # Remove temp data, and downloaded files
-  print("Removing temporary directory /tmp/rminctestdata")
-#   system('rm -fr /tmp/rminctestdata')
+  cat("Removing temporary directory /tmp/rminctestdata\n")
+  system('rm -fr /tmp/rminctestdata')
   
 }
 
