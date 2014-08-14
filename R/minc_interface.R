@@ -1018,14 +1018,21 @@ pMincApply <- function(filenames, function.string,
       r1 = lapply(l1,sge.job.status) }
     pout <- lapply(l1, sge.list.get.result)
     
-    function.string = eval(function.string)
+    function.string = qeval(function.string)
   }
   else if (method == "snowfall") {
-    # TODO: commenting this out for now. When we converge on the best way
-    # to call pMincApply, it should probably be something like this:
-    # sfInit(parallel=TRUE, cpus=workers)
-    # sfLibrary(...packageList...)
-    # sfExport(...globallist...)
+    sfInit(parallel=TRUE, cpus=workers)
+    if(packages == "")
+	packageList = c("RMINC")
+    else
+        packageList=c(packages,"RMINC")
+
+    for (nPackage in 1:length(packageList)) {
+    	sfLibrary(packageList[nPackage],character.only=TRUE) }
+
+
+    sfExport(list = global) 
+ 
     wrapper <- function(i) {
       cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
