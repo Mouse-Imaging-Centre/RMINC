@@ -2,24 +2,21 @@ Package: RMINC
 Version: 1.2.3
 Date: 2014-07-29
 Title: Package for reading and analyzing MINC2 files
-Author: Jason Lerch <jason@mouseimaging.ca>, Jim Nikelski
-    <nikelski@bic.mni.mcgill.ca>
+Author: Jason Lerch <jason@mouseimaging.ca>, Jim Nikelski <nikelski@bic.mni.mcgill.ca>
 Maintainer: Jason lerch <jason@mouseimaging.ca>
-Description: A package for reading and writing MINC2 files
-    and running arbitrary R functions at every voxel of a set of files.
-Depends:
-    R (>= 3.0.1),
-    grDevices,
-    methods,
-    grid,
-    lattice
-Suggests:
-    nlme,
-    qvalue
+Description: A package for reading and writing MINC2 files 
+	and running arbitrary R functions at every voxel of a set of files.
+Depends: R (>= 3.0.1), grDevices, methods, grid, lattice
+Suggests: nlme, qvalue
 License: BSD
+Collate: AllGeneric.R
+         mincInfo_class.R mincVolumeIO_class.R mincSlice_class.R
+         mincSliceIO_class.R mincVoxelIO_class.R minc_support.R
+         minc_interface.R civet.R fast_qvalue.R rmincLmeLoop.R structure_funcs.R
+         deprecated.R volumetric.R zzz.R
 LazyLoad: yes
 OS_type: unix
 SystemRequirements: 
-URL: https://github.com/mcvaneede/RMINC,
-    https://wiki.phenogenomics.ca/display/MICePub/RMINC
+URL: https://github.com/mcvaneede/RMINC, https://wiki.phenogenomics.ca/display/MICePub/RMINC
 BuildVignettes: False
+

@@ -1883,12 +1883,13 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   # a function that is part of RMINC (i.e. if I source the code it works fine). So here's a
   # workaround to get the method first, give it a new name, and assign to global namespace.
   tmpDiag <<- getMethod("diag", "dsyMatrix")
+  fmincLmerOptimizeAndExtract <<- mincLmerOptimizeAndExtract
 
   if (!is.null(parallel)) {
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] == "sge") {
       out <- pMincApply(lmod$fr[,1],
-                        quote(mincLmerOptimizeAndExtract(x)),
+                        quote(fmincLmerOptimizeAndExtract(x)),
                         mask=mask,
                         method="sge",
                         worker=as.numeric(parallel[2]),
@@ -1903,7 +1904,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
       sfLibrary(lme4)
       sfLibrary(RMINC)
       out <- pMincApply(lmod$fr[,1],
-                        quote(mincLmerOptimizeAndExtract(x)),
+                        quote(fmincLmerOptimizeAndExtract(x)),
                         mask=mask,
                         method="snowfall",
                         workers=as.numeric(parallel[2]))
@@ -1912,7 +1913,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   }
   else {
     out <- mincApply(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
-                     quote(mincLmerOptimizeAndExtract(x)),
+                     quote(fmincLmerOptimizeAndExtract(x)),
                      mask=mask)
   }
 
