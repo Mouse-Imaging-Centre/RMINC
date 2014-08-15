@@ -1116,33 +1116,19 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
   x <- mincGetVoxel(filenames, 0,0,0)
   test <- eval(function.string)
 
-  # When calling mincApply via pMincApply using sge, this part seems to randomly fail.
-  # Not sure why, but simplying running it multiple times is the workaround
-  # Additionally we only check 20 times so we don't get stuck in an infinite loop
-  tryresults = FALSE
-  trycount = 0;
-  while (tryresults == FALSE) {
+  results <- .Call("minc2_model",
+              as.character(filenames),
+              matrix(),
+              function.string,
+              NULL,
+              as.double(! is.null(mask)),
+              as.character(mask),
+              as.double(minmask),
+              as.double(maxmask),
+              .GlobalEnv,
+              as.double(length(test)),
+              as.character("eval"), PACKAGE="RMINC");
 
-  trycatchresults = tryCatch({
-	  trycount = trycount + 1
-	  if(trycount > 20)
-		stop ("mincApply Failed more than 20 times")
-	  results <- .Call("minc2_model",
-		           as.character(filenames),
-			   matrix(),
-			   function.string,	
-		           NULL,
-		           as.double(! is.null(mask)),
-		           as.character(mask),
-		           as.double(minmask),
-		           as.double(maxmask),
-		           .GlobalEnv,
-		           as.double(length(test)),
-		           as.character("eval"), PACKAGE="RMINC");
-			   tryresults = TRUE;
-	}, error = function(e) {
-		return (FALSE) })
-}
   if (length(test) > 1) {
     if (reduce==TRUE) {
       maskV <- mincGetVolume(mask)
