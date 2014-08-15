@@ -1021,6 +1021,7 @@ pMincApply <- function(filenames, function.string,
     function.string = qeval(function.string)
   }
   else if (method == "snowfall") {
+    library(snowfall)
     sfInit(parallel=TRUE, cpus=workers)
     if(packages == "")
 	packageList = c("RMINC")

@@ -29,9 +29,8 @@ test_that("snowfall is installed",{
 
 
 if("package:snowfall" %in% search()) {
-
   sink("/dev/null")
-  ma <- pMincApply(gf$jacobians_fixed_2,quote(mean(x)),global = 'gf')
+  ma <- pMincApply(gf$jacobians_fixed_2,quote(mean(x)),global = 'gf',packages = 'car')
   sink()
   test_that("pmincapply snowfall",{
     for (nVox in 1:length(mm)) {
@@ -40,7 +39,7 @@ if("package:snowfall" %in% search()) {
   })
 
   sink("/dev/null")
-  ma <- pMincApply(gf$jacobians_fixed_2,quote(testFunc(x)),global = c('testFunc','gf'))
+  ma <- pMincApply(gf$jacobians_fixed_2,quote(testFunc(x)),global = c('testFunc','gf'),packages = c('car','stats'))
   sink()
   test_that("pmincApply snowfall two output",{
     for (nVox in 1:dim(ma)[1]) {

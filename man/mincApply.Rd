@@ -7,7 +7,7 @@
 \usage{
 mincApply(filenames, quote(mean(x)), mask="mask.mnc")
 pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
-method="snowfall", tinyMask=FALSE)
+method="snowfall", tinyMask=FALSE, global = "",packages = "")
 }
 \arguments{
   \item{filenames}{The MINC files over which to apply the function. Have
@@ -28,6 +28,8 @@ method="snowfall", tinyMask=FALSE)
     computes the function over that fraction of the mask. Useful for
     debugging purposes only (i.e. if you want to test out whether a new
     function works across the cluster.)}
+  \item{global}{Global variables to be exported.}
+  \item{packages}{R Packages to be exported.}
 }
 \details{mincApply allows one to execute any R function at every voxel
   of a set of files. There are two variants: mincApply, which works
@@ -68,11 +70,7 @@ mincWriteVolume(out, "means.mnc")
 
 ### run the whole thing in parallel on the local machine
 library(snowfall)
-# use snowfall init function to use local multiprocessing with 4 cpus
-sfInit(parallel=TRUE, cpus=4)
-# need to export necessary variables for this function to run to cpus
-sfExport('gf', 'myfunc')
 # now go and run it and then write out
-pout <- pMincApply(gf$filenames, quote(myfunc(x)), mask="mask.mnc")
+pout <- pMincApply(gf$filenames, quote(myfunc(x)), mask="mask.mnc",workers = 4,global = c('gf','myfunc'))
 mincWriteVolume(pout, "means.mnc")
 }}
