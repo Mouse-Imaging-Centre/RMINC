@@ -22,8 +22,7 @@ method="snowfall", tinyMask=FALSE, global = "",packages = "")
     works for mincApply, not pMincApply.}
   \item{workers}{The number of processes to split the function into. Only
     works for pMincApply, not for mincApply.}
-  \item{method}{The method to be used for parallization. At the moment
-    only "snowfall" works.}
+  \item{method}{The method to be used for parallization ("snowfall" or "sge").}
   \item{tinyMask}{Only for pMincApply; if set to some numeric value it
     computes the function over that fraction of the mask. Useful for
     debugging purposes only (i.e. if you want to test out whether a new
