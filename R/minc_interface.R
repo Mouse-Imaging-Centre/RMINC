@@ -140,6 +140,21 @@ print.mincMultiDim <- function(x, ...) {
   print(attr(x, "likeVolume"))
 }
 
+print.mincLmer <- function(x, ...) {
+  cat("mincLmer output\n")
+  cat("Formula:  ")
+  print(attr(x, "mincLmerList")[[1]]$formula)
+  if (attr(x,"mincLmerList")[[1]]$REML == TRUE) {
+    cat("Fitted with REML\n")
+  }
+  else {
+    cat("Fitted with ML\n")
+  }
+  cat("Mask:         ", attr(x, "mask"), "\n")
+  cat("Columns:      ", colnames(x), "\n")
+}
+      
+
 print.vertexMultiDim <- function(x, ...) {
   cat("Multidimensional Vertstats file\n")
   cat("Columns:      ", colnames(x), "\n")
@@ -586,6 +601,86 @@ mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue", ...) {
     df <- c(1,df)
   }
   mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method, ...)
+}
+
+
+mincFDR.mincLmer <- function(buffer, columns=NULL, mask=NULL) {
+  cat("In mincFDR.mincLmer\n")
+
+  # if no DF set, exit with message
+  df <- attr(buffer, "df")
+  if (is.null(df)) {
+    stop("No degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
+  }
+  else {
+    warning("Here be dragons! Hypothesis testing with mixed effects models is challenging, since nobody quite knows how to correctly estimate denominator degrees of freedom.")
+  }
+
+  # NOTE: all this mask stuff could likely be encapsulated in its own function
+  # check if mask was passed in, if not, use mask from buffer attribute
+  if (is.null(mask)) {
+    mask <- attr(buffer, "mask")
+  }
+  cat("Using mask:", mask, "\n")
+
+  # if mask is still null, create a vector of ones with length of buffer
+  if (is.null(mask)) {
+    mask <- vector(length=nrow(buffer)) + 1
+  }
+  else {
+    mask <- mincGetMask(mask)
+  }
+  
+  # only compute stats on tlmer columns
+  tlmerColumns <- grep("tlmer", attr(buffer, "stat-type"))
+  ncolsToUse <- length(tlmerColumns)
+  # sanity check to ensure that number of tlmer columns matches DF
+  if (ncolsToUse != length(df)) {
+    stop("Mismatch between DF and number of columns")
+  }
+
+  # compute p and q values
+  # pvals and qvals size corresponds to voxels inside mask, whereas output
+  # is the size of the buffer.
+  pvals <- matrix(nrow=sum(mask>0.5), ncol=ncolsToUse)
+  qvals <- pvals
+  output <- matrix(1, nrow=nrow(buffer), ncol=ncolsToUse)
+
+  # compute the thresholds at several sig levels
+  p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
+  thresholds <- matrix(nrow=length(p.thresholds), ncol=ncolsToUse)
+  for (i in 1:ncolsToUse) {
+    # compute qvals through R's p.adjust function
+    pvals[, i] <- pt2(buffer[mask>0.5, tlmerColumns[i]], df[[i]])
+    qvals[, i] <- p.adjust(pvals[, i], "fdr")
+    output[mask>0.5, i] <- qvals[, i]
+    for (j in 1:length(p.thresholds)) {
+      # compute thresholds; to be honest, not quite sure what the NA checking is about
+      subTholdPvalues <- pvals[qvals[,i] <= p.thresholds[j], i]
+      subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+                                        
+      if ( length(subTholdPvaluesNumbers) >= 1 ) {
+        thresholds[j,i] <-qt(max(subTholdPvaluesNumbers)/2, df[[i]], lower.tail=FALSE)
+      }
+      else { thresholds[j,i] <- NA }
+    }
+  }
+
+  columnNames <- colnames(buffer)[tlmerColumns]
+  columnNamesQ <- sub("tvalue", "qvalue", columnNames)
+  
+  rownames(thresholds) <- p.thresholds
+  colnames(thresholds) <- columnNames
+  attr(output, "thresholds") <- thresholds
+  colnames(output) <- columnNamesQ
+  attr(output, "likeVolume") <- attr(buffer, "likeVolume")
+  attr(output, "DF") <- df
+  class(output) <- c("mincQvals", "mincMultiDim", "matrix")
+  
+  # run the garbage collector...
+  gcout <- gc()
+
+  return(output)
 }
 
 # mincFDR for a local buffer created by mincLm
@@ -1038,7 +1133,7 @@ pMincApply <- function(filenames, function.string,
       r1 = lapply(l1,sge.job.status) }
     pout <- lapply(l1, sge.list.get.result)
     
-    function.string = qeval(function.string)
+    function.string = eval(function.string)
   }
   else if (method == "snowfall") {
     library(snowfall)
@@ -1066,7 +1161,8 @@ pMincApply <- function(filenames, function.string,
     
    
 
-    sink("/dev/null"); pout <- sfLapply(1:workers, wrapper)
+    #sink("/dev/null");
+    pout <- sfLapply(1:workers, wrapper)
     
     sfStop();
   }
@@ -1837,7 +1933,10 @@ parseLmFormula <- function(formula,data,mf)
 #' @param start lmer start function
 #' @param verbose lmer verbosity control
 #'
-#' @return a matrix where rows correspond to number of voxels in the file and columns to number of terms in the formula
+#' @return a matrix where rows correspond to number of voxels in the file and columns to
+#' the number of terms in the formula, with both the beta coefficient and the t-statistic
+#' being returned. In addition, an extra column keeps the log likelihood, and another
+#' whether the mixed effects fitting converged or not.
 #'
 #' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
 #'
@@ -1859,6 +1958,17 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   mc <- mcout <- match.call()
   mc$control <- lmerControl()
   mc[[1]] <- quote(lme4::lFormula)
+
+  # remove mask and parallel, since lmer does not know about them and keeping them
+  # generates obscure warning messages
+  index <- match("mask", names(mc))
+  if (!is.na(index)) {
+    mc <- mc[-index]
+  }
+  index <- match("parallel", names(mc))
+  if (!is.na(index)) {
+    mc <- mc[-index]
+  }
   lmod <- eval(mc, parent.frame(1L))
 
   # code ripped from lme4:::mkLmerDevFun
@@ -1877,37 +1987,29 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   # a function that is part of RMINC (i.e. if I source the code it works fine). So here's a
   # workaround to get the method first, give it a new name, and assign to global namespace.
   tmpDiag <<- getMethod("diag", "dsyMatrix")
-  fmincLmerOptimizeAndExtract <<- mincLmerOptimizeAndExtract
+  #fmincLmerOptimizeAndExtract <<- mincLmerOptimizeAndExtract
 
   if (!is.null(parallel)) {
     # a vector with two elements: the methods followed by the # of workers
-    if (parallel[1] == "sge") {
+    if (parallel[1] %in% c("local", "snowfall", "sge")) {
+      if (parallel[1] == "local") {
+        parallel[1] <- "snowfall" #local and snowfall are synonymous
+      }
       out <- pMincApply(lmod$fr[,1],
-                        quote(fmincLmerOptimizeAndExtract(x)),
+                        quote(mincLmerOptimizeAndExtract(x)),
                         mask=mask,
-                        method="sge",
+                        method=parallel[1],
                         worker=as.numeric(parallel[2]),
-                        global=c("mincLmerList", "tmpDiag", "mincLmerOptimize",
-                          "mincLmerExtractVariables"),
+                        global=c("mincLmerList", "tmpDiag"),# "mincLmerOptimize", "mincLmerExtractVariables"),
                         packages=c("lme4", "RMINC"))
     }
-    else if (parallel[1] %in% c("local", "snowfall")) {
-      library(snowfall)
-      sfInit(parallel=TRUE, cpus=as.numeric(parallel[2]))
-      sfExport("mincLmerList", "tmpDiag")
-      sfLibrary(lme4)
-      sfLibrary(RMINC)
-      out <- pMincApply(lmod$fr[,1],
-                        quote(fmincLmerOptimizeAndExtract(x)),
-                        mask=mask,
-                        method="snowfall",
-                        workers=as.numeric(parallel[2]))
-      sfStop()
+    else {
+      stop("Error: unknown parallelization method")
     }
   }
   else {
     out <- mincApply(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
-                     quote(fmincLmerOptimizeAndExtract(x)),
+                     quote(mincLmerOptimizeAndExtract(x)),
                      mask=mask)
   }
 
@@ -1917,17 +2019,19 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   termnames <- colnames(lmod$X)
   betaNames <- paste("beta-", termnames, sep="")
   tnames <- paste("tvalue-", termnames, sep="")
-  colnames(out) <- c(betaNames, tnames, "logLik")
+  colnames(out) <- c(betaNames, tnames, "logLik", "converged")
 
   # generate some random numbers for a single fit in order to extract some extra info
   mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])))
   
-  attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)), "logLik")
+  attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
+                              "logLik", "converged")
   # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
   attr(out, "REML") <- REML
   attr(out, "mask") <- mask
   attr(out, "mincLmerList") <- mincLmerList
+  class(out) <- c("mincLmer", "mincMultiDim", "matrix")
 
   return(out)
 }
@@ -1942,7 +2046,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
 #' The implementation here is the Satterthwaite approximation. This approximation
 #' is computed from the data, to avoid the significant run-time requirement of computing
 #' it separate for every voxel, here it is only computed on a small number of voxels
-#' within the mask and the min DF returned for every variable.
+#' within the mask and the median DF returned for every variable.
 #' 
 #' @param model the output of mincLmer
 #'
@@ -1972,20 +2076,6 @@ mincLmerEstimateDF <- function(model) {
   mincLmerList <<- attr(model, "mincLmerList")
   mask <- attr(model, "mask")
   
-  # the estimated DF depends on the input data. It would take a long time to estimate it for
-  # every voxel, so instead the mean of all voxels within the mask will be used and set for
-  # the entire object.
-  ## meanVoxels <- vector(length=length(lmod$fr[,1]))
-  ## for (i in 1:length(lmod$fr[,1])) {
-  ##   if (is.null(mask)) {
-  ##     meanVoxels[i] <- mean(mincGetVolume(lmod$fr[i,]))
-  ##   }
-  ##   else {
-  ##     meanVoxels[i] <- anatGetFile(lmod$fr[i,1], mask)[2,2]
-  ##   }
-  ## }
-  ## mmod <- mincLmerOptimize(meanVoxels)
-
   # estimated DF depends on the input data. Rather than estimate separately at every voxel,
   # instead select a small number of voxels and estimate DF for those voxels, then keep the
   # min
@@ -1993,7 +2083,7 @@ mincLmerEstimateDF <- function(model) {
   rvoxels <- mincSelectRandomVoxels(mask, nvoxels)
   dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
   for (i in 1:nvoxels) {
-    voxelData <- mincGetVoxel(lmod$fr[,1], rvoxels[i,])
+    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rvoxels[i,])
     mmod <- mincLmerOptimize(voxelData)
     # code directly from lmerTest library
     rho <- lmerTest:::rhoInit(mmod)
@@ -2005,8 +2095,9 @@ mincLmerEstimateDF <- function(model) {
                                          length(rho$fixEffs), "simple")[,1]
     
   }
-  df <- apply(dfs, 2, min)
+  df <- apply(dfs, 2, median)
   cat("Mean df: ", apply(dfs, 2, mean), "\n")
+  cat("Median df: ", apply(dfs, 2, median), "\n")
   cat("Min df: ", apply(dfs, 2, min), "\n")
   cat("Max df: ", apply(dfs, 2, max), "\n")
   cat("Sd df: ", apply(dfs, 2, sd), "\n")
@@ -2036,8 +2127,32 @@ mincLmerOptimize <- function(x) {
   # assign the vector of voxel values
   lmod$fr[,1] <- x
 
-  # finish building the dev function by adding the response term
+  mmod <- mincLmerOptimizeCore(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=FALSE)
+  # the rho$pp merModP object needs to be reinitialized at (to me) mysterious times. That is
+  # quite time consuming, however, so only do so if something did not converge.
+  if (length(attr(mmod,"optinfo")$conv$lme4$code) != 0) {
+    #cat("Restarting ... \n")
+    mmod <- mincLmerOptimizeCore(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=TRUE)
+  }
+  
+  return(mmod)
+}
+
+# the core code that does the optimization. Only reason it is not part of mincLmerOptimize
+# is to allow for the reinitializtion in case of convergence error
+mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=F) {
+    # finish building the dev function by adding the response term
   # code from lme4:::mkLmerDevFun
+  # this code is quite slow; I'm baffled about when it's needed, as most of the
+  # time it can stay outside the loop, but occasionally gives weird errors
+  # if inside. So wrapped inside that reinit bit:
+  if (reinit) {
+    lmod$reTrms <- mkReTrms(findbars(lme4:::RHSForm(mcout[[2]])), lmod$fr)
+    rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
+                                                    "Lambdat", "Lind")],
+                                      n = nrow(lmod$X), list(X = lmod$X)))
+  }
+
   rho$resp <- mkRespMod(lmod$fr, REML = REMLpass)
   devfun <- lme4:::mkdevfun(rho, 0L, verbose, control)
   theta <- lme4:::getStart(lmod$start, lmod$reTrms$lower, rho$pp)
@@ -2082,7 +2197,9 @@ mincLmerExtractVariables <- function(mmod) {
   fe <- mmod@beta
   t <- fe / se # returns Inf if se=0 (see error handling above); mincLmer removes Inf
   ll <- logLik(mmod)
-  return(c(fe,t, ll))
+  # the convergence return value (I think; need to verify) - should be 0 if it converged
+  converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
+  return(c(fe,t, ll, converged))
 }
 
 mincLmerOptimizeAndExtract <- function(x) {
@@ -2261,6 +2378,8 @@ mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
 #' }
 mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
   sizes <- minc.dimensions.sizes(volumeFileName)
+  # the fun off by one bit
+  vectorCoord <- vectorCoord-1
   i1 <- vectorCoord %/% (sizes[2]*sizes[3])
   i1r <- vectorCoord %% (sizes[2]*sizes[3])
   i2 <- i1r %/% sizes[2]
