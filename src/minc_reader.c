@@ -21,7 +21,7 @@ void get_volume_sizes(char **filename, unsigned int *sizes) {
 			   MI_DIMATTR_ALL, MI_DIMORDER_FILE,
 			   3, dimensions);
   result = miget_dimension_sizes( dimensions, 3, tmp_sizes ); 
-  Rprintf("Sizes: %i %i %i\n", tmp_sizes[0], tmp_sizes[1], tmp_sizes[2]);
+  //Rprintf("Sizes: %i %i %i\n", tmp_sizes[0], tmp_sizes[1], tmp_sizes[2]);
   sizes[0] = (unsigned int) tmp_sizes[0];
   sizes[1] = (unsigned int) tmp_sizes[1];
   sizes[2] = (unsigned int) tmp_sizes[2];

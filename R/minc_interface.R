@@ -615,21 +615,8 @@ mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue", ...) {
   mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method, ...)
 }
 
-
-mincFDR.mincLmer <- function(buffer, columns=NULL, mask=NULL) {
-  cat("In mincFDR.mincLmer\n")
-
-  # if no DF set, exit with message
-  df <- attr(buffer, "df")
-  if (is.null(df)) {
-    stop("No degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
-  }
-  else {
-    warning("Here be dragons! Hypothesis testing with mixed effects models is challenging, since nobody quite knows how to correctly estimate denominator degrees of freedom.")
-  }
-
-  # NOTE: all this mask stuff could likely be encapsulated in its own function
-  # check if mask was passed in, if not, use mask from buffer attribute
+#' returns the specified mask, the mask associated with the buffer, or a vector of ones
+mincFDRMask <- function(mask, buffer) {
   if (is.null(mask)) {
     mask <- attr(buffer, "mask")
   }
@@ -642,7 +629,71 @@ mincFDR.mincLmer <- function(buffer, columns=NULL, mask=NULL) {
   else {
     mask <- mincGetMask(mask)
   }
+  return(mask)
+}
+
+mincFDR.mincLogLikRatio <- function(buffer, mask=NULL) {
+  cat("Computing FDR for mincLogLikRatio\n")
+  df <- attr(buffer, "df")
+  mask <- RMINC:::mincFDRMask(mask, buffer)
+  ncols <- ncol(buffer)
+  # compute p and q values
+  # pvals and qvals size corresponds to voxels inside mask, whereas output
+  # is the size of the buffer.
+  pvals <- matrix(nrow=sum(mask>0.5), ncol=ncols)
+  qvals <- pvals
+  output <- matrix(1, nrow=nrow(buffer), ncol=ncols)
+
+  # compute the thresholds at several sig levels
+  p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
+  thresholds <- matrix(nrow=length(p.thresholds), ncol=ncols)
+  for (i in 1:ncols) {
+    # compute qvals through R's p.adjust function
+    pvals[, i] <- pchisq(buffer[mask>0.5, i], df[[i]], lower.tail=F)
+    qvals[, i] <- p.adjust(pvals[, i], "fdr")
+    output[mask>0.5, i] <- qvals[, i]
+    for (j in 1:length(p.thresholds)) {
+      # compute thresholds; to be honest, not quite sure what the NA checking is about
+      subTholdPvalues <- pvals[qvals[,i] <= p.thresholds[j], i]
+      subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+                                        
+      if ( length(subTholdPvaluesNumbers) >= 1 ) {
+        thresholds[j,i] <-qchisq(max(subTholdPvaluesNumbers), df[[i]], lower.tail=FALSE)
+      }
+      else { thresholds[j,i] <- NA }
+    }
+  }
+
+  columnNames <- colnames(buffer)
   
+  rownames(thresholds) <- p.thresholds
+  colnames(thresholds) <- columnNames
+  attr(output, "thresholds") <- thresholds
+  colnames(output) <- columnNames
+  attr(output, "likeVolume") <- attr(buffer, "likeVolume")
+  attr(output, "DF") <- df
+  class(output) <- c("mincQvals", "mincMultiDim", "matrix")
+  
+  # run the garbage collector...
+  gcout <- gc()
+
+  return(output)
+}
+
+mincFDR.mincLmer <- function(buffer, mask=NULL) {
+  cat("In mincFDR.mincLmer\n")
+
+  # if no DF set, exit with message
+  df <- attr(buffer, "df")
+  if (is.null(df)) {
+    stop("No degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
+  }
+  else {
+    warning("Here be dragons! Hypothesis testing with mixed effects models is challenging, since nobody quite knows how to correctly estimate denominator degrees of freedom.")
+  }
+
+  # get the mask
+  mask <- RMINC:::mincFDRMask(mask, buffer)
   # only compute stats on tlmer columns
   tlmerColumns <- grep("tlmer", attr(buffer, "stat-type"))
   ncolsToUse <- length(tlmerColumns)
