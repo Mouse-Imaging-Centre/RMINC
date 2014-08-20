@@ -140,6 +140,18 @@ print.mincMultiDim <- function(x, ...) {
   print(attr(x, "likeVolume"))
 }
 
+print.mincLogLikRatio <- function(x, ...) {
+  cat("mincLogLikRatio output\n\n")
+  mincLmerLists <- attr(x, "mincLmerLists")
+  for (i in 1:length(mincLmerLists)) {
+    cat("Model", i, ":\n")
+    cat("  Formula:  ")
+    print(mincLmerLists[[i]][[1]]$formula)
+  }
+  cat("\nMask used:", attr(out, "mask"), "\n")
+  cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
+}
+
 print.mincLmer <- function(x, ...) {
   cat("mincLmer output\n")
   cat("Formula:  ")
@@ -2285,10 +2297,10 @@ mincLogLikRatio <- function(...) {
   }
   attr(out, "mincLmerLists") <- mincLmerLists
   if (length(dots) == 2) {
-    class(out) <- c("mincSingleDim", "numeric")
+    class(out) <- c("mincLogLikRatio", "mincSingleDim", "numeric")
   }
   else {
-    class(out) <- c("mincMultiDim", "matrix")
+    class(out) <- c("mincLogLikRatio", "mincMultiDim", "matrix")
   }
   colnames(out) <- outnames
   return(out)
