@@ -20,7 +20,7 @@ requiring an explicit call to a separate function (such as this one).
 The implementation here is the Satterthwaite approximation. This approximation
 is computed from the data, to avoid the significant run-time requirement of computing
 it separate for every voxel, here it is only computed on a small number of voxels
-within the mask and the min DF returned for every variable.
+within the mask and the median DF returned for every variable.
 }
 \examples{
 \dontrun{
