@@ -1416,6 +1416,9 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
 
 mincLme <- function(filenames, fixed.effect, random.effect, mask=NULL)
 {
+  # mincLme is deprecated, mincLmer should be used:
+  warning("The mincLme function is deprecated, please use mincLmer")
+
   # determine the number of output variables
   x <- rnorm(length(filenames))
   s <- rmincLme(as.formula(fixed.effect), random=as.formula(random.effect))

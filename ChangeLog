@@ -1,3 +1,12 @@
+*************************************************************
+This file is not updated anymore. For detailed information
+about changes to the code, please get the git commit history
+
+The NEWS file is used to keep track of the main changes
+between releases
+*************************************************************
+
+
 2013-05-01 Matthijs van Eede <matthijs@mouseimaging.ca>
         * Added basic NAMESPACE file to the package
         * moved the "sums" method in anatGetFile to "slow_sums". This function
