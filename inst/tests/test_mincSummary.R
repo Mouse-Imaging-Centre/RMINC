@@ -49,11 +49,11 @@ test_that("ttest", {
 
 
 gf_paired = gf[1:20,];
-sink("/dev/null"); mtt <- mincPairedTtest(gf_paired $jacobians_0.2,gf_paired $Strain); sink(); # To Do: Ask case where unequal lengths
-ttt <- t.test(vox~Strain,data=gf_paired ,paired=TRUE)
+sink("/dev/null"); mptt <- mincPairedTtest(gf_paired$jacobians_0.2,gf_paired$Strain); sink(); # To Do: Ask case where unequal lengths
+pttt <- t.test(vox~Strain,data=gf_paired ,paired=TRUE)
 
 test_that("paired ttest", {
-    expect_equivalent(ttt$statistic, mtt[1])
+    expect_equivalent(pttt$statistic, mptt[1])
 })
 
 
@@ -64,13 +64,54 @@ test_that("correlation", {
     expect_equivalent(tc, mc[1])
 })
 
+
+gf_paired$vox_round = round(gf_paired$vox,8)
+tw <- wilcox.test(vox_round~Strain,data=gf_paired)
+sink("/dev/null"); mw <- mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain); sink();
+test_that("wilcoxon-ties", {
+    expect_equivalent(tw[[1]], mw[1])
+})
+
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
 gf_paired = gf[1:20,];
 sink("/dev/null"); mw <- mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain); sink();
 tw <- wilcox.test(vox~Strain,data=gf_paired)
-gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
-gf_paired = gf[1:20,];
 test_that("wilcoxon", {
-    expect_equivalent(100-tw[[1]], mw[15*15*5 + 15*5 + 6])
+    expect_equivalent(tw[[1]], mw[15*15*5 + 15*5 + 6])
+})
+
+# mincFDR
+
+# t-test
+rttest = p.adjust( pt2(mtt[,1],attr(mtt,"df")),"fdr")
+rmincFDR = mincFDR(mtt)
+test_that("mincTtest works with mincFDR",{
+    for (nVox in 1:dim(mtt)[1]) {
+ 	   expect_equal(rmincFDR[nVox], rttest[nVox],tolerance = 0.0001) 
+	   }
+})
+
+# paired t-test
+rttest = p.adjust( pt2(mptt[,1],attr(mptt,"df")),"fdr")
+rmincFDR = mincFDR(mptt)
+test_that("mincPairedTtest works with mincFDR",{
+    for (nVox in 1:dim(mtt)[1]) {
+ 	   expect_equal(rmincFDR[nVox], rttest[nVox],tolerance = 0.0001) 
+	   }
+})
+
+# wilcox 
+# uses pwilcox to compute p-values 
+rWilcoxFDR = p.adjust(1 - pwilcox(mw[,1],attr(mw,"m"),attr(mw,"n"),lower.tail = FALSE),"fdr")
+rmincWilcoxFDR = mincFDR(mw)
+test_that("mincWilcoxon works with mincFDR",{
+    for (nVox in 1:dim(mw)[1]) {
+ 	   expect_equal(rmincWilcoxFDR[nVox], rWilcoxFDR[nVox],tolerance = 0.0001) 
+	   }
+})
+
+ithreshold = which(mw[,1] == attr(rmincWilcoxFDR,"thresholds")[[1]])
+test_that("mincWilcoxon is thresholded properly by mincFDR",{
+	expect_less_than(rWilcoxFDR[ithreshold[1]], 0.1,tolerance = 0.0001) 
 })
 

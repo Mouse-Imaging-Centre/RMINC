@@ -67,22 +67,22 @@ volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rmincte
 # 2) sum over a certain area
 # 3) multiply that by the voxel size
 
-system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_1.mnc /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc")
-system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_2.mnc /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc") 
-system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_3.mnc /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc") 
+system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_1.mnc /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc")
+system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_2.mnc /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc") 
+system("mincmath -clobber -quiet -exp /tmp/rminctestdata/absolute_jacobian_file_3.mnc /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc") 
 
 # left (180) and right (181) parieto-temporal lobe
-left_parieto_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
-left_parieto_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
-left_parieto_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
-right_parieto_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
-right_parieto_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
-right_parieto_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
+left_parieto_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
+left_parieto_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
+left_parieto_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 187 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
+right_parieto_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
+right_parieto_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
+right_parieto_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 181 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
 
 # pons (187) has no separate label for left and right 
-pons_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
-pons_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
-pons_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
+pons_sum_file_1 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_1_exponent.mnc", intern=TRUE))
+pons_sum_file_2 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_2_exponent.mnc", intern=TRUE))
+pons_sum_file_3 <- as.numeric(system("mincstats -quiet -sum -mask /tmp/rminctestdata/test_segmentation.mnc  -mask_bin 250 /tmp/rminctestdata/RMINC_test_bed_MINC_IO_absolute_jacobian_file_3_exponent.mnc", intern=TRUE))
 
 voxel_volume <- 1
 

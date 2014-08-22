@@ -176,8 +176,8 @@ SEXP t_test(SEXP voxel, SEXP grouping) {
  */
 
 SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
-  double *xvoxel, *voxel_copy, *xgrouping, rank_sum, expected_rank_sum, *xW;
-  int    *xindices;
+  double *xvoxel, *voxel_copy, *xgrouping, rank_sum, expected_rank_sum, *xW, *ties,  *xindices;
+ 
   int *index;
   unsigned long    n, i, na, nb;
   SEXP   indices, output;
@@ -199,7 +199,6 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
       error("Each element in grouping must be either 0 or 1\n");
   }
 
-  //Rprintf("NA: %f NB: %f\n", na, nb);
   expected_rank_sum = na * nb + ((na * (na + 1)) / 2);
 
   n = LENGTH(voxel);
@@ -210,12 +209,17 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
     voxel_copy[i] = xvoxel[i];
     index[i] = i;
   }
-
+  
   PROTECT(indices=allocVector(INTSXP, n));
-  xindices = INTEGER(indices);
+  xindices = REAL(voxel);
+  ties = REAL(voxel);
 
   rsort_with_index(voxel_copy, (int*) index, n);
   rank_sum = 0;
+  
+  int tieStart = -1;
+  int tieEnd = 0;
+  double tieRankSum = 0.0;
   
   for (i=0; i < n; i++) {
     //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
@@ -223,16 +227,59 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
     //if (xgrouping[i] == 0) 
     //expected_rank_sum += i+1;
   }
+for (i=0; i < n; i++) {
+    //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
+    //Rprintf("xindices: %f\n", xindices[i]);
+    //if (xgrouping[i] == 0) 
+    //expected_rank_sum += i+1;
+  }
+
+  // Ties
+  for (i=0; i < n; i++) {
+	if((i < (n-1)) && voxel_copy[i] == voxel_copy[i+1]) {
+                if(tieStart == -1)
+		{
+			tieStart = i;
+			tieRankSum = tieRankSum + xindices[index[i]];
+		}
+		tieEnd = i+1;
+		tieRankSum = tieRankSum + xindices[index[i+1]];
+	}
+	else 
+	{
+	    if(tieStart != -1) {
+		
+		for (int j=tieStart;j <= tieEnd;j++) {
+ 			
+			xindices[index[j]] = tieRankSum/(double)(tieEnd-tieStart+1);
+			;}
+		tieStart = -1;}
+	}	
+   }	
+
+
+for (i=0; i < n; i++) {
+    //Rprintf("Index %d: %d %f\n", i, index[i]+1, xgrouping[i]);
+    //Rprintf("xindices: %f\n", xindices[i]);
+    //if (xgrouping[i] == 0) 
+    //expected_rank_sum += i+1;
+  }
+
+
   for (i=0;  i< n; i++) {
+
     if (xgrouping[i] == 0)
       rank_sum += xindices[i];
   }
   //Rprintf("RANK SUM: %f\nEXPECTED SUM: %f\nW: %f\n", 
-  //  rank_sum, expected_rank_sum, expected_rank_sum - rank_sum);
+    //rank_sum, expected_rank_sum, expected_rank_sum - rank_sum);
   xW[0] = expected_rank_sum - rank_sum;
+  if(xW[0] > (na*nb - xW[0]))
+  	xW[0] = na*nb - xW[0];
   free(voxel_copy);
   free(index);
   UNPROTECT(2);
+  //ties = INTEGER(voxel);
   return(output);
 }
 
@@ -677,13 +724,15 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   /* stuff for linear models only */
   double             *coefficients, *residuals, *effects; 
   double             *diag, *se, *t, *work, *qraux, *v, *ss, *comp;
-  int                n, p, maxasgn,mmatrix_rows,mmatrix_cols;
+  int                n, p, maxasgn,mmatrix_rows,mmatrix_cols, number_of_protects;
   int                *pivot, *xasgn, *df;
   double 	     *pMmatrix;
 
   num_files = LENGTH(filenames);
   num_files_left = num_files; 
 
+  // initialize the number of protects:
+  number_of_protects = 0;
  
   /* get the method that should be used at each voxel */
   method_name = CHAR(STRING_ELT(method, 0));
@@ -745,39 +794,42 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
 
   // minc2_model is also used for mincApply, which passes a string through this variable
   if(isNumeric(mmatrix)) {
-	  // Case 1: There is no static part
-	  if(isLogical(mmatrix)) 
-		// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
-		p = 2;
-	  // Case 2: There is a static part
-	  else {
-	 	if(isLogical(filenames_right)) 
-	{
-		 pMmatrix = REAL(mmatrix);
-	  	 mmatrix_cols = ncols(mmatrix);
-	  	 mmatrix_rows = nrows(mmatrix);
-	  	  p =  mmatrix_cols ;}
-	else {
-		pMmatrix = REAL(mmatrix);
-	  	mmatrix_cols = ncols(mmatrix);
-	  	mmatrix_rows = nrows(mmatrix);
-		p = mmatrix_cols + 1;
-		Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); }
-	  }
-}
- n = num_files_left;
-
-
-
-
+    // Case 1: There is no static part
+    if(isLogical(mmatrix)) {
+      // For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
+      p = 2;
+    }
+    // Case 2: There is a static part
+    else {
+      if(isLogical(filenames_right)) {
+        pMmatrix = REAL(mmatrix);
+        mmatrix_cols = ncols(mmatrix);
+        mmatrix_rows = nrows(mmatrix);
+        p =  mmatrix_cols ;
+      }
+      else {
+        pMmatrix = REAL(mmatrix);
+        mmatrix_cols = ncols(mmatrix);
+        mmatrix_rows = nrows(mmatrix);
+        p = mmatrix_cols + 1;
+        Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); 
+      }
+    }
+    
+    // create buffer1 here, because p is not initialized
+    // if isNumeric(mmatrix) returns false
+    PROTECT(buffer1=allocVector(REALSXP, num_files_left*p));
+    number_of_protects += 1;
+    ybuffer=REAL(buffer1);
+  }
+  
+  n = num_files_left;
 
 
   /* allocate the local buffer that will be passed to the function */
   PROTECT(buffer=allocVector(REALSXP, num_files));
-  xbuffer = REAL(buffer); 
-
-	  PROTECT(buffer1=allocVector(REALSXP, num_files_left*p));
-	  ybuffer=REAL(buffer1);
+  number_of_protects += 1;
+  xbuffer = REAL(buffer);
 
 
   /* allocate stuff for means and standard deviations */
@@ -785,6 +837,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
       strcmp(method_name, "sum") == 0 ||
       strcmp(method_name, "var") == 0) {
     PROTECT(n_groups=allocVector(REALSXP, 1));
+    number_of_protects += 1;
     xn_groups = REAL(n_groups);
     groupings = REAL(mmatrix);
 
@@ -804,16 +857,19 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
 
     Rprintf("N GROUPS: %f\n", xn_groups[0]);
     PROTECT(t_sexp = allocVector(REALSXP, xn_groups[0]));
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 
-			       xn_groups[0]));
-
+    number_of_protects += 1;
+    
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), xn_groups[0]));
+    number_of_protects += 1;
   }
   /* allocate stuff for evaluation arbitrary functions */
   else if (strcmp(method_name, "eval") == 0) {
     xn_groups = REAL(nresults);
     PROTECT(t_sexp = allocVector(REALSXP, xn_groups[0]));
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]),
-			       xn_groups[0]));
+    number_of_protects += 1;
+    
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), xn_groups[0]));
+    number_of_protects += 1;
   }
   /* allocate stuff necessary for fitting linear models */
   else if (strcmp(method_name, "lm") == 0) {
@@ -834,9 +890,11 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     Rprintf("N: %d P: %d\n", n,p);
 
     PROTECT(t_sexp = allocVector(REALSXP, p + 2));
+    number_of_protects += 1;
 
     /* allocate the output buffer */
     PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p + 2));
+    number_of_protects += 1;
 
   }
   else if (strcmp(method_name, "anova") == 0) {
@@ -870,15 +928,17 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     Rprintf("N: %d P: %d\n", n,p);
 
     PROTECT(t_sexp = allocVector(REALSXP, maxasgn-1));
+    number_of_protects += 1;
 
     /* allocate the output buffer */
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 
-			       maxasgn-1));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), maxasgn-1));
+    number_of_protects += 1;
 
   }
   else {    
     /* allocate the output buffer */
     PROTECT(output=allocVector(REALSXP, (sizes[0] * sizes[1] * sizes[2])));
+    number_of_protects += 1;
   }
   xoutput = REAL(output);
     
@@ -915,177 +975,171 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   for (v0=0; v0 < sizes[0]; v0++) {
     start[0] = v0;
     for (i=0; i < num_files; i++) {
-      if (miget_real_value_hyperslab(hvol[i], 
-				     MI_TYPE_DOUBLE, 
-				     (unsigned long *) start, 
-				     (unsigned long *) count, 
-				     full_buffer[i]) )
-	error("Error opening buffer.\n");
-
-  	if(!isLogical(filenames_right)) {
-	      if (miget_real_value_hyperslab(hvol_right[i], 
-					     MI_TYPE_DOUBLE, 
-					     (unsigned long *) start, 
-					     (unsigned long *) count, 
-					     full_buffer_right[i]) )
-		error("Error opening buffer.\n");
-	    }
-	}
-
+      if (miget_real_value_hyperslab(hvol[i],
+          MI_TYPE_DOUBLE,
+          start,
+          count, 
+          full_buffer[i])) {
+        error("Error opening buffer.\n");
+      }
+      if(!isLogical(filenames_right)) {
+        if (miget_real_value_hyperslab(hvol_right[i],
+            MI_TYPE_DOUBLE,
+            start,
+            count,
+            full_buffer_right[i]) ) {
+          error("Error opening buffer (input file on the right hand side in the formula).\n");
+        }
+      }
+    }
+    
     /* get mask - if desired */
     if (xhave_mask[0] == 1) {
       if (miget_real_value_hyperslab(hmask, 
-				     MI_TYPE_DOUBLE, 
-				     (unsigned long *) start, 
-				     (unsigned long *) count, 
-				     mask_buffer) )
-	error("Error opening mask buffer.\n");
+          MI_TYPE_DOUBLE,
+          start,
+          count,
+          mask_buffer) ) {
+        error("Error opening mask buffer.\n");
+      }
     }
 
     Rprintf(" %d ", v0);
     for (v1=0; v1 < sizes[1]; v1++) {
       for (v2=0; v2 < sizes[2]; v2++) {
-	output_index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
-	buffer_index = sizes[2] * v1 + v2;
+        output_index = v0*sizes[1]*sizes[2]+v1*sizes[2]+v2;
+        buffer_index = sizes[2] * v1 + v2;
 
-	/* only perform operation if not masked */
-	if(xhave_mask[0] == 0 
-	   || (xhave_mask[0] == 1 && 
-	       mask_buffer[buffer_index] > xmask_lower_value[0] -0.5 &&
-	       mask_buffer[buffer_index] < xmask_upper_value[0] +0.5)) {
-	
-	  for (i=0; i < num_files; i++) {
-	    location[0] = v0;
-	    location[1] = v1;
-	    location[2] = v2;
+        /* only perform operation if not masked */
+        if(xhave_mask[0] == 0 ||
+           (xhave_mask[0] == 1 && 
+           mask_buffer[buffer_index] > xmask_lower_value[0] -0.5 &&
+           mask_buffer[buffer_index] < xmask_upper_value[0] +0.5)) {
 
-	    xbuffer[i] = full_buffer[i][buffer_index];
-	    
-	    //Rprintf("V%i: %f\n", i, full_buffer[i][buffer_index]);
+          // store the current voxel for each file in xbuffer
+          for (i=0; i < num_files; i++) {
+            location[0] = v0;
+            location[1] = v1;
+            location[2] = v2;
 
-	  }
+            xbuffer[i] = full_buffer[i][buffer_index];
+            //Rprintf("V%i: %f\n", i, full_buffer[i][buffer_index]);
+          }
+        
+          /* compute either a t test of wilcoxon rank sum test */
+          if (strcmp(method_name, "t-test") == 0) {
+            xoutput[output_index] = REAL(t_test(buffer, mmatrix))[0]; 
+          }
+          else if (strcmp(method_name, "paired-t-test") == 0) {
+            xoutput[output_index] = REAL(paired_t_test(buffer, mmatrix))[0];
+          }
+          else if (strcmp(method_name, "wilcoxon") == 0) {
+            xoutput[output_index] = REAL(wilcoxon_rank_test(buffer, mmatrix))[0];
+          }
+          else if (strcmp(method_name, "correlation") == 0) {
+            xoutput[output_index] = REAL(voxel_correlation(buffer, mmatrix))[0];
+          }
+          else if (strcmp(method_name, "mean") == 0) {
+            t_sexp = voxel_mean(buffer, n_groups, mmatrix);
+            for(i=0; i < xn_groups[0]; i++) {
+              xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[i];
+            }
+          }
+          else if (strcmp(method_name, "sum") == 0) {
+            t_sexp = voxel_sum(buffer, n_groups, mmatrix);
+            for(i=0; i < xn_groups[0]; i++) {
+              xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[i];
+            }
+          }
+          else if (strcmp(method_name, "var") == 0) {
+            t_sexp = voxel_var(buffer, n_groups, mmatrix);
+            for(i=0; i < xn_groups[0]; i++) {
+              xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[i];
+            }
+          }
+          else if (strcmp(method_name, "eval") == 0) {
+            /* install the variable "x" into environment */
+            defineVar(install("x"), buffer, rho);
+            t_sexp = eval(mmatrix, rho);
+            for(i=0; i < xn_groups[0]; i++) {
+              xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[i];
+            }
+          }
+          else if (strcmp(method_name, "lm") == 0) {
+            if(isLogical(mmatrix))  { 
+              // fill y buffer
+              // Intercept
+              for (int j=0; j < n; j++) {
+                ybuffer[j] = 1.0;
+                //Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
+              }    
+              // Current Vertex Data
+              for (int j=0; j<n; j++) {
+                ybuffer[j+n] = full_buffer_right[j][buffer_index];
+                //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
+              }    
+            }
+            else {
+              // Fill with static part
+              for (int j=0; j < mmatrix_cols*mmatrix_rows; j++) {
+                ybuffer[j] = pMmatrix[j];
+                //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
+              }  
+              if(!isLogical(filenames_right)) {
+                // Fill with dynamic part  
+                for (int j=0; j < n ; j++) {
+                  ybuffer[j+mmatrix_cols*mmatrix_rows] = full_buffer_right[j][buffer_index];
+                  //Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
+                }   
+              }
+            }
 
-	  /* compute either a t test of wilcoxon rank sum test */
-	  if (strcmp(method_name, "t-test") == 0) {
-	    xoutput[output_index] = REAL(t_test(buffer, mmatrix))[0]; 
-	  }
-	  else if (strcmp(method_name, "paired-t-test") == 0) {
-	    xoutput[output_index] = REAL(paired_t_test(buffer, mmatrix))[0];
-	  }
-	  else if (strcmp(method_name, "wilcoxon") == 0) {
-	    xoutput[output_index] = 
-	      REAL(wilcoxon_rank_test(buffer, mmatrix))[0];
-	  }
-	  else if (strcmp(method_name, "correlation") == 0) {
-	    xoutput[output_index] = 
-	      REAL(voxel_correlation(buffer, mmatrix))[0];
-	  }
-	  else if (strcmp(method_name, "mean") == 0) {
-	    t_sexp = voxel_mean(buffer, n_groups, mmatrix);
-	    for(i=0; i < xn_groups[0]; i++) {
-	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		= REAL(t_sexp)[i];
-	    }
-	  }
-	  else if (strcmp(method_name, "sum") == 0) {
-	    t_sexp = voxel_sum(buffer, n_groups, mmatrix);
-	    for(i=0; i < xn_groups[0]; i++) {
-	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		= REAL(t_sexp)[i];
-	    }
-	  }
-	  else if (strcmp(method_name, "var") == 0) {
-	    t_sexp = voxel_var(buffer, n_groups, mmatrix);
-	    for(i=0; i < xn_groups[0]; i++) {
-	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		= REAL(t_sexp)[i];
-	    }
-	  }
-	  else if (strcmp(method_name, "eval") == 0) {
-	    /* install the variable "x" into environment */
-	    defineVar(install("x"), buffer, rho);
-	    t_sexp = eval(mmatrix, rho);
-	    for(i=0; i < xn_groups[0]; i++) {
-	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		= REAL(t_sexp)[i];
-	    }
-	  }
-    else if (strcmp(method_name, "lm") == 0) {
-
-	    if(isLogical(mmatrix))  { 
-		    // fill y buffer
-		    // Intercept
-		    for (int j=0; j < n; j++) {
-			ybuffer[j] = 1.0;
-			//Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
-		    }    
-		    // Current Vertex Data
-		    for (int j=0; j<n; j++) {
-		      ybuffer[j+n] = full_buffer_right[j][buffer_index];
-		      //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
-		    }    
-	    }
-	    else {
-		// Fill with static part
-	    	for (int j=0; j < mmatrix_cols*mmatrix_rows; j++) {
-			ybuffer[j] = pMmatrix[j];
-		        //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
-		    }  
-		if(!isLogical(filenames_right)) 
-		{
-			// Fill with dynamic part  
-		    	for (int j=0; j < n ; j++) {
-				ybuffer[j+mmatrix_cols*mmatrix_rows] = full_buffer_right[j][buffer_index];
-				//Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
-			    }   
-		}
-	    }
-
-    t_sexp = voxel_lm(buffer, buffer1,n,p ,coefficients, residuals, effects,
-          work, qraux, v, pivot, se, t);
-      
-      // most sensible output format (?): fist the full model measurements,
-      // then the individual measurement in the same order as summary.lm
-      // gives them:
-      //
-      // f-statistic
-      // r-squared
-      // betas
-      // t-stats
-      //
-      
-      // f-statistic
-      xoutput[output_index] = REAL(t_sexp)[0];
-      
-      // r-squared (last value from voxel_lm call: p+2 (stating at 0, so p+1))
-      xoutput[output_index + 1 * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[p + 1];
-      
-      // the betas/coefficients:
-      for (int k = 2; k < (p + 2); k++) {
-        xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = coefficients[k - 2];
-      }
-      
-      // t-stats
-      for(int k = 1; k < p + 1; k++) {
-        xoutput[output_index + (k + p + 1) * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k];
-      }
-  }
-	  /*
-	  else if (strcmp(method_name, "anova") == 0) {
-	    t_sexp = voxel_anova(buffer, Sx, asgn,
-				 coefficients, residuals,
-				 effects, work, qraux, v, pivot,
-				 se, t, comp, ss, df);
-	    for(i=0; i < maxasgn-1; i++) {
-	      xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-		      = REAL(t_sexp)[i];
-	    }
-	  }
-	  */
-	}
-	else {
-	  xoutput[output_index] = 0;
-	}
+            t_sexp = voxel_lm(buffer, buffer1,n,p ,coefficients, residuals, effects, work, qraux, v, pivot, se, t);
+        
+            // most sensible output format (?): fist the full model measurements,
+            // then the individual measurement in the same order as summary.lm
+            // gives them:
+            //
+            // f-statistic
+            // r-squared
+            // betas
+            // t-stats
+            //
+            
+            // f-statistic
+            xoutput[output_index] = REAL(t_sexp)[0];
+            
+            // r-squared (last value from voxel_lm call: p+2 (stating at 0, so p+1))
+            xoutput[output_index + 1 * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[p + 1];
+            
+            // the betas/coefficients:
+            for (int k = 2; k < (p + 2); k++) {
+              xoutput[output_index + k * (sizes[0]*sizes[1]*sizes[2])] = coefficients[k - 2];
+            }
+        
+            // t-stats
+            for(int k = 1; k < p + 1; k++) {
+              xoutput[output_index + (k + p + 1) * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k];
+            }
+          }
+          /*
+          else if (strcmp(method_name, "anova") == 0) {
+            t_sexp = voxel_anova(buffer, Sx, asgn,
+              coefficients, residuals,
+              effects, work, qraux, v, pivot,
+              se, t, comp, ss, df);
+            for(i=0; i < maxasgn-1; i++) {
+              xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
+                = REAL(t_sexp)[i];
+            }
+          }
+          */
+        }
+        else {
+          // this is the else that checked whether we have a mask and 
+          // are in the masked area. In this case, we are outside the mask
+          xoutput[output_index] = 0;
+        }
       }
     }
   }
@@ -1095,12 +1149,10 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   for (i=0; i<num_files; i++) {
     miclose_volume(hvol[i]);
     free(full_buffer[i]);
-if(!isLogical(filenames_right)) 
-{
-
-    miclose_volume(hvol_right[i]);
-    free(full_buffer_right[i]);
-}
+    if(!isLogical(filenames_right)) {
+      miclose_volume(hvol_right[i]);
+      free(full_buffer_right[i]);
+    }
   }
   if (strcmp(method_name, "lm")==0) {
     free(full_buffer);
@@ -1114,7 +1166,6 @@ if(!isLogical(filenames_right))
     free(diag);
     free(se);
     free(t);
-    UNPROTECT(4);
   }
   else if (strcmp(method_name, "anova")==0) {
     free(full_buffer);
@@ -1131,21 +1182,12 @@ if(!isLogical(filenames_right))
     free(comp);
     free(ss);
     free(df);
-    UNPROTECT(3);
   }
 
-  else if (strcmp(method_name, "mean") == 0 ||
-	   strcmp(method_name, "var") == 0 ||
-	   strcmp(method_name, "sum") == 0) {
-    UNPROTECT(5);
-  }
-  else if (strcmp(method_name, "eval") == 0) {
-    UNPROTECT(4);
-  }
-  else {
-    UNPROTECT(2);
-  }
-
+  // the unprotect is done now using the counter that keeps
+  // track of the number of protects within this function
+  UNPROTECT(number_of_protects);
+  
   /* return the results */
   return(output);
 }
