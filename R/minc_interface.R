@@ -632,39 +632,80 @@ mincFDRMask <- function(mask, buffer) {
   return(mask)
 }
 
+#' mincFDR for the output of mincLogLikRatio
+#'
+#' Very similar to the default mincFDR, except that it adds
+#' the ability to correct the p-values based on having run
+#' the parametric bootstrap first.
+#'
+#' @examples
+#' \dontrun{
+#' test <- mincLmer(jacobians ~ day + (1|mouse), gf, mask="/micehome/jlerch/R-tests/small-mask.mnc",REML=F)
+#' test2 <- mincLmer(jacobians ~ ns(day,2) + (1|mouse), gf, mask="/micehome/jlerch/R-tests/small-mask.mnc",REML=F)
+#' out <- mincLogLikRatio(test, test2)
+#' # compute the FDR just using the chi squared approximation
+#' mincFDR(out)
+#' out <- mincLogLikRatioParametricBootstrap(out, nvoxels=25, nsims=500)
+#' # also compute the FDR with corrected p-values based on the chi-squared approximation
+#' mincFDR(out)
+#' }
 mincFDR.mincLogLikRatio <- function(buffer, mask=NULL) {
   cat("Computing FDR for mincLogLikRatio\n")
   df <- attr(buffer, "df")
   mask <- RMINC:::mincFDRMask(mask, buffer)
   ncols <- ncol(buffer)
-  # compute p and q values
-  # pvals and qvals size corresponds to voxels inside mask, whereas output
-  # is the size of the buffer.
-  pvals <- matrix(nrow=sum(mask>0.5), ncol=ncols)
-  qvals <- pvals
-  output <- matrix(1, nrow=nrow(buffer), ncol=ncols)
-
+  
   # compute the thresholds at several sig levels
   p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
-  thresholds <- matrix(nrow=length(p.thresholds), ncol=ncols)
-  for (i in 1:ncols) {
-    # compute qvals through R's p.adjust function
-    pvals[, i] <- pchisq(buffer[mask>0.5, i], df[[i]], lower.tail=F)
-    qvals[, i] <- p.adjust(pvals[, i], "fdr")
-    output[mask>0.5, i] <- qvals[, i]
-    for (j in 1:length(p.thresholds)) {
-      # compute thresholds; to be honest, not quite sure what the NA checking is about
-      subTholdPvalues <- pvals[qvals[,i] <= p.thresholds[j], i]
-      subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
-                                        
-      if ( length(subTholdPvaluesNumbers) >= 1 ) {
-        thresholds[j,i] <-qchisq(max(subTholdPvaluesNumbers), df[[i]], lower.tail=FALSE)
-      }
-      else { thresholds[j,i] <- NA }
-    }
+  
+  # check whether the parametric bootstrap was estimated on the model
+  haveParametricBootstrap <- "parametricBootstrap" %in% names(attributes(buffer))
+  if (haveParametricBootstrap) {
+    # we'll keep the estimate, corrected q|pvals and their upper and lower 95% conf limits
+    # note: same as parametricBootstrap, at the moment has a limit of a single column of
+    # chi-squared values (i.e. the comparison of two input models)
+    ncols <- 4
   }
 
-  columnNames <- colnames(buffer)
+  # compute p and q values
+  # pvals and qvals size corresponds to voxels inside mask, whereas output
+  # is the size of the buffer. (ncols is changed if parametricBootstrap present)
+  pvals <- matrix(nrow=sum(mask>0.5), ncol=ncols)
+  output <- matrix(1, nrow=nrow(buffer), ncol=ncols)
+  thresholds <- matrix(nrow=length(p.thresholds), ncol=ncols)
+  qvals <- pvals
+  
+
+  for (i in 1:ncols) {
+    # compute qvals through R's p.adjust function
+    currentDF <- df[[1]]
+    if (i == 1 | haveParametricBootstrap == F) {
+      currentDF <- df[[i]]
+      pvals[, i] <- pchisq(buffer[mask>0.5, i], currentDF, lower.tail=F)
+    }
+    if (haveParametricBootstrap & i==1) {
+      # the linear model computed as part of the parametric bootstrap
+      # note: as with the parametricBootstrap code, at the moment the assumption is
+      # that there were only two models being compared, and thus a single column of
+      # chisq values in the input 
+      
+      pvals[,2:4] <- predict(attr(buffer, "parametricBootstrapModel"),
+                             newdata=data.frame(chisq=pvals[,i]),
+                             interval="confidence")
+    }
+    qvals[, i] <- p.adjust(pvals[, i], "fdr")
+
+    tfunc <- function(x) { qchisq(max(x), currentDF, lower.tail=FALSE) }
+    thresholds[,i] <- mincFDRThresholdVector(pvals[,i], qvals[,i], tfunc, p.thresholds)
+    output[mask>0.5, i] <- qvals[, i]
+  }
+
+  if (haveParametricBootstrap) {
+    columnNames <- c("Chisq approx.", "Corrected", "Corrected lwr CI", "Corrected upr CI")
+  }
+  else {
+    columnNames <- colnames(buffer)
+  }
   
   rownames(thresholds) <- p.thresholds
   colnames(thresholds) <- columnNames
@@ -680,6 +721,39 @@ mincFDR.mincLogLikRatio <- function(buffer, mask=NULL) {
   return(output)
 }
 
+#' a utility function to compute thresholds
+#'
+#' @param pvals a vector of pvalues
+#' @param qvals a vector of corrected qvalues (such as returend by p.adjust)
+#' @param thresholdFunc a function that returns the threshold given a vector of pvalues
+#' @param p.thresholds the pvalues at which to compute the threshold
+#'
+#' The function should be the quantile function for the distribution being tested. For example,
+#' for the chi squared distribution the function would be:
+#' tfunc <- function(x) { qchisq(max(x), df[[i]], lower.tail=FALSE) }
+mincFDRThresholdVector <- function(pvals, qvals, thresholdFunc=NULL,
+                                   p.thresholds = c(0.01, 0.05, 0.10, 0.15, 0.20)) {
+  
+  thresholds <- vector("numeric", length=length(p.thresholds))
+  for (j in 1:length(p.thresholds)) {
+    # compute thresholds; to be honest, not quite sure what the NA checking is about
+    subTholdPvalues <- pvals[qvals <= p.thresholds[j]]
+    subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+    
+    if ( length(subTholdPvaluesNumbers) >= 1 ) {
+      thresholds[j] <- thresholdFunc(subTholdPvaluesNumbers)
+        #qchisq(max(subTholdPvaluesNumbers), df[[i]], lower.tail=FALSE)
+    }
+    else { thresholds[j] <- NA }
+  }
+  return(thresholds)
+}
+
+
+#' mincFDR for the output of mincLmer
+#'
+#' same as mincFDR, except adds warnings based on difficulty in estimating
+#' degrees of freedom for mixed effects models
 mincFDR.mincLmer <- function(buffer, mask=NULL) {
   cat("In mincFDR.mincLmer\n")
 
@@ -747,6 +821,8 @@ mincFDR.mincLmer <- function(buffer, mask=NULL) {
 }
 
 # mincFDR for a local buffer created by mincLm
+# note: this function is slowly being deprecated. New stats types should be
+# dealt with using separate classes and methods; see mincFDR.mincLmer for example
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
                                  method="FDR", statType=NULL) {
   if (method == "qvalue") {
@@ -2417,7 +2493,15 @@ mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
   else {
     stop("Error: unknown voxel selection mechanism")
   }
-  return(out)
+  # create a linear model of the relation between the chi square assumption and
+  # the parametric bootstrap (note the lack of intercept - when p is exactly 0
+  # it should be 0 in both cases
+  lmodel <- lm(parametricBootstrap ~ chisq -1, data=data.frame(out))
+  # make the parametric bootstrap estimates an attribute of the logLik output
+  attr(logLikOutput, "parametricBootstrap") <- out
+  # make the model estimate an attribute as well
+  attr(logLikOutput, "parametricBootstrapModel") <- lmodel
+  return(logLikOutput)
 }
 
   
