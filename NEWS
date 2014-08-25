@@ -1,3 +1,8 @@
+New in Version 1.2.4.1
+======================
+* fixes a warning message in version 1.2.4 related to some pMincApply calls
+  this was discovered just too late to be added to release 1.2.4
+
 New in Version 1.2.4
 ====================
 * added mincLmer funcion (based on lme4). This provides an interface 
