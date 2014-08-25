@@ -1206,6 +1206,22 @@ pMincApply <- function(filenames, function.string,
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   
+  # create the packageList that will be used for the snowfall and sge options
+  # if packages contains multiple libraries, the test (packages == "") 
+  # will return as many TRUE/FALSE as the length of the vector. So to test
+  # for "", first test that the length of the packages vector is 1
+  if(length(packages) < 2) {
+    if(packages == "") {
+      packageList = c("RMINC")
+    }
+    else {
+      packageList = c(packages,"RMINC")
+    }
+  }
+  else {
+    packageList = c(packages,"RMINC")
+  }
+  
   pout <- list()
   
   if (method == "local") {
@@ -1224,44 +1240,40 @@ pMincApply <- function(filenames, function.string,
   else if (method == "sge") {
     library(Rsge)
 
-	options(sge.use.cluster = TRUE)
-	options(sge.block.size = 100)
-	options(sge.user.options= "-S /bin/bash")
-	options(sge.ret.ext= "sge.ret")
-	options(sge.use.qacct= FALSE)
-	options(sge.trace = TRUE) 
-	options(sge.save.global = FALSE)
-	options(sge.qsub.options = "-cwd")
-	options(sge.qsub.blocking = "-sync y -t 1-")
-	options(sge.monitor.script = "MonitorJob.sh")
-	options(sge.script="RunSgeJob")
-	options(sge.file.prefix="Rsge_data")
-	options(sge.debug=TRUE)
-	options(sge.remove.files=FALSE)
-	options(sge.qacct= "qacct")
-	options(sge.qstat= "qstat")
-	options(sge.qsub= "qsub")
+    options(sge.use.cluster = TRUE)
+    options(sge.block.size = 100)
+    options(sge.user.options= "-S /bin/bash")
+    options(sge.ret.ext= "sge.ret")
+    options(sge.use.qacct= FALSE)
+    options(sge.trace = TRUE) 
+    options(sge.save.global = FALSE)
+    options(sge.qsub.options = "-cwd")
+    options(sge.qsub.blocking = "-sync y -t 1-")
+    options(sge.monitor.script = "MonitorJob.sh")
+    options(sge.script="RunSgeJob")
+    options(sge.file.prefix="Rsge_data")
+    options(sge.debug=TRUE)
+    options(sge.remove.files=FALSE)
+    options(sge.qacct= "qacct")
+    options(sge.qstat= "qstat")
+    options(sge.qsub= "qsub")
 
     # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
     function.string = enquote(function.string)
     
     l1 <- list(length=workers)
-    
-    if(packages == "")
-	packageList = c("RMINC")
-    else
-        packageList=c(packages,"RMINC")
 
-    if(global == "") 
-	globallist = c(sub("\\(([A-Z]|[a-z])\\)","",function.string))
-    else
-        globallist = c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string))
+    if(global == "")  {
+      globallist = c(sub("\\(([A-Z]|[a-z])\\)","",function.string))
+    }
+    else {
+      globallist = c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string))
+    }
 
     # Submit one job to the queue for each segmented brain region
     for(i in 1:workers) {
       l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,reduce=TRUE,
-                           maskval=i, packages=packageList,global.savelist= globallist)
-      
+                           maskval=i, packages=packageList,global.savelist= globallist) 
     }
     
     # Wait for all jobs to complete
@@ -1270,36 +1282,29 @@ pMincApply <- function(filenames, function.string,
     while(! all (r1 == 0)) {
       Sys.sleep(4)
       r1 = lapply(l1,sge.job.status) }
-    pout <- lapply(l1, sge.list.get.result)
-    
-    function.string = eval(function.string)
+      pout <- lapply(l1, sge.list.get.result)
+      function.string = eval(function.string)
   }
   else if (method == "snowfall") {
     library(snowfall)
     sfInit(parallel=TRUE, cpus=workers)
-    if(packages == "")
-	packageList = c("RMINC")
-    else
-        packageList=c(packages,"RMINC")
 
     for (nPackage in 1:length(packageList)) {
-    	sfLibrary(packageList[nPackage],character.only=TRUE) }
-
+      sfLibrary(packageList[nPackage],character.only=TRUE) 
+    }
 
     sfExport(list = global) 
- 
+
     wrapper <- function(i) {
       cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i, reduce=REDUCE))
+                      maskval=i, reduce=REDUCE))
     }
     # use all workers in the current cluster if # of workers not specified
     if (is.null(workers)) {
       workers <- length(sfSocketHosts())
     }
     
-   
-
     #sink("/dev/null");
     pout <- sfLapply(1:workers, wrapper)
     
