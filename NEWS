@@ -1,3 +1,9 @@
+New in Version 1.2.4.2
+======================
+* bug fix in mincTtest. Now the grouping does not need to be passed on as a factor.
+  It will convert it to a factor if it's not. Also, it will check that there are 
+  only 2 levels in your grouping. Same kind of check is also done in mincPairedTtest
+
 New in Version 1.2.4.1
 ======================
 * fixes a warning message in version 1.2.4 related to some pMincApply calls
