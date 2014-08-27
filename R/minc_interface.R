@@ -1067,6 +1067,16 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 }
 
 mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  # the grouping for a t test should only contain 2 groups. Should 
+  # also be converted to a factor if it's not.
+  if( ! is.factor(grouping) ){
+    grouping <- as.factor(grouping)
+  }
+  if(length(levels(grouping)) != 2 ){
+    cat("\nThe groups (levels) in your data are:\n")
+    cat(levels(grouping), "\n\n")
+    stop("mincTtest can only be performed on data with 2 groups")
+  }
   result <- mincSummary(filenames, grouping, mask, method="t-test", maskval=maskval)
   result <- as.matrix(result);
   attr(result, "likeVolume") <- filenames[1]
@@ -1083,6 +1093,25 @@ mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 }
 
 mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  # here, similarly to the t-test, there should be 2 groups in the data. However
+  # since this is a paired t-test (repeated measures, and it assumes element 1 from
+  # group 1 is paired with element 1 from group 2 etc.), the groups need to have 
+  # the same length.
+  if( ! is.factor(grouping) ){
+    grouping <- as.factor(grouping)
+  }
+  if(length(levels(grouping)) != 2 ){
+    cat("\nThe groups (levels) in your data are:\n")
+    cat(levels(grouping), "\n\n")
+    stop("mincPairedTtest can only be performed on data with 2 groups")
+  }
+  lenght_group_1 <- sum(grouping == levels(grouping)[1])
+  lenght_group_2 <- sum(grouping == levels(grouping)[2])
+  if(lenght_group_1 != lenght_group_2) {
+    cat("\nGroup 1 (",levels(grouping)[1], ") has ", lenght_group_1," elements.\n")
+    cat("Group 2 (",levels(grouping)[2], ") has ", lenght_group_2," elements.\n\n")
+    stop("The groups do not have the same lenght. mincPairedTtest expects 2 groups with equal length (paired data)")
+  }
   result <- mincSummary(filenames, grouping, mask, method="paired-t-test", maskval=maskval)
   result <- as.matrix(result);
   attr(result, "likeVolume") <- filenames[1]

@@ -12,13 +12,20 @@ If you want to install the library somewhere else, the R_LIBS environment variab
 
 > export R_LIBS=/build/directory
 
-The latest version of the software:
+The latest version of the software using the devtools package (R 3.1.1) from within R:
 
-> git clone https://github.com/mcvaneede/RMINC.git RMINC
-> cd RMINC
-> ./autogen.sh
-> cd ../
-> R CMD INSTALL RMINC /directory/where/sourcefiles/go --configure-args='--with-build-path=/install/directory/minc2'
+> install.packages("devtools")
+> library(devtools)
+> options(devtools.install.args = "--configure-args='--with-build-path=/path/to/minc/install/root/directory/'")
+> install_git("https://github.com/mcvaneede/RMINC")
+
+The latest version of the software using command line tools:
+
+$ git clone https://github.com/mcvaneede/RMINC.git RMINC
+$ cd RMINC
+$ ./autogen.sh
+$ cd ../
+$ R CMD INSTALL RMINC /directory/where/sourcefiles/go --configure-args='--with-build-path=/install/directory/minc2'
 
 
 Installation of a release:
