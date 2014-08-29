@@ -1,3 +1,7 @@
+New in Version 1.2.4.4
+======================
+* bug fix for mincLmer: the bug fix from 1.2.4.3 was incomplete
+
 New in Version 1.2.4.3
 ======================
 * bug fix for mincLmer: the indexing into the MINC files from the R vector was incorrect
