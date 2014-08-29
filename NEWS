@@ -1,3 +1,7 @@
+New in Version 1.2.4.3
+======================
+* bug fix for mincLmer: the indexing into the MINC files from the R vector was incorrect
+
 New in Version 1.2.4.2
 ======================
 * bug fix in mincTtest. Now the grouping does not need to be passed on as a factor.
