@@ -1232,7 +1232,7 @@ pMincApply <- function(filenames, function.string,
     maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   
-  maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
+  maskFilename <- paste("/tmp/pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   
   # create the packageList that will be used for the snowfall and sge options
