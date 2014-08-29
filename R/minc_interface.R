@@ -2587,12 +2587,11 @@ mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
 mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
   sizes <- minc.dimensions.sizes(volumeFileName)
   # the fun off by one bit
-  vectorCoord <- vectorCoord-1
-  i1 <- vectorCoord %/% (sizes[2]*sizes[3])
-  i1r <- vectorCoord %% (sizes[2]*sizes[3])
-  i2 <- i1r %/% sizes[2]
-  i3 <- i1r %% sizes[2]
-  return(c(i1, i2, i3))
+  index <- vectorCoord-1
+  i1 <- index %% sizes[3]
+  i2 <- (index / sizes[3]) %% sizes[2]
+  i3 <- ((index / sizes[3]) / sizes[2]) %% sizes[1]
+  return(round(c(i1, i2, i3)))
 }
 
 #' selects a few random indices from a volume
