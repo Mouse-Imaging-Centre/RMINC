@@ -11,7 +11,9 @@ test_that("mincApply one output",{
 })
 
 
+# Need to define global variable when running tests, but normally do not...
 testFunc <<- function (x) { return(c(1,2))}
+
 sink("/dev/null"); ma <- mincApply(gf$jacobians_fixed_2,quote(testFunc(x))); sink();
 
 test_that("mincApply two output",{
@@ -21,11 +23,36 @@ test_that("mincApply two output",{
 })
 
 
-sink("/dev/null"); library(snowfall); sink();
+# Add a test to check if snowfall is installed.
+# Do this through a tryCatch block
+result = tryCatch({
+	library(snowfall)
+	result = TRUE
+}, error = function(e) {
+	result = FALSE
+})
+
 
 test_that("snowfall is installed",{
-	expect_true("package:snowfall" %in% search())
+	expect_true(result)
 })
+
+# Add a test to check if RSGE is installed.
+# Do this through a tryCatch block
+result = tryCatch({
+	library(Rsge)
+	result = TRUE
+}, error = function(e) {
+	result = FALSE
+})
+
+
+test_that("Rsge is installed",{
+	expect_true(result)
+})
+
+
+
 
 
 if("package:snowfall" %in% search()) {

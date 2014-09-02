@@ -1321,7 +1321,7 @@ pMincApply <- function(filenames, function.string,
     for (nPackage in 1:length(packageList)) {
       sfLibrary(packageList[nPackage],character.only=TRUE) 
     }
-
+		
     sfExport(list = global) 
 
     wrapper <- function(i) {
@@ -2151,6 +2151,14 @@ parseLmFormula <- function(formula,data,mf)
 #' }
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
+
+  #Try and load lme4
+  result = tryCatch({
+	library(lme4)
+  }, error = function(e) {
+	stop("Could not find lme4. Please install this package.")
+  })
+
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
 
