@@ -28,14 +28,11 @@ This function computes a linear model at every voxel of a set of files. The func
 being that the left-hand side of the formula specification takes a series of filenames for MINC files.
 }
 \examples{
+getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("control-file.csv")
-# run a linear model relating the data in all voxels to Genotype
-vs <- mincLm(filenames ~ Genotype, gf)
-# see what's in the results
-vs
-# write the results to file
-mincWriteVolume(vs, "output.mnc", "Genotype+")
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+# Compute a linear model at each voxel
+vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 }
 \seealso{
 mincWriteVolume,mincFDR,mincMean, mincSd

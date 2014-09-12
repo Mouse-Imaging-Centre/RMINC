@@ -21,12 +21,11 @@ and t statistcs that can be passed directly into vertexFDR.
 Calculates statistics and coefficients for linear model of specified vertex files
 }
 \examples{
-gf = read.csv("~/SubjectTable.csv")
-civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-gf$vertexFiles = as.factor(gf$CIVETFILES$nativeRMStlink20mmleft)
-result = vertexLm(vertexFiles~Primary.Diagnosis,gf)
-vertexFDR(result)
+getRMINCTestData()
+gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+result = vertexLm(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf)
 }
 \seealso{
 mincLm,anatLm,vertexFDR

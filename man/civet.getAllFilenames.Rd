@@ -55,9 +55,9 @@ The results will be stored under the column name CIVETFILES either in the input 
 Currently only CIVET versions 1.1.9 and 1.1.12 are supported.
 }
 \examples{
-gf = read.csv("~/SubjectTable.csv")
-civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+getRMINCTestData()
+gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = read.csv("~/SubjectTable.csv")
 civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)

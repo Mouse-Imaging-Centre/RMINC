@@ -34,14 +34,13 @@ from one of the other mincFunctions, and writes it to file so that it
 can be viewed or manipulated with the standard MINC tools
 }
 \examples{
+getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("control-file.csv")
-# run a linear model relating the data in all voxels to Genotype
-vs <- mincLm(filenames ~ Genotype, gf)
-# see what's in the results
-vs
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+# run a linear model relating the data in all voxels to Sex
+vs <- mincLm(gf$jacobians_fixed_2 ~ Sex, gf)
 # write the results to file
-mincWriteVolume(vs, "output.mnc", "Genotype+")
+mincWriteVolume(vs, "Fstat.mnc", "F-statistic")
 }
 \seealso{
 mincWriteVolume,mincLm,mincFDR,mincMean,mincSd

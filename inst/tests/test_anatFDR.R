@@ -1,7 +1,7 @@
 context("anatFDR")
 
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 
 sink("/dev/null"); rmincLm = anatLm(~ Sex,gf,gf$lobeThickness); sink();

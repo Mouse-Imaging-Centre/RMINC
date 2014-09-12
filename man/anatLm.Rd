@@ -23,11 +23,11 @@ and t statistcs that can be passed directly into anatFDR.
 Calculates statistics and coefficients for linear model of specified anat structure
 }
 \examples{
-gf = read.csv("~/SubjectTable.csv")
-civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-result = anatLm(~Primary.Diagnosis,gf,gf$lobeVolume)
-anatFDR(result)
+getRMINCTestData()
+gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+rmincLm= anatLm(~ Sex,gf,gf$lobeThickness);
 }
 \seealso{
 mincLm,anatLm,anatFDR

@@ -15,6 +15,10 @@ mincLm Returns a vector of mincSingleDim class
 \description{
 Load a 3-dimensional MINC2 volume and returns it as a 1D array
 }
+\examples{
+getRMINCTestData()
+testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc");
+}
 \seealso{
 mincWriteVolume
 }

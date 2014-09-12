@@ -26,12 +26,11 @@ compute a sequential ANOVA at each voxel
 This function computes a sequential ANOVA over a set of files.
 }
 \examples{
+getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("control-file.csv")
-# run aan ANOVA relating the data in all voxels to Genotype
-vs <- mincLm(filenames ~ Genotype, gf)
-# see what's in the results
-vs
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+# run an ANOVA at each voxel
+vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 }
 \seealso{
 mincWriteVolume,mincFDR,mincMean, mincSd

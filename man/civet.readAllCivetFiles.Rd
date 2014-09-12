@@ -22,9 +22,11 @@ This function will extract the following information from the CIVET pipeline: Lo
 Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
 }
 \examples{
+getRMINCTestData()
 gf = read.csv("~/SubjectTable.csv")
-civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 }
 \seealso{
 civet.getAllFilenames
