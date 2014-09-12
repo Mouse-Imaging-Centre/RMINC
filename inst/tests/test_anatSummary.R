@@ -38,12 +38,12 @@ test_that("anatVar", {
 })
 
 
-context("anatSD")
+context("anatSd")
 
 #Calculate standard deviation
-sink("/dev/null"); vsd <- anatSD(gf$lobeThickness); sink();
+sink("/dev/null"); vsd <- anatSd(gf$lobeThickness); sink();
 
-test_that("anatSD", {
+test_that("anatSd", {
     for (j in 1:dim(gf$lobeThickness)[2]) {
     		expect_that(sd(gf$lobeThickness[,j]),is_equivalent_to(vsd[j]))
 	}	

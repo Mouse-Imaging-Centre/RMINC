@@ -49,12 +49,12 @@ test_that("vertexVar", {
     expect_equal(var(gftest$testLeft[,3]), vv[3])	
 })
 
-context("vertexSD")
+context("vertexSd")
 
 #Calculate standard deviation
-sink("/dev/null"); vsd <- vertexSD(gftest$testFilesLeft); sink();
+sink("/dev/null"); vsd <- vertexSd(gftest$testFilesLeft); sink();
 
-test_that("vertexSD", {
+test_that("vertexSd", {
     expect_equal(sd(gftest$testLeft[,1]), vsd[1])
     expect_equal(sd(gftest$testLeft[,2]), vsd[2])
     expect_equal(sd(gftest$testLeft[,3]), vsd[3])	

@@ -5,8 +5,8 @@
 \title{Apply arbitrary R function at every voxel}
 \usage{
 mincApply(filenames, quote(mean(x)), mask="mask.mnc")
-	  pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
-    			      method="snowfall", tinyMask=FALSE, global = "",packages = "")
+pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
+           method="snowfall", tinyMask=FALSE, global = "",packages = "")
 }
 \arguments{
 \item{filenames}{The MINC files over which to apply the function. Have to be
