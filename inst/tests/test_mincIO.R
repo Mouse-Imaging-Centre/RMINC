@@ -51,6 +51,13 @@ test_that("mincGetVolume extracts the same value as mincextract", {
     expect_that(reread_testfile[mask_37_40_28 > 0.5], equals(reread_mincextract_output_voxel_37_40_28))
 })
 
+testfile[1] = NA
+test_that("mincWriteVolume stops when na/nans/infs are present", {
+    expect_error(mincWriteVolume(testfile, "/tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc", clobber=TRUE))
+})
+
+
+
 # remove temp file
 system("rm -f /tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc")
 

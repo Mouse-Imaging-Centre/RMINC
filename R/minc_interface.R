@@ -262,6 +262,12 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
   }
   b.min <- min(buffer)
   b.max <- max(buffer)
+
+  if(length(which(is.nan(testfile))) != 0 || length(which(is.infinite(testfile))) != 0  || length(which(is.na(testfile))) != 0) {
+	stop ("Cannot write volumes with inf,na or nans in them. Please remove the offending character")
+   }
+
+
   output <- .C("write_minc2_volume",
                as.character(output.filename),
                as.character(like.filename),
