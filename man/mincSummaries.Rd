@@ -7,7 +7,7 @@
 \alias{mincVar}
 \title{Create descriptive statistics across a series of MINC volumes}
 \usage{
-mincMean(anat)
+mincMean(filenames, grouping = NULL, mask = NULL, maskval = NULL)
 }
 \arguments{
 \item{filenames}{Filenames of the MINC volumes across which to create the

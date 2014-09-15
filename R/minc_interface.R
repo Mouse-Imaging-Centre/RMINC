@@ -114,7 +114,7 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
 #' @title Return a volume as a 1D array
 #' @param filename A string corresponding to the location of the MINC2 file to
 #' be read.
-#' @return mincLm Returns a vector of mincSingleDim class
+#' @return out Returns a vector of mincSingleDim class
 #' @seealso mincWriteVolume
 #' @examples
 #' getRMINCTestData()
@@ -547,13 +547,13 @@ mincGetMask <- function(mask) {
 }
 
 ###########################################################################################
-#' @description Takes the output of a mincLm run and computes the False Discovery Rate on the results.
+#' @description Takes the output of a mincLm,mincWilcoxon or mincTtest run and computes the False Discovery Rate on the results.
 #' @name mincFDR
 #' @aliases mincFDR vertexFDR anatFDR
-#' @title Compute the False Discovery Rate for a mincLm object
+#' @title Compute the False Discovery Rate for various minc objects
 #' @usage \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
-#' 	  \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
-#' @param buffer The results of a mincLm run.
+#' \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
+#' @param buffer The results of a mincLm,mincWilcoxon or mincTtest 
 #' @param columns A vector of column names. By default the threshold will
 #' be computed for all columns; with this argument the computation can
 #' be limited to a subset.
@@ -562,10 +562,10 @@ mincGetMask <- function(mask) {
 #' threshold.
 #' @param df The degrees of freedom - normally this can be determined
 #' from the input object.
+#' @param statType: This should be either a "t","F","u","chisq" or "tlmer" depending upon the
+#' type of statistic being thresholded.q
 #' @param method The method used to compute the false discovery
 #' rate. Options are "FDR" and "pFDR".
-#' @param statType This should be either a "t" or an "F", depending upon the type
-#' of statistic being thresholded.
 #' @details This function uses the \code{qvalue} package to compute the
 #'  False Discovery Rate threshold for the results of a \link{mincLm}
 #'  computation. The False Discovery Rate represents the percentage of
@@ -581,7 +581,7 @@ mincGetMask <- function(mask) {
 #'  value of 1. The result also has an attribute called "thresholds"
 #'  which contains the 1, 5, 10, 15, and 20 percent false discovery rate
 #'  thresholds.
-#' @seealso mincWriteVolume,mincLm
+#' @seealso mincWriteVolume,mincLm,mincWilcoxon or mincTtest 
 #' @examples 
 #' getRMINCTestData() 
 #' # read the text file describing the dataset
@@ -1050,10 +1050,6 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
 #' @name mincSummaries
 #' @aliases mincMean mincSd mincVar mincSum
 #' @title Create descriptive statistics across a series of MINC volumes
-#' @usage mincMean(anat)
-#' @usage mincSd(anat)
-#' @usage mincVar(anat)
-#' @usage mincSum(anat)
 #' @param filenames Filenames of the MINC volumes across which to create the
 #' descriptive statistic.
 #' @param grouping Optional grouping - contains same number of elements as
@@ -1200,7 +1196,7 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 ###########################################################################################
 #' @description Perform a correlation between a set of minc volumes.
 #' @name mincCorrelation
-#' @title Perform a correlation between a set of minc volumes.
+#' @title Perform a correlation between a set of minc volumes and another variable.
 #' @usage mincCorrelation(filenames,grouping)
 #' @usage mincCorrelation(filenames,grouping,mask)
 #' @usage mincCorrelation(filenames,grouping,mask,maskval)

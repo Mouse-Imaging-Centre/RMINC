@@ -3,13 +3,13 @@
 \alias{anatFDR}
 \alias{mincFDR}
 \alias{vertexFDR}
-\title{Compute the False Discovery Rate for a mincLm object}
+\title{Compute the False Discovery Rate for various minc objects}
 \usage{
 \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
-	  \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
+\method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
 }
 \arguments{
-\item{buffer}{The results of a mincLm run.}
+\item{buffer}{The results of a mincLm,mincWilcoxon or mincTtest}
 
 \item{columns}{A vector of column names. By default the threshold will
 be computed for all columns; with this argument the computation can
@@ -22,11 +22,11 @@ threshold.}
 \item{df}{The degrees of freedom - normally this can be determined
 from the input object.}
 
+\item{statType:}{This should be either a "t","F","u","chisq" or "tlmer" depending upon the
+type of statistic being thresholded.q}
+
 \item{method}{The method used to compute the false discovery
 rate. Options are "FDR" and "pFDR".}
-
-\item{statType}{This should be either a "t" or an "F", depending upon the type
-of statistic being thresholded.}
 }
 \value{
 qvals mincFDR returns an object with the same number of columns
@@ -38,7 +38,7 @@ qvals mincFDR returns an object with the same number of columns
  thresholds.
 }
 \description{
-Takes the output of a mincLm run and computes the False Discovery Rate on the results.
+Takes the output of a mincLm,mincWilcoxon or mincTtest run and computes the False Discovery Rate on the results.
 }
 \details{
 This function uses the \code{qvalue} package to compute the
@@ -60,6 +60,6 @@ vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 qvals <- mincFDR(vs)
 }
 \seealso{
-mincWriteVolume,mincLm
+mincWriteVolume,mincLm,mincWilcoxon or mincTtest
 }
 

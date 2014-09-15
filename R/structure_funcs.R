@@ -461,10 +461,6 @@ anatFDR <- function(buffer, method="FDR") {
 #' @name anatSummaries
 #' @aliases anatMean anatSd anatVar anatSum vertexMean vertexSd vertexSum vertexVar
 #' @title Create descriptive statistics across an anat structure
-#' @usage anatMean(anat)
-#' @usage anatSd(anat)
-#' @usage anatVar(anat)
-#' @usage anatSum(anat)
 #' @param anat anat structure.
 #' @return  out: The output will be a single vector containing as many
 #'          elements as there are regions in the input variable. 
