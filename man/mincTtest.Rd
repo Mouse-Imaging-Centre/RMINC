@@ -3,7 +3,7 @@
 \alias{mincTtest}
 \title{Perform an unpaired,unequal variance t-test across a set of minc volumes}
 \usage{
-mincTtest(filenames,grouping)
+mincTtest(filenames, grouping, mask = NULL, maskval = NULL)
 }
 \arguments{
 \item{filenames}{Filenames of the MINC volumes across which to run the t-test}

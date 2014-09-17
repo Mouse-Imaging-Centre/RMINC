@@ -14,7 +14,7 @@ so only the + operator may be used, and only two terms may appear on the RHS}
 \item{subset}{rows to be used, by default all are used}
 }
 \value{
-Returns an object containing the beta coefficients, F
+Returns an object containing the R-Squared value,beta coefficients, F
 and t statistcs that can be passed directly into vertexFDR.
 }
 \description{

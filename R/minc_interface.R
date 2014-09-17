@@ -208,7 +208,7 @@ print.mincQvals <- function(x, ...) {
 #' @details This function takes numeric data, usually the results computed
 #' from one of the other mincFunctions, and writes it to file so that it
 #' can be viewed or manipulated with the standard MINC tools
-#' @return mincLm Returns a vector of mincSingleDim class
+#' @return A list with the parameters of the minc volume written
 #' @seealso mincWriteVolume,mincLm,mincFDR,mincMean,mincSd
 #' @examples
 #' getRMINCTestData()
@@ -263,7 +263,7 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
   b.min <- min(buffer)
   b.max <- max(buffer)
 
-  if(length(which(is.nan(testfile))) != 0 || length(which(is.infinite(testfile))) != 0  || length(which(is.na(testfile))) != 0) {
+  if(length(which(is.nan(buffer))) != 0 || length(which(is.infinite(buffer))) != 0  || length(which(is.na(buffer))) != 0) {
 	stop ("Cannot write volumes with inf,na or nans in them. Please remove the offending character")
    }
 
@@ -346,7 +346,7 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' inside the mask.
 #' @details This function computes a sequential ANOVA over a set of files.
 #' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
-#' 	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' 	minc file names input,dimensions,dimension names, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples 
 #' getRMINCTestData() 
@@ -423,15 +423,14 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' @name mincLm
 #' @title Linear model at Every Voxel
 #' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.The RHS of the formula may contain one term with filenames. If so only the + operator may be used, and only two terms may appear on the RHS
-#' @param data The dataframe which contains the model terms.
+#' @param data The data frame which contains the model terms.
 #' @param subset Subset definition.
 #' @param mask Either a filename or a vector of values of the same length as the input files. The linear model will only be computed
 #' inside the mask.
 #' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 #' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
 #' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
-#' column is the F-statistic of the significance of the entire volume, the following columns contain the marginal t-statistics for each of the terms in 
-#' the model 
+#' column is the F-statistic of the significance of the entire volume, the following columns contain the R-Squared term, the marginal t-statistics for each of the terms in the model along with their respective coefficients.
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples 
 #' getRMINCTestData() 
@@ -553,13 +552,13 @@ mincGetMask <- function(mask) {
 }
 
 ###########################################################################################
-#' @description Takes the output of a mincLm,mincWilcoxon or mincTtest run and computes the False Discovery Rate on the results.
+#' @description Takes the output of a mincLm type run and computes the False Discovery Rate on the results.
 #' @name mincFDR
 #' @aliases mincFDR vertexFDR anatFDR
-#' @title Compute the False Discovery Rate for various minc objects
+#' @title Compute the False Discovery Rate on the output of a mincLm type run
 #' @usage \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
 #' \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
-#' @param buffer The results of a mincLm,mincWilcoxon or mincTtest 
+#' @param buffer The results of a mincLm type run.
 #' @param columns A vector of column names. By default the threshold will
 #' be computed for all columns; with this argument the computation can
 #' be limited to a subset.
@@ -568,8 +567,8 @@ mincGetMask <- function(mask) {
 #' threshold.
 #' @param df The degrees of freedom - normally this can be determined
 #' from the input object.
-#' @param statType: This should be either a "t","F","u","chisq" or "tlmer" depending upon the
-#' type of statistic being thresholded.q
+#' @param statType This should be either a "t","F","u","chisq" or "tlmer" depending upon the
+#' type of statistic being thresholded.
 #' @param method The method used to compute the false discovery
 #' rate. Options are "FDR" and "pFDR".
 #' @details This function uses the \code{qvalue} package to compute the
@@ -1102,10 +1101,6 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @description Perform an unpaired,unequal variance t-test across a set of minc volumes
 #' @name mincTtest
 #' @title Perform an unpaired,unequal variance t-test across a set of minc volumes
-#' @usage mincTtest(filenames,grouping)
-#' @usage mincTtest(filenames,grouping,mask)
-#' @usage mincTtest(filenames,grouping,mask,maskval)
-
 #' @param filenames Filenames of the MINC volumes across which to run the t-test
 #' @param grouping  Contains same number of elements as
 #' filenames; must contain exactly two groups with which to compare means
@@ -1144,13 +1139,9 @@ mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   return(result)
 }
 ###########################################################################################
-#' @description Perform a paired,unequal variance t-test across a set of minc volumes
+#' @description Perform a paired t-test across a set of minc volumes
 #' @name mincPairedTtest
-#' @title Perform an paired,unequal variance t-test across a set of minc volumes
-#' @usage mincPairedTtest(filenames,grouping)
-#' @usage mincPairedTtest(filenames,grouping,mask)
-#' @usage mincPairedTtest(filenames,grouping,mask,maskval)
-
+#' @title Perform an paired t-test across a set of minc volumes
 #' @param filenames Filenames of the MINC volumes across which to run the t-test
 #' @param grouping  Contains same number of elements as
 #' filenames; must contain exactly two groups with which to compare means. The two groups
@@ -1162,8 +1153,8 @@ mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @examples 
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
-#' gf = gf[1:20,];
-#' mptt <- mincPairedTtest(gf$jacobians_0.2,gf$Strain); 
+#' gf = gf[1:20,]
+#' mptt <- mincPairedTtest(gf$jacobians_0.2,gf$Strain)
 ###########################################################################################
 mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   # here, similarly to the t-test, there should be 2 groups in the data. However
@@ -1203,10 +1194,6 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @description Perform a correlation between a set of minc volumes.
 #' @name mincCorrelation
 #' @title Perform a correlation between a set of minc volumes and another variable.
-#' @usage mincCorrelation(filenames,grouping)
-#' @usage mincCorrelation(filenames,grouping,mask)
-#' @usage mincCorrelation(filenames,grouping,mask,maskval)
-
 #' @param filenames Filenames of the MINC volumes across which to run the correlation
 #' @param grouping  Contains same number of elements as
 #' filenames; contains values with which to correlate
@@ -1228,10 +1215,6 @@ mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @description Perform a Mann-Whitney U test between a set of minc volumes.
 #' @name mincWilcoxon
 #' @title Perform a Mann-Whitney U  between a set of minc volumes.
-#' @usage mincWilcoxon(filenames,grouping)
-#' @usage mincWilcoxon(filenames,grouping,mask)
-#' @usage mincCorrelation(filenames,grouping,mask,maskval)
-
 #' @param filenames Filenames of the MINC volumes across which to run the test
 #' @param grouping  Contains same number of elements as
 #' filenames; must contain exactly two groups.
@@ -1512,7 +1495,7 @@ pMincApply <- function(filenames, function.string,
 #' @details mincApply allows one to execute any R function at every voxel of a
 #' set of files. There are two variants: mincApply, which works
 #' inside the current R session, and pMincApply, which uses the
-#' multicore, doMC, and foreach packages to split the execution of
+#' snowfall and Rsge packages to split the execution of
 #' the function across multiple cores/processors on the same machine
 #' or across a cluster.
 #' Unless the function to be applied takes a single argument a
@@ -1698,10 +1681,9 @@ vertexTable <- function(filenames) {
 #' Performs ANOVA on each vertex point specified 
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
-#' @param filenames list of vertex files
 #' @param subset rows to be used, by default all are used
 #' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
-#' 	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' 	vertex file names input, stat-type: type of statistic used,dimensions,dimension names, and df – degrees of freedom of each statistic. 
 #' @seealso mincAnova,anatAnova 
 #' @examples 
 #' getRMINCTestData() 
@@ -1754,7 +1736,7 @@ vertexAnova <- function(formula, data, subset=NULL) {
 #' so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
-#' @return Returns an object containing the beta coefficients, F 
+#' @return Returns an object containing the R-Squared value,beta coefficients, F 
 #' and t statistcs that can be passed directly into vertexFDR.
 #' @seealso mincLm,anatLm,vertexFDR 
 #' @examples 
@@ -1873,7 +1855,7 @@ vertexSd<- function(filenames)
 #' gf = read.csv("~/SubjectTable.csv") 
 #' gfCIVET = civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
 #' gfCIVET = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gfCIVET)
-#' writeVertex(gfCIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
+#' writeVertex(gf$CIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
 ###########################################################################################
 writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL, 
     gf = NULL) 

@@ -16,8 +16,9 @@ so only the + operator may be used, and only two terms may appear on the RHS}
 \item{subset}{rows to be used, by default all are used}
 }
 \value{
-Returns an object containing the coefficients,F
-and t statistcs that can be passed directly into anatFDR.
+Returns an object containing the R-Squared,value,coefficients,F
+and t statistcs that can be passed directly into anatFDR. Additionally
+has the attributes for model,stat type and degrees of freedom.
 }
 \description{
 Calculates statistics and coefficients for linear model of specified anat structure

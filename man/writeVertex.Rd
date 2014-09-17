@@ -27,6 +27,6 @@ Writes vertex data to a file with an optional header
 gf = read.csv("~/SubjectTable.csv")
 gfCIVET = civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
 gfCIVET = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gfCIVET)
-writeVertex(gfCIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
+writeVertex(gf$CIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
 }
 

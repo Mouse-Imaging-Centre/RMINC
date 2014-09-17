@@ -17,7 +17,7 @@ inside the mask.}
 }
 \value{
 Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames –
-	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic.
+	minc file names input,dimensions,dimension names, stat-type: type of statistic used, df – degrees of freedom of each statistic.
 }
 \description{
 compute a sequential ANOVA at each voxel

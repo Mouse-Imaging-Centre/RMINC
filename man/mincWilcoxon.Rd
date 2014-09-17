@@ -3,7 +3,7 @@
 \alias{mincWilcoxon}
 \title{Perform a Mann-Whitney U  between a set of minc volumes.}
 \usage{
-mincWilcoxon(filenames,grouping)
+mincWilcoxon(filenames, grouping, mask = NULL, maskval = NULL)
 }
 \arguments{
 \item{filenames}{Filenames of the MINC volumes across which to run the test}

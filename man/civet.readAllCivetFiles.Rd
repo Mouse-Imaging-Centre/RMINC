@@ -19,7 +19,7 @@ Parses outputs from CIVET pipeline
 \details{
 Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
 This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
-Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
+Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Brain Volume Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
 }
 \examples{
 getRMINCTestData()

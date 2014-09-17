@@ -10,12 +10,12 @@ anatAnova(formula, data = NULL, anat = NULL, subset = NULL)
 
 \item{data}{a data.frame containing variables in formula}
 
-\item{ant}{an array of atlas labels vs subject data}
+\item{anat}{an array of atlas labels vs subject data}
 
 \item{subset}{rows to be used, by default all are used}
 }
 \value{
-Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames –
+Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix
 	, stat-type: type of statistic used, df – degrees of freedom of each statistic.
 }
 \description{

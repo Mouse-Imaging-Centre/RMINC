@@ -18,8 +18,7 @@ proper name for the structure and contains additional
 information for laterality of each structure.}
 }
 \value{
-A matrix with nrows equal to the number of labels in the atlas divided by 2 and
-ncols equal to the number of files.
+A matrix with ncols equal to the number of collapsed labels
 }
 \description{
 Combines left and right labels from volumes obtained from anatGetAll call

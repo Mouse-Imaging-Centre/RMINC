@@ -10,13 +10,11 @@ vertexAnova(formula, data, subset = NULL)
 
 \item{data}{a data.frame containing variables in formula}
 
-\item{filenames}{list of vertex files}
-
 \item{subset}{rows to be used, by default all are used}
 }
 \value{
 Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames –
-	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic.
+	vertex file names input, stat-type: type of statistic used,dimensions,dimension names, and df – degrees of freedom of each statistic.
 }
 \description{
 Performs ANOVA on each vertex point specified

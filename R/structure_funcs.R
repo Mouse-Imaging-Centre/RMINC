@@ -131,8 +131,8 @@ print.anatMatrix <- function(x, ...) {
 #'     text Each file is a comma separated values text file and is simply
 #'          read in.
 
-#' @return A matrix with nrows equal to the number of labels in the atlas and
-#' ncols equal to the number of files.
+#' @return A matrix with ncols equal to the number of labels in the atlas and
+#' nrows equal to the number of files.
 
 #' @seealso anatLm,anatCombineStructures
 #' @examples
@@ -203,8 +203,7 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mic
 #' @details anatCombineStructures collapses left and right volume information into one
 #' measure. If "jacobians","sums",or "labels" is selected then the sum of the left and right is produced, otherwise
 #' the mean is produced.
-#' @return A matrix with nrows equal to the number of labels in the atlas divided by 2 and
-#' ncols equal to the number of files.
+#' @return A matrix with ncols equal to the number of collapsed labels
 
 #' @seealso anatLm,anatGetAll
 #' @examples
@@ -259,8 +258,9 @@ anatApply <- function(vols, grouping, method=mean) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
-#' @return Returns an object containing the coefficients,F 
-#' and t statistcs that can be passed directly into anatFDR.
+#' @return Returns an object containing the R-Squared,value,coefficients,F 
+#' and t statistcs that can be passed directly into anatFDR. Additionally
+#' has the attributes for model,stat type and degrees of freedom.
 #' @seealso mincLm,anatLm,anatFDR 
 #' @examples 
 #' getRMINCTestData() 
@@ -379,9 +379,9 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' Performs ANOVA on each region specified 
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
-#' @param ant  an array of atlas labels vs subject data
+#' @param anat  an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
-#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix
 #' 	, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
 #' @seealso mincAnova,vertexAnova 
 #' @examples

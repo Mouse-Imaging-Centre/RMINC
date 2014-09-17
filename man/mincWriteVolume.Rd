@@ -23,7 +23,7 @@ is stored inside MINC data objects}
 overwrite when set to FALSE and will prompt when NULL}
 }
 \value{
-mincLm Returns a vector of mincSingleDim class
+A list with the parameters of the minc volume written
 }
 \description{
 Writes a MINC volume to file

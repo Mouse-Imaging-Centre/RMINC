@@ -50,7 +50,7 @@ Can execute any R function at every voxel for a set of MINC files
 mincApply allows one to execute any R function at every voxel of a
 set of files. There are two variants: mincApply, which works
 inside the current R session, and pMincApply, which uses the
-multicore, doMC, and foreach packages to split the execution of
+snowfall and Rsge packages to split the execution of
 the function across multiple cores/processors on the same machine
 or across a cluster.
 Unless the function to be applied takes a single argument a

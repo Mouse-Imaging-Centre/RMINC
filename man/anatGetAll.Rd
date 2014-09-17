@@ -32,8 +32,8 @@ or just for the ones actually contained in each file.}
 which specify what labels to obtain.}
 }
 \value{
-A matrix with nrows equal to the number of labels in the atlas and
-ncols equal to the number of files.
+A matrix with ncols equal to the number of labels in the atlas and
+nrows equal to the number of files.
 }
 \description{
 Computes volumes, means, sums, and similar values across a
