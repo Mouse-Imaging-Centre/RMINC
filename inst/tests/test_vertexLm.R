@@ -1,6 +1,6 @@
 context("vertexLm")
 
-gftest = read.csv('/tmp/rminctestdata/subject.csv')
+gftest <<- read.csv('/tmp/rminctestdata/subject.csv')
 subjectFile = matrix(data=NA,nrow=10,1)
 subjectFile[1,1]  = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[2,1]  = '/tmp/rminctestdata/vertex3.txt'
@@ -12,10 +12,10 @@ subjectFile[7,1]  = '/tmp/rminctestdata/vertex4.txt'
 subjectFile[8,1]  = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[9,1]  = '/tmp/rminctestdata/vertex3.txt'
 subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
-gftest$testFilesLeft = (subjectFile)
+gftest$testFilesLeft <<- (subjectFile)
 
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age,gftest)",getOption("verbose"))
 
-sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age,gftest); sink();
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Age,gftest))
@@ -30,7 +30,8 @@ test_that("vertexLm Two Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age*Sex,gftest); sink();
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age*Sex,gftest)",getOption("verbose"))
+
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Age*Sex,gftest))
 
@@ -48,7 +49,8 @@ test_that("vertexLm Interaction",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Group,gftest); sink();
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Group,gftest)",getOption("verbose"))
+
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Group,gftest))
 
@@ -65,7 +67,8 @@ test_that("vertexLm Three Factors",{
 })
 
 
-sink("/dev/null"); rmincLm = vertexLm(testFilesLeft ~ Age*Group,gftest); sink();
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age*Group,gftest)",getOption("verbose"))
+
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Age*Group,gftest))
 

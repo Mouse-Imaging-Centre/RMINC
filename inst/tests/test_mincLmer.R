@@ -1,7 +1,7 @@
 context("mincLmer - basic test")
 
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-maskfile <- "/tmp/rminctestdata/testminc-mask.mnc"
+gf <<- read.csv("/tmp/rminctestdata/test_data_set.csv")
+maskfile <<- "/tmp/rminctestdata/testminc-mask.mnc"
 
 # Add a test to check if lme4 is installed.
 # Do this through a tryCatch block
@@ -22,9 +22,9 @@ voxelIndex <- 453 # for later comparisons
 gf$v <- mincGetVoxel(gf$jacobians_fixed_2, 4, 5, 2)
 gf$coil <- as.factor(gf$coil)
 l <- lmer(v ~ Sex + (1|coil), gf)
-sink("/dev/null")
-vsreml <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, mask=maskfile)
-sink()
+
+vsreml <- verboseRun("mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, mask=maskfile)",getOption("verbose"))
+
 test_that("mincLmer basics", {
   expect_that(vsreml[voxelIndex,1], is_equivalent_to(fixef(l)[1]))
   expect_that(vsreml[voxelIndex,2], is_equivalent_to(fixef(l)[2]))
@@ -32,18 +32,18 @@ test_that("mincLmer basics", {
             
 context("mincLmer - maximum likelihood test")
 l <- lmer(v ~ Sex + (1|coil), gf, REML=F)
-sink("/dev/null")
-vsml <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, REML=F, mask=maskfile)
-sink()
+
+vsml <- verboseRun("mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, REML=F, mask=maskfile)",getOption("verbose"))
+
 test_that("mincLmer basics", {
   expect_that(vsml[voxelIndex,1], is_equivalent_to(fixef(l)[1]))
   expect_that(vsml[voxelIndex,2], is_equivalent_to(fixef(l)[2]))
 })
 
 context("mincLmer - log likelihood ratios")
-sink("/dev/null")
-vsml2 <-  mincLmer(jacobians_fixed_2 ~ 1 + (1|coil), gf, REML=F, mask=maskfile)
-sink()
+
+vsml2 <-  verboseRun("mincLmer(jacobians_fixed_2 ~ 1 + (1|coil), gf, REML=F, mask=maskfile)",getOption("verbose"))
+
 l2 <- lmer(v ~ 1 + (1|coil), gf, REML=F)
 
 test_that("logLikRatio", {

@@ -1852,10 +1852,11 @@ vertexSd<- function(filenames)
 #' @param gf glim matrix that can be written to the header
 #' @return A file is generated with the vertex data and optional headers
 #' @examples 
-#' gf = read.csv("~/SubjectTable.csv") 
-#' gfCIVET = civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gfCIVET = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gfCIVET)
-#' writeVertex(gf$CIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' writeVertex(gf$nativeRMStlink20mm,"~/RMStlink20mm.txt",FALSE,NULL,NULL)
 ###########################################################################################
 writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL, 
     gf = NULL) 
@@ -1875,9 +1876,9 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
             sink(NULL)
             write("</formula>", file = filename, append = TRUE)
         }
-        if (is.data.frame(glim.matrix)) {
+        if (is.data.frame(gf)) {
             write("<matrix>", file = filename, append = TRUE)
-            write.table(glim.matrix, file = filename, append = TRUE, 
+            write.table(gf, file = filename, append = TRUE, 
                 row.names = FALSE)
             write("</matrix>", file = filename, append = TRUE)
         }
@@ -2784,8 +2785,10 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
 }
 
 # Run Testbed
-runRMINCTestbed <- function() {
+runRMINCTestbed <- function(verboseTest = FALSE) {
+	
 
+  options(verbose = verboseTest)
   # Make sure environment is clear
   #rm(list=ls())
 
@@ -2824,4 +2827,17 @@ getRMINCTestData <- function() {
   # Untar
   system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
   
+}
+
+# Run function with/without output silenced; used in test bed
+verboseRun <- function(expr,verbose,env = parent.frame()) {
+	if(verbose) {
+		output = eval(parse(text=expr))
+	}
+	else {
+		sink("/dev/null")  
+		output = eval(parse(text=expr)) 
+		sink()
+	}
+	return(output)
 }

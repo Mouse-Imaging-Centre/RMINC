@@ -56,6 +56,7 @@ export( fast.qvalue )
 
 #############################
 # minc_interface.R
+export( getRMINCTestData )
 export( minc.dimensions.sizes )
 export( minc.get.hyperslab )
 export( minc.get.volumes )
@@ -112,6 +113,7 @@ export( print.mincVoxel )
 export( print.vertexMultiDim )
 export( pt2 )
 export( runRMINCTestbed )
+export( verboseRun )
 export( vertexFDR )
 export( vertexLm )
 export( vertexAnova )
@@ -121,6 +123,7 @@ export( vertexSd )
 export( vertexVar )
 export( vertexTable )
 export( wilcox.permutation.full )
+export( writeVertex )
 # rather not export the following... the function name is a bit too desciptive...
 #export( f )
 

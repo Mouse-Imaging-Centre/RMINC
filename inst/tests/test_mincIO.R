@@ -4,12 +4,16 @@
 context("MINC I/O reading")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
-sink("/dev/null"); testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc"); sink();
+
+testfile <<- verboseRun("mincGetVolume(\"/tmp/rminctestdata/brain_cut_out.mnc\")",getOption("verbose"))
+
 mincextract_output_voxel_0_0_0 <- as.numeric(system("mincextract  -start 0,0,0 -count 1,1,1 /tmp/rminctestdata/brain_cut_out.mnc", intern=TRUE))
 
-sink("/dev/null"); mask_10_10_10 <- mincGetVolume("/tmp/rminctestdata/mask_at_voxel_10_10_10.mnc"); sink();
-sink("/dev/null"); mask_10_31_33 <- mincGetVolume("/tmp/rminctestdata/mask_at_voxel_10_31_33.mnc"); sink();
-sink("/dev/null"); mask_37_40_28 <- mincGetVolume("/tmp/rminctestdata/mask_at_voxel_37_40_28.mnc"); sink();
+
+mask_10_10_10 <- verboseRun("mincGetVolume(\"/tmp/rminctestdata/mask_at_voxel_10_10_10.mnc\")",getOption("verbose"))
+mask_10_31_33 <- verboseRun("mincGetVolume(\"/tmp/rminctestdata/mask_at_voxel_10_31_33.mnc\")",getOption("verbose"))
+mask_37_40_28 <- verboseRun("mincGetVolume(\"/tmp/rminctestdata/mask_at_voxel_37_40_28.mnc\")",getOption("verbose"))
+
 mincextract_output_voxel_10_10_10 <- as.numeric(system("mincextract  -start 10,10,10 -count 1,1,1 /tmp/rminctestdata/brain_cut_out.mnc", intern=TRUE))
 mincextract_output_voxel_10_31_33 <- as.numeric(system("mincextract  -start 10,31,33 -count 1,1,1 /tmp/rminctestdata/brain_cut_out.mnc", intern=TRUE))
 mincextract_output_voxel_37_40_28 <- as.numeric(system("mincextract  -start 37,40,28 -count 1,1,1 /tmp/rminctestdata/brain_cut_out.mnc", intern=TRUE))
@@ -25,7 +29,8 @@ test_that("mincGetVolume extracts the same value as mincextract", {
 #
 #
 context("MINC I/O writing")
-sink("/dev/null"); mincWriteVolume(testfile, "/tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc", clobber=TRUE); sink();
+verboseRun("mincWriteVolume(testfile, \"/tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc\", clobber=TRUE)",getOption("verbose"))
+
 reread_mincextract_output_voxel_0_0_0 <- as.numeric(system("mincextract  -start 0,0,0 -count 1,1,1 /tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc", intern=TRUE))
 reread_mincextract_output_voxel_10_10_10 <- as.numeric(system("mincextract  -start 10,10,10 -count 1,1,1 /tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc", intern=TRUE))
 reread_mincextract_output_voxel_10_31_33 <- as.numeric(system("mincextract  -start 10,31,33 -count 1,1,1 /tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc", intern=TRUE))
@@ -42,7 +47,7 @@ test_that("mincGetVolume extracts the same value as mincextract", {
 #
 #
 context("MINC I/O read from write")
-sink("/dev/null"); reread_testfile <- mincGetVolume("/tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc"); sink();
+reread_testfile <- verboseRun("mincGetVolume(\"/tmp/write_out_of_RMINC_test_bed_MINC_IO.mnc\")",getOption("verbose"))
 
 test_that("mincGetVolume extracts the same value as mincextract", {
     expect_that(reread_testfile[1], equals(reread_mincextract_output_voxel_0_0_0))

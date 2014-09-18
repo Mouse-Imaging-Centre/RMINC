@@ -1,10 +1,13 @@
 context("anatLm")
 
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+gf <<- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf <<- civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf <<- civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 
-sink("/dev/null"); rmincLm = anatLm(~ Sex,gf,gf$lobeThickness); sink();
+
+
+rmincLm = verboseRun("anatLm(~ Sex,gf,gf$lobeThickness)",getOption("verbose"))
+
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -20,7 +23,8 @@ test_that("anatLm Two Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = anatLm(~ Age*Sex,gf,gf$lobeThickness); sink();
+rmincLm = verboseRun("anatLm(~ Age*Sex,gf,gf$lobeThickness)",getOption("verbose"))
+
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -40,7 +44,8 @@ test_that("anatLm Interaction",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = anatLm(~ Primary.Diagnosis,gf,gf$lobeThickness); sink();
+rmincLm = verboseRun("anatLm(~ Primary.Diagnosis,gf,gf$lobeThickness)",getOption("verbose"))
+
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis
 rLm = summary(lm(lobeThickness~Primary.Diagnosis))
@@ -58,7 +63,8 @@ test_that("anatLm Three Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-sink("/dev/null"); rmincLm = anatLm(~Primary.Diagnosis*Age,gf,gf$lobeThickness); sink();
+rmincLm = verboseRun("anatLm(~Primary.Diagnosis*Age,gf,gf$lobeThickness)",getOption("verbose"))
+
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis
 rLm = summary(lm(lobeThickness~Primary.Diagnosis*Age))

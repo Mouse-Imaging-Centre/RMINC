@@ -1,13 +1,15 @@
 
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+gf <<- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf <<- civet.getAllFilenames(gf,"ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf <<- civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 
 
 context("anatMean")
 
 #Calculate mean
-sink("/dev/null"); vm <- anatMean(gf$lobeThickness); sink();
+
+vm <- verboseRun("anatMean(gf$lobeThickness)",getOption("verbose"))
+
 
 test_that("anatMean", {
     for (j in 1:dim(gf$lobeThickness)[2]) {
@@ -18,7 +20,7 @@ test_that("anatMean", {
 context("anatSum")
 
 #Calculate sum
-sink("/dev/null"); vs <- anatSum(gf$lobeThickness); sink();
+vs <- verboseRun("anatSum(gf$lobeThickness)",getOption("verbose"))
 
 test_that("anatSum", {
     for (j in 1:dim(gf$lobeThickness)[2]) {
@@ -29,7 +31,7 @@ test_that("anatSum", {
 context("anatVar")
 
 #Calculate variance
-sink("/dev/null"); vv <- anatVar(gf$lobeThickness); sink();
+vv <- verboseRun("anatVar(gf$lobeThickness)",getOption("verbose"))
 
 test_that("anatVar", {
     for (j in 1:dim(gf$lobeThickness)[2]) {
@@ -41,7 +43,7 @@ test_that("anatVar", {
 context("anatSd")
 
 #Calculate standard deviation
-sink("/dev/null"); vsd <- anatSd(gf$lobeThickness); sink();
+vsd <- verboseRun("anatSd(gf$lobeThickness)",getOption("verbose"))
 
 test_that("anatSd", {
     for (j in 1:dim(gf$lobeThickness)[2]) {

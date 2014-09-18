@@ -1,7 +1,7 @@
 #testthat test script for vertex summary functions
 # vertexMean, vertexSd, vertexVar, vertexSum 
 
-gftest = read.csv('/tmp/rminctestdata/subject.csv')
+gftest <<- read.csv('/tmp/rminctestdata/subject.csv')
 subjectFile = matrix(data=NA,nrow=10,1)
 subjectFile[1,1]  = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[2,1]  = '/tmp/rminctestdata/vertex3.txt'
@@ -13,13 +13,13 @@ subjectFile[7,1]  = '/tmp/rminctestdata/vertex4.txt'
 subjectFile[8,1]  = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[9,1]  = '/tmp/rminctestdata/vertex3.txt'
 subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
-gftest$testFilesLeft = (subjectFile)
-gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
+gftest$testFilesLeft <<- (subjectFile)
+gftest$testLeft <<- t(vertexTable(gftest$testFilesLeft))
 
 context("vertexMean")
 
 #Calculate mean
-sink("/dev/null"); vm <- vertexMean(gftest$testFilesLeft); sink();
+vm <- verboseRun("vertexMean(gftest$testFilesLeft)",getOption("verbose"))
 
 test_that("vertexMean", {
     expect_equal(mean(gftest$testLeft[,1]), vm[1])
@@ -30,7 +30,8 @@ test_that("vertexMean", {
 context("vertexSum")
 
 #Calculate sum
-sink("/dev/null"); vs <- vertexSum(gftest$testFilesLeft); sink();
+
+vs <- verboseRun("vertexSum(gftest$testFilesLeft)",getOption("verbose"))
 
 test_that("vertexSum", {
     expect_equal(sum(gftest$testLeft[,1]), vs[1])
@@ -41,7 +42,7 @@ test_that("vertexSum", {
 context("vertexVar")
 
 #Calculate variance
-sink("/dev/null"); vv <- vertexVar(gftest$testFilesLeft); sink();
+vv <- verboseRun("vertexVar(gftest$testFilesLeft)",getOption("verbose"))
 
 test_that("vertexVar", {
     expect_equal(var(gftest$testLeft[,1]), vv[1])
@@ -52,7 +53,7 @@ test_that("vertexVar", {
 context("vertexSd")
 
 #Calculate standard deviation
-sink("/dev/null"); vsd <- vertexSd(gftest$testFilesLeft); sink();
+vsd <- verboseRun("vertexSd(gftest$testFilesLeft)",getOption("verbose"))
 
 test_that("vertexSd", {
     expect_equal(sd(gftest$testLeft[,1]), vsd[1])
