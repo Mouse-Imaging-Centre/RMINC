@@ -2,8 +2,8 @@
 # mincMean, mincSd, mincVar, mincSum 
 context("mincSummary (Mean, Sd, Var, Sum,t-test,correlation,wilcoxon)")
 
-gf <<- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
-gf$vox <<- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0)
+gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0)
 
 #Calculate mean, sd, variance, and sum 
 mm <- verboseRun("mincMean(gf$jacobians_0.2)",getOption("verbose"))
@@ -48,7 +48,7 @@ test_that("ttest", {
 })
 
 
-gf_paired <<- gf[1:20,];
+gf_paired <- gf[1:20,];
 mptt <- verboseRun("mincPairedTtest(gf_paired$jacobians_0.2,gf_paired$Strain)",getOption("verbose")) # To Do: Ask case where unequal lengths
 pttt <- t.test(vox~Strain,data=gf_paired ,paired=TRUE)
 
@@ -65,7 +65,7 @@ test_that("correlation", {
 })
 
 
-gf_paired$vox_round <<- round(gf_paired$vox,8)
+gf_paired$vox_round <- round(gf_paired$vox,8)
 tw <- wilcox.test(vox_round~Strain,data=gf_paired)
 mw <- verboseRun("mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain)",getOption("verbose"))
 test_that("wilcoxon-ties", {
@@ -73,7 +73,7 @@ test_that("wilcoxon-ties", {
 })
 
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
-gf_paired <<- gf[1:20,];
+gf_paired <- gf[1:20,];
 mw <- verboseRun("mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain)",getOption("verbose"))
 tw <- wilcox.test(vox~Strain,data=gf_paired)
 test_that("wilcoxon", {

@@ -1,6 +1,6 @@
 context("vertexFDR")
 
-gftest <<- read.csv('/tmp/rminctestdata/subject.csv')
+gftest <- read.csv('/tmp/rminctestdata/subject.csv')
 subjectFile = matrix(data=NA,nrow=10,1)
 subjectFile[1,1] = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[2,1] = '/tmp/rminctestdata/vertex3.txt'
@@ -12,9 +12,9 @@ subjectFile[7,1] = '/tmp/rminctestdata/vertex4.txt'
 subjectFile[8,1] = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[9,1] = '/tmp/rminctestdata/vertex3.txt'
 subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
-gftest$testFilesLeft <<- (subjectFile)
+gftest$testFilesLeft <- (subjectFile)
 
-rmincLm <<- verboseRun("vertexLm(testFilesLeft ~ Sex,gftest) ",getOption("verbose"))
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Sex,gftest) ",getOption("verbose"))
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Sex,gftest))
@@ -31,7 +31,7 @@ test_that("vertexFDR Two Factors",{
 	expect_that(rLmFDR2[2],is_equivalent_to(rmincFDR[2,3]))
 	expect_that(rLmFDR2[3],is_equivalent_to(rmincFDR[3,3]))
 })
-rmincLm <<- verboseRun("vertexLm(testFilesLeft ~ Age*Sex,gftest)",getOption("verbose"))
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age*Sex,gftest)",getOption("verbose"))
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Age*Sex,gftest))
@@ -59,7 +59,7 @@ test_that("vertexFDR Interaction",{
 	expect_that(rLmFDR4[3],is_equivalent_to(rmincFDR[3,5]))
 })
 
-rmincLm <<- verboseRun("vertexLm(testFilesLeft ~ Group,gftest)",getOption("verbose"))
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Group,gftest)",getOption("verbose"))
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Group,gftest))
@@ -82,7 +82,7 @@ test_that("vertexFDR Three Factors",{
 	expect_that(rLmFDR3[3],is_equivalent_to(rmincFDR[3,4]))
 })
 
-rmincLm <<- verboseRun("vertexLm(testFilesLeft ~ Age*Group,gftest)",getOption("verbose"))
+rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age*Group,gftest)",getOption("verbose"))
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Age*Group,gftest))

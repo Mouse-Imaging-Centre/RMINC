@@ -2831,12 +2831,15 @@ getRMINCTestData <- function() {
 
 # Run function with/without output silenced; used in test bed
 verboseRun <- function(expr,verbose,env = parent.frame()) {
+	
+	env$expr <- expr
+	
 	if(verbose) {
-		output = eval(parse(text=expr))
+		output = with(env,eval(parse(text=expr)))
 	}
 	else {
 		sink("/dev/null")  
-		output = eval(parse(text=expr)) 
+		output = with(env,eval(parse(text=expr)))
 		sink()
 	}
 	return(output)

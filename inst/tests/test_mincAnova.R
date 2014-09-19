@@ -1,15 +1,15 @@
 context("mincAnova")
 
-gf <<- read.csv("/tmp/rminctestdata/test_data_set.csv")
-voxel_left <<- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
-voxel_right <<- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
-Sex <<- gf$Sex[1:10]
-Scale <<- gf$scale[1:10]
-Coil <<- as.factor(gf$coil[1:10])
-gftest <<- gf[1:10,]
-gftest$voxel_right <<- (gf$jacobians_fixed_2[11:20])
-gftest$voxel_left_file <<- gf$jacobians_fixed_2[1:10]
-gftest$Coil <<- Coil
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
+voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
+Sex <- gf$Sex[1:10]
+Scale <- gf$scale[1:10]
+Coil <- as.factor(gf$coil[1:10])
+gftest <- gf[1:10,]
+gftest$voxel_right <- (gf$jacobians_fixed_2[11:20])
+gftest$voxel_left_file <- gf$jacobians_fixed_2[1:10]
+gftest$Coil <- Coil
 
 rAnova = anova(lm(voxel_left  ~ Sex))
 rmincAnova = verboseRun("mincAnova(voxel_left_file ~ Sex, gftest)",getOption("verbose"))
@@ -23,7 +23,7 @@ test_that("mincAnova Two Factors",{
 rmincAnova = verboseRun("mincAnova(voxel_left_file~Sex*Scale,gftest)",getOption("verbose"))
 
 
-gftest$voxel_left <<- voxel_left
+gftest$voxel_left <- voxel_left
 rAnova = anova(lm(voxel_left~Sex*Scale,gftest))
 
 test_that("mincAnova interaction",{

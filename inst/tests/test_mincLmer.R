@@ -1,7 +1,7 @@
 context("mincLmer - basic test")
 
-gf <<- read.csv("/tmp/rminctestdata/test_data_set.csv")
-maskfile <<- "/tmp/rminctestdata/testminc-mask.mnc"
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+maskfile <- "/tmp/rminctestdata/testminc-mask.mnc"
 
 # Add a test to check if lme4 is installed.
 # Do this through a tryCatch block

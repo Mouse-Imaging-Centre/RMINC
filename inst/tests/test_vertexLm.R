@@ -1,6 +1,6 @@
 context("vertexLm")
 
-gftest <<- read.csv('/tmp/rminctestdata/subject.csv')
+gftest <- read.csv('/tmp/rminctestdata/subject.csv')
 subjectFile = matrix(data=NA,nrow=10,1)
 subjectFile[1,1]  = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[2,1]  = '/tmp/rminctestdata/vertex3.txt'
@@ -12,7 +12,7 @@ subjectFile[7,1]  = '/tmp/rminctestdata/vertex4.txt'
 subjectFile[8,1]  = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[9,1]  = '/tmp/rminctestdata/vertex3.txt'
 subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
-gftest$testFilesLeft <<- (subjectFile)
+gftest$testFilesLeft <- (subjectFile)
 
 rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age,gftest)",getOption("verbose"))
 

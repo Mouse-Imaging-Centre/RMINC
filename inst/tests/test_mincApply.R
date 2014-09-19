@@ -1,6 +1,6 @@
 context("mincApply")
 
-gf <<- read.csv("/tmp/rminctestdata/test_data_set.csv")
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 
 
 mm <- verboseRun("mincMean(gf$jacobians_fixed_2)",getOption("verbose"))

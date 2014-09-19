@@ -1,10 +1,10 @@
 context("anatFDR")
 
-gf <<- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf <<- civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf <<- civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+gf <- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf <- civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf <- civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 
-rmincLm <<- verboseRun("anatLm(~ Sex,gf,gf$lobeThickness)",getOption("verbose"))
+rmincLm <- verboseRun("anatLm(~ Sex,gf,gf$lobeThickness)",getOption("verbose"))
 
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
@@ -27,7 +27,7 @@ test_that("anatFDR Two Factors",{
 	expect_that(rLmFDR2[3],is_equivalent_to(rmincFDR[3,3]))
 })
 
-rmincLm <<- verboseRun("anatLm(~ Age*Sex,gf,gf$lobeThickness)",getOption("verbose"))
+rmincLm <- verboseRun("anatLm(~ Age*Sex,gf,gf$lobeThickness)",getOption("verbose"))
 
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
@@ -57,7 +57,7 @@ test_that("anatFDR Interaction",{
 	expect_that(rLmFDR4[3],is_equivalent_to(rmincFDR[3,5]))
 })
 
-rmincLm <<- verboseRun("anatLm(~ Primary.Diagnosis,gf,gf$lobeThickness)",getOption("verbose"))
+rmincLm <- verboseRun("anatLm(~ Primary.Diagnosis,gf,gf$lobeThickness)",getOption("verbose"))
 
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis
@@ -81,7 +81,7 @@ test_that("anatFDR Three Factors",{
 	expect_that(rLmFDR3[3],is_equivalent_to(rmincFDR[3,4]))
 })
 
-rmincLm <<- verboseRun("anatLm(~Primary.Diagnosis*Age,gf,gf$lobeThickness)",getOption("verbose"))
+rmincLm <- verboseRun("anatLm(~Primary.Diagnosis*Age,gf,gf$lobeThickness)",getOption("verbose"))
 
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis

@@ -5,7 +5,7 @@ context("MINC I/O reading")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
 
-testfile <<- verboseRun("mincGetVolume(\"/tmp/rminctestdata/brain_cut_out.mnc\")",getOption("verbose"))
+testfile <- verboseRun("mincGetVolume(\"/tmp/rminctestdata/brain_cut_out.mnc\")",getOption("verbose"))
 
 mincextract_output_voxel_0_0_0 <- as.numeric(system("mincextract  -start 0,0,0 -count 1,1,1 /tmp/rminctestdata/brain_cut_out.mnc", intern=TRUE))
 
