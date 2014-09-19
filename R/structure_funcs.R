@@ -184,6 +184,7 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mic
   }
  
   attr(output, "atlas") <- atlas
+  attr(output, "input") <- filenames
   if (! is.null(defs)) {
     output <- anatRenameRows(output, defs)
   }
