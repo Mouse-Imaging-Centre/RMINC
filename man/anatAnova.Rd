@@ -10,22 +10,23 @@ anatAnova(formula, data = NULL, anat = NULL, subset = NULL)
 
 \item{data}{a data.frame containing variables in formula}
 
-\item{ant}{an array of atlas labels vs subject data}
+\item{anat}{an array of atlas labels vs subject data}
 
 \item{subset}{rows to be used, by default all are used}
 }
 \value{
-Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames –
+Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix
 	, stat-type: type of statistic used, df – degrees of freedom of each statistic.
 }
 \description{
 Performs ANOVA on each region specified
 }
 \examples{
-gf = read.csv("~/SubjectTable.csv")
-civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-result = anatAnova(~Primary.Diagnosis,gf,gf$lobeThickness)
+getRMINCTestData()
+gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
 }
 \seealso{
 mincAnova,vertexAnova

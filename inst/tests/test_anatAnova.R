@@ -1,10 +1,11 @@
 context("anatAnova")
 
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+gf <- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+gf <- civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf <- civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 
-sink("/dev/null"); rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness); sink();
+rmincAnova = verboseRun("anatAnova(~ Sex,gf,gf$lobeThickness)",getOption("verbose"))
+
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -16,7 +17,8 @@ test_that("anatAnova Two Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-sink("/dev/null");  rmincAnova = anatAnova(~ Age*Sex,gf,gf$lobeThickness); sink();
+rmincAnova = verboseRun("anatAnova(~ Age*Sex,gf,gf$lobeThickness)",getOption("verbose"))
+
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
@@ -33,8 +35,8 @@ test_that("anatAnova Interaction",{
 	expect_that(attr(rmincAnova,"df")[[3]][1],is_equivalent_to(rAnova$Df[3]))
 	expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4]))
 })
+rmincAnova = verboseRun("anatAnova(~ Primary.Diagnosis,gf,gf$lobeThickness)",getOption("verbose"))
 
-sink("/dev/null"); rmincAnova = anatAnova(~ Primary.Diagnosis,gf,gf$lobeThickness); sink();
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = gf$Primary.Diagnosis
 rAnova = anova(lm(lobeThickness~Primary.Diagnosis))
@@ -45,7 +47,9 @@ test_that("anatAnova Three Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-sink("/dev/null"); rmincAnova = anatAnova(~Age*Primary.Diagnosis,gf,gf$lobeThickness); sink();
+
+rmincAnova = verboseRun("anatAnova(~Age*Primary.Diagnosis,gf,gf$lobeThickness)",getOption("verbose"))
+
 lobeThickness = gf$lobeThickness[,1]
 Primary.Diagnosis = as.factor(gf$Primary.Diagnosis)
 rAnova = anova(lm(lobeThickness~Age*Primary.Diagnosis))
@@ -61,5 +65,3 @@ test_that("anatAnova Three Factors Interaction",{
          expect_that(attr(rmincAnova,"df")[[3]][1],is_equivalent_to(rAnova$Df[3]))
          expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4])) 
 })
-
-

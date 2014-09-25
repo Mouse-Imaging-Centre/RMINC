@@ -6,16 +6,16 @@ gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0)
 
 #Calculate mean, sd, variance, and sum 
-sink("/dev/null"); mm <- mincMean(gf$jacobians_0.2); sink();
-sink("/dev/null"); ms <- mincSd(gf$jacobians_0.2); sink();
-sink("/dev/null"); mv <- mincVar(gf$jacobians_0.2); sink();
-sink("/dev/null"); ms2 <- mincSum(gf$jacobians_0.2); sink();
+mm <- verboseRun("mincMean(gf$jacobians_0.2)",getOption("verbose"))
+ms <- verboseRun("mincSd(gf$jacobians_0.2)",getOption("verbose"))
+mv <- verboseRun("mincVar(gf$jacobians_0.2)",getOption("verbose"))
+ms2 <- verboseRun("mincSum(gf$jacobians_0.2)",getOption("verbose"))
 
 #Calculate mean, sd, variance and sum with a factor...
-sink("/dev/null"); mms <- mincMean(gf$jacobians_0.2, gf$Strain); sink();
-sink("/dev/null"); mss <- mincSd(gf$jacobians_0.2, gf$Strain); sink();
-sink("/dev/null"); mvs <- mincVar(gf$jacobians_0.2, gf$Strain); sink();
-sink("/dev/null"); ms2s <- mincSum(gf$jacobians_0.2, gf$Strain); sink();
+mms <- verboseRun("mincMean(gf$jacobians_0.2, gf$Strain)",getOption("verbose"))
+mss <- verboseRun("mincSd(gf$jacobians_0.2, gf$Strain)",getOption("verbose"))
+mvs <- verboseRun("mincVar(gf$jacobians_0.2, gf$Strain)",getOption("verbose"))
+ms2s <- verboseRun("mincSum(gf$jacobians_0.2, gf$Strain)",getOption("verbose"))
 
 #...and verify with tapply commands
 mt <- tapply(gf$vox, gf$Strain, mean)
@@ -40,7 +40,7 @@ test_that("mincSummary functions", {
 })
 
 
-sink("/dev/null"); mtt <- mincTtest(gf$jacobians_0.2,gf$Strain); sink();
+mtt <- verboseRun("mincTtest(gf$jacobians_0.2,gf$Strain)",getOption("verbose"))
 ttt <- t.test(vox~Strain,data=gf)
 
 test_that("ttest", {
@@ -48,8 +48,8 @@ test_that("ttest", {
 })
 
 
-gf_paired = gf[1:20,];
-sink("/dev/null"); mptt <- mincPairedTtest(gf_paired$jacobians_0.2,gf_paired$Strain); sink(); # To Do: Ask case where unequal lengths
+gf_paired <- gf[1:20,];
+mptt <- verboseRun("mincPairedTtest(gf_paired$jacobians_0.2,gf_paired$Strain)",getOption("verbose")) # To Do: Ask case where unequal lengths
 pttt <- t.test(vox~Strain,data=gf_paired ,paired=TRUE)
 
 test_that("paired ttest", {
@@ -57,7 +57,7 @@ test_that("paired ttest", {
 })
 
 
-sink("/dev/null"); mc <- mincCorrelation(gf$jacobians_0.2,gf$Weight); sink();
+mc <- verboseRun("mincCorrelation(gf$jacobians_0.2,gf$Weight)",getOption("verbose"))
 tc <- cor(gf$Weight,gf$vox)
 
 test_that("correlation", {
@@ -65,16 +65,16 @@ test_that("correlation", {
 })
 
 
-gf_paired$vox_round = round(gf_paired$vox,8)
+gf_paired$vox_round <- round(gf_paired$vox,8)
 tw <- wilcox.test(vox_round~Strain,data=gf_paired)
-sink("/dev/null"); mw <- mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain); sink();
+mw <- verboseRun("mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain)",getOption("verbose"))
 test_that("wilcoxon-ties", {
     expect_equivalent(tw[[1]], mw[1])
 })
 
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
-gf_paired = gf[1:20,];
-sink("/dev/null"); mw <- mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain); sink();
+gf_paired <- gf[1:20,];
+mw <- verboseRun("mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain)",getOption("verbose"))
 tw <- wilcox.test(vox~Strain,data=gf_paired)
 test_that("wilcoxon", {
     expect_equivalent(tw[[1]], mw[15*15*5 + 15*5 + 6])

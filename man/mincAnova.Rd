@@ -17,7 +17,7 @@ inside the mask.}
 }
 \value{
 Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames –
-	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic.
+	minc file names input,dimensions,dimension names, stat-type: type of statistic used, df – degrees of freedom of each statistic.
 }
 \description{
 compute a sequential ANOVA at each voxel
@@ -26,12 +26,11 @@ compute a sequential ANOVA at each voxel
 This function computes a sequential ANOVA over a set of files.
 }
 \examples{
+getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("control-file.csv")
-# run aan ANOVA relating the data in all voxels to Genotype
-vs <- mincLm(filenames ~ Genotype, gf)
-# see what's in the results
-vs
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+# run an ANOVA at each voxel
+vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 }
 \seealso{
 mincWriteVolume,mincFDR,mincMean, mincSd

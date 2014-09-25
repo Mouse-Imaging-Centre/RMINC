@@ -25,7 +25,7 @@ $ git clone https://github.com/mcvaneede/RMINC.git RMINC
 $ cd RMINC
 $ ./autogen.sh
 $ cd ../
-$ R CMD INSTALL RMINC /directory/where/sourcefiles/go --configure-args='--with-build-path=/install/directory/minc2'
+$ R CMD INSTALL RMINC /directory/where/sourcefiles/go --preclean --configure-args='--with-build-path=/install/directory/minc2'
 
 
 Installation of a release:

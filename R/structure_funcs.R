@@ -87,7 +87,60 @@ anatRenameRows <- function(anat, defs="/projects/mice/jlerch/cortex-label/c57_br
 print.anatMatrix <- function(x, ...) {
   print.table(x)
 }
+###########################################################################################
+#' @description Computes volumes, means, sums, and similar values across a
+#' segmented atlas
+#' @name anatGetAll
+#' @title Get values given a set of files and an atlas
+#' @param filenames A vector of filenames (strings) which contain the
+#' information to be extracted at every structure in the atlas.
+#' @param atlas A single filename containing the atlas definitions. This MINC
+#' volume has to be of the same sampling (sizes and dimension
+#' order) as the filenames specified in the first argument and
+#' use a separate integer for each atlas label.
+#' @param method A string specifying the way information is to be computed at
+#' every voxel. See the details section for the possible options
+#' and what they mean.
+#' @param defs A string pointing to the filename containing the label
+#' definitions. Used to map the integers in the atlas to a
+#' proper name for the structure and contains additional
+#' information for laterality of each structure.
+#' @param dropLabels Whether to return a value for every structure in the defs
+#' or just for the ones actually contained in each file.
+#' @param side Three choices, "right", "left", and "both" (the default)
+#' which specify what labels to obtain.
+#' @details anatGetAll needs a set of files along with an atlas and a set of
+#'     atlas definitions. In the end it will produce one value per label
+#'     in the atlas for each of the input files. How that value is
+#'     computed depends on the methods argument:
+#'
+#'     jacobians Each file contains log jacobians, and the volume for
+#'          each atlas label is computed by multiplying the jacobian with
+#'          the voxel volume at each voxel.
 
+#'     labels Each file contains integer labels (i.e. same as the atlas).
+#'          The volume is computed by counting the number of voxels with
+#'          each label and multiplying by the voxel volume.
+
+#'     means Each file contains an arbitrary number and the mean of all
+#'          voxels inside each label is computed.
+
+#'     sums Each file contains an aribtrary number and the sum of all
+#'          voxels inside each label is computed.
+
+#'     text Each file is a comma separated values text file and is simply
+#'          read in.
+
+#' @return A matrix with ncols equal to the number of labels in the atlas and
+#' nrows equal to the number of files.
+
+#' @seealso anatLm,anatCombineStructures
+#' @examples
+#' getRMINCTestData()
+#' filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
+#' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", 
+#'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
+###########################################################################################
 anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=TRUE, side="both") {
   # Get output dimensions from full set of label definitions
   labeldefs <- read.csv(defs) 
@@ -136,7 +189,30 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mic
   }
   return(t(output))
 }
+###########################################################################################
+#' @description Combines left and right labels from volumes obtained from anatGetAll call
+#' @name anatCombineStructures
+#' @title Combine left and right volumes
+#' @param vols Matrix output from call to anatGetAll
+#' @param method A string specifying the way information was computed at
+#' every voxel ("jacobians","labels","means","sums")
+#' @param defs A string pointing to the filename containing the label
+#' definitions. Used to map the integers in the atlas to a
+#' proper name for the structure and contains additional
+#' information for laterality of each structure.
+#' @details anatCombineStructures collapses left and right volume information into one
+#' measure. If "jacobians","sums",or "labels" is selected then the sum of the left and right is produced, otherwise
+#' the mean is produced.
+#' @return A matrix with ncols equal to the number of collapsed labels
 
+#' @seealso anatLm,anatGetAll
+#' @examples
+#' getRMINCTestData()
+#' filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
+#' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", 
+#'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
+#' volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
+###########################################################################################
 anatCombineStructures <- function(vols, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
   labels <- read.csv(defs)
   combined.labels <- matrix(nrow=nrow(vols), ncol=nrow(labels))
@@ -182,16 +258,16 @@ anatApply <- function(vols, grouping, method=mean) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
-#' @return Returns an object containing the coefficients,F 
-#' and t statistcs that can be passed directly into anatFDR.
+#' @return Returns an object containing the R-Squared,value,coefficients,F 
+#' and t statistcs that can be passed directly into anatFDR. Additionally
+#' has the attributes for model,stat type and degrees of freedom.
 #' @seealso mincLm,anatLm,anatFDR 
 #' @examples 
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-#' result = anatLm(~Primary.Diagnosis,gf,gf$lobeVolume)
-#' anatFDR(result)
-
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness); 
 ###########################################################################################  
 anatLm <- function(formula, data, anat, subset=NULL) {
   
@@ -303,16 +379,17 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' Performs ANOVA on each region specified 
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
-#' @param ant  an array of atlas labels vs subject data
+#' @param anat  an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
-#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix
 #' 	, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
 #' @seealso mincAnova,vertexAnova 
-#' @examples 
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-#' result = anatAnova(~Primary.Diagnosis,gf,gf$lobeThickness) 
+#' @examples
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness); 
 ###########################################################################################
 anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
   # Create Model
@@ -378,6 +455,22 @@ anatFDR <- function(buffer, method="FDR") {
   vertexFDR(buffer, method)
 }
 
+###########################################################################################
+#' @description This function is used to compute the mean, standard deviation,
+#'    		sum, or variance of every region in an anat structure.
+#' @name anatSummaries
+#' @aliases anatMean anatSd anatVar anatSum vertexMean vertexSd vertexSum vertexVar
+#' @title Create descriptive statistics across an anat structure
+#' @param anat anat structure.
+#' @return  out: The output will be a single vector containing as many
+#'          elements as there are regions in the input variable. 
+#' @examples 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' vm <- anatMean(gf$lobeThickness)
+###########################################################################################
 
 anatMean <- function(anat) {
    return(rowMeans(t(anat)))
@@ -390,6 +483,6 @@ anatVar <- function(anat) {
    return(apply(t(anat),1,var))
 }
 
-anatSD <- function(anat) {
+anatSd <- function(anat) {
    return(apply(t(anat),1,sd))
 }

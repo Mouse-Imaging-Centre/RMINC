@@ -7,14 +7,15 @@ Sex <- gf$Sex[1:10]
 Scale <- gf$scale[1:10]
 Coil <- as.factor(gf$coil[1:10])
 
-gf$coil = as.factor(gf$coil)
-gftest = gf[1:10,]
-gftest$voxel_right = (gf$jacobians_fixed_2[11:20])
-gftest$voxel_left_file = gf$jacobians_fixed_2[1:10]
+gf$coil <- as.factor(gf$coil)
+gftest <- gf[1:10,]
+gftest$voxel_right <- (gf$jacobians_fixed_2[11:20])
+gftest$voxel_left_file <- gf$jacobians_fixed_2[1:10]
 
 rLm = summary(lm(voxel_left  ~ Sex))
 # silence the output of mincLm, in order to make the test output information is more clear to read
-sink("/dev/null"); rmincLm = mincLm(voxel_left_file ~ Sex, gftest); sink();
+rmincLm = verboseRun("mincLm(voxel_left_file ~ Sex, gftest)",getOption("verbose"))
+
 
 test_that("mincLm Two Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
@@ -29,7 +30,7 @@ test_that("mincLm Two Factors",{
 context("mincLm - two group test with interaction")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
-sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Sex*Scale,gftest); sink();
+rmincLm = verboseRun("mincLm(voxel_left_file~Sex*Scale,gftest)",getOption("verbose"))
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Sex*Scale,gftest))
 
@@ -50,7 +51,8 @@ test_that("mincLm interaction",{
 context("mincLm - three group test")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
-sink("/dev/null"); rmincLm = mincLm(voxel_left_file~coil,gftest); sink();
+rmincLm = verboseRun("mincLm(voxel_left_file~coil,gftest)",getOption("verbose"))
+
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Coil,gftest))
 
@@ -69,7 +71,8 @@ test_that("mincLm Three Factors",{
 context("mincLm - three group test with interaction")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
-sink("/dev/null"); rmincLm = mincLm(voxel_left_file~Scale*Coil,gftest); sink();
+rmincLm = verboseRun("mincLm(voxel_left_file~Scale*Coil,gftest)",getOption("verbose"))
+
 gftest$voxel_left = voxel_left
 rLm = summary(lm(voxel_left~Scale*Coil,gftest))
 

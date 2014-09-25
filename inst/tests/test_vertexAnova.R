@@ -1,6 +1,6 @@
 context("vertexAnova")
 
-gftest = read.csv('/tmp/rminctestdata/subject.csv')
+gftest <- read.csv('/tmp/rminctestdata/subject.csv')
 subjectFile = matrix(data=NA,nrow=10,1)
 subjectFile[1,1] = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[2,1] = '/tmp/rminctestdata/vertex3.txt'
@@ -12,10 +12,10 @@ subjectFile[7,1] = '/tmp/rminctestdata/vertex4.txt'
 subjectFile[8,1] = '/tmp/rminctestdata/vertex2.txt'
 subjectFile[9,1] = '/tmp/rminctestdata/vertex3.txt'
 subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
-gftest$testFilesLeft = (subjectFile)
+gftest$testFilesLeft <- (subjectFile)
 
 
-sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Sex,gftest) ; sink();
+rmincAnova <- verboseRun("vertexAnova(testFilesLeft ~ Sex,gftest)",getOption("verbose"))
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Sex,gftest))
 
@@ -25,8 +25,7 @@ test_that("vertexAnova Two Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
 
-
-sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Age*Sex,gftest); sink();
+rmincAnova <- verboseRun("vertexAnova(testFilesLeft ~ Age*Sex,gftest)",getOption("verbose"))
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Age*Sex,gftest))
 
@@ -42,8 +41,7 @@ test_that("vertexAnova Interaction",{
 	expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4]))
 })
 
-
-sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Group,gftest) ; sink();
+rmincAnova <- verboseRun("vertexAnova(testFilesLeft ~ Group,gftest)",getOption("verbose"))
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Group,gftest))
 
@@ -51,8 +49,8 @@ test_that("vertexAnova Three Factors",{
 	expect_that(attr(rmincAnova,"df")[[1]][2],is_equivalent_to(rAnova$Df[2]))
 	expect_that(attr(rmincAnova,"df")[[1]][1],is_equivalent_to(rAnova$Df[1]))
 })
+rmincAnova <- verboseRun("vertexAnova(testFilesLeft ~ Age*Group,gftest)",getOption("verbose"))
 
-sink("/dev/null"); rmincAnova = vertexAnova(testFilesLeft ~ Age*Group,gftest) ; sink();
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rAnova = anova(lm(testLeft[,1]~Age*Group,gftest))
 

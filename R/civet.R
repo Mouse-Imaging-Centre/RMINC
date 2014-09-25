@@ -408,9 +408,9 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 #' @return gf is returned with CIVET filenames 
 #' @seealso civet.readAllCivetFiles
 #' @examples
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 ###########################################################################################
 
 civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9") {
@@ -623,28 +623,6 @@ civet.organizeCivetDatFilesWholeBrain<- function(dataFiles, civetVersion="1.1.12
 #
 # Example:
 #	dataFiles <- list of data files to organize
-############################################################################################
-#' @description Generates list of filenames output by CIVET
-#' @name civet.getAllFilenames
-#' @title civet.getAllFilenames
-#' @usage civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE, civetVersion = "1.1.9")
-#' @param gf Data Frame with subject information
-#' @param idvar column name in gf with subject IDs
-#' @param prefix Prefix specified when CIVET was run
-#' @param basedir directory where all CIVET output was stored
-#' @param append Whether to append the results to the input gf
-#' @param civetVersion Version of CIVET 
-#' @details Prior to running, read.csv  may be called to generate the input argument gf. 
-#' The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf. 
-#' Currently only CIVET versions 1.1.9 and 1.1.12 are supported.
-#' @return gf is returned with CIVET filenames 
-#' @return mincLm Returns a vector of mincSingleDim class
-#' @seealso civet.readAllCivetFiles
-#' @examples
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-###########################################################################################
 # =============================================================================
 civet.organizeCivetDatFilesMidWhiteGrey <- function(dataFiles, civetVersion="1.1.12") {
 
@@ -725,13 +703,14 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' @param atlasFile Full path to the atlas on which CIVET was run ;
 #' @details Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
 #' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
-#' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
+#' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Brain Volume Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
 #' @return gf is returned with CIVET values
 #' @seealso  civet.getAllFilenames
 #' @examples
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 ###########################################################################################
 civet.readAllCivetFiles = function(atlasFile,gf)
 {
