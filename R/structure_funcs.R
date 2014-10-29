@@ -3,29 +3,31 @@
 
 anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
   out <- NULL
+  uid <- paste(sample(c(letters,LETTERS),8, replace=TRUE),sep="", collapse="")
+  tmpfile <- paste("/tmp/",uid,".txt",sep="")
   if (method == "jacobians") {
-    system(paste("label_volumes_from_jacobians", atlas, filename, "> tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+    system(paste("label_volumes_from_jacobians", atlas, filename, ">", tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "labels") {
     # filename here should be a set of labels unique to this brain
-    system(paste("volumes_from_labels_only.py", filename, "tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+    system(paste("volumes_from_labels_only.py", filename, tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "means") {
     system(paste("compute_values_across_segmentation", "-m",
-                 filename, atlas, "tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+                 filename, atlas, tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "sums") {
     system(paste("compute_counts_for_labels",
-                  atlas, filename, "> tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+                  atlas, filename, ">", tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "slow_sums") {
     system(paste("compute_values_across_segmentation", "-s",
-                 filename, atlas, "tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+                 filename, atlas, tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "text") {
     # values are already extracted and stored in a text file
