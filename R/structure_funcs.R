@@ -3,8 +3,7 @@
 
 anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
   out <- NULL
-  uid <- paste(sample(c(letters,LETTERS),8, replace=TRUE),sep="", collapse="")
-  tmpfile <- paste("/tmp/RMINC-",uid,".txt",sep="")
+  tmpfile <- tempfile(pattern="RMINC-", fileext=".txt")
   if (method == "jacobians") {
     system(paste("label_volumes_from_jacobians", atlas, filename, ">", tmpfile, sep=" "))
     out <- read.csv(tmpfile, header=FALSE)
@@ -48,6 +47,7 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
     }
     out <- out[out$V1 %in% usedlabels,]
   }
+  on.exit(unlink(tmpfile))
   return(out)
 }
 
