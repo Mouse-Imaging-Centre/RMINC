@@ -1,3 +1,8 @@
+New in Version 1.2.4.6
+======================
+* fixed the repeated use of tmp.txt in anatGetAll. Now, this can be run in parallel
+  without causing issues.
+
 New in Version 1.2.4.5
 ======================
 * added/updated documentation for RMINC functions
