@@ -1326,7 +1326,13 @@ pMincApply <- function(filenames, function.string,
     maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   
-  maskFilename <- paste("/tmp/pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
+  # Saving to /tmp does not always work...
+  if ((method == "hpf") | (method == "scinet")) {
+  	maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
+  }
+  else {
+        maskFilename <- paste("/tmp/pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
+  }
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   
   # create the packageList that will be used for the snowfall and sge options
@@ -1360,6 +1366,253 @@ pMincApply <- function(filenames, function.string,
                                                    mask=maskFilename, maskval=i) }
     #cat("length: ", length(pout), "\n")
   }
+
+  # The mpi options (scinet or hpf)  use mpirun and snow to parallelize mincApply over multiple cores.
+  # It is currently configured to send all the jobs to one node, and parallelize over the
+  # cores at that node. Also note the amount of virtual memory requested is set at 8g.
+ 
+  # It operates as follows:
+  # 1) Save global variables to disk
+  # 2) Write out a .R file that will execute mpi operations once submitted to the cluster
+  # 3) Write out a .sh file that will be submitted to the cluster
+  # 4) Submit the .sh file to the cluster
+  # 5) Wait for the jobs to finish
+  # 6) Read the output from disk
+
+  else if (method == "hpf") {
+ 
+    # 1) Save variables which will be referenced on the cluster to disk
+    save('maskV','filenames','workers','REDUCE','function.string','maskFilename',file='mpi-rminc-var')
+
+    # 2) Write out an R file to disk. This file will be executed via mpirun on the cluster
+    fileConn <- file("mpi-rminc.R",open='w')
+
+    # snow is used to coordinate operations, but Rmpi could be used for greater control
+    writeLines("library(snow)",fileConn);
+
+    # RMINC needs to be loaded as well
+    writeLines("library(RMINC)",fileConn);
+
+    # Create the snow cluster
+    writeLines("cl <- makeCluster(workers, type = \"MPI\")",fileConn) 
+
+    # Load the variables we saved in step 1
+    writeLines("load(\"mpi-rminc-var\")",fileConn)
+
+    # Create a wrapper function that we can easily run with clusterApply
+    writeLines("wrapper <- function(i) { return(mincApply(filenames, function.string, mask = maskFilename, maskval = i, reduce = REDUCE))}",fileConn)
+
+    # Export all neccessary variables to each slave
+    writeLines("clusterExport(cl,c('filenames','REDUCE','function.string','maskFilename','maskV'))",fileConn)
+
+    # Main mpi exection
+    writeLines("clusterOut <- clusterApply(cl,1:workers,wrapper)",fileConn)
+
+    # At this point we are done.
+    writeLines("stopCluster(cl)",fileConn)
+
+    # Test data at one voxel to determine how many ouytputs
+    writeLines(" x <- mincGetVoxel(filenames, 0,0,0)",fileConn)
+    writeLines("test <- eval(function.string)",fileConn)
+    writeLines("if (length(test) > 1) {",fileConn)
+    writeLines("output <- matrix(0, nrow=length(maskV), ncol=length(test))",fileConn)
+    writeLines("class(output) <- class(clusterOut[[1]])",fileConn)
+    writeLines("attr(output, \"likeVolume\") <- attr(clusterOut[[1]], \"likeVolume\")",fileConn)
+    writeLines("} else {",fileConn)
+    writeLines("output <- maskV",fileConn)
+    writeLines("}",fileConn)
+    writeLines("for(i in 1:workers) {",fileConn)
+    writeLines("if (length(test)>1) {",fileConn)
+    writeLines("if(REDUCE == TRUE)",fileConn)	
+    writeLines("output[maskV == i,] <- clusterOut[[i]]",fileConn)
+    writeLines("else",fileConn)
+    writeLines("output[maskV == i,] <- clusterOut[[i]][maskV == i, ]",fileConn)
+    writeLines("}",fileConn)
+    writeLines("else {",fileConn)
+    writeLines("output[maskV==i] <- clusterOut[[i]]",fileConn)
+    writeLines("}",fileConn)
+    writeLines("}",fileConn)
+
+    # Write the output (R data) to disk, so the initiating R session can access the data
+    writeLines("save('output',file='mpi-rminc-out')",fileConn)
+
+    close(fileConn)
+
+    # 3) Write out a .sh file which will be what is submitted to the cluster
+    qfileConn <- file("q-mpi-rminc.sh",open='w')
+    writeLines("#!/bin/bash -x",qfileConn)
+   
+    # Errors and Output are written to the current directory, but this could be set to a user defined spot.
+    writeLines("#PBS -e ./",qfileConn)
+    writeLines("#PBS -o ./",qfileConn)
+    writeLines("#PBS -N pMincApply",qfileConn) 
+
+    # We need to allocate 1 + num workers due to the mpi master
+    writeLines(paste("#PBS -l nodes=1:ppn=",workers+1,sep=""),qfileConn)
+
+    # This part will be made a user option
+    writeLines("#PBS -l vmem=8g",qfileConn) 
+
+    # May not always be necessary
+    writeLines("export TMPDIR=/localhd/$PBS_JOBID",qfileConn)
+
+    # Neccessary to initiate mpi operations.
+    writeLines("mpirun -np 1 -default-hostfile mpimachines R CMD BATCH mpi-rminc.R",qfileConn)
+
+    close(qfileConn)
+
+    # 4) Submit the job
+    result <- system("qsub q-mpi-rminc.sh",intern=TRUE)
+    ptm = proc.time()
+    
+    # 5) Wait for Job to finish
+    status <- system(paste("qstat ",result," | grep C"),intern=TRUE) 
+    # 1 Indicates not completed
+    while(length(status) == 0) {
+       status <- system(paste("qstat ",result," | grep R"),intern=TRUE)
+       runTime = proc.time()-ptm
+       if(length(status) == 0) {
+	  print(paste("Queued: ",as.character(runTime[3])," Seconds"))
+       } else {
+	  print(paste("Running: ",as.character(runTime[3])," Seconds"))
+       }
+       Sys.sleep(2)
+       status <- system(paste("qstat ",result," | grep C"),intern=TRUE) 
+    }
+    print(paste("Completed: ",as.character(runTime[3])," Seconds"))
+    # 6) Read output from disk
+    load("mpi-rminc-out")
+    
+    # Clean up intermediate files
+    system(paste("rm",maskFilename))
+    system("rm q-mpi-rminc.sh")
+    system("rm mpi-rminc.R")
+    system("rm mpi-rminc-var")
+    system("rm mpi-rminc-out")
+
+    return(output)
+
+}
+
+  # Note: Scinet version must be run from /scratch and uses R/3.1.1
+  else if (method == "scinet") {
+ 
+    # 1) Save variables which will be referenced on the cluster to disk
+    save('maskV','filenames','workers','REDUCE','function.string','maskFilename',file='mpi-rminc-var')
+
+    # 2) Write out an R file to disk. This file will be executed via mpirun on the cluster
+    fileConn <- file("mpi-rminc.R",open='w')
+
+    # snow is used to coordinate operations, but Rmpi could be used for greater control
+    writeLines("library(snow)",fileConn);
+
+    # RMINC needs to be loaded as well
+    writeLines("library(RMINC)",fileConn);
+
+
+    # Load the variables we saved in step 1
+    writeLines("load(\"mpi-rminc-var\")",fileConn)
+
+
+    # Create the snow cluster
+    writeLines("cl <- makeCluster(workers, type = \"MPI\")",fileConn) 
+
+
+    # Create a wrapper function that we can easily run with clusterApply
+    writeLines("wrapper <- function(i) { return(mincApply(filenames, function.string, mask = maskFilename, maskval = i, reduce = REDUCE))}",fileConn)
+
+    # Export all neccessary variables to each slave
+    writeLines("clusterExport(cl,c('filenames','REDUCE','function.string','maskFilename','maskV'))",fileConn)
+
+    # Main mpi exection
+    writeLines("clusterOut <- clusterApply(cl,1:workers,wrapper)",fileConn)
+
+    # At this point we are done.
+    writeLines("stopCluster(cl)",fileConn)
+
+    # Test data at one voxel to determine how many ouytputs
+    writeLines(" x <- mincGetVoxel(filenames, 0,0,0)",fileConn)
+    writeLines("test <- eval(function.string)",fileConn)
+    writeLines("if (length(test) > 1) {",fileConn)
+    writeLines("output <- matrix(0, nrow=length(maskV), ncol=length(test))",fileConn)
+    writeLines("class(output) <- class(clusterOut[[1]])",fileConn)
+    writeLines("attr(output, \"likeVolume\") <- attr(clusterOut[[1]], \"likeVolume\")",fileConn)
+    writeLines("} else {",fileConn)
+    writeLines("output <- maskV",fileConn)
+    writeLines("}",fileConn)
+    writeLines("for(i in 1:workers) {",fileConn)
+    writeLines("if (length(test)>1) {",fileConn)
+    writeLines("if(REDUCE == TRUE)",fileConn)	
+    writeLines("output[maskV == i,] <- clusterOut[[i]]",fileConn)
+    writeLines("else",fileConn)
+    writeLines("output[maskV == i,] <- clusterOut[[i]][maskV == i, ]",fileConn)
+    writeLines("}",fileConn)
+    writeLines("else {",fileConn)
+    writeLines("output[maskV==i] <- clusterOut[[i]]",fileConn)
+    writeLines("}",fileConn)
+    writeLines("}",fileConn)
+
+    # Write the output (R data) to disk, so the initiating R session can access the data
+    writeLines("save('output',file='mpi-rminc-out')",fileConn)
+
+    close(fileConn)
+
+    # 3) Write out a .sh file which will be what is submitted to the cluster
+    qfileConn <- file("q-mpi-rminc.sh",open='w')
+    writeLines("#!/bin/bash -x",qfileConn)
+   
+    # Errors and Output are written to the current directory, but this could be set to a user defined spot.
+    writeLines("#PBS -e ./",qfileConn)
+    writeLines("#PBS -o ./",qfileConn)
+    writeLines("#PBS -N pMincApply",qfileConn) 
+
+    # We need to allocate 1 + num workers due to the mpi master
+    writeLines(paste("#PBS -l nodes=1:ppn=8",sep=""),qfileConn)
+
+    # This part will be made a user option
+    # Scinet needs a walltime
+    writeLines("#PBS -l vmem=8g,walltime=1:00:00 ",qfileConn) 
+
+    writeLines("module load R/3.1.1",qfileConn)
+
+    # Neccessary to initiate mpi operations.
+    writeLines("mpirun -np 1 -default-hostfile mpimachines R CMD BATCH mpi-rminc.R",qfileConn)
+
+    close(qfileConn)
+
+    # 4) Submit the job
+    result <- system("qsub q-mpi-rminc.sh",intern=TRUE)
+    ptm = proc.time()
+    
+    # 5) Wait for Job to finish
+    status <- system(paste("qstat ",result," | grep C"),intern=TRUE) 
+    # 1 Indicates not completed
+    while(length(status) == 0) {
+       status <- system(paste("qstat ",result," | grep R"),intern=TRUE)
+       runTime = proc.time()-ptm
+       if(length(status) == 0) {
+	  print(paste("Queued: ",as.character(runTime[3])," Seconds"))
+       } else {
+	  print(paste("Running: ",as.character(runTime[3])," Seconds"))
+       }
+       Sys.sleep(2)
+       status <- system(paste("qstat ",result," | grep C"),intern=TRUE) 
+    }
+    print(paste("Completed: ",as.character(runTime[3])," Seconds"))
+    # 6) Read output from disk
+    load("mpi-rminc-out")
+    
+    # Clean up intermediate files
+    system(paste("rm",maskFilename))
+    system("rm q-mpi-rminc.sh")
+    system("rm mpi-rminc.R")
+    system("rm mpi-rminc-var")
+    system("rm mpi-rminc-out")
+
+    return(output)
+
+}
+
   else if (method == "sge") {
     library(Rsge)
 
@@ -1381,7 +1634,7 @@ pMincApply <- function(filenames, function.string,
     options(sge.qstat= "qstat")
     options(sge.qsub= "qsub")
 
-    # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
+    # Need to use double quotes, because both sge.submit and mincApply try to evalute the function
     function.string = enquote(function.string)
     
     l1 <- list(length=workers)
