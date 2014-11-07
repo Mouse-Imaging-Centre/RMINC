@@ -10,7 +10,7 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
   }
   else if (method == "labels") {
     # filename here should be a set of labels unique to this brain
-    system(paste("volumes_from_labels_only.py", filename, tmpfile, sep=" "))
+    system(paste("volumes_from_labels_only", filename, tmpfile, sep=" "))
     out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "means") {
