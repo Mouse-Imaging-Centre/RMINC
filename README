@@ -48,3 +48,21 @@ Download the tarball from the Github RMINC website https://github.com/mcvaneede/
 Install the package (example is for the tarball version 0.5):
 
 > R CMD INSTALL RMINC_0.5.tar.gz --configure-args='--with-build-path=/install/directory/minc2'
+
+Some notes on getting RMINC installed on a Mac
+----------------------------------------------
+
+Install latest version of 'minc-toolkit' from
+http://packages.bic.mni.mcgill.ca/minc-toolkit/MacOSX/
+
+Add the following set-up script and path to ~/.profile using an editor
+
+. /opt/minc-itk4/minc-toolkit-config.sh
+export LD_LIBRARY_PATH=/opt/minc-itk4/lib/:$LD_LIBRARY_PATH
+
+Open a new terminal an then start R
+
+library(devtools)
+options(devtools.install.args = "--configure-args='--with-build-path=/opt/minc-itk4/'")
+install_github('Mouse-Imaging-Centre/RMINC')
+
