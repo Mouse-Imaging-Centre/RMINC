@@ -6,16 +6,25 @@ Matthijs van Eede and Daniel Cassel. Some additional information can be found he
 https://wiki.phenogenomics.ca/display/MICePub/RMINC
 
 Dependencies:
+-------------
 
 RMINC depends on the following repository:
+https://github.com/BIC-MNI/libminc
 https://github.com/Mouse-Imaging-Centre/minc-stuffs
 
 Installation:
+-------------
 
 The R_LIBS variable determines where the library is installed. By default it will be installed under /usr/share. 
 If you want to install the library somewhere else, the R_LIBS environment variable should be set.
 
 > export R_LIBS=/build/directory
+
+The RMINC package currently depends on the MINC libraries to be installed. If these libraries are not installed in
+a standard location, you will have to set the LD_LIBRARY_PATH (on a Mac, this path needs to be set by your default
+shell profile):
+
+export LD_LIBRARY_PATH=/path/to/minc/install/root/directory/lib:$LD_LIBRARY_PATH
 
 The latest version of the software using the devtools package (R 3.1.1) from within R:
 
