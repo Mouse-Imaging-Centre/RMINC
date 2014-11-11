@@ -32,6 +32,10 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
     # values are already extracted and stored in a text file
     out <- read.table(filename, header=FALSE)
   }
+  else {
+    # unrecognized option...
+    stop("Unrecognized option used for \"method\" (anatGetFile/anatGetAll). Available options are: jacobians, labels, means, sums, text.")
+  }
   #cat("FILENAME:", filename, "\n")
   if (dropLabels == TRUE) {
     labels <- read.csv(defs)
