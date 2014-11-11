@@ -10,7 +10,7 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
   }
   else if (method == "labels") {
     # filename here should be a set of labels unique to this brain
-    system(paste("volumes_from_labels_only.py", filename, tmpfile, sep=" "))
+    system(paste("volumes_from_labels_only", filename, tmpfile, sep=" "))
     out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "means") {
@@ -31,6 +31,10 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
   else if (method == "text") {
     # values are already extracted and stored in a text file
     out <- read.table(filename, header=FALSE)
+  }
+  else {
+    # unrecognized option...
+    stop("Unrecognized option used for \"method\" (anatGetFile/anatGetAll). Available options are: jacobians, labels, means, sums, text.")
   }
   #cat("FILENAME:", filename, "\n")
   if (dropLabels == TRUE) {
