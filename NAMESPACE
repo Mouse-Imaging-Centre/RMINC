@@ -10,7 +10,7 @@ export( mincIO.getSliceX )
 export( mincIO.getSliceY )
 export( mincIO.getSliceZ )
 export( mincIO.makeNewSliceZ )
-export( mincIO.makeNewVolume )
+#export( mincIO.makeNewVolume )
 export( mincIO.putSlice )
 export( mincIO.readBySlice )
 export( mincIO.readByVoxel )
@@ -150,17 +150,17 @@ export( mincIO.readMincInfo )
 
 #############################
 # mincSlice_class.R
-export( mincIO.plotSlicePretty )
+#export( mincIO.plotSlicePretty )
 
 #############################
 # mincVolumeIO_class.R
-export( mincIO.makeNewVolumeX )
-export( mincIO.readVolumeX )
-export( mincIO.writeVolumeX )
+#export( mincIO.makeNewVolumeX )
+#export( mincIO.readVolumeX )
+#export( mincIO.writeVolumeX )
 
 #############################
 # mincVoxelIO_class.R
-export( mincIO.readByVoxelX )
+#export( mincIO.readByVoxelX )
 
 #############################
 # rmincLmeLoop.R
