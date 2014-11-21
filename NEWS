@@ -1,3 +1,19 @@
+New in Version 1.2.4.7
+======================
+* fixed 2 bugs in anatGetFile: 1) calls the correct program in the "labels" method, and 
+                               2) provides better error message when the wrong method is called
+* some updates to the installation procedure
+
+New in Version 1.2.4.6
+======================
+* fixed the repeated use of tmp.txt in anatGetAll. Now, this can be run in parallel
+  without causing issues.
+
+New in Version 1.2.4.5
+======================
+* added/updated documentation for RMINC functions
+* bug fix in mincLogLikRatio print function
+
 New in Version 1.2.4.4
 ======================
 * bug fix for mincLmer: the bug fix from 1.2.4.3 was incomplete

@@ -3,33 +3,38 @@
 
 anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
   out <- NULL
+  tmpfile <- tempfile(pattern="RMINC-", fileext=".txt")
   if (method == "jacobians") {
-    system(paste("label_volumes_from_jacobians", atlas, filename, "> tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+    system(paste("label_volumes_from_jacobians", atlas, filename, ">", tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "labels") {
     # filename here should be a set of labels unique to this brain
-    system(paste("volumes_from_labels_only.py", filename, "tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+    system(paste("volumes_from_labels_only", filename, tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "means") {
     system(paste("compute_values_across_segmentation", "-m",
-                 filename, atlas, "tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+                 filename, atlas, tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "sums") {
     system(paste("compute_counts_for_labels",
-                  atlas, filename, "> tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+                  atlas, filename, ">", tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "slow_sums") {
     system(paste("compute_values_across_segmentation", "-s",
-                 filename, atlas, "tmp.txt", sep=" "))
-    out <- read.csv("tmp.txt", header=FALSE)
+                 filename, atlas, tmpfile, sep=" "))
+    out <- read.csv(tmpfile, header=FALSE)
   }
   else if (method == "text") {
     # values are already extracted and stored in a text file
     out <- read.table(filename, header=FALSE)
+  }
+  else {
+    # unrecognized option...
+    stop("Unrecognized option used for \"method\" (anatGetFile/anatGetAll). Available options are: jacobians, labels, means, sums, text.")
   }
   #cat("FILENAME:", filename, "\n")
   if (dropLabels == TRUE) {
@@ -46,6 +51,7 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
     }
     out <- out[out$V1 %in% usedlabels,]
   }
+  on.exit(unlink(tmpfile))
   return(out)
 }
 

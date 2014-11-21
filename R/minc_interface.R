@@ -151,7 +151,7 @@ print.mincLogLikRatio <- function(x, ...) {
     cat("  Formula:  ")
     print(mincLmerLists[[i]][[1]]$formula)
   }
-  cat("\nMask used:", attr(out, "mask"), "\n")
+  cat("\nMask used:", attr(x, "mask"), "\n")
   cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
 }
 
