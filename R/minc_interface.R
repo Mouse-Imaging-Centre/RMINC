@@ -2005,6 +2005,42 @@ vertexLm <- function(formula, data, subset=NULL) {
   return(result)
 }
 
+###########################################################################################
+#' @description This function is used to compute an arbitrary function of every region in a set of vertex files.
+#' @name vertexApply
+#' @title Apply function over vertex Files
+#' @param filenames vertex file names
+#' @param function.string The function which to apply. Can only take a single
+#' argument, which has to be 'x'.
+#' @return  out: The output will be a single vector containing as many
+#'          elements as there are vertices in the input variable. 
+#' @examples 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft,quote(mean(x)))
+###########################################################################################
+
+vertexApply <- function(filenames,function.string) 
+{
+  # Load the data
+  vertexData = vertexTable(filenames)
+
+  # In order to maintain the same interface as mincApply, the (x) part needs to be stripped
+  function.string = gsub('(x)','',function.string)
+
+  # The apply part (transpose to match output of mincApply)
+  results <- t(apply(vertexData,1,function.string[1]))
+
+  attr(results, "likeFile") <- filenames[1]
+  
+  # run the garbage collector...
+  gcout <- gc()
+  
+  return(results)
+}
+
 vertexMean <- function(filenames) 
 {
 	vertexData = vertexTable(filenames)

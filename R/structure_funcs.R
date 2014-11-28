@@ -246,7 +246,22 @@ anatCombineStructures <- function(vols, method="jacobians", defs="/projects/mice
   attr(combined.labels, "definitions") <- defs
   return(combined.labels)
 }
-
+###########################################################################################
+#' @description This function is used to compute an arbitrary function of every region in an anat structure.
+#' @name anatApply
+#' @title Apply function over anat structure
+#' @param anat anat structure.
+#' @param grouping grouping with which to perform operations
+#' @param method The function which to apply [default mean]
+#' @return  out: The output will be a single vector containing as many
+#'          elements as there are regions in the input variable by the number of groupings
+#' @examples 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
+###########################################################################################
 anatApply <- function(vols, grouping, method=mean) {
   ngroups <- length(levels(grouping))
   output <- matrix(nrow=ncol(vols), ncol=ngroups)
@@ -493,3 +508,29 @@ anatVar <- function(anat) {
 anatSd <- function(anat) {
    return(apply(t(anat),1,sd))
 }
+
+
+# Alternate version for anatApply --> matches mincApply and vertexApply interface
+###########################################################################################
+#' @description This function is used to compute an arbitrary function of every region in an anat structure.
+#' @name anatApply
+#' @title Apply function over anat structure
+#' @param anat anat structure.
+#' @function.string The function which to apply. Can only take a single
+#' argument, which has to be 'x'.
+#' @return  out: The output will be a single vector containing as many
+#'          elements as there are regions in the input variable. 
+#' @examples 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' vm <- anatApply(gf$lobeThickness,quote(mean(x)))
+###########################################################################################
+
+
+#anatApply <- function(anat,function.string) {
+#   function.string = gsub('(x)','',function.string)
+#   return(t(apply(t(anat),1,function.string[1])))
+#}
+
