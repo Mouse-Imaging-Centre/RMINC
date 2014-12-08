@@ -1109,6 +1109,48 @@ else
 write.table(roiObj,outputFileName,FALSE,TRUE," ","\n","NA",".",FALSE,FALSE)
 }
 
+###########################################################################################
+#' @description Create a brainview file of a specific ROI
+#' @name civet.CreateBrainViewROI
+#' @title civet.CreateBrainViewROI
+#' @param atlasFile File with Atlas label (string-label(int)) mappings
+#' @param atlasVertices File with vertex label(int) mappings
+#' @param region Region to plot -> Must match name in atlas file exactly
+#' @param civetVersion Version of CIVET 
+#' @details Create a .txt file that can be overlaid unto the model template (usually in the CIVET models directory)
+#' Currently only CIVET version 1.1.12 is supported.
+#' @seealso civet.CreateBrainViewFile
+#' @examples
+#' getRMINCTestData() 
+#' civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv","/tmp/rminctestdata/AAL_atlas_left.txt","Left Insula")
+#' q()
+#' (The .txt file is written in the working directory and can be viewed via the command)
+#' brain-view2 $CIVET_DIR/models/surf_reg_model_left.obj ./LeftInsula.txt
+###########################################################################################
+civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion="1.1.12") {
+	
+	if ( civetVersion != "1.1.12" ) {
+		warning(sprintf("This function has not been tested with Civet version %s. Use at your own risk.", civetVersion), immediate.=TRUE)
+	}
+
+	vertices = read.csv(atlasVertices,header=FALSE)
+	AALAtlas = read.csv(atlasFile)
+	reducedVertices = vertices[1:40962,1]
+	roiObj =  rep(0,length(reducedVertices))
+	
+	# Find index of ROI
+	roiIndex <- which(AALAtlas[,3] == region)
+	
+	# Match against label
+	roiLabel <- which(reducedVertices == AALAtlas[roiIndex,1],arr.ind=FALSE)
+	
+	# Fill in label
+	roiObj[roiLabel] = 1
+
+	# Write out (remove spaces)
+	write.table(roiObj,gsub(" ","",paste(region,".txt",sep="")),FALSE,TRUE,"","\n","NA",".",FALSE,FALSE)
+}
+
 # =============================================================================
 #
 # Deprecated .. Deprecated .. Deprecated .. Deprecated .. Deprecated .. 
