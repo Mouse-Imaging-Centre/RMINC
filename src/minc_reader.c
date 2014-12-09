@@ -27,7 +27,6 @@ void get_volume_sizes(char **filename, unsigned int *sizes) {
   sizes[2] = (unsigned int) tmp_sizes[2];
 
    // Close the volume, to free handle
-   Rprintf("Closing Volume\n");
    result = miclose_volume(hvol); 
    if (result != MI_NOERROR) {
     error("Error closing file: %s.\n", filename[0]);
@@ -219,7 +218,6 @@ void get_hyperslab(char **filename, int *start, int *count, double *slab) {
     error("Could not get hyperslab.\n");
   }
    // Close the volume, to free handle
-   Rprintf("Closing Volume\n");
    result = miclose_volume(hvol); 
    if (result != MI_NOERROR) {
     error("Error closing file: %s.\n", filename[0]);

@@ -485,6 +485,19 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
     parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
   }
 
+  # Do Error Checking on mask. The mask may have a different dimension order than the input volumes
+  # A call to minc.dimensions.sizes will read the dimension order according to the file order so 
+  # it can be used to do the checking.
+  if(!is.null(mask)) {
+  	maskDim = minc.dimensions.sizes(mask)
+  	volumeDim = minc.dimensions.sizes(parseLmOutput$data.matrix.left)
+        # Case 1: Mask has one or more dimensions less than volume
+	if(maskDim[1] != volumeDim[1] || maskDim[2] != volumeDim[2] || maskDim[3] != volumeDim[3]) {
+		cat(paste("Mask Volume",as.character(maskDim[1]),as.character(maskDim[2]),as.character(maskDim[3]),
+			  "Input Volume",as.character(volumeDim[1]),as.character(volumeDim[2]),as.character(volumeDim[3]),'\n'))
+		stop("Mask Volume input volume dimension mismatch.") }
+}
+
   result <- .Call("minc2_model",
                   as.character(parseLmOutput$data.matrix.left),
                   parseLmOutput$data.matrix.right,
