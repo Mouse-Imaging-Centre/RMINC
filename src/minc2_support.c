@@ -16,11 +16,12 @@ SEXP get_volume_info(SEXP filename) {
 	
 	int					result, i;
 	int					n_dimensions;
+	misize_t    n_dimensions_misize_t;
 	int					n_protects, list_index;
 	int					n_frames;
 	
 // variables to hold dim-related info
-	unsigned int		dim_sizes[MI2_MAX_VAR_DIMS];
+	misize_t		dim_sizes[MI2_MAX_VAR_DIMS];
 	double				dim_starts[MI2_MAX_VAR_DIMS];
 	double				dim_steps[MI2_MAX_VAR_DIMS];
 	double				time_offsets[MAX_FRAMES];
@@ -80,6 +81,7 @@ SEXP get_volume_info(SEXP filename) {
 	if ( miget_volume_dimension_count(minc_volume, MI_DIMCLASS_ANY, MI_DIMATTR_ALL, &n_dimensions) != MI_NOERROR ){
 		error("Error returned from miget_volume_dimension_count.\n");
 	}
+	n_dimensions_misize_t = (misize_t) n_dimensions;
 	// ... now set the order
 	if ( R_DEBUG_mincIO ) Rprintf("Setting the apparent order for %d dimensions ... ", n_dimensions);
 	if ( n_dimensions == 3 ) {
@@ -151,7 +153,7 @@ SEXP get_volume_info(SEXP filename) {
 
 
 	/* get the dimension sizes for all dimensions */
-	result = miget_dimension_sizes(dimensions, n_dimensions, dim_sizes);
+	result = miget_dimension_sizes(dimensions, n_dimensions_misize_t, dim_sizes);
 	if ( result != MI_NOERROR ) { error("Error returned from miget_dimension_sizes.\n"); }
 	/* add to R vector ... */
 	for (i=0; i<n_dimensions; ++i){

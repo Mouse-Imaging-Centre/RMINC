@@ -107,7 +107,19 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
   return(round(output))
 }
 
-# return a volume as a 1D array.
+# 
+###########################################################################################
+#' @description Load a 3-dimensional MINC2 volume and returns it as a 1D array
+#' @name mincGetVolume
+#' @title Return a volume as a 1D array
+#' @param filename A string corresponding to the location of the MINC2 file to
+#' be read.
+#' @return out Returns a vector of mincSingleDim class
+#' @seealso mincWriteVolume
+#' @examples
+#' getRMINCTestData()
+#' testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc");
+###########################################################################################
 mincGetVolume <- function(filename) {
   mincFileCheck(filename)
   sizes <- minc.dimensions.sizes(filename)
@@ -131,6 +143,33 @@ print.mincMultiDim <- function(x, ...) {
   print(attr(x, "likeVolume"))
 }
 
+print.mincLogLikRatio <- function(x, ...) {
+  cat("mincLogLikRatio output\n\n")
+  mincLmerLists <- attr(x, "mincLmerLists")
+  for (i in 1:length(mincLmerLists)) {
+    cat("Model", i, ":\n")
+    cat("  Formula:  ")
+    print(mincLmerLists[[i]][[1]]$formula)
+  }
+  cat("\nMask used:", attr(x, "mask"), "\n")
+  cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
+}
+
+print.mincLmer <- function(x, ...) {
+  cat("mincLmer output\n")
+  cat("Formula:  ")
+  print(attr(x, "mincLmerList")[[1]]$formula)
+  if (attr(x,"mincLmerList")[[1]]$REML == TRUE) {
+    cat("Fitted with REML\n")
+  }
+  else {
+    cat("Fitted with ML\n")
+  }
+  cat("Mask:         ", attr(x, "mask"), "\n")
+  cat("Columns:      ", colnames(x), "\n")
+}
+      
+
 print.vertexMultiDim <- function(x, ...) {
   cat("Multidimensional Vertstats file\n")
   cat("Columns:      ", colnames(x), "\n")
@@ -150,6 +189,36 @@ print.mincQvals <- function(x, ...) {
   print(attr(x, "thresholds"))
 }
 
+
+###########################################################################################
+#' @description Writes a MINC volume to file
+#' @name mincWriteVolume
+#' @aliases mincWriteVolume.mincSingleDim,mincWriteVolume.mincMultiDim
+#' @title Write a MINC volume to file
+#' @param buffer The data to be written to file. Usually the result of
+#' \link{mincLm} or some such command
+#' @param output.filename The filename to which to write the data to
+#' @param column Optional name of the column of a multidimensional MINC
+#' object to write out. By default the first column is used
+#' @param like.filename An existing MINC filename which has the same
+#' dimensions as the data to be written out. Normally this information
+#' is stored inside MINC data objects
+#' @param clobber Overwrite existing output file when set to TRUE, will not 
+#' overwrite when set to FALSE and will prompt when NULL
+#' @details This function takes numeric data, usually the results computed
+#' from one of the other mincFunctions, and writes it to file so that it
+#' can be viewed or manipulated with the standard MINC tools
+#' @return A list with the parameters of the minc volume written
+#' @seealso mincWriteVolume,mincLm,mincFDR,mincMean,mincSd
+#' @examples
+#' getRMINCTestData()
+#' # read the text file describing the dataset
+#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' # run a linear model relating the data in all voxels to Sex
+#' vs <- mincLm(gf$jacobians_fixed_2 ~ Sex, gf)
+#' # write the results to file
+#' mincWriteVolume(vs, "Fstat.mnc", "F-statistic")
+###########################################################################################
 mincWriteVolume <- function(buffer, ...) {
   UseMethod("mincWriteVolume")
 }
@@ -193,6 +262,12 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
   }
   b.min <- min(buffer)
   b.max <- max(buffer)
+
+  if(length(which(is.nan(buffer))) != 0 || length(which(is.infinite(buffer))) != 0  || length(which(is.na(buffer))) != 0) {
+	stop ("Cannot write volumes with inf,na or nans in them. Please remove the offending character")
+   }
+
+
   output <- .C("write_minc2_volume",
                as.character(output.filename),
                as.character(like.filename),
@@ -202,7 +277,7 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                as.double(b.min),
                as.double(buffer), PACKAGE="RMINC")
 }
-
+###########################################################################################
 
 # get the dimension sizes of a particular file.
 minc.dimensions.sizes <- function(filename) {
@@ -260,7 +335,27 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
-# compute a sequential ANOVA at each voxel
+###########################################################################################
+#' @description compute a sequential ANOVA at each voxel
+#' @name mincAnova
+#' @title Anova at Every Voxel
+#' @param formula The anova formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
+#' @param data The dataframe which contains the model terms.
+#' @param subset Subset definition.
+#' @param mask Either a filename or a vector of values of the same length as the input files. ANOVA will only be computed
+#' inside the mask.
+#' @details This function computes a sequential ANOVA over a set of files.
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
+#' 	minc file names input,dimensions,dimension names, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
+#' @examples 
+#' getRMINCTestData() 
+#' # read the text file describing the dataset
+#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' # run an ANOVA at each voxel
+#' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
+###########################################################################################
+
 mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -327,43 +422,38 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' @description Linear Model at Every Voxel
 #' @name mincLm
 #' @title Linear model at Every Voxel
-#' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
-#' @param data The dataframe which contains the model terms.
+#' @param formula The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.The RHS of the formula may contain one term with filenames. If so only the + operator may be used, and only two terms may appear on the RHS
+#' @param data The data frame which contains the model terms.
 #' @param subset Subset definition.
 #' @param mask Either a filename or a vector of values of the same length as the input files. The linear model will only be computed
 #' inside the mask.
 #' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 #' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
 #' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
-#' column is the F-statistic of the significance of the entire volume, the following columns contain the marginal t-statistics for each of the terms in 
-#' the model 
+#' column is the F-statistic of the significance of the entire volume, the following columns contain the R-Squared term, the marginal t-statistics for each of the terms in the model along with their respective coefficients.
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples 
+#' getRMINCTestData() 
 #' # read the text file describing the dataset
-#' gf <- read.csv("control-file.csv")
-#' # run a linear model relating the data in all voxels to Genotype
-#' vs <- mincLm(filenames ~ Genotype, gf)
-#' # see what's in the results
-#' vs
-#' # write the results to file
-#' mincWriteVolume(vs, "output.mnc", "Genotype+")
+#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' # Compute a linear model at each voxel
+#' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 ###########################################################################################
-mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
+mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
+
+  #INITIALIZATION
+  method <- "lm"
+   
+  # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
-
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
 
-  filenames <- as.character(mf[,1])
-  mmatrix <- model.matrix(formula, mf)
 
-  method <- "lm"
-
-  mincFileCheck(filenames)
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -372,9 +462,33 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
     minmask = maskval
     maxmask = maskval
   }
+
+
+  # the following returns:
+  #
+  # list(data.matrix.left = data.matrix.left, 
+  #      data.matrix.right = data.matrix.right,
+  #      rows = rows,
+  #      matrixFound = matrixFound,
+  #      mmatrix = mmatrix)
+  parseLmOutput <- parseLmFormula(formula,data,mf)
+
+  # Call subroutine based on whether matrix was found
+  if(parseLmOutput$matrixFound) {
+    mincFileCheck(parseLmOutput$data.matrix.left)
+    mincFileCheck(parseLmOutput$data.matrix.right)
+  }
+  else  {
+    parseLmOutput$mmatrix <- model.matrix(formula, mf)	
+    parseLmOutput$data.matrix.left <- as.character(mf[,1])
+    mincFileCheck(parseLmOutput$data.matrix.left)
+    parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
+  }
+
   result <- .Call("minc2_model",
-                  as.character(filenames),
-                  as.matrix(mmatrix),
+                  as.character(parseLmOutput$data.matrix.left),
+                  parseLmOutput$data.matrix.right,
+                  as.matrix(parseLmOutput$mmatrix),
                   NULL,
                   as.double(! is.null(mask)),
                   as.character(mask),
@@ -383,10 +497,11 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
                   NULL, NULL,
                   as.character(method), PACKAGE="RMINC")
 
-  attr(result, "likeVolume") <- filenames[1]
-  attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
-  
+  attr(result, "likeVolume") <- parseLmOutput$data.matrix.left[1]
+  attr(result, "filenames") <- parseLmOutput$data.matrix.left
+  attr(result, "model") <- as.matrix(parseLmOutput$mmatrix)
+ 
+
   # the order of return values is:
   #
   # f-statistic
@@ -403,20 +518,21 @@ mincLm <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL) {
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
-  
+
   # get the first voxel in order to get the dimension names
-  v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
-  rows <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  betaNames = paste('beta-',rows, sep='')
-  tnames = paste('tvalue-',rows, sep='')
+  #v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
+  #rows <- sub('mmatrix', '',
+  #            rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
+  betaNames = paste('beta-',parseLmOutput$rows, sep='')
+  tnames = paste('tvalue-',parseLmOutput$rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("mincMultiDim", "matrix")
   
   # run the garbage collector...
   gcout <- gc()
-  
+ 
   return(result)
+
 }
 
 # two tailed version of pt
@@ -435,6 +551,51 @@ mincGetMask <- function(mask) {
   }
 }
 
+###########################################################################################
+#' @description Takes the output of a mincLm type run and computes the False Discovery Rate on the results.
+#' @name mincFDR
+#' @aliases mincFDR vertexFDR anatFDR
+#' @title Compute the False Discovery Rate on the output of a mincLm type run
+#' @usage \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
+#' \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
+#' @param buffer The results of a mincLm type run.
+#' @param columns A vector of column names. By default the threshold will
+#' be computed for all columns; with this argument the computation can
+#' be limited to a subset.
+#' @param mask Either a filename or a numeric vector representing a mask
+#' only values inside the mask will be used to compute the
+#' threshold.
+#' @param df The degrees of freedom - normally this can be determined
+#' from the input object.
+#' @param statType This should be either a "t","F","u","chisq" or "tlmer" depending upon the
+#' type of statistic being thresholded.
+#' @param method The method used to compute the false discovery
+#' rate. Options are "FDR" and "pFDR".
+#' @details This function uses the \code{qvalue} package to compute the
+#'  False Discovery Rate threshold for the results of a \link{mincLm}
+#'  computation. The False Discovery Rate represents the percentage of
+#'  results expected to be a false positive. Two implementations can be
+#'  used as specified by the method argument. "FDR" uses the
+#'  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
+#'  postivie False Discovery Rate as found in John Storey's \code{qvalue}
+#'  package. 
+#' @return qvals mincFDR returns an object with the same number of columns
+#'  as the input (or the subset specified by the columns argument to
+#'  mincFDR). Each column now contains the qvalues for each voxel. Areas
+#'  outside the mask (if a mask was specified) will be represented by a
+#'  value of 1. The result also has an attribute called "thresholds"
+#'  which contains the 1, 5, 10, 15, and 20 percent false discovery rate
+#'  thresholds.
+#' @seealso mincWriteVolume,mincLm,mincWilcoxon or mincTtest 
+#' @examples 
+#' getRMINCTestData() 
+#' # read the text file describing the dataset
+#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' # run a linear model relating the data in all voxels to Genotype
+#' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
+#' # compute the False Discovery Rate
+#' qvals <- mincFDR(vs)
+###########################################################################################
 mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
@@ -456,7 +617,214 @@ mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue", ...) {
   mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method, ...)
 }
 
+#' returns the specified mask, the mask associated with the buffer, or a vector of ones
+mincFDRMask <- function(mask, buffer) {
+  if (is.null(mask)) {
+    mask <- attr(buffer, "mask")
+  }
+  cat("Using mask:", mask, "\n")
+
+  # if mask is still null, create a vector of ones with length of buffer
+  if (is.null(mask)) {
+    mask <- vector(length=nrow(buffer)) + 1
+  }
+  else {
+    mask <- mincGetMask(mask)
+  }
+  return(mask)
+}
+
+#' mincFDR for the output of mincLogLikRatio
+#'
+#' Very similar to the default mincFDR, except that it adds
+#' the ability to correct the p-values based on having run
+#' the parametric bootstrap first.
+#'
+#' @examples
+#' \dontrun{
+#' test <- mincLmer(jacobians ~ day + (1|mouse), gf, mask="/micehome/jlerch/R-tests/small-mask.mnc",REML=F)
+#' test2 <- mincLmer(jacobians ~ ns(day,2) + (1|mouse), gf, mask="/micehome/jlerch/R-tests/small-mask.mnc",REML=F)
+#' out <- mincLogLikRatio(test, test2)
+#' # compute the FDR just using the chi squared approximation
+#' mincFDR(out)
+#' out <- mincLogLikRatioParametricBootstrap(out, nvoxels=25, nsims=500)
+#' # also compute the FDR with corrected p-values based on the chi-squared approximation
+#' mincFDR(out)
+#' }
+mincFDR.mincLogLikRatio <- function(buffer, mask=NULL) {
+  cat("Computing FDR for mincLogLikRatio\n")
+  df <- attr(buffer, "df")
+  mask <- RMINC:::mincFDRMask(mask, buffer)
+  ncols <- ncol(buffer)
+  
+  # compute the thresholds at several sig levels
+  p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
+  
+  # check whether the parametric bootstrap was estimated on the model
+  haveParametricBootstrap <- "parametricBootstrap" %in% names(attributes(buffer))
+  if (haveParametricBootstrap) {
+    # we'll keep the estimate, corrected q|pvals and their upper and lower 95% conf limits
+    # note: same as parametricBootstrap, at the moment has a limit of a single column of
+    # chi-squared values (i.e. the comparison of two input models)
+    ncols <- 4
+  }
+
+  # compute p and q values
+  # pvals and qvals size corresponds to voxels inside mask, whereas output
+  # is the size of the buffer. (ncols is changed if parametricBootstrap present)
+  pvals <- matrix(nrow=sum(mask>0.5), ncol=ncols)
+  output <- matrix(1, nrow=nrow(buffer), ncol=ncols)
+  thresholds <- matrix(nrow=length(p.thresholds), ncol=ncols)
+  qvals <- pvals
+  
+
+  for (i in 1:ncols) {
+    # compute qvals through R's p.adjust function
+    currentDF <- df[[1]]
+    if (i == 1 | haveParametricBootstrap == F) {
+      currentDF <- df[[i]]
+      pvals[, i] <- pchisq(buffer[mask>0.5, i], currentDF, lower.tail=F)
+    }
+    if (haveParametricBootstrap & i==1) {
+      # the linear model computed as part of the parametric bootstrap
+      # note: as with the parametricBootstrap code, at the moment the assumption is
+      # that there were only two models being compared, and thus a single column of
+      # chisq values in the input 
+      
+      pvals[,2:4] <- predict(attr(buffer, "parametricBootstrapModel"),
+                             newdata=data.frame(chisq=pvals[,i]),
+                             interval="confidence")
+    }
+    qvals[, i] <- p.adjust(pvals[, i], "fdr")
+
+    tfunc <- function(x) { qchisq(max(x), currentDF, lower.tail=FALSE) }
+    thresholds[,i] <- mincFDRThresholdVector(pvals[,i], qvals[,i], tfunc, p.thresholds)
+    output[mask>0.5, i] <- qvals[, i]
+  }
+
+  if (haveParametricBootstrap) {
+    columnNames <- c("Chisq approx.", "Corrected", "Corrected lwr CI", "Corrected upr CI")
+  }
+  else {
+    columnNames <- colnames(buffer)
+  }
+  
+  rownames(thresholds) <- p.thresholds
+  colnames(thresholds) <- columnNames
+  attr(output, "thresholds") <- thresholds
+  colnames(output) <- columnNames
+  attr(output, "likeVolume") <- attr(buffer, "likeVolume")
+  attr(output, "DF") <- df
+  class(output) <- c("mincQvals", "mincMultiDim", "matrix")
+  
+  # run the garbage collector...
+  gcout <- gc()
+
+  return(output)
+}
+
+#' a utility function to compute thresholds
+#'
+#' @param pvals a vector of pvalues
+#' @param qvals a vector of corrected qvalues (such as returend by p.adjust)
+#' @param thresholdFunc a function that returns the threshold given a vector of pvalues
+#' @param p.thresholds the pvalues at which to compute the threshold
+#'
+#' The function should be the quantile function for the distribution being tested. For example,
+#' for the chi squared distribution the function would be:
+#' tfunc <- function(x) { qchisq(max(x), df[[i]], lower.tail=FALSE) }
+mincFDRThresholdVector <- function(pvals, qvals, thresholdFunc=NULL,
+                                   p.thresholds = c(0.01, 0.05, 0.10, 0.15, 0.20)) {
+  
+  thresholds <- vector("numeric", length=length(p.thresholds))
+  for (j in 1:length(p.thresholds)) {
+    # compute thresholds; to be honest, not quite sure what the NA checking is about
+    subTholdPvalues <- pvals[qvals <= p.thresholds[j]]
+    subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+    
+    if ( length(subTholdPvaluesNumbers) >= 1 ) {
+      thresholds[j] <- thresholdFunc(subTholdPvaluesNumbers)
+        #qchisq(max(subTholdPvaluesNumbers), df[[i]], lower.tail=FALSE)
+    }
+    else { thresholds[j] <- NA }
+  }
+  return(thresholds)
+}
+
+
+#' mincFDR for the output of mincLmer
+#'
+#' same as mincFDR, except adds warnings based on difficulty in estimating
+#' degrees of freedom for mixed effects models
+mincFDR.mincLmer <- function(buffer, mask=NULL) {
+  cat("In mincFDR.mincLmer\n")
+
+  # if no DF set, exit with message
+  df <- attr(buffer, "df")
+  if (is.null(df)) {
+    stop("No degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
+  }
+  else {
+    warning("Here be dragons! Hypothesis testing with mixed effects models is challenging, since nobody quite knows how to correctly estimate denominator degrees of freedom.")
+  }
+
+  # get the mask
+  mask <- RMINC:::mincFDRMask(mask, buffer)
+  # only compute stats on tlmer columns
+  tlmerColumns <- grep("tlmer", attr(buffer, "stat-type"))
+  ncolsToUse <- length(tlmerColumns)
+  # sanity check to ensure that number of tlmer columns matches DF
+  if (ncolsToUse != length(df)) {
+    stop("Mismatch between DF and number of columns")
+  }
+
+  # compute p and q values
+  # pvals and qvals size corresponds to voxels inside mask, whereas output
+  # is the size of the buffer.
+  pvals <- matrix(nrow=sum(mask>0.5), ncol=ncolsToUse)
+  qvals <- pvals
+  output <- matrix(1, nrow=nrow(buffer), ncol=ncolsToUse)
+
+  # compute the thresholds at several sig levels
+  p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
+  thresholds <- matrix(nrow=length(p.thresholds), ncol=ncolsToUse)
+  for (i in 1:ncolsToUse) {
+    # compute qvals through R's p.adjust function
+    pvals[, i] <- pt2(buffer[mask>0.5, tlmerColumns[i]], df[[i]])
+    qvals[, i] <- p.adjust(pvals[, i], "fdr")
+    output[mask>0.5, i] <- qvals[, i]
+    for (j in 1:length(p.thresholds)) {
+      # compute thresholds; to be honest, not quite sure what the NA checking is about
+      subTholdPvalues <- pvals[qvals[,i] <= p.thresholds[j], i]
+      subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+                                        
+      if ( length(subTholdPvaluesNumbers) >= 1 ) {
+        thresholds[j,i] <-qt(max(subTholdPvaluesNumbers)/2, df[[i]], lower.tail=FALSE)
+      }
+      else { thresholds[j,i] <- NA }
+    }
+  }
+
+  columnNames <- colnames(buffer)[tlmerColumns]
+  columnNamesQ <- sub("tvalue", "qvalue", columnNames)
+  
+  rownames(thresholds) <- p.thresholds
+  colnames(thresholds) <- columnNames
+  attr(output, "thresholds") <- thresholds
+  colnames(output) <- columnNamesQ
+  attr(output, "likeVolume") <- attr(buffer, "likeVolume")
+  attr(output, "DF") <- df
+  class(output) <- c("mincQvals", "mincMultiDim", "matrix")
+  
+  # run the garbage collector...
+  gcout <- gc()
+
+  return(output)
+}
+
 # mincFDR for a local buffer created by mincLm
+# note: this function is slowly being deprecated. New stats types should be
+# dealt with using separate classes and methods; see mincFDR.mincLmer for example
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
                                  method="FDR", statType=NULL) {
   if (method == "qvalue") {
@@ -471,7 +839,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   stattype = attr(buffer, "stat-type")
   df  = attr(buffer,"df")
   for (nStat in 1:length(stattype)) {
-    if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared') {
+    if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared' || stattype[nStat] == "logLik") {
       if(!exists('indicesToRemove')) {
         indicesToRemove = nStat 
       }
@@ -483,11 +851,12 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   if(exists('indicesToRemove')) {
     buffer = buffer[,-indicesToRemove]
     attr(buffer, "stat-type") <- stattype[-indicesToRemove]
+    attr(buffer, "df") <- df
   }
-  attr(buffer, "df") <- df
+
 
   # must know the type of statistic we are dealing with
-  knownStats <- c("t", "F")
+  knownStats <- c("t", "F", "u", "chisq", "tlmer")
   if (is.null(statType)) {
     # stat type not specified - must be an attribute to the buffer
     if (is.null(attr(buffer, "stat-type"))) {
@@ -498,7 +867,8 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
     # make sure that the stat type is recognized
     if (! all(statType %in% knownStats)) {
-      stop("Error: not all the stat types are recognized. Currently allowed are: ", paste(knownStats, collapse=" "))
+      stop("Error: not all the stat types are recognized. Currently allowed are: ",
+           paste(knownStats, collapse=" "))
     }
     # make sure that there are either just one stat type
     # or as many as there are columns
@@ -513,11 +883,21 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
   }
 
-  # need to know the degrees of freedom
-  if (is.null(df)) {
+
+  if ( any(statType %in% "u")) {
+    m <- attr(buffer, "m") 
+    n <- attr(buffer, "n")
+  }
+  else {
+    # need to know the degrees of freedom
     df <- attr(buffer, "df")
     if (is.null(df)) {
-      stop("Error: need to specify the degrees of freedom")
+      if (any(statType %in% "tlmer")) {
+        stop("Error: no degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
+      }
+      else {
+        stop("Error: need to specify the degrees of freedom")
+      }
     }
     if (length(df) == 1 & ncol(buffer) != 1) {
       df <- rep(list(df), ncol(buffer))
@@ -533,7 +913,6 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     #df[2] <- nrow(attributes(buffer)$model) - ncol(attributes(buffer)$model)
   }
 
-  
   if (is.null(columns)) {
     columns <- colnames(buffer)
     cat("\nComputing FDR threshold for all columns\n")
@@ -559,6 +938,10 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   output <- matrix(1, nrow=n.row, ncol=n.cols)
   p.thresholds <- c(0.01, 0.05, 0.10, 0.15, 0.20)
   thresholds <- matrix(nrow=length(p.thresholds), ncol=n.cols)
+
+  if (any("tlmer" %in% statType)) {
+    warning("Warning: computing p-values from a mincLmer call. Mixed-effects models are notoriously difficult to correctly obtain p-values from, so this is based on an approximation and might be incorrect. Read the documentation and, if in doubt, use log likelihood testing for a more correct approach.")
+  }
   
   for (i in 1:n.cols) {
     cat("  Computing threshold for ", columns[i], "\n")
@@ -566,10 +949,11 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     qobj <- vector("list", length(pvals))
 
     # convert statistics to p-values
-    if (statType[i] == "t") {
+    if (statType[i] %in% c("t", "tlmer")) {
       if (is.matrix(buffer)) {
         pvals <- pt2(buffer[mask>0.5, i], df[[i]])
       }
+
       else {
         pvals <- pt2(buffer[mask>0.5], df[[i]])
       }
@@ -579,14 +963,25 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
         pvals <- pf(buffer[mask>0.5, i], df[[i]][1], df[[i]][2],
                     lower.tail=FALSE)
       }
+
+
       else {
         pvals <- pf(buffer[mask>0.5], df[[i]][1], df[[i]][2], lower.tail=FALSE)
       }
+
     }
+    else if (statType[i] == "u") {
+      pvals <- 1 - pwilcox(buffer[mask>0.5,i],m,n,lower.tail = FALSE)
+    }
+    else if (statType[i] == "chisq") {
+      if (is.matrix(buffer)) {
+        pvals <- pchisq(buffer[mask>0.5, i], df[[i]], lower.tail=F)
+      }
+      else {
+        pvals <- pchisq(buffer[mask>0.5], df[[i]], lower.tail=F)
+      }
+    }  
     
-
-
-
     # determine corresponding q values
     if (method=="qvalue") {
       qobj <- qvalue(pvals)
@@ -602,18 +997,36 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     for (j in 1:length(p.thresholds)) {
       if (statType[i] == "F") {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
 		# cat(sprintf("Number of sub-threshold F p-values: %d\n", length(subTholdPvalues)))
-		if ( length(subTholdPvalues) >= 1 ) {
-			thresholds[j,i] <- qf(max(subTholdPvalues), df[[i]][1], df[[i]][2], lower.tail=FALSE)
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <- qf(max(subTholdPvaluesNumbers), df[[i]][1], df[[i]][2], lower.tail=FALSE)
 		} else { thresholds[j,i] <- NA }
       }
-      else if (statType[i] == "t") {
+      else if (statType[i] %in% c("t", "tlmer")) {
 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <-qt(max(subTholdPvaluesNumbers)/2, df[[i]], lower.tail=FALSE)
+		} else { thresholds[j,i] <- NA }
+      }
+      else if (statType[i] == "u") {
+		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
+		subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
+		if ( length(subTholdPvaluesNumbers) >= 1 ) {
+			thresholds[j,i] <-qwilcox(max(subTholdPvaluesNumbers),m,n,lower.tail = TRUE)
+		} else { thresholds[j,i] <- NA }
+      }
+
+      else if (statType[i] == "chisq") {
+ 		subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
 		#cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
 		if ( length(subTholdPvalues) >= 1 ) {
-			thresholds[j,i] <-qt(max(subTholdPvalues)/2, df[[i]], lower.tail=FALSE)
-		} else { thresholds[j,i] <- NA }
-      }
+			thresholds[j,i] <-qchisq(max(subTholdPvalues), df[[i]], lower.tail=FALSE)
+		} else { thresholds[j,i] <- NA }       
+              }
     }
     output[mask>0.5,i] <- qobj$qvalue
   }
@@ -631,8 +1044,39 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   
   return(output)
 }
-   
 
+
+###########################################################################################
+#' @description This function is used to compute the mean, standard deviation,
+#'    		sum, or variance of every region in a set of MINC volumes.
+#' 		An optional grouping variable will split the computation by group
+#'     		rather than performing it across all volumes as is the default.
+
+#' @name mincSummaries
+#' @aliases mincMean mincSd mincVar mincSum
+#' @title Create descriptive statistics across a series of MINC volumes
+#' @param filenames Filenames of the MINC volumes across which to create the
+#' descriptive statistic.
+#' @param grouping Optional grouping - contains same number of elements as
+#' filenames; the results will then have the descriptive
+#' statistic computed separately for each group.
+#' @param mask A mask specifying which voxels are to be included in the
+#' summary.
+
+
+#' @return  The output will be a single vector containing as many
+#'          elements as there are voxels in the input files. If a
+#'          grouping factor was specified then the output will be a
+#'          matrix consisiting of as many rows as there were voxels in
+#'          the files, and as many columns as there were groups.
+#' @examples 
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+#' mm <- mincMean(gf$jacobians_0.2); 
+#' ms <- mincSd(gf$jacobians_0.2); 
+#' mv <- mincVar(gf$jacobians_0.2,gf$Strain); 
+#' ms2 <- mincSum(gf$jacobians_0.2,gf$Strain); 
+###########################################################################################
 mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="mean", maskval=maskval)
   return(result)
@@ -653,6 +1097,156 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- sqrt(result)
   return(result)
 }
+###########################################################################################
+#' @description Perform an unpaired,unequal variance t-test across a set of minc volumes
+#' @name mincTtest
+#' @title Perform an unpaired,unequal variance t-test across a set of minc volumes
+#' @param filenames Filenames of the MINC volumes across which to run the t-test
+#' @param grouping  Contains same number of elements as
+#' filenames; must contain exactly two groups with which to compare means
+#' @param mask A mask specifying which voxels are to be included in the test
+#' @param maskval The value with which to mask the data (data will masked +/- 0.5 around this value
+#' @return  The output will be a single vector containing as many
+#'          elements as there are voxels in the input files, with that voxel's t-statistic
+#' @examples 
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+#' mtt <- mincTtest(gf$jacobians_0.2,gf$Strain); 
+###########################################################################################
+mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  # the grouping for a t test should only contain 2 groups. Should 
+  # also be converted to a factor if it's not.
+  if( ! is.factor(grouping) ){
+    grouping <- as.factor(grouping)
+  }
+  if(length(levels(grouping)) != 2 ){
+    cat("\nThe groups (levels) in your data are:\n")
+    cat(levels(grouping), "\n\n")
+    stop("mincTtest can only be performed on data with 2 groups")
+  }
+  result <- mincSummary(filenames, grouping, mask, method="t-test", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("t") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  rttest <- t.test(vox~grouping,data=gf,paired=FALSE)
+  attr(result, "df") <- rttest$parameter
+  colnames(result) <- c("T-statistic")
+  class(result) <- c("mincMultiDim", "matrix")
+  return(result)
+}
+###########################################################################################
+#' @description Perform a paired t-test across a set of minc volumes
+#' @name mincPairedTtest
+#' @title Perform an paired t-test across a set of minc volumes
+#' @param filenames Filenames of the MINC volumes across which to run the t-test
+#' @param grouping  Contains same number of elements as
+#' filenames; must contain exactly two groups with which to compare means. The two groups
+#' must be the same length.
+#' @param mask A mask specifying which voxels are to be included in the test
+#' @param maskval The value with which to mask the data (data will masked +/- 0.5 around this value
+#' @return  The output will be a single vector containing as many
+#'          elements as there are voxels in the input files, with that voxel's t-statistic
+#' @examples 
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+#' gf = gf[1:20,]
+#' mptt <- mincPairedTtest(gf$jacobians_0.2,gf$Strain)
+###########################################################################################
+mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  # here, similarly to the t-test, there should be 2 groups in the data. However
+  # since this is a paired t-test (repeated measures, and it assumes element 1 from
+  # group 1 is paired with element 1 from group 2 etc.), the groups need to have 
+  # the same length.
+  if( ! is.factor(grouping) ){
+    grouping <- as.factor(grouping)
+  }
+  if(length(levels(grouping)) != 2 ){
+    cat("\nThe groups (levels) in your data are:\n")
+    cat(levels(grouping), "\n\n")
+    stop("mincPairedTtest can only be performed on data with 2 groups")
+  }
+  lenght_group_1 <- sum(grouping == levels(grouping)[1])
+  lenght_group_2 <- sum(grouping == levels(grouping)[2])
+  if(lenght_group_1 != lenght_group_2) {
+    cat("\nGroup 1 (",levels(grouping)[1], ") has ", lenght_group_1," elements.\n")
+    cat("Group 2 (",levels(grouping)[2], ") has ", lenght_group_2," elements.\n\n")
+    stop("The groups do not have the same length. mincPairedTtest expects 2 groups with equal length (paired data)")
+  }
+  result <- mincSummary(filenames, grouping, mask, method="paired-t-test", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("t") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  rttest <- t.test(vox~grouping,data=gf,paired=TRUE)
+  attr(result, "df") <- rttest$parameter
+  colnames(result) <- c("T-statistic")
+  class(result) <- c("mincMultiDim", "matrix")
+  return(result)
+}
+###########################################################################################
+#' @description Perform a correlation between a set of minc volumes.
+#' @name mincCorrelation
+#' @title Perform a correlation between a set of minc volumes and another variable.
+#' @param filenames Filenames of the MINC volumes across which to run the correlation
+#' @param grouping  Contains same number of elements as
+#' filenames; contains values with which to correlate
+#' @param mask A mask specifying which voxels are to be included in the correlation
+#' @param maskval The value with which to mask the data (data will masked +/- 0.5 around this value
+#' @return  The output will be a single vector containing as many
+#' elements as there are voxels in the input files, with that voxel's correlation value (Pearson
+#' correlation coefficient)
+#' @examples 
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+#' mc <- mincCorrelation(gf$jacobians_0.2,gf$Weight);
+###########################################################################################
+mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="correlation", maskval=maskval)
+  return(result)
+}
+###########################################################################################
+#' @description Perform a Mann-Whitney U test between a set of minc volumes.
+#' @name mincWilcoxon
+#' @title Perform a Mann-Whitney U  between a set of minc volumes.
+#' @param filenames Filenames of the MINC volumes across which to run the test
+#' @param grouping  Contains same number of elements as
+#' filenames; must contain exactly two groups.
+#' @param mask A mask specifying which voxels are to be included in the test
+#' @param maskval The value with which to mask the data (data will masked +/- 0.5 around this value
+#' @return  The output will be a single vector containing as many
+#' elements as there are voxels in the input files, with that voxel's U value (lower one).
+#' The number of observations in each sample is also saved as an attribute(m and n) so the result
+#' can be passed into mincFDR.
+#' @examples 
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+#' mw <- mincWilcoxon(gf$jacobians_0.2,gf $Strain);
+###########################################################################################
+mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  result <- mincSummary(filenames, grouping, mask, method="wilcoxon", maskval=maskval)
+  result <- as.matrix(result);
+  attr(result, "likeVolume") <- filenames[1]
+  attr(result, "filenames") <- filenames
+  attr(result, "stat-type") <- c("u") 
+  gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
+  gf$grouping <- grouping
+  gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
+  a = levels(gf$grouping)
+  attr(result, "m") <- nrow(gf[gf$grouping == a[1],])
+  attr(result, "n") <- nrow(gf[gf$grouping == a[2],])
+  colnames(result) <- c("Mann-Whitney")
+  class(result) <- c("mincMultiDim", "matrix")
+  return(result)
+  return(result)
+}
+
 
 #
 # maskval was introduced in order to run mincSummary (and mincApply) in parralel
@@ -674,6 +1268,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   }
   result <- .Call("minc2_model",
                   as.character(filenames),
+                  matrix(),
                   as.double(grouping)-1,
                   NULL,
                   as.double(! is.null(mask)),
@@ -691,7 +1286,9 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   }
   else {
     class(result) <- c("mincMultiDim", "matrix")
-    colnames(result) <- levels(grouping)
+    if(!grepl("t-test",method) && !grepl("correlation",method) && !grepl("wilcoxon",method)) {
+      colnames(result) <- levels(grouping)
+    }
   }
   return(result)
 }
@@ -709,12 +1306,15 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, cores=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
+                       mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
+  
+  REDUCE = TRUE; # For now this option is not exposed
+
   # if no mask exists use the entire volume
   if (is.null(mask)) {
     maskV = mincGetVolume(filenames[1])
     nVoxels = length(maskV)
-    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), cores)) 
+    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   else {
     maskV <- mincGetVolume(mask)
@@ -723,11 +1323,27 @@ pMincApply <- function(filenames, function.string,
       maskV[maskV>1.5] <- 0
     }
     nVoxels <- sum(maskV>0.5)
-    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), cores)) 
+    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   
-  maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
+  maskFilename <- paste("/tmp/pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
+  
+  # create the packageList that will be used for the snowfall and sge options
+  # if packages contains multiple libraries, the test (packages == "") 
+  # will return as many TRUE/FALSE as the length of the vector. So to test
+  # for "", first test that the length of the packages vector is 1
+  if(length(packages) < 2) {
+    if(packages == "") {
+      packageList = c("RMINC")
+    }
+    else {
+      packageList = c(packages,"RMINC")
+    }
+  }
+  else {
+    packageList = c(packages,"RMINC")
+  }
   
   pout <- list()
   
@@ -737,25 +1353,50 @@ pMincApply <- function(filenames, function.string,
     library(multicore)
     library(doMC)
     library(foreach)
-    registerDoMC(cores)
+    registerDoMC(workers)
     
     # run the job spread across each core
-    pout <- foreach(i=1:cores) %dopar% { mincApply(filenames, function.string,
+    pout <- foreach(i=1:workers) %dopar% { mincApply(filenames, function.string,
                                                    mask=maskFilename, maskval=i) }
     #cat("length: ", length(pout), "\n")
   }
   else if (method == "sge") {
     library(Rsge)
+
+    options(sge.use.cluster = TRUE)
+    options(sge.block.size = 100)
+    options(sge.user.options= "-S /bin/bash")
+    options(sge.ret.ext= "sge.ret")
+    options(sge.use.qacct= FALSE)
+    options(sge.trace = TRUE) 
+    options(sge.save.global = FALSE)
+    options(sge.qsub.options = "-cwd")
+    options(sge.qsub.blocking = "-sync y -t 1-")
+    options(sge.monitor.script = "MonitorJob.sh")
+    options(sge.script="RunSgeJob")
+    options(sge.file.prefix="Rsge_data")
+    options(sge.debug=TRUE)
+    options(sge.remove.files=FALSE)
+    options(sge.qacct= "qacct")
+    options(sge.qstat= "qstat")
+    options(sge.qsub= "qsub")
+
     # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
     function.string = enquote(function.string)
     
-    l1 <- list(length=cores)
-    
+    l1 <- list(length=workers)
+
+    if(global == "")  {
+      globallist = c(sub("\\(([A-Z]|[a-z])\\)","",function.string))
+    }
+    else {
+      globallist = c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string))
+    }
+
     # Submit one job to the queue for each segmented brain region
-    for(i in 1:cores) {
-      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,
-                           maskval=i, packages=c(packages,"RMINC"),global.savelist= c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string)))
-      
+    for(i in 1:workers) {
+      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,reduce=TRUE,
+                           maskval=i, packages=packageList,global.savelist= globallist) 
     }
     
     # Wait for all jobs to complete
@@ -764,22 +1405,33 @@ pMincApply <- function(filenames, function.string,
     while(! all (r1 == 0)) {
       Sys.sleep(4)
       r1 = lapply(l1,sge.job.status) }
-    pout <- lapply(l1, sge.list.get.result)
-    
-    function.string = eval(function.string)
+      pout <- lapply(l1, sge.list.get.result)
+      function.string = eval(function.string)
   }
   else if (method == "snowfall") {
+    library(snowfall)
+    sfInit(parallel=TRUE, cpus=workers)
+
+    for (nPackage in 1:length(packageList)) {
+      sfLibrary(packageList[nPackage],character.only=TRUE) 
+    }
+		
+    sfExport(list = global) 
+
     wrapper <- function(i) {
+      cat( "Current index: ", i, "\n" ) 
       return(mincApply(filenames, function.string, mask=maskFilename,
-                       maskval=i, reduce=FALSE))
+                      maskval=i, reduce=REDUCE))
     }
-    # use all cores in the current cluster if # of cores not specified
-    if (is.null(cores)) {
-      cores <- length(sfSocketHosts())
+    # use all workers in the current cluster if # of workers not specified
+    if (is.null(workers)) {
+      workers <- length(sfSocketHosts())
     }
     
-    pout <- sfLapply(1:cores, wrapper)
+    #sink("/dev/null");
+    pout <- sfLapply(1:workers, wrapper)
     
+    sfStop();
   }
   else {
     stop("unknown execution method")
@@ -799,21 +1451,83 @@ pMincApply <- function(filenames, function.string,
     output <- maskV
   }
   
-  for(i in 1:cores) {
+  for(i in 1:workers) {
     if (length(test)>1) {
-      output[maskV==i,] <- pout[[i]]
+      if(REDUCE == TRUE)	
+      	output[maskV == i,] <- pout[[i]]
+      else
+      	output[maskV == i,] <- pout[[i]][maskV == i, ] 
     }
     else {
-      currentMask = pout[[i]]
-      output[maskV==i] <- currentMask[maskV==i]
+      output[maskV==i] <- pout[[i]]
     }
   }
   unlink(maskFilename)
   return(output)
 }
+###########################################################################################
+#' @description Can execute any R function at every voxel for a set of MINC files
+#' @name mincApply
+#' @aliases pMincApply
+#' @title Apply arbitrary R function at every voxel
+#' @usage mincApply(filenames, quote(mean(x)), mask="mask.mnc")
+#' pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
+#'            method="snowfall", tinyMask=FALSE, global = "",packages = "")
+#' @param filenames The MINC files over which to apply the function. Have to be
+#' the same sampling.
+#' @param function-string The function which to apply. Can only take a single
+#' argument, which has to be 'x'. See details and examples.
+#' @param mask The filename of a mask - function will only be evaluated
+#' inside the mask.
+#' @param maskval An integer specifying the value inside the mask where to
+#' apply the function. If left blank (the default) then anything
+#' above 0.5 will be considered inside the mask. This argument
+#' only works for mincApply, not pMincApply.
+#' @param workers The number of processes to split the function into. Only
+#' works for pMincApply, not for mincApply.
+#' @param method The method to be used for parallization ("snowfall" or "sge")
+#' @param tinyMask Only for pMincApply; if set to some numeric value it computes
+#' the function over that fraction of the mask. Useful for
+#' debugging purposes only (i.e. if you want to test out whether
+#' a new function works across the cluster.)
+#' @param global Global variables to be exported
+#' @param packages R Packages to be exported
+#' @details mincApply allows one to execute any R function at every voxel of a
+#' set of files. There are two variants: mincApply, which works
+#' inside the current R session, and pMincApply, which uses the
+#' snowfall and Rsge packages to split the execution of
+#' the function across multiple cores/processors on the same machine
+#' or across a cluster.
+#' Unless the function to be applied takes a single argument a
+#' wrapper function has to be written. This is illustrated in the
+#' examples; briefly, the wrapper function takes a single argument,
+#' called 'x', which will take on the voxel values at every voxel.
+#' The function has to be turned into a string; the quote function
+#' can be very handy. The output of this function also has to be a
+#' simple vector or scalar.
+#' Note that interpreted R can be very slow. Mindnumbingly slow. It
+#' therefore pays to write optimal functions or, whenever available,
+#' use the optimized equivalents. In other words and to give one
+#' example, use mincLm rather than applying lm, and if lm has to
+#' really be applied, try to use lm.fit rather than plain lm.
 
+#' @return out The output is a matrix with the same number of rows a the
+#' file sizes and the same number of columns as output by the
+#' function that was applied. Cast into one of the MINC classes
+#' to make writing it out with mincWriteVolume easier.
+
+#' @seealso mincWriteVolume,mincMean,mincSd,mincLm,mincAnova
+#' @examples 
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' ma <- mincApply(gf$jacobians_fixed_2,quote(mean(x))); 
+#' mincWriteVolume(ma, "means.mnc")
+#' ### run the whole thing in parallel on the local machine
+#' testFunc <- function (x) { return(c(1,2))}
+#' pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,global = c('gf','testFunc'))
+#' mincWriteVolume(pout, "pmincOut.mnc")
+###########################################################################################
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
- 
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -825,17 +1539,19 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
   # Need to get one voxel, x, to test number of values returned from function.string
   x <- mincGetVoxel(filenames, 0,0,0)
   test <- eval(function.string)
+
   results <- .Call("minc2_model",
-                   as.character(filenames),
-                   function.string,
-                   NULL,
-                   as.double(! is.null(mask)),
-                   as.character(mask),
-                   as.double(minmask),
-                   as.double(maxmask),
-                   .GlobalEnv,
-                   as.double(length(test)),
-                   as.character("eval"), PACKAGE="RMINC");
+              as.character(filenames),
+              matrix(),
+              function.string,
+              NULL,
+              as.double(! is.null(mask)),
+              as.character(mask),
+              as.double(minmask),
+              as.double(maxmask),
+              .GlobalEnv,
+              as.double(length(test)),
+              as.character("eval"), PACKAGE="RMINC");
 
   if (length(test) > 1) {
     if (reduce==TRUE) {
@@ -889,6 +1605,9 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
 
 mincLme <- function(filenames, fixed.effect, random.effect, mask=NULL)
 {
+  # mincLme is deprecated, mincLmer should be used:
+  warning("The mincLme function is deprecated, please use mincLmer")
+
   # determine the number of output variables
   x <- rnorm(length(filenames))
   s <- rmincLme(as.formula(fixed.effect), random=as.formula(random.effect))
@@ -922,6 +1641,7 @@ mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
   }
   results <- .Call("minc2_model",
                    as.character(filenames),
+		   matrix(),
                    function.string,
                    NULL,
                    as.double(! is.null(mask)),
@@ -961,18 +1681,18 @@ vertexTable <- function(filenames) {
 #' Performs ANOVA on each vertex point specified 
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
-#' @param filenames list of vertex files
 #' @param subset rows to be used, by default all are used
 #' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
-#' 	vertex file names input, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' 	vertex file names input, stat-type: type of statistic used,dimensions,dimension names, and df – degrees of freedom of each statistic. 
 #' @seealso mincAnova,anatAnova 
 #' @examples 
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-#' result = vertexAnova(~Primary.Diagnosis,gf,gf$CIVETFILES$nativeRMStlink20mmleft) 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' result = vertexAnova(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf) 
 ###########################################################################################
-vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
+vertexAnova <- function(formula, data, subset=NULL) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -983,7 +1703,7 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
   mmatrix <- model.matrix(formula, mf)
 
   # Load Vertex Data from Files
-  #filenames <- as.character(mf[,1])
+  filenames <- as.character(mf[,1])
   data.matrix <- vertexTable(filenames)
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
 
@@ -993,66 +1713,85 @@ vertexAnova <- function(formula, data=NULL,filenames, subset=NULL) {
 
   # Use the first voxel in order to get the dimension names
   v.firstVoxel <- data.matrix[1,]
-  columns <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-  assignVector = attr(mmatrix, "assign") + 1
-  columnName =  rep('', max(assignVector)-1)
-  dflist =  rep(0, max(assignVector)-1)
-  for (i in 2:max(assignVector)) { 
-    indices = which(assignVector == i)
-    for (j in 1:length(indices)) {
-      columnName[i-1] = paste(columnName[i-1],'',columns[indices[j]]) 
+  
+  # Get the degrees of freedom
+  l <- lm.fit(mmatrix, v.firstVoxel)
+  asgn <- l$assign[l$qr$pivot]
+  dfr <- df.residual(l)
+  dfs <- c(unlist(lapply(split(asgn, asgn), length)))
+  dflist <- vector("list", ncol(result))
+  for (i in 1:ncol(result)) {
+        dflist[[i]] <- c(dfs[[i + 1]], dfr)
     }
-    dflist[i-1] = length(indices)
-  }
-
   attr(result, "df") <- dflist
-  colnames(result) <- columnName
-
+  
+  colnames(result) <- attr(terms(formula), "term.labels")
+ 
   class(result) <- c("vertexMultiDim", "matrix")
   return(result)
 }
 ###########################################################################################
 #' Calculates statistics and coefficients for linear model of specified vertex files
-#' @param formula a model formula
+#' @param formula a model formula. The RHS of the formula may contain one term with filenames. If
+#' so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
-#' @return Returns an object containing the beta coefficients, F 
+#' @return Returns an object containing the R-Squared value,beta coefficients, F 
 #' and t statistcs that can be passed directly into vertexFDR.
 #' @seealso mincLm,anatLm,vertexFDR 
 #' @examples 
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
-#' gf$vertexFiles = as.factor(gf$CIVETFILES$nativeRMStlink20mmleft)
-#' result = vertexLm(vertexFiles~Primary.Diagnosis,gf) 
-#' vertexFDR(result)
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' result = vertexLm(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf) 
 ###########################################################################################
 vertexLm <- function(formula, data, subset=NULL) {
-  # repeat code to extract the formula as in mincLm
+
+  # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
-
   mf <- mf[c(1, m)]
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
 
+  
 
-  filenames <- as.character(mf[,1])
-  mmatrix <- model.matrix(formula, mf)
+  if(length(grep("\\$",formula[[3]])) > 0) {
+    stop("$ Not Permitted in Formula")  
+  }
 
-  cat("Loading data from files\n")
-  data.matrix <- vertexTable(filenames)
+  # the following returns:
+  #
+  # list(data.matrix.left = data.matrix.left, 
+  #      data.matrix.right = data.matrix.right,
+  #      rows = rows,
+  #      matrixFound = matrixFound,
+  #      mmatrix = mmatrix)
+  parseLmOutput <- parseLmFormula(formula,data,mf)  
 
-  cat("after loading\n")
+  if(parseLmOutput$matrixFound) {
+    parseLmOutput$data.matrix.left  <- vertexTable(parseLmOutput$data.matrix.left)
+    parseLmOutput$data.matrix.right <- vertexTable(parseLmOutput$data.matrix.right)
+  }
+  else {
+    filenames <- as.character(mf[,1])
+    parseLmOutput$mmatrix <- model.matrix(formula, mf)	
+    parseLmOutput$data.matrix.left <- vertexTable(filenames)
+    parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
+  } 
+  
+  result <- .Call("vertex_lm_loop",
+                  parseLmOutput$data.matrix.left,
+                  parseLmOutput$data.matrix.right,
+                  parseLmOutput$mmatrix,
+                  PACKAGE="RMINC") 
 
-  result <- .Call("vertex_lm_loop", data.matrix, mmatrix, PACKAGE="RMINC");
-
-  attr(result, "likeVolume") <- filenames[1]
-  attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "filenames") <- filenames
+  attr(result, "likeVolume") <- as.character(mf[,1])[1]
+  attr(result, "model") <- as.matrix(parseLmOutput$mmatrix)
+  attr(result, "filenames") <- as.character(mf[,1])
   attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
  
   Fdf1 <- ncol(attr(result, "model")) -1
@@ -1064,21 +1803,46 @@ vertexLm <- function(formula, data, subset=NULL) {
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
   
-  # get the first voxel in order to get the dimension names
-  v.firstVoxel <- data.matrix[1,]
-  rows <- sub('mmatrix', '',
-              rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
-
-  betaNames = paste('beta-', rows, sep='')
-  tnames = paste('tvalue-', rows, sep='')
-  #colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
+  betaNames = paste('beta-', parseLmOutput$rows, sep='')
+  tnames = paste('tvalue-', parseLmOutput$rows, sep='')
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
   class(result) <- c("vertexMultiDim", "matrix")
- 
+
   # run the garbage collector...
   gcout <- gc()
- 
+  
   return(result)
 }
+
+vertexMean <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(rowMeans(vertexData))
+
+} 
+
+
+vertexSum <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(rowSums(vertexData))
+
+} 
+
+vertexVar <- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(apply(vertexData,1,var))
+
+} 
+
+vertexSd<- function(filenames) 
+{
+	vertexData = vertexTable(filenames)
+	return(apply(vertexData,1,sd))
+
+} 
+
 ###########################################################################################
 #' Writes vertex data to a file with an optional header
 #' @param vertexData vertex data to be written
@@ -1088,10 +1852,11 @@ vertexLm <- function(formula, data, subset=NULL) {
 #' @param gf glim matrix that can be written to the header
 #' @return A file is generated with the vertex data and optional headers
 #' @examples 
-#' gf = read.csv("~/SubjectTable.csv") 
-#' gfCIVET = civet.getAllFilenames(gf,"ID","ABC123","~/CIVET","TRUE","1.1.12") 
-#' gfCIVET = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gfCIVET)
-#' writeVertex(gfCIVET$nativeRMStlink20mm,"~/RMStlink20mm",TRUE,NULL,gf)
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' writeVertex(gf$nativeRMStlink20mm,"~/RMStlink20mm.txt",FALSE,NULL,NULL)
 ###########################################################################################
 writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL, 
     gf = NULL) 
@@ -1111,9 +1876,9 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
             sink(NULL)
             write("</formula>", file = filename, append = TRUE)
         }
-        if (is.data.frame(glim.matrix)) {
+        if (is.data.frame(gf)) {
             write("<matrix>", file = filename, append = TRUE)
-            write.table(glim.matrix, file = filename, append = TRUE, 
+            write.table(gf, file = filename, append = TRUE, 
                 row.names = FALSE)
             write("</matrix>", file = filename, append = TRUE)
         }
@@ -1394,4 +2159,688 @@ mincRayTraceStats <- function(v, anatomy.volume,
 	system(paste("rm -f",
 							paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
   
+}
+
+parseLmFormula <- function(formula,data,mf) 
+{
+  matrixName = ''
+  mmatrix = matrix()
+  data.matrix.right = matrix()
+  data.matrix.left = matrix()
+  rows = NULL
+  matrixFound = FALSE
+  
+  if(length(formula[[3]]) == 1) {
+    # Only 1 Term on the RHS
+    # If the formula has the form LHS ~ RHS (for instance jacobians ~ Genotype)
+    # it will get split up as follows:
+    # formula[[1]] -> ~
+    # formula[[2]] -> LHS (jacobians)
+    # formula[[3]] -> RHS (Genotype)
+    #
+    # It is possible to have something like: jacobians ~ Genotype * Age
+    # where the RHS (formula[[3]]) would be "Genotype * Age". Here, we 
+    # deal with cases where there is only a single term on the right hand side
+    if(is.null(data)) {
+      # This was a bug discovered in the end of July 2014. The general way
+      # we call mincLm is by using a dataframe that contains all terms. So 
+      # it could be: mincLm(jacobians ~ Genotype, gf). But it's quite
+      # possible not to have this dataframe around. The command in the 
+      # else block was the standard way to retrieve the right hand side
+      # of the formula, this if block fixes the case where there is no dataframe
+      # provided.
+      rCommand = paste("term <-",formula[[3]],sep="")
+    }
+    else {
+      rCommand = paste("term <- data$",formula[[3]],sep="")
+    }
+    
+    eval(parse(text=rCommand))
+    fileinfo = file.info(as.character(term[1]))
+    if (!is.na(fileinfo$size)) {
+      # Save term name for later
+      rows = c('Intercept',formula[[3]])
+      matrixName = formula[[3]]
+      matrixFound = TRUE
+      data.matrix.left <- as.character(mf[,1])
+      data.matrix.right <- as.character(mf[,2])
+    }
+  }
+  # Multiple Terms on RHS
+  else {
+    for (nTerm in 2:length(formula[[3]])){
+      # Skip if it is an interaction term
+      if(length(formula[[3]][[nTerm]] > 1))
+        next
+      rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
+      # Skip if it is a formula symbol (i.e. *)
+      if(!as.character(formula[[3]][[nTerm]]) %in% names(data)) {
+        next
+      }
+      eval(parse(text=rCommand))	
+      fileinfo = file.info(as.character(term[1]))
+      if (!is.na(fileinfo$size)) {
+        if(length(grep('\\+',formula[[3]][[1]])) == 0) {
+          stop("Only + sign allowed when using filenames")
+        }
+        if(length(formula[[3]]) > 3) {
+          stop("Only 2 terms allowed when using filenames on the RHS")	
+        }
+        matrixName = formula[[3]][[nTerm]]
+        matrixFound = TRUE
+        data.matrix.left <- as.character(mf[,1])
+        data.matrix.right <- as.character(mf[,nTerm])
+      }
+      else {
+        tmpFormula = formula
+        rCommand = paste("formula <-",formula[[2]],"~",formula[[3]][[nTerm]],sep="")
+        eval(parse(text=rCommand))	
+        mmatrix <- model.matrix(formula, mf)	
+        formula = tmpFormula	
+      }
+    }
+    rows = colnames(mmatrix)
+    rows = append(rows,matrixName)
+  }
+  return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
+}
+
+### lmer functions stuff starts here
+#' mincified version of lmer from lme4
+#'
+#' mincLmer should be used the same way as a straight lmer call, except
+#' that the left hand side of the equation contains minc filenames rather than
+#' an actual response variable.
+#'
+#' @param formula the lmer formula, filenames go on left hand side
+#' @param data the data frame, all items in formula should be in here
+#' @param mask the mask within which lmer is solved
+#' @param parallel how many processors to run on (default=single processor).
+#' Specified as a two element vector, with the first element corresponding to
+#' the type of parallelization (sge or snowfall), and the second to the number
+#' of processors to use. 
+#' @param REML whether to use use Restricted Maximum Likelihood or Maximum Likelihood
+#' @param control lmer control function
+#' @param start lmer start function
+#' @param verbose lmer verbosity control
+#'
+#' @return a matrix where rows correspond to number of voxels in the file and columns to
+#' the number of terms in the formula, with both the beta coefficient and the t-statistic
+#' being returned. In addition, an extra column keeps the log likelihood, and another
+#' whether the mixed effects fitting converged or not.
+#'
+#' @details mincLmer provides an interface to running linear mixed effects models at every
+#' voxel. Unlike standard mincLm, however, testing hypotheses in linear mixed effects models
+#' is more difficult, since the denominator degrees of freedom are more difficult to
+#' determine. RMINC provides two alternatives: (1) estimating degrees of freedom using the
+#' \code{\link{mincLmerEstimateDF}} function, and (2) comparing two separate models using
+#' \code{\link{mincLogLikRatio}} (which in turn can be corrected using
+#' \code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
+#' models with a separate intercept or separate intercept and slope per subject - both of these
+#' approximations are likely correct. Be careful in using these approximations if
+#' using more complicated random effects structures.
+#'
+#' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
+#'
+#' @examples
+#' \dontrun{
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
+#' mincWriteVolume(vs, "age-term.mnc", "tvalue-age")
+#' # run in parallel with multiple processors on the local machine
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", parallel=c("snowfall", 4))
+#' # run in parallel with multiple processors over the sge batch queueing system
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", parallel=c("sge", 4))
+#' # estimate degrees of freedom
+#' vs <- mincLmerEstimateDF(vs)
+#' # correct for multiple comparisons using the False Discovery Rate
+#' (qvals <- mincFDR(vs))
+#' # generate another model with a more complex curve for the age term
+#' library(splines)
+#' vs2 <- mincLmer(filenames ~ ns(age,2) + sex + (age|id), data=gf, mask="mask.mnc")
+#' # see if that more complex age term was worth it
+#' modelCompare <- mincLogLikRatio(vs, vs2)
+#' mincFDR(modelCompare)
+#' # see if there was any bias in those p-value estimates (takes a few minutes)
+#' modelCompare <- mincLogLikRatioParametricBootstrap(modelCompare)
+#' mincFDR(modelCompare)
+#' }
+mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
+                     REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
+
+  #Try and load lme4
+  result = tryCatch({
+	library(lme4)
+  }, error = function(e) {
+	stop("Could not find lme4. Please install this package.")
+  })
+
+  # the outside part of the loop - setting up various matrices, etc., whatever that is
+  # constant for all voxels goes here
+
+  # code ripped straight from lme4::lmer
+  mc <- mcout <- match.call()
+  mc$control <- lmerControl()
+  mc[[1]] <- quote(lme4::lFormula)
+
+  # remove mask and parallel, since lmer does not know about them and keeping them
+  # generates obscure warning messages
+  index <- match("mask", names(mc))
+  if (!is.na(index)) {
+    mc <- mc[-index]
+  }
+  index <- match("parallel", names(mc))
+  if (!is.na(index)) {
+    mc <- mc[-index]
+  }
+  lmod <- eval(mc, parent.frame(1L))
+
+  # code ripped from lme4:::mkLmerDevFun
+  rho <- new.env(parent = parent.env(environment()))
+  rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
+                                                  "Lambdat", "Lind")],
+                                    n = nrow(lmod$X), list(X = lmod$X)))
+  REMLpass <- if (REML) 
+    ncol(lmod$X)
+  else 0L
+
+
+  mincLmerList <<- list(lmod, mcout, control, start, verbose, rho, REMLpass)
+
+  # for some reason there is a namespace issue if I call diag directly, but only if inside
+  # a function that is part of RMINC (i.e. if I source the code it works fine). So here's a
+  # workaround to get the method first, give it a new name, and assign to global namespace.
+  tmpDiag <<- getMethod("diag", "dsyMatrix")
+  #fmincLmerOptimizeAndExtract <<- mincLmerOptimizeAndExtract
+
+  if (!is.null(parallel)) {
+    # a vector with two elements: the methods followed by the # of workers
+    if (parallel[1] %in% c("local", "snowfall", "sge")) {
+      if (parallel[1] == "local") {
+        parallel[1] <- "snowfall" #local and snowfall are synonymous
+      }
+      out <- pMincApply(lmod$fr[,1],
+                        quote(mincLmerOptimizeAndExtract(x)),
+                        mask=mask,
+                        method=parallel[1],
+                        worker=as.numeric(parallel[2]),
+                        global=c("mincLmerList", "tmpDiag"),# "mincLmerOptimize", "mincLmerExtractVariables"),
+                        packages=c("lme4", "RMINC"))
+    }
+    else {
+      stop("Error: unknown parallelization method")
+    }
+  }
+  else {
+    out <- mincApply(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
+                     quote(mincLmerOptimizeAndExtract(x)),
+                     mask=mask)
+  }
+
+  # set Inf to 0 (Inf's are generated when vcov can't compute)
+  out[is.infinite(out)] <- 0
+  
+  termnames <- colnames(lmod$X)
+  betaNames <- paste("beta-", termnames, sep="")
+  tnames <- paste("tvalue-", termnames, sep="")
+  colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+
+  # generate some random numbers for a single fit in order to extract some extra info
+  mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])))
+  
+  attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
+                              "logLik", "converged")
+  # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
+  attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
+  attr(out, "REML") <- REML
+  attr(out, "mask") <- mask
+  attr(out, "mincLmerList") <- mincLmerList
+  class(out) <- c("mincLmer", "mincMultiDim", "matrix")
+
+  return(out)
+}
+
+#' estimate the degrees of freedom for parameters in a mincLmer model
+#'
+#' There is much uncertainty in how to compute p-values for mixed-effects
+#' statistics, related to the correct calculation of the degrees of freedom
+#' of the model (see here \link{http://glmm.wikidot.com/faq#df}). mincLmer by
+#' default does not return the degrees of freedom as part of its model, instead
+#' requiring an explicit call to a separate function (such as this one).
+#' The implementation here is the Satterthwaite approximation. This approximation
+#' is computed from the data, to avoid the significant run-time requirement of computing
+#' it separate for every voxel, here it is only computed on a small number of voxels
+#' within the mask and the median DF returned for every variable.
+#' 
+#' @param model the output of mincLmer
+#'
+#' @return the same mincLmer model, now with degrees of freedom set
+#'
+#' @seealso \code{\link{mincLmer}} for mixed effects modelling, \code{\link{mincFDR}}
+#' for multiple comparisons corrections.
+#'
+#' @examples
+#' \dontrun{
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
+#' vs <- mincLmerEstimateDF(vs)
+#' qvals <- mincFDR(vs, mask=attr(vs, "mask"))
+#' qvals
+#' }
+mincLmerEstimateDF <- function(model) {
+  # set the DF based on the Satterthwaite approximation
+  # load lmerTest library if not loaded; lmerTest takes over some lmer functions, so unload if
+  # it wasn't loaded in the first place
+  lmerTestLoaded <- "package:lmerTest" %in% search()
+  if (lmerTestLoaded == FALSE) {
+    library(lmerTest)
+  }
+
+  # put the lmod variable back in the global environment
+  #lmod <<- attr(model, "mincLmerList")[[1]]
+  mincLmerList <<- attr(model, "mincLmerList")
+  mask <- attr(model, "mask")
+  
+  # estimated DF depends on the input data. Rather than estimate separately at every voxel,
+  # instead select a small number of voxels and estimate DF for those voxels, then keep the
+  # min
+  nvoxels <- 50
+  rvoxels <- mincSelectRandomVoxels(mask, nvoxels)
+  dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
+  for (i in 1:nvoxels) {
+    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rvoxels[i,])
+    mmod <- mincLmerOptimize(voxelData)
+    # code directly from lmerTest library
+    rho <- lmerTest:::rhoInit(mmod)
+    hessian <- lmerTest:::myhess
+    Dev <- lmerTest:::Dev
+    h  <-  hessian(function(x) Dev(rho,x), rho$param$vec.matr)
+    rho$A <- 2*solve(h)
+    dfs[i,] <- lmerTest:::calculateTtest(rho, diag(rep(1, length(rho$fixEffs))),
+                                         length(rho$fixEffs), "simple")[,1]
+    
+  }
+  df <- apply(dfs, 2, median)
+  cat("Mean df: ", apply(dfs, 2, mean), "\n")
+  cat("Median df: ", apply(dfs, 2, median), "\n")
+  cat("Min df: ", apply(dfs, 2, min), "\n")
+  cat("Max df: ", apply(dfs, 2, max), "\n")
+  cat("Sd df: ", apply(dfs, 2, sd), "\n")
+  
+  attr(model, "df") <- df
+  if (lmerTestLoaded == FALSE) {
+    detach("package:lmerTest")
+  }
+  return(model)
+}
+# the actual optimization of the mixed effects models; everything that has to be recomputed
+# for every voxel goes here. Works on x (each voxel is assigned x during the loop), and
+# assumes that all the other info is in a variable called mincLmerList in the global
+# environment. This last part is a hack to get around the lack of multiple function arguments
+# for mincApply and friends.
+mincLmerOptimize <- function(x) {
+  # code ripped straight from lme4::lmer
+  # assignments from global variable set in mincLmer
+  lmod <- mincLmerList[[1]]
+  mcout <- mincLmerList[[2]]
+  control <- mincLmerList[[3]]
+  start <- mincLmerList[[4]]
+  verbose <- mincLmerList[[5]]
+  rho <- mincLmerList[[6]]
+  REMLpass <- mincLmerList[[7]]
+  
+  # assign the vector of voxel values
+  lmod$fr[,1] <- x
+
+  mmod <- mincLmerOptimizeCore(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=FALSE)
+  # the rho$pp merModP object needs to be reinitialized at (to me) mysterious times. That is
+  # quite time consuming, however, so only do so if something did not converge.
+  if (length(attr(mmod,"optinfo")$conv$lme4$code) != 0) {
+    #cat("Restarting ... \n")
+    mmod <- mincLmerOptimizeCore(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=TRUE)
+  }
+  
+  return(mmod)
+}
+
+# the core code that does the optimization. Only reason it is not part of mincLmerOptimize
+# is to allow for the reinitializtion in case of convergence error
+mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=F) {
+    # finish building the dev function by adding the response term
+  # code from lme4:::mkLmerDevFun
+  # this code is quite slow; I'm baffled about when it's needed, as most of the
+  # time it can stay outside the loop, but occasionally gives weird errors
+  # if inside. So wrapped inside that reinit bit:
+  if (reinit) {
+    lmod$reTrms <- mkReTrms(findbars(lme4:::RHSForm(mcout[[2]])), lmod$fr)
+    rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
+                                                    "Lambdat", "Lind")],
+                                      n = nrow(lmod$X), list(X = lmod$X)))
+  }
+
+  rho$resp <- mkRespMod(lmod$fr, REML = REMLpass)
+  devfun <- lme4:::mkdevfun(rho, 0L, verbose, control)
+  theta <- lme4:::getStart(lmod$start, lmod$reTrms$lower, rho$pp)
+  if (length(rho$resp$y) > 0) 
+    devfun(rho$pp$theta)
+  rho$lower <- lmod$reTrms$lower
+
+  # kept the old full mkLmerDevFun call around here in case the divided call
+  # ends up with unexpected side effects down the road.
+  #devfun <- do.call(mkLmerDevfun, c(lmod,
+  #                                  list(start = start, 
+  #                                       verbose = verbose,
+  #                                       control = control)))
+  #devfun <- mkLmerDevfun(lmod$fr, lmod$X, lmod$reTrms, lmod$REML, start, verbose, control)
+
+  # the optimization of the function - straight from lme4:::lmer
+  opt <- optimizeLmer(devfun, optimizer = control$optimizer, 
+                      restart_edge = control$restart_edge,
+                      boundary.tol = control$boundary.tol, 
+                      control = control$optCtrl, verbose = verbose,
+                      start = start, 
+                      calc.derivs = control$calc.derivs,
+                      use.last.params = control$use.last.params)
+  cc <- lme4:::checkConv(attr(opt, "derivs"), opt$par,
+                         ctrl = control$checkConv, 
+                         lbound = environment(devfun)$lower)
+  mmod <- mkMerMod(environment(devfun), opt, lmod$reTrms,
+                   fr = lmod$fr, mcout, lme4conv = cc)
+  return(mmod)
+}
+
+# takes a merMod object, gets beta, t, and logLikelihood values, and
+# returns them as a vector
+mincLmerExtractVariables <- function(mmod) {
+  se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
+    sqrt(tmpDiag(vcov(mmod, T)))
+  }, warning=function(w) {
+    return(0)
+  }, error=function(e) {
+    return(0)
+  })
+  fe <- mmod@beta
+  t <- fe / se # returns Inf if se=0 (see error handling above); mincLmer removes Inf
+  ll <- logLik(mmod)
+  # the convergence return value (I think; need to verify) - should be 0 if it converged
+  converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
+  return(c(fe,t, ll, converged))
+}
+
+mincLmerOptimizeAndExtract <- function(x) {
+  mmod <- mincLmerOptimize(x)
+  return(mincLmerExtractVariables(mmod))
+}
+
+#' run log likelihood ratio tests for different mincLmer objects
+#'
+#' Computes the log likelihood ratio of 2 or more voxel-wise lmer calls, testing the hypothesis that
+#' the more complex model better fits the data. Note that it requires the mixed effects to have been
+#' fitted with maximum likelihood, and not restricted maximum likelihood; in other words, if you want
+#' to use these log likelihood tests, make sure to specify REML=FALSE in mincLmer.
+#'
+#' @return the voxel wise log likelihood test. Will have a number of columns corresponding to the
+#' number of inputs -1. Note that it resorts the inputs from lowest to highest degrees of freedom
+#'
+#' @seealso \code{\link{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
+#' \code{\link{mincFDR}} for using the False Discovery Rate to correct for multiple comparisons,
+#' and \code{\link{mincWriteVolume}} for outputting the values to MINC files.
+#'
+#' @examples
+#' \dontrun{
+#' m1 <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
+#' m2 <- mincLmer(filenames ~ age + I(age^2) + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
+#' m3 <- mincLmer(filenames ~ age + I(age^2) + I(age^3) + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
+#' llr <- mincLogLikRatio(m1, m2, m3)
+#' mincFDR(llr)
+#' mincWriteVolume(llr, "m2vsm3.mnc", "m3")
+#' }
+mincLogLikRatio <- function(...) {
+  dots <- list(...)
+
+  # get the names of the actual objects passed it; used for naming output columns
+  dotslist <- substitute(list(...))[-1];
+  inputnames <- sapply(dotslist, deparse) 
+
+  # test for REML vs ML, exit if REML. 
+  for (i in 1:length(dots)) {
+    REML <- attr(dots[[i]], "REML")
+    if (is.null(REML)) {
+      stop("all arguments must be the outputs of mincLmer")
+    }
+    else if (REML == TRUE) {
+      stop("Log likelihood ratio tests only work reliably if fitted with maximum likelihood, but not if fitted with restricted maximum likelihood. Rerun your model with REML=FALSE")
+    }
+  }
+
+  # sort the degrees of freedom of each of the models from lowest to highest
+  df <- vector(length=length(dots))
+  for (i in 1:length(dots)) {
+    df[i] <- attr(dots[[i]], "logLikDF")
+  }
+  dfs <- sort(df, index.return=T)
+  # create the output matrix - number of columns equal to number of objects passed in minus 1
+  logLikMatrix <- matrix(nrow=nrow(dots[[1]]), ncol=length(dots))
+  for (i in 1:length(dots)) {
+    logLikMatrix[,i] <- dots[[dfs$ix[i]]][,"logLik"]
+  }
+                             
+  # compute the log likelihood ratio test
+  flogLikRatio <- function(x) { 2 * pmax(0, diff(x)) }
+  # apply at every voxel
+  # erm - apply is slow as a dog here ... replace with manual rolled function
+  #out <- t(apply(logLikMatrix, 1, flogLikRatio))
+  out <- matrix(nrow=nrow(dots[[1]]), ncol=length(dots)-1)
+  outnames <- vector(length=length(dots)-1)
+  for (i in 2:length(dots)) {
+    out[, i-1] <- 2 * abs(logLikMatrix[, i] - logLikMatrix[, i-1])
+    outnames[i-1]  <- inputnames[dfs$ix[i]]
+  }
+
+  # set attributes and class types
+  attr(out, "likeVolume") <- attr(dots[[1]], "likeVolume")
+  attr(out, "stat-type") <- rep("chisq", ncol(out))
+  attr(out, "df") <- diff(dfs$x)
+  attr(out, "mask") <- attr(dots[[1]], "mask")
+
+  # keep the mincLmerList for every object
+  mincLmerLists <- list()
+  for (i in 1:length(dots)) {
+    mincLmerLists[[i]] <- attr(dots[[dfs$ix[i]]], "mincLmerList")
+  }
+  attr(out, "mincLmerLists") <- mincLmerLists
+  if (length(dots) == 2) {
+    class(out) <- c("mincLogLikRatio", "mincSingleDim", "numeric")
+  }
+  else {
+    class(out) <- c("mincLogLikRatio", "mincMultiDim", "matrix")
+  }
+  colnames(out) <- outnames
+  return(out)
+}
+
+#' computes parametric bootstrap on mincLogLikRatio output
+#'
+#' The Log Likelihood Ratio tests closely approximates a Chi-squared
+#' distribution when the number of groups (i.e. individual subjects in a
+#' longitudinal study) is large (>50), but can be anticonservative when
+#' small. A parametric bootstrap test, in which data is randomly simulated from
+#' the null model and then fit with both models, can give the correct p-value.
+#' Here we compute the parametric boostrap on a small number of randomly chosen
+#' voxels to get a sense of biased the estimated p-values from the log likelihood
+#' ratio test really were.
+#'
+#' @param logLikOutput the output from mincLogLikRatio
+#' @param selection the algorithm for randomly chosing voxels. Only "random" works for now.
+#' @param nsims the number of simulations to run per voxel
+#' @param nvoxels the number of voxels to run the parametric bootstrap on
+#'
+#' @return a matrix containing the chi-square p-values and the bootstrapped p-values
+mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
+                                               nsims=500, nvoxels=50) {
+  mincLmerLists <- attr(logLikOutput, "mincLmerLists")
+  mask <- attr(logLikOutput, "mask")
+  if (length(mincLmerLists) != 2) {
+    stop("Error: parametric bootstrap only implemented for the two model comparison case")
+  }
+  if (selection == "random") {
+    out <- matrix(nrow=nvoxels, ncol=2)
+    simLogLik <- matrix(nrow=nsims, ncol=2)
+    simLogLikRatio <- numeric(nvoxels)
+    voxelMatrix <- matrix(nrow=nsims, ncol=nrow(attr(logLikOutput, "mincLmerLists")[[1]][[1]]$X))
+    voxels <- mincSelectRandomVoxels(mask, nvoxels, convert=F)
+    #cat(voxels)
+    for (i in 1:nvoxels) {
+      # refit the null model first since we'll need the merMod object for simulations
+      mincLmerList <<- mincLmerLists[[1]]
+      voxel <- mincGetVoxel(mincLmerList[[1]]$fr[,1], mincVectorToVoxelCoordinates(mask, voxels[i]))
+      mmod <- mincLmerOptimize(voxel)
+      for (j in 1:nsims) {
+        # create the simulated data from the null model
+        voxelMatrix[j,] <- unlist(simulate(mmod))
+        # compute the log likelihood for the null model
+        simLogLik[j,1] <- logLik(mincLmerOptimize(voxelMatrix[j,]))
+      }
+      # do it all again for the alternate model (happens in separate loop since
+      # mincLmerOptimize relies on the global variable mincLmerList)
+      mincLmerList <<- mincLmerLists[[2]]
+      for (j in 1:nsims) {
+        simLogLik[j,2] <- logLik(mincLmerOptimize(voxelMatrix[j,]))
+      }
+      # compute the normally estimated chisq p value
+      out[i,1] <- pchisq(logLikOutput[voxels[i]], attr(logLikOutput, "df"), lower=F)
+      # compute the parametric log likelihood ratio
+      simLogLikRatio <- 2 * abs(simLogLik[,1] - simLogLik[,2])
+      # compute the parametric bootstrap p value
+      out[i,2] <- mean( simLogLikRatio >= logLikOutput[voxels[i]] )
+      colnames(out) <- c("chisq", "parametricBootstrap")
+    }
+  }
+  else {
+    stop("Error: unknown voxel selection mechanism")
+  }
+  # create a linear model of the relation between the chi square assumption and
+  # the parametric bootstrap (note the lack of intercept - when p is exactly 0
+  # it should be 0 in both cases
+  lmodel <- lm(parametricBootstrap ~ chisq -1, data=data.frame(out))
+  # make the parametric bootstrap estimates an attribute of the logLik output
+  attr(logLikOutput, "parametricBootstrap") <- out
+  # make the model estimate an attribute as well
+  attr(logLikOutput, "parametricBootstrapModel") <- lmodel
+  return(logLikOutput)
+}
+
+  
+### end of lmer bits of code
+
+#' converts a vector index to the voxel indices in MINC
+#'
+#' RMINC stores volume data as 1d arrays. This function gives the
+#' corresponding voxel coordinates (in the dimension order of the volume)
+#' for an index into the 1d array.
+#'
+#' @param volumeFileName the filename of the MINC volume
+#' @param vectorCoord the integer array index to convert
+#'
+#' @return a vector of length 3 containing the MINC indices in volume dimension order
+#'
+#' @examples
+#' \dontrun{
+#' index <- mincVectorToVoxelCoordinates("filename.mnc", 345322)
+#' voxel <- mincGetVoxel(gf$filenames, index)
+#' }
+mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
+  sizes <- minc.dimensions.sizes(volumeFileName)
+  # the fun off by one bit
+  index <- vectorCoord-1
+  i3 <- index %% sizes[3]
+  i2 <- (index / sizes[3]) %% sizes[2]
+  i1 <- ((index / sizes[3]) / sizes[2]) %% sizes[1]
+  return(floor(c(i1, i2, i3)))
+}
+
+#' selects a few random indices from a volume
+#'
+#' Given a filename, select a few random indices using the uniform distribution
+#' from voxels that have a value of 1 (i.e. from a mask volume)
+#'
+#' @param volumeFileName the filename for a MINC volume
+#' @param nvoxel the number of voxels to select
+#' @param convert whether to convert to MINC voxel space (default) or keep in index space  
+mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
+  #load volume - should be a binary mask
+  mvol <- mincGetVolume(volumeFileName) 
+  # get the indices of voxels inside mask
+  vinmask <- which(mvol %in% 1)
+  # keep a random set of voxels
+  indicesToKeep <-  vinmask[ floor(runif(nvoxels, min=1, max=length(vinmask))) ]
+  if (convert == TRUE) {
+    out <- matrix(nrow=nvoxels, ncol=3)
+    for (i in 1:nvoxels) {
+      out[i,] <- mincVectorToVoxelCoordinates(volumeFileName, indicesToKeep[i])
+    }
+    return(out)
+  }
+  else {
+    return(indicesToKeep)
+  }
+}
+
+# Run Testbed
+runRMINCTestbed <- function(verboseTest = FALSE) {
+	
+
+  options(verbose = verboseTest)
+  # Make sure environment is clear
+  #rm(list=ls())
+
+  system('mkdir /tmp/rminctestdata')
+
+
+  # Download Tarball from Wiki
+  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
+
+  # Untar
+  system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
+  library(testthat)
+
+  # Run Tests
+  rmincPath = find.package("RMINC")
+  cat("\n\nRunning tests in: ", paste(rmincPath,"/","tests/",sep=""), "\n\n\n")
+  test_dir(paste(rmincPath,"/","tests/",sep=""))
+  
+  cat("\n*********************************************\n")
+  cat("The RMINC test bed finished running all tests\n")
+  cat("*********************************************\n\n\n")
+  # Remove temp data, and downloaded files
+  cat("Removing temporary directory /tmp/rminctestdata\n")
+  system('rm -fr /tmp/rminctestdata')
+  
+}
+
+# Get Test Data (i.e. for running examples from man pages)
+getRMINCTestData <- function() {
+
+  system('mkdir /tmp/rminctestdata')
+
+  # Download Tarball from Wiki
+  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
+
+  # Untar
+  system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
+  
+}
+
+# Run function with/without output silenced; used in test bed
+verboseRun <- function(expr,verbose,env = parent.frame()) {
+	
+	env$expr <- expr
+	
+	if(verbose) {
+		output = with(env,eval(parse(text=expr)))
+	}
+	else {
+		sink("/dev/null")  
+		output = with(env,eval(parse(text=expr)))
+		sink()
+	}
+	return(output)
 }

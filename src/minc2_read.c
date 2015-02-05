@@ -22,15 +22,14 @@ SEXP read_voxel_from_files(SEXP filenames,  SEXP voxCoords,  SEXP noFiles,  SEXP
 	int				no_frames;
 	int				no_rows;
 	int				no_cols;
-	unsigned long	hSlab_start[MI2_MAX_VAR_DIMS];
-	unsigned long	hSlab_count[MI2_MAX_VAR_DIMS];
+	misize_t	hSlab_start[MI2_MAX_VAR_DIMS];
+	misize_t	hSlab_count[MI2_MAX_VAR_DIMS];
 	int				hSlab_buffer_size;
 	static char *dimorder3d[] = { "zspace","yspace","xspace" };
 	static char *dimorder4d[] = { "time", "zspace","yspace","xspace" };
 	
 	
 	SEXP			output;
-	double			*xoutput;
 	int				output_ndx;
 	double			*hSlab_buffer;
 
@@ -56,7 +55,6 @@ SEXP read_voxel_from_files(SEXP filenames,  SEXP voxCoords,  SEXP noFiles,  SEXP
 	no_rows = no_files;
 	no_cols = (no_frames == 0) ? 1 : no_frames;
 	PROTECT(output=allocMatrix(REALSXP, no_rows, no_cols));
-	xoutput = REAL(output);
 
 
 	// allocate the hyper-slab output buffer to the heap (big enough to handle ONE hyper-slab)
@@ -174,8 +172,8 @@ SEXP read_hyperslab(SEXP filename,  SEXP start,  SEXP count, SEXP nDimensions) {
 
 	SEXP			hSlab_buffer;
 	double			*hSlab_buffer_ptr;
-	unsigned long	hSlab_start[MI2_MAX_VAR_DIMS];
-	unsigned long	hSlab_count[MI2_MAX_VAR_DIMS];
+	misize_t	hSlab_start[MI2_MAX_VAR_DIMS];
+	misize_t	hSlab_count[MI2_MAX_VAR_DIMS];
 	int				hSlab_buffer_size;
 	static char *dimorder3d[] = { "zspace","yspace","xspace" };
 	static char *dimorder4d[] = { "time", "zspace","yspace","xspace" };

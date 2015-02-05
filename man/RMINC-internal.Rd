@@ -10,9 +10,7 @@
 
 % anatomical functions
 \alias{anatApply}
-\alias{anatFDR}
 \alias{anatGetFile}
-\alias{anatLm}
 \alias{anatRenameRows}
 
 \alias{as.matrix.pdMat}
@@ -45,7 +43,6 @@
 \alias{minc.slice.loop}
 \alias{minc.t.test}
 \alias{minc.wilcoxon.test}
-\alias{mincAnova}
 \alias{mincApplyLme}
 \alias{mincConvertVoxelToWorld}
 \alias{mincConvertWorldToVoxel}
@@ -55,7 +52,6 @@
 \alias{mincGetVoxel}
 \alias{mincGetWorldVoxel}
 \alias{mincSlowLme}
-\alias{mincSummary}
 \alias{mincWriteVolume.default}
 
 % mincIO internals
@@ -206,8 +202,6 @@
 \alias{update.rmincLme}
 \alias{varWeights.rmincLmeStruct}
 \alias{varWeights.varFunc}
-\alias{vertexFDR}
-\alias{vertexLm}
 \alias{vertexTable}
 \alias{wilcox.permutation}
 \alias{wilcox.permutation.full}

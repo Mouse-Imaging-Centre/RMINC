@@ -1,3 +1,69 @@
+New in Version 1.2.4.7
+======================
+* fixed 2 bugs in anatGetFile: 1) calls the correct program in the "labels" method, and 
+                               2) provides better error message when the wrong method is called
+* some updates to the installation procedure
+
+New in Version 1.2.4.6
+======================
+* fixed the repeated use of tmp.txt in anatGetAll. Now, this can be run in parallel
+  without causing issues.
+
+New in Version 1.2.4.5
+======================
+* added/updated documentation for RMINC functions
+* bug fix in mincLogLikRatio print function
+
+New in Version 1.2.4.4
+======================
+* bug fix for mincLmer: the bug fix from 1.2.4.3 was incomplete
+
+New in Version 1.2.4.3
+======================
+* bug fix for mincLmer: the indexing into the MINC files from the R vector was incorrect
+
+New in Version 1.2.4.2
+======================
+* bug fix in mincTtest. Now the grouping does not need to be passed on as a factor.
+  It will convert it to a factor if it's not. Also, it will check that there are 
+  only 2 levels in your grouping. Same kind of check is also done in mincPairedTtest
+
+New in Version 1.2.4.1
+======================
+* fixes a warning message in version 1.2.4 related to some pMincApply calls
+  this was discovered just too late to be added to release 1.2.4
+
+New in Version 1.2.4
+====================
+* added mincLmer funcion (based on lme4). This provides an interface 
+  to running linear mixed effects models at every voxel. Deprecates mincLme.
+* also added friends of mincLmer: 
+  mincLmerEstimateDF
+  mincLogLikRatio
+  mincLogLikRatioParametricBootstrap
+* the snowfall library and related sfInit, sfExport and sfLibrary calls are
+  now made inside pMincApply. 
+* fixed bug in minc2_model which crashed pMincApply/mincApply once in a 
+  while
+* removed attach() call removing errors/warnings related to improper detach()
+* the RMINC test bed can now be run by: runRMINCTestbed()
+
+Version 1.2.3 was only a "hotfix": exported some forgotten functions
+====================================================================
+
+New in Version 1.2.2
+====================
+* added functions mincTtest, mincPairedTtest and mincWilcoxon
+* changed pMincApply interface: "cores" has been changed to "workers" to 
+  indicate the number of cpus to be used by snowfall, or the number
+  of jobs to use for sge
+
+
+*****************************************************************
+Missing information about previous versions... Needs to be added!
+*****************************************************************
+
+
 New in Version 1.0.5
 ====================
 * changed name of default volume calculation in anatGetFile to be 
