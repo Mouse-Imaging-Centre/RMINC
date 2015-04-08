@@ -9,7 +9,6 @@
 \alias{[<-.pdMat}
 
 % anatomical functions
-\alias{anatApply}
 \alias{anatGetFile}
 \alias{anatRenameRows}
 

@@ -485,6 +485,19 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
     parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
   }
 
+  # Do Error Checking on mask. The mask may have a different dimension order than the input volumes
+  # A call to minc.dimensions.sizes will read the dimension order according to the file order so 
+  # it can be used to do the checking.
+  if(!is.null(mask)) {
+  	maskDim = minc.dimensions.sizes(mask)
+  	volumeDim = minc.dimensions.sizes(parseLmOutput$data.matrix.left)
+        # Case 1: Mask has one or more dimensions less than volume
+	if(maskDim[1] != volumeDim[1] || maskDim[2] != volumeDim[2] || maskDim[3] != volumeDim[3]) {
+		cat(paste("Mask Volume",as.character(maskDim[1]),as.character(maskDim[2]),as.character(maskDim[3]),
+			  "Input Volume",as.character(volumeDim[1]),as.character(volumeDim[2]),as.character(volumeDim[3]),'\n'))
+		stop("Mask Volume input volume dimension mismatch.") }
+}
+
   result <- .Call("minc2_model",
                   as.character(parseLmOutput$data.matrix.left),
                   parseLmOutput$data.matrix.right,
@@ -1306,7 +1319,7 @@ minc.get.volumes <- function(filenames) {
 }
 
 pMincApply <- function(filenames, function.string,
-                       mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="") {
+                       mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="", modules="",vmem="8",walltime="01:00:00") {
   
   REDUCE = TRUE; # For now this option is not exposed
 
@@ -1326,7 +1339,9 @@ pMincApply <- function(filenames, function.string,
     maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), workers)) 
   }
   
-  maskFilename <- paste("/tmp/pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
+  # Saving to /tmp does not always work...
+  maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
+  
   mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   
   # create the packageList that will be used for the snowfall and sge options
@@ -1360,6 +1375,172 @@ pMincApply <- function(filenames, function.string,
                                                    mask=maskFilename, maskval=i) }
     #cat("length: ", length(pout), "\n")
   }
+
+  # The pbs options use mpirun and snow to parallelize mincApply over multiple cores.
+  # It is currently configured to send all the jobs to one node, and parallelize over the
+  # cores at that node. Also note the amount of virtual memory requested is set at 8g.
+ 
+  # It operates as follows:
+  # 1) Save global variables to disk
+  # 2) Write out a .R file that will execute mpi operations once submitted to the cluster
+  # 3) Write out a .sh file that will be submitted to the cluster
+  # 4) Submit the .sh file to the cluster
+  # 5) Wait for the jobs to finish
+  # 6) Read the output from disk
+
+  else if (method == "pbs") {
+ 
+   if(is.null(getOption("MAX_NODES"))) {
+		 ppn = 8
+                 #maximize node usage
+	 	 nodes = ceiling(workers/ppn)
+		 workers = nodes*ppn-1
+   }
+   else {
+		 ppn = getOption("MAX_NODES")
+		 nodes = ceiling(workers/ppn)
+    }
+
+    # 1) Save variables which will be referenced on the cluster to disk (including user specified global variables)
+    rCommand = 'save(\'maskV\',\'filenames\',\'workers\',\'REDUCE\',\'function.string\',\'maskFilename\','
+    for (nVar in 1:length(global)) {
+	if(global[nVar] != "") {
+		rCommand = paste(rCommand,'\'',global[nVar],'\',',sep="")
+        }
+    }
+    rCommand = paste(rCommand,'file=\'mpi-rminc-var\')',sep="")
+    
+    eval(parse(text=rCommand))
+
+    # 2) Write out an R file to disk. This file will be executed via mpirun on the cluster
+    fileConn <- file("mpi-rminc.R",open='w')
+
+    # Load R Packages
+    
+
+    # snow is used to coordinate operations, but Rmpi could be used for greater control
+    packageList = c(packageList,"snow")
+
+    for (nPackage in 1:length(packageList)) {     
+    	writeLines(paste("library( ",packageList[nPackage],")",sep = ""),fileConn)
+    }
+
+    # Load the variables we saved in step 1
+    writeLines("load(\"mpi-rminc-var\")",fileConn)
+
+    # Create the snow cluster
+    writeLines("cl <- makeCluster(workers, type = \"MPI\")",fileConn) 
+
+    # Create a wrapper function that we can easily run with clusterApply
+    writeLines("wrapper <- function(i) { return(mincApply(filenames, function.string, mask = maskFilename, maskval = i, reduce = REDUCE))}",fileConn)
+
+    # Export all neccessary variables to each slave
+    writeLines("clusterExport(cl,c('filenames','REDUCE','function.string','maskFilename','maskV'))",fileConn)
+
+    # Main mpi exection
+    writeLines("clusterOut <- clusterApply(cl,1:workers,wrapper)",fileConn)
+
+    # At this point we are done.
+    writeLines("stopCluster(cl)",fileConn)
+
+    # Test data at one voxel to determine how many ouytputs
+    writeLines(" x <- mincGetVoxel(filenames, 0,0,0)",fileConn)
+    writeLines("test <- eval(function.string)",fileConn)
+    writeLines("if (length(test) > 1) {",fileConn)
+    writeLines("output <- matrix(0, nrow=length(maskV), ncol=length(test))",fileConn)
+    writeLines("class(output) <- class(clusterOut[[1]])",fileConn)
+    writeLines("attr(output, \"likeVolume\") <- attr(clusterOut[[1]], \"likeVolume\")",fileConn)
+    writeLines("} else {",fileConn)
+    writeLines("output <- maskV",fileConn)
+    writeLines("}",fileConn)
+    writeLines("for(i in 1:workers) {",fileConn)
+    writeLines("if (length(test)>1) {",fileConn)
+    writeLines("if(REDUCE == TRUE)",fileConn)	
+    writeLines("output[maskV == i,] <- clusterOut[[i]]",fileConn)
+    writeLines("else",fileConn)
+    writeLines("output[maskV == i,] <- clusterOut[[i]][maskV == i, ]",fileConn)
+    writeLines("}",fileConn)
+    writeLines("else {",fileConn)
+    writeLines("output[maskV==i] <- clusterOut[[i]]",fileConn)
+    writeLines("}",fileConn)
+    writeLines("}",fileConn)
+
+    # Write the output (R data) to disk, so the initiating R session can access the data
+    writeLines("save('output',file='mpi-rminc-out')",fileConn)
+
+    close(fileConn)
+
+    # 3) Write out a .sh file which will be what is submitted to the cluster
+    qfileConn <- file("q-mpi-rminc.sh",open='w')
+    writeLines("#!/bin/bash -x",qfileConn)
+   
+    # Errors and Output are written to the current directory, but this could be set to a user defined spot.
+    writeLines("#PBS -e ./",qfileConn)
+    writeLines("#PBS -o ./",qfileConn)
+    writeLines("#PBS -N pMincApply",qfileConn) 
+
+    # Allocate nodes and ppn
+    writeLines(paste("#PBS -l nodes=",as.character(nodes),":ppn=",as.character(ppn),sep=""),qfileConn)
+
+    # Allocate walltime and vmem
+    writeLines(paste("#PBS -l vmem=",vmem,"g,walltime=",walltime,sep=""),qfileConn)
+
+    # Load modules
+    for (nModule in 1:length(modules)) {     
+        if(modules[nModule] != "") {
+    		writeLines(paste("module load ",modules[nModule],sep = ""),qfileConn)
+       }
+    }
+
+    # Define temp directory
+    writeLines(paste("export TMPDIR=",getOption("TMPDIR"),sep=""),qfileConn)
+
+   # For Testing
+    writeLines(paste("cp -R ~/Software/RMINC/rminctestdata /tmp/",sep=""),qfileConn)
+
+    # Move to working directory
+    writeLines(paste("cd ",getOption("WORKDIR"),sep=""),qfileConn)
+
+    # Neccessary to initiate mpi operations.
+    writeLines("mpirun -np 1 R CMD BATCH mpi-rminc.R",qfileConn)
+
+    close(qfileConn)
+
+    # 4) Submit the job
+    result <- system("qsub q-mpi-rminc.sh",intern=TRUE)
+    ptm = proc.time()
+    
+    # 5) Wait for Job to finish
+    status <- system(paste("qstat ",result," | grep C"),intern=TRUE) 
+    # 1 Indicates not completed
+    while(length(status) == 0) {
+       flush.console()
+       status <- system(paste("qstat ",result," | grep R"),intern=TRUE)
+       runTime = proc.time()-ptm
+       if(length(status) == 0) {
+	  cat(paste("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bQueued:  ",sprintf("%3.3f seconds",(runTime[3]))))
+       } else {
+	  cat(paste("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bRunning: ",sprintf("%3.3f seconds",(runTime[3]))))
+       }
+       Sys.sleep(2)
+       status <- system(paste("qstat ",result," | grep C"),intern=TRUE)
+      
+    }
+    print(paste("Completed: ",as.character(runTime[3])," Seconds"))
+    # 6) Read output from disk
+    load("mpi-rminc-out")
+    
+    # Clean up intermediate files
+    system(paste("rm",maskFilename))
+    system("rm q-mpi-rminc.sh")
+    system("rm mpi-rminc.R")
+    system("rm mpi-rminc-var")
+    system("rm mpi-rminc-out")
+
+    return(output)
+
+}
+
   else if (method == "sge") {
     library(Rsge)
 
@@ -1381,7 +1562,7 @@ pMincApply <- function(filenames, function.string,
     options(sge.qstat= "qstat")
     options(sge.qsub= "qsub")
 
-    # Need to use double quotes, because both sge.submit and mincApply try to evalute the functin
+    # Need to use double quotes, because both sge.submit and mincApply try to evalute the function
     function.string = enquote(function.string)
     
     l1 <- list(length=workers)
@@ -1472,7 +1653,7 @@ pMincApply <- function(filenames, function.string,
 #' @title Apply arbitrary R function at every voxel
 #' @usage mincApply(filenames, quote(mean(x)), mask="mask.mnc")
 #' pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
-#'            method="snowfall", tinyMask=FALSE, global = "",packages = "")
+#'            method="snowfall", tinyMask=FALSE, global = "",packages = "",walltime="01:00:00",vmem="8",modules="")
 #' @param filenames The MINC files over which to apply the function. Have to be
 #' the same sampling.
 #' @param function-string The function which to apply. Can only take a single
@@ -1485,7 +1666,11 @@ pMincApply <- function(filenames, function.string,
 #' only works for mincApply, not pMincApply.
 #' @param workers The number of processes to split the function into. Only
 #' works for pMincApply, not for mincApply.
-#' @param method The method to be used for parallization ("snowfall" or "sge")
+#' @param method The method to be used for parallization ("snowfall" ,"sge","scinet","hpf")
+#' "hpf" : The SickKids Cluster --> Currently 8g of virtual memory is requested. Additionally
+#' only one node (32 workers) can be requested
+#' "scinet" : scinet cluster --> scinet allows mutliple nodes to be requested but currently the limit is only one node
+#' (max 8 workers). The walltime is also set to 1:00:00 and virtual memory is also 8g
 #' @param tinyMask Only for pMincApply; if set to some numeric value it computes
 #' the function over that fraction of the mask. Useful for
 #' debugging purposes only (i.e. if you want to test out whether
@@ -1510,7 +1695,7 @@ pMincApply <- function(filenames, function.string,
 #' use the optimized equivalents. In other words and to give one
 #' example, use mincLm rather than applying lm, and if lm has to
 #' really be applied, try to use lm.fit rather than plain lm.
-
+#' When using the pbs method, one can also set the options --> TMPDIR,MAX_NODES and WORKDIR
 #' @return out The output is a matrix with the same number of rows a the
 #' file sizes and the same number of columns as output by the
 #' function that was applied. Cast into one of the MINC classes
@@ -1526,6 +1711,25 @@ pMincApply <- function(filenames, function.string,
 #' testFunc <- function (x) { return(c(1,2))}
 #' pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,global = c('gf','testFunc'))
 #' mincWriteVolume(pout, "pmincOut.mnc")
+
+#' pbs example 1 (hpf)
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' testFunc <- function (x) { return(c(1,2))}
+#' options(TMPDIR="/localhd/$PBS_ID")
+#' pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,method="pbs",global = c('gf','testFunc'))
+#'
+
+#' pbs example 2 (scinet)
+#' getRMINCTestData() 
+#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' testFunc <- function (x) { return(c(1,2))}
+#' options(WORKDIR="$SCRATCH")
+#' options(MAX_NODES=8)
+#' options(TMP_DIR="/tmp")
+#' pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),modules=c("intel","openmpi","R/3.1.1"),workers = 4,method="pbs",global = c('gf','testFunc'))
+#' NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
+#' NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
 ###########################################################################################
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
   if (is.null(maskval)) {
@@ -1812,6 +2016,42 @@ vertexLm <- function(formula, data, subset=NULL) {
   gcout <- gc()
   
   return(result)
+}
+
+###########################################################################################
+#' @description This function is used to compute an arbitrary function of every region in a set of vertex files.
+#' @name vertexApply
+#' @title Apply function over vertex Files
+#' @param filenames vertex file names
+#' @param function.string The function which to apply. Can only take a single
+#' argument, which has to be 'x'.
+#' @return  out: The output will be a single vector containing as many
+#'          elements as there are vertices in the input variable. 
+#' @examples 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft,quote(mean(x)))
+###########################################################################################
+
+vertexApply <- function(filenames,function.string) 
+{
+  # Load the data
+  vertexData = vertexTable(filenames)
+
+  # In order to maintain the same interface as mincApply, the (x) part needs to be stripped
+  function.string = gsub('(x)','',function.string)
+
+  # The apply part (transpose to match output of mincApply)
+  results <- t(apply(vertexData,1,function.string[1]))
+
+  attr(results, "likeFile") <- filenames[1]
+  
+  # run the garbage collector...
+  gcout <- gc()
+  
+  return(results)
 }
 
 vertexMean <- function(filenames) 

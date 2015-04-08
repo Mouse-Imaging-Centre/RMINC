@@ -6,7 +6,7 @@
 \usage{
 mincApply(filenames, quote(mean(x)), mask="mask.mnc")
 pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
-           method="snowfall", tinyMask=FALSE, global = "",packages = "")
+           method="snowfall", tinyMask=FALSE, global = "",packages = "",walltime="01:00:00",vmem="8",modules="")
 }
 \arguments{
 \item{filenames}{The MINC files over which to apply the function. Have to be
@@ -26,7 +26,11 @@ only works for mincApply, not pMincApply.}
 \item{workers}{The number of processes to split the function into. Only
 works for pMincApply, not for mincApply.}
 
-\item{method}{The method to be used for parallization ("snowfall" or "sge")}
+\item{method}{The method to be used for parallization ("snowfall" ,"sge","scinet","hpf")
+"hpf" : The SickKids Cluster --> Currently 8g of virtual memory is requested. Additionally
+only one node (32 workers) can be requested
+"scinet" : scinet cluster --> scinet allows mutliple nodes to be requested but currently the limit is only one node
+(max 8 workers). The walltime is also set to 1:00:00 and virtual memory is also 8g}
 
 \item{tinyMask}{Only for pMincApply; if set to some numeric value it computes
 the function over that fraction of the mask. Useful for
@@ -65,6 +69,7 @@ therefore pays to write optimal functions or, whenever available,
 use the optimized equivalents. In other words and to give one
 example, use mincLm rather than applying lm, and if lm has to
 really be applied, try to use lm.fit rather than plain lm.
+When using the pbs method, one can also set the options --> TMPDIR,MAX_NODES and WORKDIR
 }
 \examples{
 getRMINCTestData()
@@ -75,6 +80,23 @@ mincWriteVolume(ma, "means.mnc")
 testFunc <- function (x) { return(c(1,2))}
 pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,global = c('gf','testFunc'))
 mincWriteVolume(pout, "pmincOut.mnc")
+pbs example 1 (hpf)
+getRMINCTestData()
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+testFunc <- function (x) { return(c(1,2))}
+options(TMPDIR="/localhd/$PBS_ID")
+pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,method="pbs",global = c('gf','testFunc'))
+
+pbs example 2 (scinet)
+getRMINCTestData()
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+testFunc <- function (x) { return(c(1,2))}
+options(WORKDIR="$SCRATCH")
+options(MAX_NODES=8)
+options(TMP_DIR="/tmp")
+pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),modules=c("intel","openmpi","R/3.1.1"),workers = 4,method="pbs",global = c('gf','testFunc'))
+NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
+NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
 }
 \seealso{
 mincWriteVolume,mincMean,mincSd,mincLm,mincAnova
