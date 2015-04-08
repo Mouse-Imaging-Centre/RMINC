@@ -1,7 +1,7 @@
 # compute a linear model over every structure
 
 
-anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
+anatGetFile <- function(filename, atlas, method="jacobians", defs="/axiom2/projects/software/mouse-brain-atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv", dropLabels=FALSE, side="both" ) {
   out <- NULL
   tmpfile <- tempfile(pattern="RMINC-", fileext=".txt")
   if (method == "jacobians") {
@@ -55,7 +55,7 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
   return(out)
 }
 
-anatRenameRows <- function(anat, defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
+anatRenameRows <- function(anat, defs="/axiom2/projects/software/mouse-brain-atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv") {
   defs <- read.csv(defs)
   rn <- rownames(anat)
   on <- as.character(rn)
@@ -147,7 +147,7 @@ print.anatMatrix <- function(x, ...) {
 #' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", 
 #'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 ###########################################################################################
-anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=TRUE, side="both") {
+anatGetAll <- function(filenames, atlas, method="jacobians", defs="/axiom2/projects/software/mouse-brain-atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv", dropLabels=TRUE, side="both") {
   # Get output dimensions from full set of label definitions
   labeldefs <- read.csv(defs) 
   labels <- c(labeldefs$right.label, labeldefs$left.label)
@@ -220,7 +220,7 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mic
 #'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 #' volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 ###########################################################################################
-anatCombineStructures <- function(vols, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
+anatCombineStructures <- function(vols, method="jacobians", defs="/axiom2/projects/software/mouse-brain-atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv") {
   labels <- read.csv(defs)
   combined.labels <- matrix(nrow=nrow(vols), ncol=nrow(labels))
   labelNumbers <- attr(vols, "anatIDs")

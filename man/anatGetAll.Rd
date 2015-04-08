@@ -4,7 +4,7 @@
 \title{Get values given a set of files and an atlas}
 \usage{
 anatGetAll(filenames, atlas, method = "jacobians",
-  defs = "/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv",
+  defs = "/axiom2/projects/software/mouse-brain-atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv",
   dropLabels = TRUE, side = "both")
 }
 \arguments{
