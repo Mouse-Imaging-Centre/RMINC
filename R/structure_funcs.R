@@ -7,7 +7,7 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs=Sys.getenv("RM
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
-  if(file.access(as.character(arg1), 4) == -1){
+  if(file.access(as.character(defs), 4) == -1){
     stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
   }
   out <- NULL
@@ -69,7 +69,7 @@ anatRenameRows <- function(anat, defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
-  if(file.access(as.character(arg1), 4) == -1){
+  if(file.access(as.character(defs), 4) == -1){
     stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
   }
   defs <- read.csv(defs)
@@ -169,7 +169,7 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs=Sys.getenv("RM
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
-  if(file.access(as.character(arg1), 4) == -1){
+  if(file.access(as.character(defs), 4) == -1){
     stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
   }
   # Get output dimensions from full set of label definitions
@@ -250,7 +250,7 @@ anatCombineStructures <- function(vols, method="jacobians", defs=Sys.getenv("RMI
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
-  if(file.access(as.character(arg1), 4) == -1){
+  if(file.access(as.character(defs), 4) == -1){
     stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
   }
   labels <- read.csv(defs)
