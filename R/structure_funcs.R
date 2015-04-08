@@ -3,12 +3,12 @@
 
 anatGetFile <- function(filename, atlas, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), dropLabels=FALSE, side="both" ) {
   if(defs == ""){
-    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_DORR_LABEL_DEFINITIONS.")    
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
   if(file.access(as.character(defs), 4) == -1){
-    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
   }
   out <- NULL
   tmpfile <- tempfile(pattern="RMINC-", fileext=".txt")
@@ -65,12 +65,12 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs=Sys.getenv("RM
 
 anatRenameRows <- function(anat, defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
   if(defs == ""){
-    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_DORR_LABEL_DEFINITIONS.")    
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
   if(file.access(as.character(defs), 4) == -1){
-    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
   }
   defs <- read.csv(defs)
   rn <- rownames(anat)
@@ -165,12 +165,12 @@ print.anatMatrix <- function(x, ...) {
 ###########################################################################################
 anatGetAll <- function(filenames, atlas, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), dropLabels=TRUE, side="both") {
   if(defs == ""){
-    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_DORR_LABEL_DEFINITIONS.")    
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
   if(file.access(as.character(defs), 4) == -1){
-    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
   }
   # Get output dimensions from full set of label definitions
   labeldefs <- read.csv(defs) 
@@ -246,12 +246,12 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs=Sys.getenv("RM
 ###########################################################################################
 anatCombineStructures <- function(vols, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
   if(defs == ""){
-    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_DORR_LABEL_DEFINITIONS.")    
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
   # if the definitions are given, check to see that we can read the 
   # specified file
   if(file.access(as.character(defs), 4) == -1){
-    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_DORR_LABEL_DEFINITIONS variable to change.")
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
   }
   labels <- read.csv(defs)
   combined.labels <- matrix(nrow=nrow(vols), ncol=nrow(labels))
