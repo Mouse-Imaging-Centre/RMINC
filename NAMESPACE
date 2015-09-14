@@ -333,8 +333,10 @@ export( anatSum )
 export( volume.combineMaskVolumes )
 export( volume.explodeLabelVolume )
 
-
-
+#############################
+# visualization.R
+export( mincPlotAnatAndStatsSlice )
+export( mincPlotSliceSeries )
 
 #############################
 # load shared objects
