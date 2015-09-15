@@ -133,6 +133,7 @@ mincGetVolume <- function(filename) {
   class(output) <- c("mincSingleDim", "numeric")
   attr(output, "filename") <- filename
   attr(output, "likeVolume") <- filename
+  attr(output, "sizes") <- sizes
   return(output)
 }
 

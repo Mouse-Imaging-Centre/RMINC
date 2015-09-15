@@ -337,6 +337,7 @@ export( volume.explodeLabelVolume )
 # visualization.R
 export( mincPlotAnatAndStatsSlice )
 export( mincPlotSliceSeries )
+export( mincArray )
 
 #############################
 # load shared objects

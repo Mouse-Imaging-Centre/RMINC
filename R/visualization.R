@@ -9,6 +9,37 @@ brainPlot <- function(anatomy, statistics, slice, limits=c(2,4)) {
     #scale_fill_gradientn(colours = c(gray.colors(10), terrain.colors(10)), na.value="transparent")
 }
 
+mincArray <- function(volume, dimIndex=1) {
+  # 1d file with no dimensions (such as the output of mincGetVolume)
+  if (is.null(dim(volume))) {
+    outvol <- volume
+  }
+  # if it's already a 3d volume, just hand it back
+  else if (length(dim(volume)) == 3) {
+    return(volume)
+  }
+  # if it has two dimensions, extract just the one asked for
+  else if (length(dim(volume)) == 2) {
+    outvol <- volume[,dimIndex]
+  }
+  else {
+    outvol <- volume
+  }
+  # we now have a 1d vector - get it's dimensions from the sizes attribute, or read it from the likeVolume
+  if (! is.null(attr(volume, "sizes"))) {
+    sizes <- attr(volume, "sizes")
+    dim(outvol) <- c(sizes[3], sizes[2], sizes[1]) # C to Fortran dim ordering
+  }
+  else if (! is.null(attr(volume, "likeVolume"))) {
+    sizes <- minc.dimensions.sizes(attr(volume, "likeVolume"))
+    dim(outvol) <- c(sizes[3], sizes[2], sizes[1])
+  }
+  else {
+    error("Input needs to either have dimensions set, or have a sizes or likeVolume attribute")
+  }
+  return(outvol)
+}
+
 getSlice <- function(volume, slice, dimension) {
   d <- dim(volume)
   if (dimension == 1) {
