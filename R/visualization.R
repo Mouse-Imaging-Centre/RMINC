@@ -9,6 +9,30 @@ brainPlot <- function(anatomy, statistics, slice, limits=c(2,4)) {
     #scale_fill_gradientn(colours = c(gray.colors(10), terrain.colors(10)), na.value="transparent")
 }
 
+#' A utility function to give a MINC object spatial dimensions
+#'
+#' Currently the plotting functions (mincPlotAnatAndStatsSlice) need an object 
+#' with the correct spatial dimensions assigned. While this might in the future happen
+#' at the time those objects are created, for the moment this utility function
+#' works with older style RMINC objects and extract what you need.
+#'
+#' @param volume The input volume (from mincLm, mincGetVolume, etc.)
+#' @param dimIndex The index into a multidimensional object
+#'
+#' @note R uses Fortran indexing, so dimension assignment is c(dim[3], dim[2], dim[1])
+#' once dimensions are obtained from any libminc functions (which use C indexing)
+#'
+#' @return A matrix with 3 dimensions
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' vol <- mincGetVolume("somefile.mnc")
+#' volWithDims <- mincArray(vol)
+#' 
+#' vs <- mincLm(jacobians ~ genotype, gf)
+#' tvol <- mincArray(vs, 6)
+#' }
 mincArray <- function(volume, dimIndex=1) {
   # 1d file with no dimensions (such as the output of mincGetVolume)
   if (is.null(dim(volume))) {
@@ -74,14 +98,48 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
   if (is.null(end)) { end <- d[dimension]-1 }
   else if (end < 0) { end <- d[dimension] + end }
   slices <- ceiling(seq(begin, end, length=nslices))
-  if (is.null(anatLow)) { anatLow <- hist(anatomy, plot=F)$mid[5] }
-  if (is.null(anatHigh)) { anatHigh <- rev(hist(anatomy, plot=F)$mid)[5]}
+  anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
   for (i in 1:nslices) {
     mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
-                              low=low, high=high, anatLow=anatLow, anatHigh=anatHigh,
-                              col=col, legend=NULL, symmetric=symmetric)
+                              low=low, high=high, anatLow=anatRange[1], 
+                              anatHigh=anatRange[2], col=col, legend=NULL, 
+                              symmetric=symmetric)
   }
   par(opar)
+}
+
+getRangeFromHistogram <- function (volume, low, high) {
+  if (is.null(low)) { low <- hist(volume, plot=F)$mid[5] }
+  if (is.null(high)) { high <- rev(hist(volume, plot=F)$mid)[5]}
+  return(c(low, high))
+}
+
+mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL, 
+                                   layoutMatrix=NULL, ...) {
+  opar <- par()
+  #layout(matrix(c(1,1,2,3), 2, 2, byrow=T))
+  if (is.null(layoutMatrix)) {
+    layout(matrix(c(1,2,2, 1,3,3), 2, 3, byrow=T))
+  }
+  par(mar=c(0,0,0,0))
+  par(bg = gray.colors(255)[1])
+  if (is.null(slice)) {
+    slice <- ceiling(dim(anatomy)/2)
+  }
+  else if (length(slice) == 1) {
+    slice <- rep(slice, 3)
+  }
+  else if (length(slice) == 3){
+    # do nothing; user specified correct slices
+  }
+  else {
+    error("not sure what to do with slice specification")
+  }
+  mincPlotAnatAndStatsSlice(anatomy, statistics, slice=slice[3], dim=3, ...)
+  mincPlotAnatAndStatsSlice(anatomy, statistics, slice=slice[2], dim=2, ...)
+  mincPlotAnatAndStatsSlice(anatomy, statistics, slice=slice[1], dim=1, ...)
+  par(opar)
+
 }
 
 mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
@@ -101,16 +159,16 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
       col <- cm.colors(255)
     }
   }
-  a <- getSlice(anatomy, slice, dimension)
-  s <- getSlice(statistics, slice, dimension)
-  image(scaleSlice(a$slice, anatLow, anatHigh, underTransparent=F), 
-        useRaster=T, col=gray.colors(100), asp=a$asp, axes=F)
-  image(scaleSlice(s$slice, low, high), useRaster=T, col=col, asp=s$asp, 
-        add=T, axes=F)
-  if (symmetric==TRUE) {
-    image(scaleSlice(s$slice, low*-1, high*-1), useRaster=T, col=rcol, asp=s$asp, 
-          add=T, axes=F)
+  
+  mincImage(anatomy, dimension, slice, axes=F, col=gray.colors(255),
+            low=anatLow, high=anatHigh)
+  mincImage(statistics, dimension, slice, axes=F, add=T, col=col, underTransparent = T,
+            low = low, high = high)
+  if (symmetric) {
+    mincImage(statistics, dimension, slice, axes=F, add=T, col=rcol, 
+              underTransparent = T, reverse = T, low = low, high = high)  
   }
+
   if (!is.null(legend)){
     if (symmetric==TRUE) {
       color.legend(1.02, 0.05, 1.07, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
@@ -124,6 +182,62 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
     text(1.15, 0.5, labels=legend, srt=90)
   }
 }
+
+#' Plot a slice from a MINC volume
+#' 
+#' Calls the \code{\link{image}} plotting function from the base R graphics with
+#' some additional data munging to make it easy to make with MINC volumes
+#' 
+#' @param volume a MINC volume as returned by \code{\link{mincArray}}
+#' @param dimension the dimension (1-3) to obtain the slice from
+#' @param slice the slice number
+#' @param low the low end of the range to plot. If not specified then it will be
+#'   estimated based on the volume's histogram.
+#' @param high the high end of the range to plot. If not specified then it will 
+#'   be estimated based on the volume's histogram.
+#' @param reverse whether to look only at negative numbers.
+#' @param underTransparent whether to make anything below the low end of the
+#'   range transparent.
+#' @param ... other parameters to pass on to the \code{\link{image}} function.
+#'   
+#' @export
+#' @examples
+#' \dontrun{
+#' mincImage(mincArray(anatVol), slice=100, col=gray.colors(255))
+#' mincImage(mincArray(vs, 6), slice=100, col=rainbow(255), 
+#'           underTransparent = T, low=2, high=6, add=T)
+#' }
+mincImage <- function(volume, dimension=2, slice=NULL, low=NULL, high=NULL, 
+                      reverse=FALSE, underTransparent=FALSE, ...) {
+  s <- getSlice(volume, slice, dimension)
+  # reverse means multiply scaling by -1
+  if (reverse) { m <- -1} else { m <- 1 }
+  
+  # determine range from histogram
+  imRange <- getRangeFromHistogram(volume, low, high)
+  image(scaleSlice(s$slice, imRange[1]*m, imRange[2]*m, underTransparent=underTransparent), 
+        useRaster=T, asp=s$asp, ...)
+}
+
+#' Draw contour lines from a MINC volume
+#'
+#' @param volume the output of mincArray
+#' @param dimension the dimension (from 1 to 3)
+#' @param slice the slice number
+#' @param ... other parameters to pass on to \code{\link{contour}}
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' mincImage(mincArray(anatVol), slice=100, col=gray.colors(255))
+#' mincContour(mincArray(anatVol), slice=100, add=T, col=rainbow(2), levels=c(1000, 1400))
+#' }
+mincContour <- function(volume, dimension=2, slice=NULL, ...) {
+  s <- getSlice(volume, slice, dimension)
+  contour(s$slice, asp=s$asp, ...)
+}
+
 scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
   if (is.null(low)) {
     low <- quantile(slice, 0.5)

@@ -338,6 +338,9 @@ export( volume.explodeLabelVolume )
 export( mincPlotAnatAndStatsSlice )
 export( mincPlotSliceSeries )
 export( mincArray )
+export( mincTriplanarSlicePlot )
+export( mincImage )
+export( mincContour )
 
 #############################
 # load shared objects
