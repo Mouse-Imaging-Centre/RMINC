@@ -1,3 +1,20 @@
+New in Version 1.2.4.9
+======================
+* label definitions for the anat* functions are now set by the following 
+  environment variable:
+
+  RMINC_LABEL_DEFINITIONS
+
+New in Version 1.2.4.8
+======================
+* error checking in mincLm with respect to the mask size and input volume sizes
+* minc volumes are properly closed, so there is no limit in the numeber of 
+  minc files that can be opened in a session anymore
+* added civet.CreateBrainViewROI, a function that generates ROI files that can
+  be read by brain-view2
+* added anatApply analogous to mincApply/vertexApply
+* updated default paths to reflect changes at MICe
+
 New in Version 1.2.4.7
 ======================
 * fixed 2 bugs in anatGetFile: 1) calls the correct program in the "labels" method, and 

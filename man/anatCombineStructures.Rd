@@ -4,7 +4,7 @@
 \title{Combine left and right volumes}
 \usage{
 anatCombineStructures(vols, method = "jacobians",
-  defs = "/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv")
+  defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"))
 }
 \arguments{
 \item{vols}{Matrix output from call to anatGetAll}

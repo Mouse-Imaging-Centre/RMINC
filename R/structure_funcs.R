@@ -1,7 +1,15 @@
 # compute a linear model over every structure
 
 
-anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=FALSE, side="both" ) {
+anatGetFile <- function(filename, atlas, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), dropLabels=FALSE, side="both" ) {
+  if(defs == ""){
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
+  }
+  # if the definitions are given, check to see that we can read the 
+  # specified file
+  if(file.access(as.character(defs), 4) == -1){
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
+  }
   out <- NULL
   tmpfile <- tempfile(pattern="RMINC-", fileext=".txt")
   if (method == "jacobians") {
@@ -55,7 +63,15 @@ anatGetFile <- function(filename, atlas, method="jacobians", defs="/projects/mic
   return(out)
 }
 
-anatRenameRows <- function(anat, defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
+anatRenameRows <- function(anat, defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
+  if(defs == ""){
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
+  }
+  # if the definitions are given, check to see that we can read the 
+  # specified file
+  if(file.access(as.character(defs), 4) == -1){
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
+  }
   defs <- read.csv(defs)
   rn <- rownames(anat)
   on <- as.character(rn)
@@ -147,7 +163,15 @@ print.anatMatrix <- function(x, ...) {
 #' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", 
 #'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 ###########################################################################################
-anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv", dropLabels=TRUE, side="both") {
+anatGetAll <- function(filenames, atlas, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), dropLabels=TRUE, side="both") {
+  if(defs == ""){
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
+  }
+  # if the definitions are given, check to see that we can read the 
+  # specified file
+  if(file.access(as.character(defs), 4) == -1){
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
+  }
   # Get output dimensions from full set of label definitions
   labeldefs <- read.csv(defs) 
   labels <- c(labeldefs$right.label, labeldefs$left.label)
@@ -190,6 +214,7 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mic
   }
  
   attr(output, "atlas") <- atlas
+  attr(output, "input") <- filenames
   if (! is.null(defs)) {
     output <- anatRenameRows(output, defs)
   }
@@ -219,7 +244,15 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs="/projects/mic
 #'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 #' volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
 ###########################################################################################
-anatCombineStructures <- function(vols, method="jacobians", defs="/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv") {
+anatCombineStructures <- function(vols, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
+  if(defs == ""){
+    stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
+  }
+  # if the definitions are given, check to see that we can read the 
+  # specified file
+  if(file.access(as.character(defs), 4) == -1){
+    stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
+  }
   labels <- read.csv(defs)
   combined.labels <- matrix(nrow=nrow(vols), ncol=nrow(labels))
   labelNumbers <- attr(vols, "anatIDs")
@@ -245,7 +278,22 @@ anatCombineStructures <- function(vols, method="jacobians", defs="/projects/mice
   attr(combined.labels, "definitions") <- defs
   return(combined.labels)
 }
-
+###########################################################################################
+#' @description This function is used to compute an arbitrary function of every region in an anat structure.
+#' @name anatApply
+#' @title Apply function over anat structure
+#' @param anat anat structure.
+#' @param grouping grouping with which to perform operations
+#' @param method The function which to apply [default mean]
+#' @return  out: The output will be a single vector containing as many
+#'          elements as there are regions in the input variable by the number of groupings
+#' @examples 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
+###########################################################################################
 anatApply <- function(vols, grouping, method=mean) {
   ngroups <- length(levels(grouping))
   output <- matrix(nrow=ncol(vols), ncol=ngroups)
@@ -492,3 +540,29 @@ anatVar <- function(anat) {
 anatSd <- function(anat) {
    return(apply(t(anat),1,sd))
 }
+
+
+# Alternate version for anatApply --> matches mincApply and vertexApply interface
+###########################################################################################
+#' @description This function is used to compute an arbitrary function of every region in an anat structure.
+#' @name anatApply
+#' @title Apply function over anat structure
+#' @param anat anat structure.
+#' @function.string The function which to apply. Can only take a single
+#' argument, which has to be 'x'.
+#' @return  out: The output will be a single vector containing as many
+#'          elements as there are regions in the input variable. 
+#' @examples 
+#' getRMINCTestData() 
+#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' vm <- anatApply(gf$lobeThickness,quote(mean(x)))
+###########################################################################################
+
+
+#anatApply <- function(anat,function.string) {
+#   function.string = gsub('(x)','',function.string)
+#   return(t(apply(t(anat),1,function.string[1])))
+#}
+
