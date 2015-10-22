@@ -88,22 +88,83 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
                                 mfrow=c(4,5),
                                 low=NULL, high=NULL, anatLow=NULL,
                                 anatHigh=NULL, col=NULL,
-                                begin=NULL, end=NULL, symmetric=F) {
+                                begin=NULL, end=NULL, symmetric=F,
+                                legend=NULL, plottitle=NULL) {
   opar <- par()
-  par(mfrow=mfrow)
   nslices <- prod(mfrow)
+  par(bg = "black")
+  if (! is.null(legend)) { # use the layout function
+    # create a layout matrix - sets up a matrix that is the same as par(mfrow=) would be,
+    # and then adds on an extra column for the slice locator and the legend
+    layoutMatrix <- cbind(matrix(1:nslices, nrow=mfrow[1], ncol=mfrow[2], byrow=T),
+                          c(nslices+1, rep(nslices+2, mfrow[1]-1)))
+    layout(layoutMatrix)
+  }
+  else {
+    par(mfrow=mfrow)
+  }
+  
+  # get rid of margins
   par(mar=c(0,0,0,0))
+  # but keep some out margin for a title if desired
+  if (!is.null(plottitle)) { 
+    par(oma=c(0,0,2,0))
+  }
+  
+  # figure out location of slices
   d <- dim(anatomy)
   if (is.null(begin)) { begin <- 1 }
   if (is.null(end)) { end <- d[dimension]-1 }
   else if (end < 0) { end <- d[dimension] + end }
   slices <- ceiling(seq(begin, end, length=nslices))
+  
+  # plot the actual slices
   anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
   for (i in 1:nslices) {
     mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                               low=low, high=high, anatLow=anatRange[1], 
                               anatHigh=anatRange[2], col=col, legend=NULL, 
                               symmetric=symmetric)
+  }
+  
+  # add the slice locator and the legend if so desired
+  if (!is.null(legend)) {
+    if (dimension %in% c(2,3)) {
+      locatorDimension = 1
+      locatorSlice = ceiling(d[1]/2)
+    }
+    else {
+      locatorDimension = 2
+      locatorSlice = ceiling(d[2]/2)
+    }
+    mincPlotAnatAndStatsSlice(anatomy, statistics, locatorDimension, slice=locatorSlice,
+                              low=low, high=high, anatLow=anatRange[1], 
+                              anatHigh=anatRange[2], col=col, legend=NULL, 
+                              symmetric=symmetric)
+    if (dimension %in% c(1,2)) {
+      abline(v=slices/d[dimension])
+    }
+    else {
+      abline(h=slices/d[dimension])
+    }
+    
+    # and add the colourbar 
+    plot.new()
+    if (symmetric==TRUE) {
+      col <- colorRampPalette(c("red", "yellow"))(255)
+      rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
+      color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb", col="white")
+      color.legend(0.3, 0.55, 0.5, 0.95, c(low, high), col, gradient="y", align="rb", col="white")
+    }
+    else {
+      color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), col, gradient="y", align="rb", col="white")
+    }
+    opar <- par()
+    par(xpd=T)
+    text(0.85, 0.5, labels=legend, srt=90, col="white", cex=2)
+  }
+  if (!is.null(plottitle)) {
+    mtext(plottitle, outer=T, side=3, line=-1, col="white", cex=2)
   }
   par(opar)
 }
@@ -160,7 +221,9 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
     }
   }
   
-  mincImage(anatomy, dimension, slice, axes=F, col=gray.colors(255),
+  anatCols = gray.colors(255, start=0.0)
+    
+  mincImage(anatomy, dimension, slice, axes=F, col=anatCols,
             low=anatLow, high=anatHigh)
   mincImage(statistics, dimension, slice, axes=F, add=T, col=col, underTransparent = T,
             low = low, high = high)
