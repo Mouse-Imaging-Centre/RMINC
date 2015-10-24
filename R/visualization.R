@@ -87,9 +87,9 @@ getSlice <- function(volume, slice, dimension) {
 mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
                                 mfrow=c(4,5),
                                 low=NULL, high=NULL, anatLow=NULL,
-                                anatHigh=NULL, col=NULL,
+                                anatHigh=NULL, col=heat.colors(255),
                                 begin=NULL, end=NULL, symmetric=F,
-                                legend=NULL, plottitle=NULL) {
+                                legend=NULL, plottitle=NULL, indicatorLevels=c(900, 1200)) {
   opar <- par()
   nslices <- prod(mfrow)
   par(bg = "black")
@@ -118,6 +118,11 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
   else if (end < 0) { end <- d[dimension] + end }
   slices <- ceiling(seq(begin, end, length=nslices))
   
+  # force use of default colours if symmetric colours desired (for now)
+  if (symmetric == T) {
+    col <- NULL
+  }
+  
   # plot the actual slices
   anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
   for (i in 1:nslices) {
@@ -137,15 +142,19 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
       locatorDimension = 2
       locatorSlice = ceiling(d[2]/2)
     }
-    mincPlotAnatAndStatsSlice(anatomy, statistics, locatorDimension, slice=locatorSlice,
-                              low=low, high=high, anatLow=anatRange[1], 
-                              anatHigh=anatRange[2], col=col, legend=NULL, 
-                              symmetric=symmetric)
+    #mincPlotAnatAndStatsSlice(anatomy, statistics, locatorDimension, slice=locatorSlice,
+    #                          low=low, high=high, anatLow=anatRange[1], 
+    #                          anatHigh=anatRange[2], col=col, legend=NULL, 
+    #                          symmetric=symmetric)
+    #mincImage(mincArray(anatomy), low=anatRange[1], high=anatRange[2], slice=locatorSlice, dimension=locatorDimension,
+    #          col=gray.colors(255, start=0))
+    mincContour(anatomy, dimension=locatorDimension, slice=locatorSlice, col="white", levels=indicatorLevels, 
+                axes=F, drawlabels=F)
     if (dimension %in% c(1,2)) {
-      abline(v=slices/d[dimension])
+      abline(v=slices/d[dimension], col="yellow")
     }
     else {
-      abline(h=slices/d[dimension])
+      abline(h=slices/d[dimension], col="yellow")
     }
     
     # and add the colourbar 
