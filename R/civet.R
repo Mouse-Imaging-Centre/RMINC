@@ -451,9 +451,10 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civet
 		filenames.df$nativeRMStlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_right.txt",sep = "") 
 
 
-
-		gf$CIVETFILES = filenames.df;
-		return(gf)
+		gf$CIVETFILES = filenames.df
+    
+    #R had trouble showing the gf data.frame, so I cast as a list
+		return(as.list(gf))
 
 	}
 	
