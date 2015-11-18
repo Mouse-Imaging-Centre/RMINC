@@ -508,6 +508,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
 
   
   xoutput[0] = (mss/(p - 1))/resvar;
+  //Rprintf("in voxel_lm, F: %f\n", xoutput[0]);
   
   // DPOTRI - compute the inverse of a real symmetric positive
   // definite matrix A using the Cholesky factorization A =
@@ -532,7 +533,6 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
 
   // last, but not least, the r-squared:
   xoutput[p+1] = mss / (mss + rss);
-  
   UNPROTECT(nprot);
   return(output);
 }

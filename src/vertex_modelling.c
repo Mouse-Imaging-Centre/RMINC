@@ -32,25 +32,27 @@ SEXP vertex_lm_loop(SEXP data_left, SEXP data_right,SEXP mmatrix)  {
   xdata = REAL(data_left);
   if(!isLogical(data_right)) 
 	  ydata = REAL(data_right);
-
+  //Rprintf("Starting\n");
   // Case 1: There is no static part
   if(isLogical(mmatrix)) 
 	// For now, maximum allowed dynamic parts is 1 so set p = 2 (1 for intercept)
 	p = 2;
   // Case 2: There is a static part
   else {
- 	if(isLogical(data_right)) 
-{
-         pMmatrix = REAL(mmatrix);
-  	 mmatrix_cols = ncols(mmatrix);
-  	 mmatrix_rows = nrows(mmatrix);
-  	  p =  mmatrix_cols ;}
-else {
-        pMmatrix = REAL(mmatrix);
-  	mmatrix_cols = ncols(mmatrix);
-  	mmatrix_rows = nrows(mmatrix);
-        p = mmatrix_cols + 1;
-        Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows ); }
+ 	if(isLogical(data_right)) {
+ 	  //Rprintf("in isLogical(right)\n");
+ 	  pMmatrix = REAL(mmatrix);
+ 	  mmatrix_cols = ncols(mmatrix);
+ 	  mmatrix_rows = nrows(mmatrix);
+ 	  p =  mmatrix_cols;
+ 	}
+ 	else {
+ 	  pMmatrix = REAL(mmatrix);
+ 	  mmatrix_cols = ncols(mmatrix);
+ 	  mmatrix_rows = nrows(mmatrix);
+ 	  p = mmatrix_cols + 1;
+ 	  //Rprintf("mmatrix cols: %d mmatrix rows: %d\n", mmatrix_cols,mmatrix_rows );
+	}
   }
  
   n = ncols(data_left);
@@ -77,8 +79,9 @@ else {
   // p * t-statistic
   // r-squared
   // 
-  PROTECT(t_sexp = allocVector(REALSXP, p + 2));;
-
+  //Rprintf("size of t_sexp: %d\n", p+2);
+  PROTECT(t_sexp = allocVector(REALSXP, p + 2));
+  //Rprintf("output 0: %f\n", REAL(t_sexp)[0]);
   // allocate data for output, will contain:
   // 
   // f-statistic
@@ -96,7 +99,6 @@ else {
   PROTECT(buffer1=allocVector(REALSXP, n*p));
   ybuffer=REAL(buffer1);
 
-
   // begin the loop
   Rprintf("Beginning vertex loop: %d %d\n", nVertices, p+1);
   for(i=0; i<nVertices;i++) {
@@ -104,50 +106,48 @@ else {
     for (j=0; j<n; j++) {
       xbuffer[j] = xdata[i+nVertices*j];
       //Rprintf("B: %d\n", i+nVertices*j);
+      //Rprintf("data: %f\n", xbuffer[j]);
     }
-	    // If no mmatrix have to build it ourselves 
-	    if(isLogical(mmatrix))  { 
-		    // fill y buffer
-		    // Intercept
-		    for (j=0; j < n; j++) {
-			ybuffer[j] = 1.0;
-			//Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
-		    }    
-		    // Current Vertex Data
-		    for (j=0; j<n; j++) {
-		      ybuffer[j+n] = ydata[i+nVertices*j];
-		      //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
-		    }    
-	    }
-	    else {
-		// Fill with static part
-	    	for (j=0; j < mmatrix_cols*mmatrix_rows; j++) {
-			ybuffer[j] = pMmatrix[j];
-		        //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
-		    }  
-		// Fill with dynamic part  (if exists)
- 		if(!isLogical(data_right)) {
-		    	for (j=0; j < n ; j++) {
-				ybuffer[j+mmatrix_cols*mmatrix_rows] = ydata[i+nVertices*j];
-				//Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
-			    }   
-		}
-	    }
-
+    // If no mmatrix have to build it ourselves 
+    if(isLogical(mmatrix))  { 
+      // fill y buffer
+      // Intercept
+      for (j=0; j < n; j++) {
+        ybuffer[j] = 1.0;
+        //Rprintf("ybuffer %f index %d\n", ybuffer[j] ,j);
+      }    
+      // Current Vertex Data
+      for (j=0; j<n; j++) {
+        ybuffer[j+n] = ydata[i+nVertices*j];
+        //Rprintf("ybuffer %f index %d\n", ybuffer[j+n],j+n);
+      }    
+    }
+    else {
+      //Rprintf("filling with static part\n");
+      // Fill with static part
+      for (j=0; j < mmatrix_cols*mmatrix_rows; j++) {
+        ybuffer[j] = pMmatrix[j];
+        //Rprintf("mmatrix %f index %d\n", pMmatrix[j],j);
+      }  
+      // Fill with dynamic part  (if exists)
+      if(!isLogical(data_right)) {
+        //Rprintf("!isLogical(right)\n");
+        for (j=0; j < n ; j++) {
+          ybuffer[j+mmatrix_cols*mmatrix_rows] = ydata[i+nVertices*j];
+          //Rprintf("mmatrix %f index %d\n", ydata[i+nVertices*j],j+mmatrix_cols*mmatrix_rows);
+        }   
+      }
+    }
     t_sexp = voxel_lm(buffer,buffer1,n,p,coefficients, residuals, effects,
-          work, qraux, v, pivot, se, t);
-          
+                      work, qraux, v, pivot, se, t);
     // f-statistic
     xoutput[i] = REAL(t_sexp)[0];
-    
     // r-squared (last value from voxel_lm call: p+2 (stating at 0, so p+1))
     xoutput[i + 1 * nVertices] = REAL(t_sexp)[p+1];
-    
     // the betas/coefficients:
     for (int k = 2; k < (p + 2); k++) {
       xoutput[i + k * nVertices] = coefficients[k - 2];
     }
-    
     // t-stats
     for(int k = 1; k < p + 1; k++) {
       xoutput[i + (k + p + 1) * nVertices] = REAL(t_sexp)[k];

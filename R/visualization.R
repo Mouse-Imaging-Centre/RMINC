@@ -85,9 +85,10 @@ getSlice <- function(volume, slice, dimension) {
 }
 
 mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
-                                mfrow=c(4,5),
-                                low=NULL, high=NULL, anatLow=NULL,
-                                anatHigh=NULL, col=heat.colors(255),
+                                mfrow=c(4,5), # layout
+                                low=NULL, high=NULL, # stat thresholding
+                                anatLow=NULL, anatHigh=NULL, # background thresholding
+                                col=heat.colors(255), 
                                 begin=NULL, end=NULL, symmetric=F,
                                 legend=NULL, plottitle=NULL, indicatorLevels=c(900, 1200)) {
   opar <- par()
@@ -192,7 +193,7 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
     layout(matrix(c(1,2,2, 1,3,3), 2, 3, byrow=T))
   }
   par(mar=c(0,0,0,0))
-  par(bg = gray.colors(255)[1])
+  par(bg = gray.colors(255, start=0)[1])
   if (is.null(slice)) {
     slice <- ceiling(dim(anatomy)/2)
   }
@@ -212,10 +213,44 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
 
 }
 
+# note - works, but is extremely slow. In profiling it appears to spend almost all
+# its time in "save", so I think the function has to be rewritten in such a way as to avoid
+# constant saving of large data to disk. Somehow.
+mincPlotAnatAndStatsSliceManipulator <- function(anatomy, statistics,
+                                                 slice=NULL,
+                                                 dimension=2,
+                                                 low=NULL,
+                                                 high=NULL,
+                                                 anatLow=NULL,
+                                                 anatHigh=NULL,
+                                                 legend=NULL,
+                                                 symmetric=F) {
+  d <- dim(anatomy)
+  maxStats <- max(abs(statistics))
+  maxAnat <- max(anatomy)
+  manipulate(
+    mincPlotAnatAndStatsSlice(anatomy, statistics,
+                              slice=xSlice,
+                              dimension=dimension,
+                              low=xLow,
+                              high=xHigh,
+                              anatLow=xanatLow,
+                              anatHigh=xanatHigh,
+                              legend=legend,
+                              symmetric=xSymmetric),
+    xSlice = slider(1, d[dimension], initial=slice, label="Slice"),
+    xLow =slider(0, maxStats, initial=low, label="lower(statistics)"),
+    xHigh = slider(0, maxStats, initial=high, label="upper(statistics)"),
+    xanatLow = slider(0, maxAnat, initial=anatLow, label="lower(anatomy)"),
+    xanatHigh = slider(0, maxAnat, initial=anatHigh, label="upper(anatomy)"),
+    xSymmetric = checkbox(initial=symmetric, label="symmetrix")
+  )
+}
+
 mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           dimension=2, low=NULL, high=NULL,
                           anatLow=NULL, anatHigh=NULL, symmetric=F,
-                          col=NULL, legend=NULL) {
+                          col=NULL, rcol=NULL, legend=NULL) {
   if (is.null(slice)) {
     halfdims <- ceiling(dim(anatomy)/2)
     slice <- halfdims[dimension]
@@ -223,11 +258,13 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
   if (is.null(col)) {
     if (symmetric==TRUE) {
       col <- colorRampPalette(c("red", "yellow"))(255)
-      rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
     }
     else {
-      col <- cm.colors(255)
+      col <- rainbow(255)
     }
+  }
+  if (is.null(rcol) & symmetric == TRUE) {
+    rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
   }
   
   anatCols = gray.colors(255, start=0.0)
@@ -243,16 +280,17 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
 
   if (!is.null(legend)){
     if (symmetric==TRUE) {
-      color.legend(1.02, 0.05, 1.07, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
-      color.legend(1.02, 0.55, 1.07, 0.95, c(low, high), col, gradient="y", align="rb")
+      color.legend(1.01, 0.05, 1.03, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
+      color.legend(1.01, 0.55, 1.03, 0.95, c(low, high), col, gradient="y", align="rb")
+      text(1.10, 0.5, labels=legend, srt=90)
     }
     else {
-      color.legend(1.02, 0.25, 1.07, 0.75, c(low, high), col, gradient="y", align="rb")
+      color.legend(1.01, 0.25, 1.03, 0.75, c(low, high), col, gradient="y", align="rb")
+      text(1.05, 0.5, labels=legend, srt=90)
     }
     opar <- par()
     par(xpd=T)
-    text(1.15, 0.5, labels=legend, srt=90)
-  }
+      }
 }
 
 #' Plot a slice from a MINC volume
@@ -365,4 +403,42 @@ brainLocator <- function() {
   abline(v=l$x)
   l$slice <- manipulatorGetState("slice")
   return(l)
+}
+
+my.get.coord <- function() {
+  par(mfg = c(1,1)) #locator() shall be relative to the first plot out
+  # of the eight plots totally
+  my.loc <-locator(1) #location, not in inches
+  my.plot.region <- par("usr") #extremes of plotting region
+  #(in plot units, not inches)
+  my.plot.region.x <- my.plot.region[2] - my.plot.region[1]
+  my.plot.region.y <- my.plot.region[4] - my.plot.region[3]
+  my.loc.inch.x <- (my.loc$x + 0.5)/my.plot.region.x * (par("pin")[1]) 
+  #par("pin") #current plot dimension in inches
+  #relative to the plotting-region bottom left corner, not the axis c(0,0) point
+  my.loc.inch.y <- (my.loc$y + 0.5)/my.plot.region.y * (par("pin")[2])
+  
+  ## search the plot we are in with locator(1)
+  my.plot.inch.x <- par("pin")[1] + par("mai")[2] + par("mai")[4] #plot.x + left & right margin
+  par("fin")[1]
+  my.plot.inch.y <- par("pin")[2] + par("mai")[1] + par("mai")[3] #plot.y + bottom & top margin
+  par("fin")[2]
+  
+  pos.rel.x <- (my.loc.inch.x / par("fin")[1] - floor(my.loc.inch.x / 
+                                                        par("fin")[1])) *
+    par("fin")[1] / par("pin")[1] * (par("usr")[2] - par("usr")[1]) - 0.5
+  #inches from left bottom corner in target plot region (c(0,0)
+  # is plot-region bottom-left corner, not the axis c(0,0) point
+  pos.rel.y <- (my.loc.inch.y / par("fin")[2] - floor(my.loc.inch.y / 
+                                                        par("fin")[2])) *
+    par("fin")[2] / par("pin")[2] * (par("usr")[4] - par("usr")[3]) - 0.5
+  #inches from left bottom corner in target plot
+  
+  fig.coord.x <- ceiling(my.loc.inch.x / par("fin")[1])
+  fig.coord.y <- 1 +(-1) *ceiling(my.loc.inch.y / par("fin")[2])
+  # cat("figure-coord x: ", fig.coord.x,"\n")
+  # cat("figure-coord y: ", fig.coord.y,"\n")
+  cat("we are in figure: ", fig.coord.y * nc + fig.coord.x, "\n")
+  cat("coordinates of the identified point x: ", pos.rel.x,"\n")
+  cat("coordinates of the identified point y: ", pos.rel.y,"\n")
 }

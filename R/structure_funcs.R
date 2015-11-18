@@ -345,10 +345,12 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 	stop("$ Not Permitted in Formula")  
   }
 
-
+  # note - the formula parsing appears to be implemented again 
+  # in parseLmFormula; should reconcile.
   # Only 1 Term on the RHS
   if(length(formula[[2]]) == 1) {
 	  rCommand = paste("term <- data$",formula[[2]],sep="")
+
 	  eval(parse(text=rCommand))
 
 	  if (is.matrix(term)) {
@@ -365,6 +367,9 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   else {
 	  for (nTerm in 2:length(formula[[2]])){
 		  rCommand = paste("term <- data$",formula[[2]][[nTerm]],sep="")
+		  if(!as.character(formula[[2]][[nTerm]]) %in% names(data)) {
+		    next
+		  }
 		  eval(parse(text=rCommand))	
 		  if (is.matrix(term)) {
                         matrixName = formula[[2]][[nTerm]]
@@ -395,7 +400,6 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 	rows = colnames(mmatrix) 
         data.matrix.right = matrix()
         }
-
   result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
   rownames(result) <- colnames(anat)
 
