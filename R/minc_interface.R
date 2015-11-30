@@ -1,3 +1,21 @@
+mincGetTagFile <- function(filename) {
+  tags <- scan(filename, what="character")
+  # tag points begin after Points = line
+  beginIndex <- grep("Points", tags) + 2
+  endIndex <- length(tags)-1 # get rid of training ;
+  return(matrix(as.numeric(tags[beginIndex:endIndex]), ncol=7, byrow=T))
+}
+
+mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
+  tags <- tags[,c(1:3,7)] # get rid of repeated coordinates
+  out <- matrix(ncol=ncol(tags), nrow=nrow(tags))
+  for (i in 1:nrow(tags)) {
+    out[i,3:1] <- mincConvertWorldToVoxel(filename, tags[i,1], tags[i,2], tags[i,3]) + 1
+  }
+  out[,4] <- tags[,4]
+  return(out)
+}
+
 # get the real value of one voxel from all files.
 mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   num.files <- length(filenames)
