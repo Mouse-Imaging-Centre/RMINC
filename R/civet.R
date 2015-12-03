@@ -453,8 +453,7 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civet
 
 		gf$CIVETFILES = filenames.df
     
-    #R had trouble showing the gf data.frame, so I cast as a list
-		return(as.list(gf))
+    return(gf)
 
 	}
 	
@@ -542,13 +541,24 @@ civet.AllROIs <- function(gf, defprefix) {
 }
 # =============================================================================
 # Purpose: 
-#	Organizes CIVET .dat file based on atlas
+#	Organizes CIVET .dat file based on an atlas
+# Requires the atlas to be a csv file with a header and following the format
+# Column 1: Numeric labels
+# Column 3: Label Description
 #
 # Example:
 #	atlasFile <- "AAL.csv"
 #	dataFiles <- list of data files to organize
 #
 # =============================================================================
+#' @param atlasFile Character path to a key to the atlas used when running civet.
+#' the key should be a comma separated file with a header and the following form \newline
+#' Column 1: Numeric label
+#' Column 3: Corresponding structure
+#' @param dataFiles character containing paths to .dat files of interest
+#' typically generated with \link{civet.getAllFilenames}
+#' @param civetVersion character code for the version of civet used to generate
+#' the data files
 civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="1.1.12") {
 	
 	#Initializaion
@@ -701,16 +711,34 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' @title Read  all CIVET files into R
 #' @usage civet.readAllCivetFiles(atlasFile, gf)
 #' @param gf Data Frame containing list of all CIVET file names, and where results will be stored
-#' @param atlasFile Full path to the atlas on which CIVET was run ;
+#' requires gf to have an element (column) called CIVETFILES which is a data.frame containing
+#' paths to the civetFiles, typically generated with \link{civet.getAllFilenames}
+#' @param atlasFile Character path to a key to the atlas used when running civet.
+#' the key should be a comma separated file with a header and the following form \newline
+#' Column 1: Numeric label \newline
+#' Column 3: Corresponding structure
 #' @details Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
 #' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
 #' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Brain Volume Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
-#' @return gf is returned with CIVET values
+#' @return Returns gf augmented with additional columns containing 
+#' \itemize{
+#' \item{lobeArea40mm:}{ A subjects by region matrix of lobe areas parcellated by atlas region}
+#' \item{lobeThickness:}{ As above, but for thicknesses}
+#' \item{lobeVolume:}{ As above, but for volumes}
+#' \item{GI:}{ A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter 
+#'  surface, white matter surface, midsurface of the two, followed by the same indices for the two}
+#' \item{BrainVolume:}{ A subjects by 3 matrix. Three columns are CSF volume, grey matter 
+#'  and white matter respectively}
+#' \item{midSurfaceNativeArea:}{ A subjects by vertices matrix of mid-surface areas}
+#' \item{SurfaceNativeVolume:}{ As above, but for native space volumes}
+#' \item{nativeRMS_RSLtlink20mm:}{ As above, but for RMS_RSL tlink 20mm thicknesses}
+#' \item{nativeRMStlink20mm:}{ As above, but for RMS tlink 20mm thicknesses}
+#' }
 #' @seealso  civet.getAllFilenames
 #' @examples
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET", TRUE, "1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 ###########################################################################################
 civet.readAllCivetFiles = function(atlasFile,gf)
@@ -1151,6 +1179,68 @@ civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion
 	# Write out (remove spaces)
 	write.table(roiObj,gsub(" ","",paste(region,".txt",sep="")),FALSE,TRUE,"","\n","NA",".",FALSE,FALSE)
 }
+
+#'@title Normalize CIVET results for dplyr
+#'@description
+#'Convert the data.frame/Matrix/list fusion object produced by civet.readAllCivetFiles
+#'to a data.frame usable with dplyr etc.
+#'@param civetResults A data.frame produced by civet.readAllCivetFiles
+#'@param columnsToKeep vector of column names or indices of columns from the original
+#'frame to copy to the normalized table. Columns not produced by \link{civet.readAllCivetFiles}
+#'and not specified here are dropped. See details
+#'@details The columnsToKeep vector needs to include the subject identifier or it will be
+#'dropped. Ideally other columns in the vector should be proper vector/list columns compatible
+#'with dplyr
+#'@returns 
+civet.NormalizeForDplyr <-
+  function(civetResults, columnsToKeep){
+    if(!require(dplyr)) stop("Please install dplyr to use this command")
+    
+    cleanAndPrefixColNames <- 
+      function(mat){
+        matrixName <- deparse(substitute(mat))
+        colnames(mat) %>% 
+          gsub("[ [:punct:]]+", "_", .) %>%
+          gsub("^_|_$", "", .) %>%
+          paste(matrixName, ., sep = "_")
+      }
+    
+    normalized_frame <- civetResults[ , columnsToKeep, drop = FALSE]
+    
+    lobeArea40mm <- civetResults$lobeArea40mm
+    colnames(lobeArea40mm) <- cleanAndPrefixColNames(lobeArea40mm)
+    lobeArea40mm <- lobeArea40mm %>% as.data.frame
+
+    
+    lobeThickness <- civetResults$lobeThickness
+    colnames(lobeThickness) <- cleanAndPrefixColNames(lobeThickness)
+    lobeThickness <- lobeThickness %>% as.data.frame
+    
+    GI <- civetResults$GI
+    colnames(GI) <- cleanAndPrefixColNames(GI)
+    GI <- GI %>% as.data.frame
+    
+    BrainVolume <- civetResults$BrainVolume
+    colnames(BrainVolume) <- cleanAndPrefixColNames(BrainVolume)
+    BrainVolume <- BrainVolume %>% as.data.frame
+    
+    midSurfaceNativeArea <- civetResults$midSurfaceNativeArea
+    midSurfaceNativeArea <- 
+      lapply(1:nrow(midSurfaceNativeArea), function(i) midSurfaceNativeArea[i,])
+    
+    nativeRMS_RSLtlink20mm <- civetResults$nativeRMS_RSLtlink20mm
+    nativeRMS_RSLtlink20mm <-
+      lapply(1:nrow(nativeRMS_RSLtlink20mm), function(i) nativeRMS_RSLtlink20mm[i,])
+    
+    nativeRMStlink20mm <- civetResults$nativeRMStlink20mm
+    nativeRMStlink20mm <-
+      lapply(1:nrow(nativeRMStlink20mm), function(i) nativeRMStlink20mm[i,])
+    
+    normalized_frame <-
+      normalized_frame %>%
+      bind_cols(lobeArea40mm, lobeThickness, GI, BrainVolume) %>%
+      mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
+  }
 
 # =============================================================================
 #
