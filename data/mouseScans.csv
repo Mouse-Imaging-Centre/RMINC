@@ -1,0 +1,11 @@
+Filename; Gender; coil; weight
+packageData/volumes/img_08nov05.0-fwhm1.0.mnc;Female;1;22.6
+packageData/volumes/img_08nov05.1-fwhm1.0.mnc;Female;2;19.6
+packageData/volumes/img_08nov05.2-fwhm1.0.mnc;Female;3;21.8
+packageData/volumes/img_29sept05.0-fwhm1.0.mnc;Male;1;24.0
+packageData/volumes/img_29sept05.2-fwhm1.0.mnc;Male;3;27.0
+packageData/volumes/img_30sept05.0-fwhm1.0.mnc;Male;1;28.3
+packageData/volumes/img_30sept05.1-fwhm1.0.mnc;Male;2;26.5
+packageData/volumes/img_30sept05.2-fwhm1.0.mnc;Male;3;28.1
+packageData/volumes/img_31oct05.0-fwhm1.0.mnc;Female;1;20.5
+packageData/volumes/img_31oct05.2-fwhm1.0.mnc;Female;3;20.0
