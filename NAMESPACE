@@ -49,6 +49,7 @@ export( civet.readCivetDatFiles )
 export( civet.readAllCivetFiles )
 export( civet.CreateBrainViewFile )
 export( civet.CreateBrainViewROI )
+export( civet.NormalizeForDplyr )
 export( civetFilenames )
 
 #############################
