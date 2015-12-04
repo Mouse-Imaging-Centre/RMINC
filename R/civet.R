@@ -551,8 +551,11 @@ civet.AllROIs <- function(gf, defprefix) {
 #	dataFiles <- list of data files to organize
 #
 # =============================================================================
+#' @title Organizes CIVET .dat files based on an Atlas
+#' @description Uses an atlas to associate the measurement results in
+#' the CIVET .dat output files with particular structures 
 #' @param atlasFile Character path to a key to the atlas used when running civet.
-#' the key should be a comma separated file with a header and the following form \newline
+#' the key should be a comma separated file with a header and the following form \cr
 #' Column 1: Numeric label
 #' Column 3: Corresponding structure
 #' @param dataFiles character containing paths to .dat files of interest
@@ -708,14 +711,14 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 ###########################################################################################
 #' @description Parses outputs from CIVET pipeline 
 #' @name civet.readAllCivetFiles
-#' @title Read  all CIVET files into R
+#' @title Read all CIVET files into R
 #' @usage civet.readAllCivetFiles(atlasFile, gf)
 #' @param gf Data Frame containing list of all CIVET file names, and where results will be stored
 #' requires gf to have an element (column) called CIVETFILES which is a data.frame containing
 #' paths to the civetFiles, typically generated with \link{civet.getAllFilenames}
 #' @param atlasFile Character path to a key to the atlas used when running civet.
-#' the key should be a comma separated file with a header and the following form \newline
-#' Column 1: Numeric label \newline
+#' the key should be a comma separated file with a header and the following form \cr
+#' Column 1: Numeric label \cr
 #' Column 3: Corresponding structure
 #' @details Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
 #' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
@@ -1184,14 +1187,16 @@ civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion
 #'@description
 #'Convert the data.frame/Matrix/list fusion object produced by civet.readAllCivetFiles
 #'to a data.frame usable with dplyr etc.
-#'@param civetResults A data.frame produced by civet.readAllCivetFiles
+#'@param civetResults A data.frame produced by \link{civet.readAllCivetFiles}
 #'@param columnsToKeep vector of column names or indices of columns from the original
 #'frame to copy to the normalized table. Columns not produced by \link{civet.readAllCivetFiles}
 #'and not specified here are dropped. See details
 #'@details The columnsToKeep vector needs to include the subject identifier or it will be
 #'dropped. Ideally other columns in the vector should be proper vector/list columns compatible
 #'with dplyr
-#'@returns 
+#'@return data.frame containing results of \link{civet.readAllCivetFiles}, all sub-data.frames
+#'and matrices are expanded, non-standard characters in column names are replaced with underscores,
+#'and a prefix denoting the origin sub-data is given.  
 civet.NormalizeForDplyr <-
   function(civetResults, columnsToKeep){
     if(!require(dplyr)) stop("Please install dplyr to use this command")

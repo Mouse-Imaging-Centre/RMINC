@@ -14,4 +14,6 @@ LaTeX: pdfLaTeX
 
 BuildType: Package
 PackageUseDevtools: Yes
-PackageInstallArgs: --no-multiarch --with-keep.source --library=~/R/x86_64-pc-linux-gnu-library/3.2/ --configure-args='--with-build-path=/axiom2/projects/software/arch/linux-3_2_0-36-generic-x86_64-eglibc-2_15'
+PackageInstallArgs: --no-multiarch --with-keep.source --configure-args="--with-build-path=$RMINC_BUILD_PATH"
+PackageBuildArgs: --configure-args="--with-build-path=$RMINC_BUILD_PATH"
+PackageBuildBinaryArgs: --no-multiarch --with-keep.source --configure-args="--with-build-path=$RMINC_BUILD_PATH"

@@ -1342,8 +1342,9 @@ pMincApply <- function(filenames, function.string,
   # Saving to /tmp does not always work...
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   
-  #If the current working directory isn't writeable, try to write to /tmp instead
-  if(file.access(getwd(), 2) != 0) maskFilename <- file.path("/tmp", maskFilename)
+  #If the current working directory isn't writeable, 
+  #write to a tempdir instead
+  if(file.access(getwd(), 2) != 0) maskFilename <- file.path(tempdir(), maskFilename)
   
   mincWriteVolume(maskV, 
                   maskFilename, 
