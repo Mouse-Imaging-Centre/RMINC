@@ -3031,7 +3031,13 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
   }
 }
 
-# Run Testbed
+#'@title Run Testbed
+#'@description Run the test bed to ensure all RMINC functions
+#'work on your system
+#'@param verboseTest
+#' Whether or not to verbosely print test output, default is
+#' to print simplified results
+#'@export
 runRMINCTestbed <- function(verboseTest = FALSE) {
 	
 
