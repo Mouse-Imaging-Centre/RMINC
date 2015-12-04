@@ -1342,13 +1342,7 @@ pMincApply <- function(filenames, function.string,
   # Saving to /tmp does not always work...
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   
-  #If the current working directory isn't writeable, try to write to /tmp instead
-  if(file.access(getwd(), 2) != 0) maskFilename <- file.path("/tmp", maskFilename)
-  
-  mincWriteVolume(maskV, 
-                  maskFilename, 
-                  clobber=TRUE) 
-  
+  mincWriteVolume(maskV, maskFilename, clobber=TRUE)
   
   # create the packageList that will be used for the snowfall and sge options
   # if packages contains multiple libraries, the test (packages == "") 
@@ -3037,16 +3031,13 @@ runRMINCTestbed <- function(verboseTest = FALSE) {
   options(verbose = verboseTest)
   # Make sure environment is clear
   #rm(list=ls())
-  
-  if(!file.exists("/tmp/rminctestdata/")){
-    system('mkdir /tmp/rminctestdata')
-  }
-  
+
+  system('mkdir /tmp/rminctestdata')
+
 
   # Download Tarball from Wiki
-  if(!file.exists("/tmp/rminctestdata/rminctestdata.tar.gz")){
-    system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
-  }
+  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
+
   # Untar
   system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
   library(testthat)
