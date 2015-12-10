@@ -3031,15 +3031,22 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
   }
 }
 
-#'@title Run Testbed
-#'@description Run the test bed to ensure all RMINC functions
-#'work on your system
-#'@param verboseTest
+#' @title Run Testbed
+#' @description Run the test bed to ensure all RMINC functions
+#' work on your system
+#' @param verboseTest
 #' Whether or not to verbosely print test output, default is
 #' to print simplified results
-#'@export
-runRMINCTestbed <- function(verboseTest = FALSE) {
-	
+#' @param purgeData whether to remove downloaded test files
+#' in /tmp/rminctestdata
+#' @param ... additional parameter for \link{testthat::test_dir}
+#' @return invisibly return the test results
+#' @export
+runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
+  
+	if(!require(testthat)){
+	  stop("Sorry, you need to install testthat to run the testbed")
+	}
 
   options(verbose = verboseTest)
   # Make sure environment is clear
@@ -3048,28 +3055,28 @@ runRMINCTestbed <- function(verboseTest = FALSE) {
   if(!file.exists("/tmp/rminctestdata/")){
     system('mkdir /tmp/rminctestdata')
   }
-  
-
   # Download Tarball from Wiki
   if(!file.exists("/tmp/rminctestdata/rminctestdata.tar.gz")){
     system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
   }
   # Untar
   system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
-  library(testthat)
 
   # Run Tests
   rmincPath = find.package("RMINC")
   cat("\n\nRunning tests in: ", paste(rmincPath,"/","tests/",sep=""), "\n\n\n")
-  test_dir(paste(rmincPath,"/","tests/",sep=""))
+  testReport <- test_dir(paste(rmincPath,"/","tests/",sep=""), ...)
   
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")
   cat("*********************************************\n\n\n")
-  # Remove temp data, and downloaded files
-  cat("Removing temporary directory /tmp/rminctestdata\n")
-  system('rm -fr /tmp/rminctestdata')
   
+  if(purgeData){
+    cat("Removing temporary directory /tmp/rminctestdata\n")
+    system('rm -fr /tmp/rminctestdata')
+  }
+
+  return(testReport)
 }
 
 # Get Test Data (i.e. for running examples from man pages)
@@ -3098,5 +3105,5 @@ verboseRun <- function(expr,verbose,env = parent.frame()) {
 		output = with(env,eval(parse(text=expr)))
 		sink()
 	}
-	return(output)
+	return(invisible(output))
 }
