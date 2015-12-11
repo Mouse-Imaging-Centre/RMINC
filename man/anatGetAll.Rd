@@ -41,22 +41,28 @@ segmented atlas
 }
 \details{
 anatGetAll needs a set of files along with an atlas and a set of
-    atlas definitions. In the end it will produce one value per label
-    in the atlas for each of the input files. How that value is
-    computed depends on the methods argument:
-
-    jacobians Each file contains log jacobians, and the volume for
-         each atlas label is computed by multiplying the jacobian with
-         the voxel volume at each voxel.
-    labels Each file contains integer labels (i.e. same as the atlas).
-         The volume is computed by counting the number of voxels with
-         each label and multiplying by the voxel volume.
-    means Each file contains an arbitrary number and the mean of all
-         voxels inside each label is computed.
-    sums Each file contains an aribtrary number and the sum of all
-         voxels inside each label is computed.
-    text Each file is a comma separated values text file and is simply
-         read in.
+atlas definitions. In the end it will produce one value per label
+in the atlas for each of the input files. How that value is
+computed depends on the methods argument:
+\itemize{
+  \item{jacobians -}{ Each file contains log jacobians, and the volume for
+  each atlas label is computed by multiplying the jacobian with
+  the voxel volume at each voxel.
+  }
+  \item{labels -}{ Each file contains integer labels (i.e. same as the atlas).
+  The volume is computed by counting the number of voxels with
+  each label and multiplying by the voxel volume.
+  }
+  \item{means -}{ Each file contains an arbitrary number and the mean of all
+  voxels inside each label is computed.
+  }
+  \item{sums -}{ Each file contains an aribtrary number and the sum of all
+  voxels inside each label is computed.
+  }
+  \item{text -}{ Each file is a comma separated values text file and is simply
+  read in.
+  }
+}
 }
 \examples{
 getRMINCTestData()
