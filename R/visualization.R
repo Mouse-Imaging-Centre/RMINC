@@ -91,7 +91,7 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
                                 col=heat.colors(255), 
                                 begin=NULL, end=NULL, symmetric=F,
                                 legend=NULL, plottitle=NULL, indicatorLevels=c(900, 1200)) {
-  opar <- par()
+  opar <- par(no.readonly = TRUE) #remember old parameters ignoring readonlies
   nslices <- prod(mfrow)
   par(bg = "black")
   if (! is.null(legend)) { # use the layout function
@@ -171,7 +171,7 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
     else {
       color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), col, gradient="y", align="rb", col="white")
     }
-    opar <- par()
+    opar <- par(no.readonly = TRUE)
     par(xpd=T)
     text(0.85, 0.5, labels=legend, srt=90, col="white", cex=2)
   }
@@ -192,7 +192,7 @@ getRangeFromHistogram <- function (volume, low, high) {
 
 mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL, 
                                    layoutMatrix=NULL, ...) {
-  opar <- par()
+  opar <- par(no.readonly = TRUE)
   #layout(matrix(c(1,1,2,3), 2, 2, byrow=T))
   if (is.null(layoutMatrix)) {
     layout(matrix(c(1,2,2, 1,3,3), 2, 3, byrow=T))
@@ -293,7 +293,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
       color.legend(1.01, 0.25, 1.03, 0.75, c(low, high), col, gradient="y", align="rb")
       text(1.05, 0.5, labels=legend, srt=90)
     }
-    opar <- par()
+    opar <- par(no.readonly = TRUE) #I think this gets lost anyway
     par(xpd=T)
       }
 }
