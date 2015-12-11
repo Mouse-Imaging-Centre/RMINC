@@ -126,9 +126,11 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
   
   # plot the actual slices
   anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
+  statRange <- getRangeFromHistogram(statistics, low, high)
+  
   for (i in 1:nslices) {
     mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
-                              low=low, high=high, anatLow=anatRange[1], 
+                              low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
                               anatHigh=anatRange[2], col=col, legend=NULL, 
                               symmetric=symmetric)
   }
@@ -180,8 +182,11 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
 }
 
 getRangeFromHistogram <- function (volume, low, high) {
-  if (is.null(low)) { low <- hist(volume, plot=F)$mid[5] }
-  if (is.null(high)) { high <- rev(hist(volume, plot=F)$mid)[5]}
+  
+  if(is.null(low) || is.null(high)) hist_midpoints <- hist(volume, plot=F)$mids
+  if (is.null(low)) { low <- hist_midpoints[5]}
+  if (is.null(high)) { high <- rev(hist_midpoints)[5]}
+  
   return(c(low, high))
 }
 
