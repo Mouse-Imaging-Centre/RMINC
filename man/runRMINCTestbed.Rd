@@ -3,11 +3,19 @@
 \alias{runRMINCTestbed}
 \title{Run Testbed}
 \usage{
-runRMINCTestbed(verboseTest = FALSE)
+runRMINCTestbed(..., verboseTest = FALSE, purgeData = TRUE)
 }
 \arguments{
 \item{verboseTest}{Whether or not to verbosely print test output, default is
 to print simplified results}
+
+\item{purgeData}{whether to remove downloaded test files
+in /tmp/rminctestdata}
+
+\item{...}{additional parameter for \link{testthat::test_dir}}
+}
+\value{
+invisibly return the test results
 }
 \description{
 Run the test bed to ensure all RMINC functions

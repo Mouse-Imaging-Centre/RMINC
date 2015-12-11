@@ -1183,7 +1183,7 @@ civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion
 	write.table(roiObj,gsub(" ","",paste(region,".txt",sep="")),FALSE,TRUE,"","\n","NA",".",FALSE,FALSE)
 }
 
-#'@title Normalize CIVET results for dplyr
+#'@title Flatten CIVET results for dplyr
 #'@description
 #'Convert the data.frame/Matrix/list fusion object produced by civet.readAllCivetFiles
 #'to a data.frame usable with dplyr etc.
@@ -1197,7 +1197,7 @@ civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion
 #'@return data.frame containing results of \link{civet.readAllCivetFiles}, all sub-data.frames
 #'and matrices are expanded, non-standard characters in column names are replaced with underscores,
 #'and a prefix denoting the origin sub-data is given.  
-civet.NormalizeForDplyr <-
+civet.flattenForDplyr <-
   function(civetResults, columnsToKeep){
     if(!require(dplyr)) stop("Please install dplyr to use this command")
     
