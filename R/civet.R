@@ -290,7 +290,8 @@ civet.getFilenameMidSurfaces <- function(scanID, baseDir, civetVersion="1.1.9", 
 # Note: civet.getFilenameClassify
 # =============================================================================
 #
-civet.getFilenameCorticalThickness <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
+civet.getFilenameCorticalThickness <- function(scanID, baseDir, civetVersion="1.1.9", 
+                                               fullPath=TRUE, blur = "20mm") {
 	#
 	# check whether the Civet version has been tested
 	civet.checkVersion(civetVersion)
@@ -299,7 +300,10 @@ civet.getFilenameCorticalThickness <- function(scanID, baseDir, civetVersion="1.
 	baseDir <- path.expand(baseDir)
 	scanRoot <- file.path(baseDir, scanID)
 	ctDir <- file.path(scanRoot, 'thickness')
-	files <- list.files(ctDir, pattern=glob2rx("*_native_rms_rsl_tlink_20mm_*.txt"))
+	files <- 
+	  list.files(ctDir, 
+	             pattern = glob2rx(
+	               sprintf("*_native_rms_rsl_tlink_%s_*.txt", blur)))
 	
 	# fully-qualified path requested?
 	if ( fullPath ) {
@@ -319,7 +323,8 @@ civet.getFilenameCorticalThickness <- function(scanID, baseDir, civetVersion="1.
 # Note: civet.getFilenameClassify
 # =============================================================================
 #
-civet.getFilenameMeanSurfaceCurvature <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
+civet.getFilenameMeanSurfaceCurvature <- function(scanID, baseDir, civetVersion="1.1.9", 
+                                                  fullPath=TRUE, blur = "20mm") {
 	#
 	# check whether the Civet version has been tested
 	civet.checkVersion(civetVersion)
@@ -328,7 +333,10 @@ civet.getFilenameMeanSurfaceCurvature <- function(scanID, baseDir, civetVersion=
 	baseDir <- path.expand(baseDir)
 	scanRoot <- file.path(baseDir, scanID)
 	ctDir <- file.path(scanRoot, 'thickness')
-	files <- list.files(ctDir, pattern=glob2rx("*_native_mc_rsl_20mm_*.txt"))
+	files <- 
+	  list.files(ctDir, 
+	             pattern=glob2rx(
+	               sprintf("*_native_mc_rsl_%s_*.txt", blur)))
 	
 	# fully-qualified path requested?
 	if ( fullPath ) {
@@ -413,91 +421,297 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 ###########################################################################################
 
-civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9") {
-	# designed for use with CIVET 1.1.9 and CIVET 1.1.12
-	if ( civetVersion != "1.1.9"  && civetVersion != "1.1.12" ) {
-		warning("This function has only been tested with Civet version 1.1.9. and 1.1.12 Use at your own risk.", immediate.=TRUE)
-	}
-	
-	# extract the scanIDs from the glim
-	ids <- gf[,idvar]
-	
-	# create the scan-level root dir names
-	b <- paste(basedir, "/", ids, "/", sep="")
-
-	# insert fully-qualified file names
-	filenames.df <- data.frame(leftGIFiles=rep(0,nrow(gf)))
-
-	if (civetVersion == "1.1.12")
-	{	
-  		filenames.df$leftGIFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_gi_left.dat",sep = "")
-  		filenames.df$rightGIFiles <- paste(b, "surfaces/", prefix, "_", ids, "_gi_right.dat",sep = "")
-  		filenames.df$leftlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_left.dat",sep = "")
-  		filenames.df$rightlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_right.dat",sep = "")
-  		filenames.df$leftlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat",sep = "")
-  		filenames.df$rightlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat",sep = "")
-  		filenames.df$leftlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_left.dat",sep = "")
-  		filenames.df$rightlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_right.dat",sep = "")
-		filenames.df$midSurfaceleftNativeArea = paste(b, "surfaces/", prefix, "_", ids, "_mid_surface_rsl_left_native_area_40mm.txt",sep = "")
-		filenames.df$midSurfacerightNativeArea = paste(b,"surfaces/", prefix, "_", ids, "_mid_surface_rsl_right_native_area_40mm.txt",sep = "")
-		filenames.df$SurfaceleftNativeVolume = paste(b, "surfaces/", prefix, "_", ids, "_surface_rsl_left_native_volume_40mm.txt",sep = "")
-		filenames.df$SurfacerightNativeVolume = paste(b,"surfaces/", prefix, "_", ids, "_surface_rsl_right_native_volume_40mm.txt",sep = "") 
- 
-  		filenames.df$brain_volume = paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat",sep = "")
-		filenames.df$cerebral_volume = paste(b, "thickness/", prefix, "_", ids, "_cerebral_volume.dat",sep = "")
-		filenames.df$nativeRMS_RSLtlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt",sep = "") 
-		filenames.df$nativeRMS_RSLtlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt",sep = "") 
-		filenames.df$nativeRMStlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_left.txt",sep = "") 
-		filenames.df$nativeRMStlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_right.txt",sep = "") 
-
-
-		gf$CIVETFILES = filenames.df
-    
-    return(gf)
-
-	}
-	
-	else
-
-	{
-		filenames.df$tissue <- paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat",
-		           sep="")
-		filenames.df$structures <- paste(b, "segment/", prefix, "_", ids, "_masked.dat",
-		               sep="")
-		filenames.df$left.thickness <- paste(b, "thickness/", prefix, "_", ids,
-		                   "_native_rms_rsl_tlink_20mm_left.txt", sep="")
-		filenames.df$right.thickness <- paste(b, "thickness/", prefix, "_", ids,
-		                   "_native_rms_rsl_tlink_20mm_right.txt", sep="")
-		filenames.df$rightROIthickness <- paste(b, "segment/", prefix, "_", ids,
-		                      "_lobe_thickness_tlink_20mm_right.dat", sep="")
-		filenames.df$leftROIthickness <- paste(b, "segment/", prefix, "_", ids,
-		                     "_lobe_thickness_tlink_20mm_left.dat", sep="")
-		filenames.df$rightROIarea <- paste(b, "segment/", prefix, "_", ids,
-		                 "_lobe_areas_right.dat", sep="")
-		filenames.df$leftROIarea <- paste(b, "segment/", prefix, "_", ids,
-		                "_lobe_areas_left.dat", sep="")
-		filenames.df$GMVBM <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_gm.mnc", sep="")
-		filenames.df$WMVBM <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_wm.mnc", sep="")
-		filenames.df$CSFVBM <- paste(b, "VBM/", prefix, "_", ids,
-		           "_smooth_8mm_csf.mnc", sep="")
-		filenames.df$GMVBMsym <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_gm_sym.mnc", sep="")
-		filenames.df$WMVBMsym <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_wm_sym.mnc", sep="")
-		filenames.df$CSFVBMsym <- paste(b, "VBM/", prefix, "_", ids,
-		             "_smooth_8mm_csf_sym.mnc", sep="")
-  	}
-	# append names to the input glim, if desired
-	if ( append == TRUE) {
-		filenames.df <- cbind(gf, filenames.df)
-	}
-
-	return(filenames.df)
+civet.getAllFilenames <- function(gf, idvar, prefix, basedir, 
+                                  append=TRUE, civetVersion="1.1.9",
+                                  blurs = civet.blurConfigure(version = civetVersion)) {
+  # designed for use with CIVET 1.1.9 and CIVET 1.1.12
+  if ( civetVersion != "1.1.9"  && civetVersion != "1.1.12" ) {
+    warning("This function has only been tested with Civet version 1.1.9. and 1.1.12 Use at your own risk.", immediate.=TRUE)
+  }
+  
+  if (civetVersion == "1.1.12")
+  {	
+    return(civet.getAllFilenames_1_1_12(gf = gf, 
+                                        idvar = idvar, 
+                                        prefix = prefix, 
+                                        basedir = basedir, 
+                                        blurs = blurs))
+  } else {
+    return(civet.getAllFilenames_other(gf = gf,
+                                       idvar = idvar,
+                                       prefix = prefix,
+                                       basedir = basedir,
+                                       blurs = blurs))
+  }
 }
 
+civet.blurConfigure <- function(..., version = "1.1.12"){
+  
+  #Default blur values for CIVET version 1.1.12
+  default_blurs_1_1_12 <-
+    list(
+      lobeArea = "40mm",
+      lobeThickness = "20mm",
+      lobeVolume = "40mm",
+      midSurfaceNativeArea = "40mm",
+      surfaceNativeVolume = "40mm",
+      nativeRMS_RSLtlink = "20mm",
+      nativeRMStlink = "20mm"
+    )
+  
+  #Default blur values for anything else (really just version 1.1.9)
+  default_blurs_other <-
+    list(
+      thickness = "20mm",
+      ROIthickness = "20mm",
+      GMVBM = "8mm",
+      WMVBM = "8mm",
+      CSFVBM = "8mm"
+    )
+  
+  if(version == "1.1.12"){
+    blurs <- default_blurs_1_1_12
+  } else {
+    blurs <- default_blurs_other
+  }
+  
+  #To allow users to optionally set blur variables convert the list
+  #to an environment so the users ... can be assigned with list2env later
+  blurs <- list2env(blurs)
+  
+  userOptions <- list(...)
+  
+  #If no ... arguments return all blurs 
+  if(length(userOptions) == 0) return(as.list(blurs))
 
+  #If ... arguments are unnamed return the specified blurs
+  if(is.null(names(userOptions))) {
+    return(as.list(blurs)[unlist(userOptions)])
+  }
+  
+  #Perform name partial matching, replacing the partial matches
+  #with their full names, die if unknown parameter is encountered
+  #I did not use match.arg for better error messaging
+  names(userOptions) <-
+    vapply(names(userOptions), function(name){
+      
+      matched_name_index <- pmatch(name, ls(blurs))
+      matched_name <- ls(blurs)[matched_name_index]
+      
+      if(is.na(matched_name)){
+        stop(
+          sprintf("%s is not in the list of configurable blurs for CIVET version %s",
+                  name, version), call. = FALSE)
+      }
+      
+      return(matched_name)
+    }, character(1))
+  
+  #Assign user supplied parameters to the blurs environment
+  list2env(userOptions, envir = blurs)
+  
+  #Return the new parameters as a list
+  return(as.list(blurs))
+}
+
+civet.getAllFilenames_1_1_12 <- 
+  function(gf, idvar, prefix, basedir, 
+           blurs = civet.blurConfigure(version = "1.1.12")){
+    
+    # extract the scanIDs from the glim
+    ids <- gf[,idvar]
+    
+    # create the scan-level root dir names
+    scan_dir <- file.path(basedir, ids)
+    surface_prefixed <- file.path(scan_dir, "surfaces", paste0(prefix, "_"))
+    classify_prefixed <- file.path(scan_dir, "classify", paste0(prefix, "_"))
+    thickness_prefixed <- file.path(scan_dir, "thickness", paste0(prefix, "_"))
+    
+    build_filename <- function(dir_prefixed, file) paste0(dir_prefixed, ids, file)
+
+    filenames <- list()
+    
+    filenames <-
+      within(
+        filenames,
+        {
+          leftGIFiles  <-
+            build_filename(surface_prefixed, "_gi_left.dat")
+          
+          rightGIFiles <-
+            build_filename(surface_prefixed, "_gi_right.dat")
+          
+          leftlobeArea40mmFiles  <- 
+            build_filename(surface_prefixed, 
+                           sprintf("_lobe_areas_%s_left.dat",
+                                   blurs$lobeArea))
+          
+          rightlobeArea40mmFiles  <- 
+            build_filename(surface_prefixed,
+                           sprintf("_lobe_areas_%s_right.dat",
+                                   blurs$lobeArea))
+          
+          leftlobeThicknessFiles  <- 
+            build_filename(surface_prefixed,
+                           sprintf("_lobe_thickness_tlink_%s_left.dat",
+                                   blurs$lobeThickness))
+          
+          rightlobeThicknessFiles  <-
+            build_filename(surface_prefixed,
+                           sprintf("_lobe_thickness_tlink_%s_right.dat",
+                                   blurs$lobeThickness))
+          
+          leftlobeVolumeFiles  <- 
+            build_filename(surface_prefixed,
+                           sprintf("_lobe_volumes_%s_left.dat",
+                                   blurs$lobeVolume))
+          
+          rightlobeVolumeFiles  <- 
+            build_filename(surface_prefixed, 
+                           sprintf("_lobe_volumes_%s_right.dat",
+                                   blurs$lobeVolume))
+          
+          midSurfaceleftNativeArea <- 
+            build_filename(surface_prefixed,
+                           sprintf("_mid_surface_rsl_left_native_area_%s.txt",
+                                   blurs$midSurfaceNativeArea))
+          
+          midSurfacerightNativeArea <- 
+            build_filename(surface_prefixed, 
+                           sprintf("_mid_surface_rsl_right_native_area_%s.txt",
+                                   blurs$midSurfaceNativeArea))
+          
+          SurfaceleftNativeVolume <- 
+            build_filename(surface_prefixed, 
+                           sprintf("_surface_rsl_left_native_volume_%s.txt",
+                                   blurs$surfaceNativeVolume))
+          
+          SurfacerightNativeVolume <- 
+            build_filename(surface_prefixed, 
+                           sprintf("_surface_rsl_right_native_volume_%s.txt",
+                                   blurs$surfaceNativeVolume)) 
+          
+          brain_volume <- 
+            build_filename(classify_prefixed, "_cls_volumes.dat")
+          
+          cerebral_volume <- 
+            build_filename(thickness_prefixed, "_cerebral_volume.dat")
+          
+          assign(
+            sprintf("nativeRMS_RSLtlink%sleft", blurs$nativeRMS_RSLtlink),
+            build_filename(thickness_prefixed, 
+                           sprintf("_native_rms_rsl_tlink_%s_left.txt",
+                                   blurs$nativeRMS_RSL))) 
+          
+          assign(
+            sprintf("nativeRMS_RSLtlink%sright", blurs$nativeRMS_RSLtlink),
+            build_filename(thickness_prefixed, 
+                           sprintf("_native_rms_rsl_tlink_%s_right.txt",
+                                   blurs$nativeRMS_RSL)))  
+          
+          assign(
+            sprintf("nativeRMStlink%sleft", blurs$nativeRMStlink), 
+            build_filename(thickness_prefixed, 
+                           sprintf("_native_rms_tlink_%s_left.txt",
+                                   blurs$nativeRMStlink))) 
+          
+          assign(
+            sprintf("nativeRMStlink%sright", blurs$nativeRMStlink), 
+            build_filename(thickness_prefixed, 
+                           sprintf("_native_rms_tlink_%s_right.txt",
+                                   blurs$nativeRMStlink)))
+        })
+    
+    #Reverse column ordering to match old getAllFilenames
+    #cast as data.frame
+    filenames.df <- as.data.frame(rev(filenames), stringsAsFactors = FALSE)
+    
+    gf$CIVETFILES <- filenames.df
+    
+    return(gf)
+  }
+
+civet.getAllFilenames_other <-
+  function(gf, idvar, prefix, basedir, append,
+           blurs = civet.blurConfigure(version = "other")){
+    
+    ids <- gf[,idvar]
+    
+    # create the scan-level root dir names
+    scan_dir <- file.path(basedir, ids)
+    segment_prefixed <- file.path(scan_dir, "segment", paste0(prefix, "_"))
+    classify_prefixed <- file.path(scan_dir, "classify", paste0(prefix, "_"))
+    thickness_prefixed <- file.path(scan_dir, "thickness", paste0(prefix, "_"))
+    vbm_prefixed <- file.path(scan_dir, "VBM", paste0(prefix, "_"))
+    
+    build_filename <- function(dir_prefixed, file) paste0(dir_prefixed, ids, file)
+    
+    filenames <- list()
+    
+    filenames <-
+      within(
+        filenames,
+        {
+          tissue <- build_filename(classify_prefixed, "_cls_volumes.dat")
+          structures <- build_filename(segment_prefixed, "_masked.dat",
+                                       sep="")
+          left.thickness <- 
+            build_filename(thickness_prefixed,
+                           sprintf("_native_rms_rsl_tlink_%s_left.txt",
+                                   blurs$thickness))
+          right.thickness <- 
+            build_filename(thickness_prefixed,
+                           sprintf("_native_rms_rsl_tlink_%s_right.txt",
+                                   blurs$thickness))
+          rightROIthickness <- 
+            build_filename(segment_prefixed,
+                           sprintf("_lobe_thickness_tlink_%s_right.dat",
+                                   blurs$ROIthickness))
+          leftROIthickness <- 
+            build_filename(segment_prefixed,
+                           sprintf("_lobe_thickness_tlink_%s_left.dat",
+                                   blurs$ROIthickness))
+          rightROIarea <- 
+            build_filename(segment_prefixed,"_lobe_areas_right.dat")
+          
+          leftROIarea <- 
+            build_filename(segment_prefixed, "_lobe_areas_left.dat")
+          
+          GMVBM <- 
+            build_filename(vbm_prefixed,
+                           sprintf("_smooth_%s_gm.mnc",
+                                   blurs$GMVBM))
+          WMVBM <- 
+            build_filename(vbm_prefixed,
+                           sprintf("_smooth_%s_wm.mnc",
+                                   blurs$WMVBM))
+          CSFVBM <- 
+            build_filename(vbm_prefixed,
+                           sprintf("_smooth_%s_csf.mnc",
+                                   blurs$CSFVBM))
+          GMVBMsym <- 
+            build_filename(vbm_prefixed,
+                           sprintf("_smooth_%s_gm_sym.mnc",
+                                   blurs$GMVBM))
+          WMVBMsym <- 
+            build_filename(vbm_prefixed,
+                           sprintf("_smooth_%s_wm_sym.mnc",
+                                   blurs$WMVBM))
+          CSFVBMsym <- 
+            build_filename(vbm_prefixed,
+                           sprintf("_smooth_%s_csf_sym.mnc",
+                                   blurs$CSFVBM))
+        }
+      )
+    
+    filename.df <- as.data.frame(rev(filenames), stringsAsFactors = FALSE)
+    
+    if ( append == TRUE) {
+      filenames.df <- cbind(gf, filenames.df)
+    }
+    
+    return(filenames.df)
+  }
 
 
 civet.AllROIs <- function(gf, defprefix) {
