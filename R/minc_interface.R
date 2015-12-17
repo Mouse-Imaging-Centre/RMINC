@@ -3095,7 +3095,7 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
     system('rm -fr /tmp/rminctestdata')
   }
 
-  return(testReport)
+  return(invisible(testReport))
 }
 
 # Get Test Data (i.e. for running examples from man pages)
