@@ -440,6 +440,7 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir,
     return(civet.getAllFilenames_other(gf = gf,
                                        idvar = idvar,
                                        prefix = prefix,
+                                       append = append,
                                        basedir = basedir,
                                        blurs = blurs))
   }
@@ -653,8 +654,7 @@ civet.getAllFilenames_other <-
         filenames,
         {
           tissue <- build_filename(classify_prefixed, "_cls_volumes.dat")
-          structures <- build_filename(segment_prefixed, "_masked.dat",
-                                       sep="")
+          structures <- build_filename(segment_prefixed, "_masked.dat")
           left.thickness <- 
             build_filename(thickness_prefixed,
                            sprintf("_native_rms_rsl_tlink_%s_left.txt",
@@ -704,7 +704,7 @@ civet.getAllFilenames_other <-
         }
       )
     
-    filename.df <- as.data.frame(rev(filenames), stringsAsFactors = FALSE)
+    filenames.df <- as.data.frame(rev(filenames), stringsAsFactors = FALSE)
     
     if ( append == TRUE) {
       filenames.df <- cbind(gf, filenames.df)
