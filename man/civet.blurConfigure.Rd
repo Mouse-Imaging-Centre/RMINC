@@ -29,8 +29,8 @@ the arguments passed through ...
 can be configured for the specified version of CIVET}
 \item{character: }{ in this case return only the values for the options
 specified.}
-\item{named list: }{ partial match the argument names to configurable options
-and adjust their values, returns values for all arguments after configuring
+\item{named list: }{ partial match the argument names to the configurable options
+and adjust their values. Returns values for all arguments after configuring
 the specified options.}
 }
 }
