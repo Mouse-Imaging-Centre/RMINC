@@ -446,6 +446,30 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir,
   }
 }
 
+#'@title Configure blur levels
+#'@description 
+#'allow civet.getAllFilenames to search for files with
+#'non standard blur levels.
+#'@param version The version of CIVET that generated the files of
+#'interest. Currently only supports version "1.1.12" and "1.1.9"
+#'all other version codes will be treated as "1.1.9".
+#'@param ... configuration options, behaviour depends on
+#'the parameters passed. See details.
+#'@return A list containing named blur levels
+#'@details
+#'This function was styled after \link{options} in terms of reacting
+#'to user input. There are three cases depending on the nature of
+#'the arguments passed through ...
+#'\itemize{
+#' \item{none: }{ in this case return the values for all options that
+#'can be configured for the specified version of CIVET}
+#' \item{character: }{ in this case return only the values for the options
+#' specified.}
+#' \item{named list: }{ partial match the argument names to the configurable options
+#' and adjust their values. Returns values for all arguments after configuring
+#' the specified options.}
+#'}
+#'@export
 civet.blurConfigure <- function(..., version = "1.1.12"){
   
   #Default blur values for CIVET version 1.1.12
