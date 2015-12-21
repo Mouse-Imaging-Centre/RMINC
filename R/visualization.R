@@ -59,7 +59,7 @@ mincArray <- function(volume, dimIndex=1) {
     dim(outvol) <- c(sizes[3], sizes[2], sizes[1])
   }
   else {
-    error("Input needs to either have dimensions set, or have a sizes or likeVolume attribute")
+    stop("Input needs to either have dimensions set, or have a sizes or likeVolume attribute")
   }
   return(outvol)
 }
@@ -84,13 +84,22 @@ getSlice <- function(volume, slice, dimension) {
   return(list(slice=outs, asp=outa))
 }
 
-mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
-                                mfrow=c(4,5), # layout
-                                low=NULL, high=NULL, # stat thresholding
-                                anatLow=NULL, anatHigh=NULL, # background thresholding
-                                col=heat.colors(255), 
-                                begin=NULL, end=NULL, symmetric=F,
-                                legend=NULL, plottitle=NULL, indicatorLevels=c(900, 1200)) {
+mincPlotSliceSeries <- 
+  function(anatomy, statistics, dimension=2,
+           mfrow = c(4,5),                   # layout
+           low = NULL, high = NULL,          # stat thresholding
+           anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
+           col = ifelse(symmetric,
+                        heat.colors(255),
+                        colorRampPalette(c("red", "yellow"))(255)),
+           begin = 1,                        # first slice
+           end = dim(anatomy)[dimension] - 1,# last slice 
+           symmetric = FALSE,
+           legend = NULL, 
+           plottitle = NULL, 
+           indicatorLevels = c(900, 1200),
+           discreteStats = FALSE) {
+    
   opar <- par(no.readonly = TRUE) #remember old parameters ignoring readonlies
   nslices <- prod(mfrow)
   par(bg = "black")
@@ -114,25 +123,28 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
   
   # figure out location of slices
   d <- dim(anatomy)
-  if (is.null(begin)) { begin <- 1 }
-  if (is.null(end)) { end <- d[dimension]-1 }
-  else if (end < 0) { end <- d[dimension] + end }
+  if (end < 0) { end <- d[dimension] + end }
   slices <- ceiling(seq(begin, end, length=nslices))
   
   # force use of default colours if symmetric colours desired (for now)
-  if (symmetric == T) {
+  if (symmetric) {
     col <- NULL
   }
   
   # plot the actual slices
   anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
-  statRange <- getRangeFromHistogram(statistics, low, high)
+  if(discreteStats){
+    statRange <- c(max(min(statistics, na.rm = TRUE), low),
+                   min(max(statistics, na.rm = TRUE), high))
+  } else {
+    statRange <- getRangeFromHistogram(statistics, low, high)
+  }
   
   for (i in 1:nslices) {
     mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                               low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
                               anatHigh=anatRange[2], col=col, legend=NULL, 
-                              symmetric=symmetric)
+                              symmetric=symmetric, discreteStats = discreteStats)
   }
   
   # add the slice locator and the legend if so desired
@@ -181,7 +193,7 @@ mincPlotSliceSeries <- function(anatomy, statistics, dimension=2,
   par(opar)
 }
 
-getRangeFromHistogram <- function (volume, low, high) {
+getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
   
   if(is.null(low) || is.null(high)) hist_midpoints <- hist(volume, plot=F)$mids
   if (is.null(low)) { low <- hist_midpoints[5]}
@@ -229,7 +241,8 @@ mincPlotAnatAndStatsSliceManipulator <- function(anatomy, statistics,
                                                  anatLow=NULL,
                                                  anatHigh=NULL,
                                                  legend=NULL,
-                                                 symmetric=F) {
+                                                 symmetric= FALSE,
+                                                 discreteStats = FALSE) {
   d <- dim(anatomy)
   maxStats <- max(abs(statistics))
   maxAnat <- max(anatomy)
@@ -253,9 +266,14 @@ mincPlotAnatAndStatsSliceManipulator <- function(anatomy, statistics,
 }
 
 mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
-                          dimension=2, low=NULL, high=NULL,
-                          anatLow=NULL, anatHigh=NULL, symmetric=F,
-                          col=NULL, rcol=NULL, legend=NULL) {
+                          dimension=2, 
+                          low=min(statistics, na.rm = TRUE), 
+                          high=max(statistics, na.rm = TRUE), 
+                          anatLow=min(anatomy, na.rm = TRUE), 
+                          anatHigh=max(anatomy, na.rm = TRUE), 
+                          symmetric=FALSE,
+                          col=NULL, rcol=NULL, legend=NULL,
+                          discreteStats = FALSE) {
   if (is.null(slice)) {
     halfdims <- ceiling(dim(anatomy)/2)
     slice <- halfdims[dimension]
@@ -268,19 +286,21 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
       col <- rainbow(255)
     }
   }
-  if (is.null(rcol) & symmetric == TRUE) {
+  if (is.null(rcol) && symmetric) {
     rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
   }
   
   anatCols = gray.colors(255, start=0.0)
     
-  mincImage(anatomy, dimension, slice, axes=F, col=anatCols,
+  mincImage(anatomy, dimension, slice, axes = FALSE, col=anatCols,
             low=anatLow, high=anatHigh)
-  mincImage(statistics, dimension, slice, axes=F, add=T, col=col, underTransparent = T,
-            low = low, high = high)
+  
+  mincImage(statistics, dimension, slice, axes = FALSE, add = TRUE, col=col, underTransparent = TRUE,
+            low = low, high = high, scale = !discreteStats)
+  
   if (symmetric) {
-    mincImage(statistics, dimension, slice, axes=F, add=T, col=rcol, 
-              underTransparent = T, reverse = T, low = low, high = high)  
+    mincImage(statistics, dimension, slice, axes = FALSE, add = TRUE, col=rcol, 
+              underTransparent = TRUE, reverse = TRUE, low = low, high = high)  
   }
 
   if (!is.null(legend)){
@@ -322,16 +342,63 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
 #' mincImage(mincArray(vs, 6), slice=100, col=rainbow(255), 
 #'           underTransparent = T, low=2, high=6, add=T)
 #' }
-mincImage <- function(volume, dimension=2, slice=NULL, low=NULL, high=NULL, 
-                      reverse=FALSE, underTransparent=FALSE, ...) {
+mincImage <- function(volume, dimension=2, slice=NULL, 
+                      low=min(volume, na.rm = TRUE), 
+                      high=max(volume, na.rm = TRUE), 
+                      reverse=FALSE, underTransparent=FALSE, 
+                      col = gray.colors(255),
+                      scale = TRUE,
+                      add = FALSE,
+                      ...) {
   s <- getSlice(volume, slice, dimension)
   # reverse means multiply scaling by -1
-  if (reverse) { m <- -1} else { m <- 1 }
+  if (reverse) { m <- -1 } else { m <- 1 }
   
-  # determine range from histogram
   imRange <- getRangeFromHistogram(volume, low, high)
-  image(scaleSlice(s$slice, imRange[1]*m, imRange[2]*m, underTransparent=underTransparent), 
-        useRaster=T, asp=s$asp, ...)
+  s$slice <- scaleSlice(s$slice, imRange[1]*m, imRange[2]*m, 
+                        underTransparent=underTransparent)
+  
+  sliceDims <- dim(s$slice)
+  
+  if(!add){
+    plot.special <- #override plot.defaults defaults
+      function(..., xlab = "", ylab = "", asp = 1, 
+               xaxs = "i", yaxs = "i")
+        plot.default(..., xlab = xlab, ylab = ylab, asp = asp,
+                     xaxs = xaxs, yaxs = yaxs)
+    
+    plot.special(
+      sliceDims[1], sliceDims[2], #dummy plot values
+      type = "n", #don't plot them
+      xlim = c(0, sliceDims[1]),
+      ylim = c(0, sliceDims[2]),
+      ...)
+  }
+  
+  if(!all(is.na(s$slice))){
+    colourDepth <- length(col)
+    
+    #Scale the slice to span the colour depth
+    #Adding double epsilon keeps scale [0, colourDepth)
+    #necessary for floor(n) + 1 below to avoid IOB
+    scaledSlice <- 
+      s$slice / 
+      (abs(high) + .Machine$double.eps) * 
+      colourDepth
+    
+    scaledSlice <- floor(scaledSlice) + 1
+    
+    colourizedSlice <- col[scaledSlice]
+      
+    dim(colourizedSlice) <- dim(scaledSlice)
+    colourizedSlice <- t(colourizedSlice) #transpose for raster plotting
+    
+    rasterImage(colourizedSlice, 
+                xleft = 0, xright = sliceDims[1],
+                ytop = 0, ybottom = sliceDims[2])
+  }
+  
+  return(invisible(NULL))
 }
 
 #' Draw contour lines from a MINC volume
@@ -368,16 +435,17 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
     low <- low*-1
   }
   
-  slice <- slice-low
+  slice <- slice - low
   
-  slice[slice>high] <- high
+  slice[slice >= high] <- high
   if (underTransparent) {
     under <- NA
   }
   else { 
     under <- 0
   }
-  slice[slice<0] <- under
+  
+  slice[slice <= 0] <- under
   return(slice)
 }
 
