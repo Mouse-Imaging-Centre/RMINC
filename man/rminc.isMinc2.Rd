@@ -30,18 +30,3 @@ rminc.isMinc2(filename)
 \seealso{
     \code{\link{rminc.isMinc1}} \code{\link{rminc.isMinc}} \code{\link{rminc.asMinc2}} \code{\link{rminc.isReadable}}
 }
-
-\examples{
-\dontshow{
-# clear debug flag and get full volume pathname
-# ... dunno why zzz.R debug setting is not passed
-    R_DEBUG_mincIO <- 0      
-    volDir <- system.file("packageData/volumes", package="RMINC")
-}
-# very contrived example, but gets the point across
-myFile <- file.path(volDir, "average305_PET_t1_tal_lin.mnc")
-if ( !rminc.isMinc2(myFile) && rminc.isMinc1(myFile) ) {
-    myFile <- rminc.asMinc2(myFile)
-}
-}
-
