@@ -1,2 +1,0 @@
-PKG_CPPFLAGS =  -Wall
-PKG_LIBS =  -lminc2 -lhdf5 -lz -lnetcdf -lm  ${LAPACK_LIBS}
