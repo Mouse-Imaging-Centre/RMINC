@@ -1,2 +1,0 @@
-PKG_CPPFLAGS =  -I/axiom2/projects/software/arch/linux-3_2_0-36-generic-x86_64-eglibc-2_15/include -Wall
-PKG_LIBS =  -L/axiom2/projects/software/arch/linux-3_2_0-36-generic-x86_64-eglibc-2_15/lib -lminc2 -lhdf5 -lz -lnetcdf -lm  ${LAPACK_LIBS}
