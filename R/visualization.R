@@ -84,7 +84,150 @@ getSlice <- function(volume, slice, dimension) {
   return(list(slice=outs, asp=outa))
 }
 
+plotLocator <- function(dimension, anatomy, indicatorLevels, slices){
+  d <- dim(anatomy)
+  locatorDimension <- ifelse(dimension %in% 2:3, 1, 2)
+  locatorSlice <- ceiling(d[locatorDimension] / 2)
+  
+  mincContour(anatomy, dimension=locatorDimension, 
+              slice=locatorSlice, col="white", levels=indicatorLevels, 
+              axes=F, drawlabels=F)
+  
+  if (dimension %in% 1:2) {
+    abline(v=slices/d[dimension], col="yellow")
+  }
+  else {
+    abline(h=slices/d[dimension], col="yellow")
+  }
+  
+  invisible(NULL)
+}
+
+sliceSeriesLayout <-
+  function(anatomy, dimension, mfrow, begin, end, plottitle, legend, locator){
+    nslices <- prod(mfrow)
+    par(bg = "black")
+    if (locator || !is.null(legend)) { # use the layout function
+      # create a layout matrix - sets up a matrix that is the same as par(mfrow=) would be,
+      # and then adds on an extra column for the slice locator and the legend
+      layoutMatrix <- cbind(matrix(1:nslices, nrow=mfrow[1], ncol=mfrow[2], byrow=T),
+                            c(nslices+1, rep(nslices+2, mfrow[1]-1)))
+      layout(layoutMatrix)
+    }
+    else { # go with standard mfrow setting
+      par(mfrow=mfrow)
+    }
+    
+    # get rid of margins
+    par(mar=c(0,0,0,0))
+    # but keep some out margin for a title if desired
+    if (!is.null(plottitle)) { 
+      par(oma=c(0,0,2,0))
+    }
+    
+    # figure out location of slices
+    d <- dim(anatomy)
+    if (end < 0) { end <- d[dimension] + end }
+    slices <- ceiling(seq(begin, end, length=nslices))
+    
+    return(slices)
+  }
+
+#' Minc Slice Series
+#' 
+#' Plot a simple series of slices through a minc volume
+#' on a given dimension. Optionally include a locator
+#' contour to show where slices are.
+#' 
+#' @param anatomy A minc array of the anatomy volume to plot
+#' @param statistics optional statistics or label file to overlay on anatomy slices
+#' @param dimension integer denoting which dimension to slice across
+#' @param low the minimum intensity to plot, calculated from the histogram if NULL
+#' @param high the maximum intensity to plot, calculated from the histogram if NULL
+#' @param underTransparent boolean whether or not the background should be transparent
+#' or the lowest col
+#' @param begin the first slice to plot, defaults to 1
+#' @param end the last slice to plot, defaults to the last slice
+#' @param plottitle the title of the plot if desired
+#' @param legend an optional string to name the legend, indicating desire for a legend
+#' (or not)
+#' @param  boolean whether or not to draw the locator, defaults to whether or not
+#' you requested a legend
+#' @param indicatorLevels numeric vector indicating where to draw slice lines on the 
+#' locator, defaults to every slice
+#' @export
 mincPlotSliceSeries <- 
+  function(anatomy, statistics = NULL, dimension=2,
+           mfrow = c(4,5),                   # layout
+           low = NULL, high = NULL,          # stat thresholding
+           anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
+           col = ifelse(symmetric,
+                        heat.colors(255),
+                        colorRampPalette(c("red", "yellow"))(255)),
+           begin = 1,                          # first slice
+           end = (dim(anatomy)[dimension] - 1),# last slice 
+           symmetric = FALSE,
+           legend = NULL,
+           locator = !is.null(legend),
+           plottitle = NULL, 
+           indicatorLevels = NULL,
+           discreteStats = FALSE){
+    
+    plot_function <- 
+      ifelse(is.null(statistics), 
+             as.symbol("mincPlotSimpleSliceSeries"),
+             as.symbol("mincPlotStatsSliceSeries"))
+    
+    dispatch_function_formals <-           #Get dispatch formal arg names
+      names(formals(eval(plot_function)))  
+    
+    argument_list <-                       #Eval them in this environment
+      lapply(dispatch_function_formals, 
+             function(formal) eval(as.symbol(formal)))
+    
+    names(argument_list) <-                #Give the new formals their names back
+      dispatch_function_formals 
+                            
+    do.call(eval(plot_function), argument_list)
+  }
+
+
+mincPlotSimpleSliceSeries <- 
+  function(anatomy, dimension=2, mfrow = c(4,5),
+           anatLow = NULL, anatHigh = NULL, 
+           begin = 1, 
+           end = (dim(anatomy)[dimension] - 1),
+           plottitle = NULL,
+           legend = NULL,
+           locator = !is.null(legend),
+           indicatorLevels = NULL){
+    
+    opar <- par(no.readonly = TRUE)
+    on.exit(par(opar))
+  
+    slices <- sliceSeriesLayout(anatomy, dimension, mfrow, 
+                                begin, end, plottitle, legend, locator)
+    
+    anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
+
+    if(is.null(indicatorLevels)) indicatorLevels <- anatRange
+    
+    lapply(slices, function(current_slice) {
+      mincImage(anatomy, dimension, slice=current_slice,
+                low=anatRange[1], high=anatRange[2], 
+                axes = FALSE, underTransparent = TRUE)
+    })
+    
+    if(locator) plotLocator(dimension, anatomy, 
+                            indicatorLevels, slices)
+    
+    if (!is.null(plottitle))
+      mtext(plottitle, outer=T, side=3, line=-1, col="white", cex=2)
+    
+    return(invisible(NULL))
+  }
+
+mincPlotStatsSliceSeries <-
   function(anatomy, statistics, dimension=2,
            mfrow = c(4,5),                   # layout
            low = NULL, high = NULL,          # stat thresholding
@@ -95,103 +238,68 @@ mincPlotSliceSeries <-
            begin = 1,                        # first slice
            end = dim(anatomy)[dimension] - 1,# last slice 
            symmetric = FALSE,
-           legend = NULL, 
+           legend = NULL,
+           locator = !is.null(legend),
            plottitle = NULL, 
            indicatorLevels = c(900, 1200),
            discreteStats = FALSE) {
     
-  opar <- par(no.readonly = TRUE) #remember old parameters ignoring readonlies
-  nslices <- prod(mfrow)
-  par(bg = "black")
-  if (! is.null(legend)) { # use the layout function
-    # create a layout matrix - sets up a matrix that is the same as par(mfrow=) would be,
-    # and then adds on an extra column for the slice locator and the legend
-    layoutMatrix <- cbind(matrix(1:nslices, nrow=mfrow[1], ncol=mfrow[2], byrow=T),
-                          c(nslices+1, rep(nslices+2, mfrow[1]-1)))
-    layout(layoutMatrix)
-  }
-  else {
-    par(mfrow=mfrow)
-  }
-  
-  # get rid of margins
-  par(mar=c(0,0,0,0))
-  # but keep some out margin for a title if desired
-  if (!is.null(plottitle)) { 
-    par(oma=c(0,0,2,0))
-  }
-  
-  # figure out location of slices
-  d <- dim(anatomy)
-  if (end < 0) { end <- d[dimension] + end }
-  slices <- ceiling(seq(begin, end, length=nslices))
-  
-  # force use of default colours if symmetric colours desired (for now)
-  if (symmetric) {
-    col <- NULL
-  }
-  
-  # plot the actual slices
-  anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
-  if(discreteStats){
-    statRange <- c(max(min(statistics, na.rm = TRUE), low),
-                   min(max(statistics, na.rm = TRUE), high))
-  } else {
-    statRange <- getRangeFromHistogram(statistics, low, high)
-  }
-  
-  for (i in 1:nslices) {
-    mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
-                              low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
-                              anatHigh=anatRange[2], col=col, legend=NULL, 
-                              symmetric=symmetric, discreteStats = discreteStats)
-  }
-  
-  # add the slice locator and the legend if so desired
-  if (!is.null(legend)) {
-    if (dimension %in% c(2,3)) {
-      locatorDimension = 1
-      locatorSlice = ceiling(d[1]/2)
-    }
-    else {
-      locatorDimension = 2
-      locatorSlice = ceiling(d[2]/2)
-    }
-    #mincPlotAnatAndStatsSlice(anatomy, statistics, locatorDimension, slice=locatorSlice,
-    #                          low=low, high=high, anatLow=anatRange[1], 
-    #                          anatHigh=anatRange[2], col=col, legend=NULL, 
-    #                          symmetric=symmetric)
-    #mincImage(mincArray(anatomy), low=anatRange[1], high=anatRange[2], slice=locatorSlice, dimension=locatorDimension,
-    #          col=gray.colors(255, start=0))
-    mincContour(anatomy, dimension=locatorDimension, slice=locatorSlice, col="white", levels=indicatorLevels, 
-                axes=F, drawlabels=F)
-    if (dimension %in% c(1,2)) {
-      abline(v=slices/d[dimension], col="yellow")
-    }
-    else {
-      abline(h=slices/d[dimension], col="yellow")
+    opar <- par(no.readonly = TRUE)
+    on.exit(par(opar))
+    
+    slices <- sliceSeriesLayout(anatomy, dimension, mfrow, 
+                                begin, end, plottitle, legend, locator)
+    
+    anatRange <- getRangeFromHistogram(anatomy, anatLow, anatHigh)
+    
+    if(is.null(indicatorLevels)) indicatorLevels <- anatRange
+    # force use of default colours if symmetric colours desired (for now)
+    if (symmetric) {
+      col <- NULL
     }
     
-    # and add the colourbar 
-    plot.new()
-    if (symmetric==TRUE) {
-      col <- colorRampPalette(c("red", "yellow"))(255)
-      rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
-      color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb", col="white")
-      color.legend(0.3, 0.55, 0.5, 0.95, c(low, high), col, gradient="y", align="rb", col="white")
+    # If stats are discrete don't auto-range them
+    if(discreteStats){
+      statRange <- c(max(min(statistics, na.rm = TRUE), low),
+                     min(max(statistics, na.rm = TRUE), high))
+    } else { # otherwise do
+      statRange <- getRangeFromHistogram(statistics, low, high)
     }
-    else {
-      color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), col, gradient="y", align="rb", col="white")
+    
+    for (i in 1:length(slices)) {
+      mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
+                                low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
+                                anatHigh=anatRange[2], col=col, legend=NULL, 
+                                symmetric=symmetric, discreteStats = discreteStats)
     }
-    opar <- par(no.readonly = TRUE)
-    par(xpd=T)
-    text(0.85, 0.5, labels=legend, srt=90, col="white", cex=2)
+    
+    #Add the plot locator if desired
+    if(locator) plotLocator(dimension, anatomy, 
+                            indicatorLevels, slices)
+    
+    #Add a legend for the statistics if desired
+    if(!is.null(legend)){
+      plot.new()
+      if (symmetric==TRUE) {
+        col <- colorRampPalette(c("red", "yellow"))(255)
+        rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
+        color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb", col="white")
+        color.legend(0.3, 0.55, 0.5, 0.95, c(low, high), col, gradient="y", align="rb", col="white")
+      }
+      else {
+        color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), col, gradient="y", align="rb", col="white")
+      }
+      
+      text(0.85, 0.5, labels=legend, srt=90, col="white", cex=2)
+    }
+    
+    #Add a title if desired
+    if (!is.null(plottitle)) {
+      mtext(plottitle, outer=T, side=3, line=-1, col="white", cex=2)
+    }
+    
+    return(invisible(NULL))
   }
-  if (!is.null(plottitle)) {
-    mtext(plottitle, outer=T, side=3, line=-1, col="white", cex=2)
-  }
-  par(opar)
-}
 
 getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
   
@@ -296,7 +404,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
             low=anatLow, high=anatHigh)
   
   mincImage(statistics, dimension, slice, axes = FALSE, add = TRUE, col=col, underTransparent = TRUE,
-            low = low, high = high, scale = !discreteStats)
+            low = low, high = high)
   
   if (symmetric) {
     mincImage(statistics, dimension, slice, axes = FALSE, add = TRUE, col=rcol, 
