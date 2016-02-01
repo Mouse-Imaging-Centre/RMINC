@@ -2067,7 +2067,7 @@ vertexApply <- function(filenames,function.string)
   vertexData = vertexTable(filenames)
 
   # In order to maintain the same interface as mincApply, the (x) part needs to be stripped
-  function.string = gsub('(x)','',function.string)
+  function.string = gsub('(x)','', function.string, fixed = TRUE)
 
   # The apply part (transpose to match output of mincApply)
   results <- t(apply(vertexData,1,function.string[1]))
@@ -3116,13 +3116,11 @@ verboseRun <- function(expr,verbose,env = parent.frame()) {
 	
 	env$expr <- expr
 	
-	if(verbose) {
-		output = with(env,eval(parse(text=expr)))
+	if(!verbose) {
+	  sink("/dev/null")
+	  on.exit(sink())
 	}
-	else {
-		sink("/dev/null")  
-		output = with(env,eval(parse(text=expr)))
-		sink()
-	}
+	
+	output = with(env,eval(parse(text=expr)))
 	return(invisible(output))
 }
