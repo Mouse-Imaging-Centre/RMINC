@@ -1,0 +1,35 @@
+#' RMINC: R interface to the MINC universe
+#' 
+#' RMINC provides a means of accessing and performing statistical
+#' analyses on MINC volumes. With facilities to calculate voxel-wise
+#' statistics, perform FDR correction, rapidly visualize 
+#' results, and much more.
+#' 
+#' @docType package
+#' @name RMINC
+NULL
+
+#' Voxel Atlas Definitions
+#' 
+#' Voxel based analyses often require an atlas to differentiate
+#' voxels by structure membership. In conjunction with the atlas, 
+#' a set of atlas definitions allow you to calculate summaries by region
+#' for measures and statistics of interest. For example the \code{defs} 
+#' argument of \link{anatGetAll} is a character vector
+#' pointing to atlas definitions.
+#' 
+#' @details
+#' the basic format for voxel atlas definitions is a 3-column csv
+#' file. The file should be formatted like: \cr
+#' \tabular{lrr}{
+#' Structure \tab right.label \tab left.label \cr
+#' amygdala \tab 51 \tab 151 \cr
+#' anterior commisure: pars anterior \tab 115 \tab 215 
+#' }
+#' The csv file may contain additional columns, but the
+#' three columns above must by present with names spelling/case
+#' sensitive. Additional columns may include a tissue.type
+#' column which is used in some functions.
+#' 
+#' @name voxel_atlas_defs
+NULL  

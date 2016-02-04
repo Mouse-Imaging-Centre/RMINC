@@ -126,7 +126,8 @@ print.anatMatrix <- function(x, ...) {
 #' @param defs A string pointing to the filename containing the label
 #' definitions. Used to map the integers in the atlas to a
 #' proper name for the structure and contains additional
-#' information for laterality of each structure.
+#' information for laterality of each structure. See \link{voxel_atlas_defs}
+#' for details.
 #' @param dropLabels Whether to return a value for every structure in the defs
 #' or just for the ones actually contained in each file.
 #' @param side Three choices, "right", "left", and "both" (the default)
