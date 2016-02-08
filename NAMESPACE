@@ -305,6 +305,16 @@ export( mincImage )
 export( mincContour )
 
 #############################
+# obj_functions.R
+export( read_obj )
+export( create_mesh )
+export( colour_mesh )
+export( plot.bic_obj )
+export( plot_bic_obj_overlay )
+export( add_colour_bar )
+export( obj_montage )
+
+#############################
 # load shared objects
 useDynLib(RMINC)
 
@@ -312,6 +322,9 @@ useDynLib(RMINC)
 #############################
 # import all required packages
 import(
+  dplyr,
+  lme4,
+  rgl,
   grDevices,
   methods,
   grid,
