@@ -16,7 +16,7 @@
 #' of metadata and a space seperated block of multiples of 3, followed finally by a block
 #' of triangle membership. Only the vertex and triangle blocks are read in.
 #' @export
-read_obj <- function (bic_obj, use_civet_triangles = FALSE) {
+read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
   
   lines <- readLines(bic_obj)
   
@@ -69,7 +69,8 @@ read_obj <- function (bic_obj, use_civet_triangles = FALSE) {
 #' @param ... extra parameters passed to the material argument list of \link{tmesh3d} can include
 #' additional \link{rgl.material} parameters to give to your mesh
 #' 
-#' @return a \link{mesh3d} object to be plotted alone or subsequently colourized with \link{colour_mesh}
+#' @return a \link{obj_mesh} descended from \link{mesh3d} object to be 
+#' plotted alone or subsequently colourized with \link{colour_mesh}
 #' @export
 create_mesh <- 
   function(bic_obj, color = "grey", specular = "black", add_normals = TRUE, ...){
@@ -80,6 +81,8 @@ create_mesh <-
                                   homogeneous = FALSE))
     
     if(add_normals) mesh <- mesh %>% addNormals()
+    
+    class(mesh) <- c("obj_mesh", class(mesh))
     
     mesh
   }
@@ -159,6 +162,24 @@ plot.bic_obj <-
    invisible(mesh)
   }
 
+#' Plot an BIC obj mesh
+#' 
+#' Create a plot of BIC obj_mesh, potentially colourized by \link{colour_mesh}
+#' and potentially including a colour bar
+#' 
+#' @param x a \link{obj_mesh} object
+#' @param colour_bar whether or not to add a colour bar
+#' @param additional parameters to pass to add_colour_bar
+#' @return returns x invisibly
+#' @export
+plot.obj_mesh <-
+  function(x, colour_bar = TRUE, ...){
+    x %>% shade3d
+    if(colour_bar) x %>% add_colour_bar
+    
+    invisible(x)
+  }
+
 #' Plot a BIC obj with a colour map
 #' 
 #' Create a colour mapped bic_obj and plot it in the current rgl
@@ -178,6 +199,7 @@ plot_bic_obj_overlay <-
   function(bic_obj, 
            colour_map, 
            palette = heat.colors(255),
+           colour_bar = TRUE,
            ...){
     
     mesh <-
@@ -210,8 +232,9 @@ plot_bic_obj_overlay <-
 add_colour_bar <- function(mesh,
                            title = "",
                            ...,
-                           column_widths = c(.85, .15), 
+                           column_widths = c(.75, .25), 
                            which_col = length(column_widths)){
+  if(is.null(mesh$legend)) stop("Your mesh has not colour information")
   with(mesh$legend, {
     bgplot3d({
       par(mar = c(4,8,4,2))
@@ -308,3 +331,4 @@ obj_montage <- function(left_obj,
   
   invisible(NULL)
 }
+
