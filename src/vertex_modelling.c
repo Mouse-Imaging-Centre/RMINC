@@ -203,6 +203,7 @@ SEXP vertex_anova_loop(SEXP data, SEXP Sx,SEXP asgn) {
   p = ncols(Sx);
   nVertices = nrows(data);
   
+    
   // allocate memory for lm
   coefficients = malloc(sizeof(double) * p);
   residuals = malloc(sizeof(double) * n);
