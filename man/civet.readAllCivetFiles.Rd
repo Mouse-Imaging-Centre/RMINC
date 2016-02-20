@@ -2,17 +2,41 @@
 % Please edit documentation in R/civet.R
 \name{civet.readAllCivetFiles}
 \alias{civet.readAllCivetFiles}
-\title{Read  all CIVET files into R}
+\title{Read all CIVET files into R}
 \usage{
 civet.readAllCivetFiles(atlasFile, gf)
 }
 \arguments{
+<<<<<<< HEAD
 \item{atlasFile}{Full path to the atlas on which CIVET was run ;}
 
 \item{gf}{Data Frame containing list of all CIVET file names, and where results will be stored}
+=======
+\item{gf}{Data Frame containing list of all CIVET file names, and where results will be stored
+requires gf to have an element (column) called CIVETFILES which is a data.frame containing
+paths to the civetFiles, typically generated with \link{civet.getAllFilenames}}
+
+\item{atlasFile}{Character path to a key to the atlas used when running civet.
+the key should be a comma separated file with a header and the following form \cr
+Column 1: Numeric label \cr
+Column 3: Corresponding structure}
+>>>>>>> 2e6f8f079c24a6eb08178346a20bd43517a0e7b8
 }
 \value{
-gf is returned with CIVET values
+Returns gf augmented with additional columns containing
+\itemize{
+\item{lobeArea40mm:}{ A subjects by region matrix of lobe areas parcellated by atlas region}
+\item{lobeThickness:}{ As above, but for thicknesses}
+\item{lobeVolume:}{ As above, but for volumes}
+\item{GI:}{ A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter
+ surface, white matter surface, midsurface of the two, followed by the same indices for the two}
+\item{BrainVolume:}{ A subjects by 3 matrix. Three columns are CSF volume, grey matter
+ and white matter respectively}
+\item{midSurfaceNativeArea:}{ A subjects by vertices matrix of mid-surface areas}
+\item{SurfaceNativeVolume:}{ As above, but for native space volumes}
+\item{nativeRMS_RSLtlink20mm:}{ As above, but for RMS_RSL tlink 20mm thicknesses}
+\item{nativeRMStlink20mm:}{ As above, but for RMS tlink 20mm thicknesses}
+}
 }
 \description{
 Parses outputs from CIVET pipeline
@@ -25,7 +49,7 @@ Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume,
 \examples{
 getRMINCTestData()
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET", TRUE, "1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 }
 \seealso{

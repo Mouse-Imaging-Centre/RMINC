@@ -1361,7 +1361,14 @@ pMincApply <- function(filenames, function.string,
   # Saving to /tmp does not always work...
   maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
   
-  mincWriteVolume(maskV, maskFilename, clobber=TRUE)
+  #If the current working directory isn't writeable, 
+  #write to a tempdir instead
+  if(file.access(getwd(), 2) != 0) maskFilename <- file.path(tempdir(), maskFilename)
+  
+  mincWriteVolume(maskV, 
+                  maskFilename, 
+                  clobber=TRUE) 
+  
   
   # create the packageList that will be used for the snowfall and sge options
   # if packages contains multiple libraries, the test (packages == "") 
@@ -2060,7 +2067,7 @@ vertexApply <- function(filenames,function.string)
   vertexData = vertexTable(filenames)
 
   # In order to maintain the same interface as mincApply, the (x) part needs to be stripped
-  function.string = gsub('(x)','',function.string)
+  function.string = gsub('(x)','', function.string, fixed = TRUE)
 
   # The apply part (transpose to match output of mincApply)
   results <- t(apply(vertexData,1,function.string[1]))
@@ -3043,36 +3050,52 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
   }
 }
 
-# Run Testbed
-runRMINCTestbed <- function(verboseTest = FALSE) {
-	
+#' @title Run Testbed
+#' @description Run the test bed to ensure all RMINC functions
+#' work on your system
+#' @param verboseTest
+#' Whether or not to verbosely print test output, default is
+#' to print simplified results
+#' @param purgeData whether to remove downloaded test files
+#' in /tmp/rminctestdata
+#' @param ... additional parameter for \link{testthat::test_dir}
+#' @return invisibly return the test results
+#' @export
+runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
+  
+	if(!require(testthat)){
+	  stop("Sorry, you need to install testthat to run the testbed")
+	}
 
   options(verbose = verboseTest)
   # Make sure environment is clear
   #rm(list=ls())
-
-  system('mkdir /tmp/rminctestdata')
-
-
+  
+  if(!file.exists("/tmp/rminctestdata/")){
+    system('mkdir /tmp/rminctestdata')
+  }
   # Download Tarball from Wiki
-  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
-
+  if(!file.exists("/tmp/rminctestdata/rminctestdata.tar.gz")){
+    system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz")
+  }
   # Untar
   system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
-  library(testthat)
 
   # Run Tests
   rmincPath = find.package("RMINC")
   cat("\n\nRunning tests in: ", paste(rmincPath,"/","tests/",sep=""), "\n\n\n")
-  test_dir(paste(rmincPath,"/","tests/",sep=""))
+  testReport <- test_dir(paste(rmincPath,"/","tests/",sep=""), ...)
   
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")
   cat("*********************************************\n\n\n")
-  # Remove temp data, and downloaded files
-  cat("Removing temporary directory /tmp/rminctestdata\n")
-  system('rm -fr /tmp/rminctestdata')
   
+  if(purgeData){
+    cat("Removing temporary directory /tmp/rminctestdata\n")
+    system('rm -fr /tmp/rminctestdata')
+  }
+
+  return(invisible(testReport))
 }
 
 # Get Test Data (i.e. for running examples from man pages)
@@ -3081,7 +3104,7 @@ getRMINCTestData <- function() {
   system('mkdir /tmp/rminctestdata')
 
   # Download Tarball from Wiki
-  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.phenogenomics.ca/download/attachments/1654/rminctestdata.tar.gz")
+  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz")
 
   # Untar
   system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
@@ -3093,13 +3116,11 @@ verboseRun <- function(expr,verbose,env = parent.frame()) {
 	
 	env$expr <- expr
 	
-	if(verbose) {
-		output = with(env,eval(parse(text=expr)))
+	if(!verbose) {
+	  sink("/dev/null")
+	  on.exit(sink())
 	}
-	else {
-		sink("/dev/null")  
-		output = with(env,eval(parse(text=expr)))
-		sink()
-	}
-	return(output)
+	
+	output = with(env,eval(parse(text=expr)))
+	return(invisible(output))
 }

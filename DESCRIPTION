@@ -7,14 +7,18 @@ Author: Jason Lerch <jason@mouseimaging.ca>, Jim Nikelski
 Maintainer: Jason lerch <jason@mouseimaging.ca>
 Description: A package for reading and writing MINC2 files
     and running arbitrary R functions at every voxel of a set of files.
+Additional_Repositiories: http://bioconductor.org/packages/3.1/bioc
 Depends:
     R (>= 3.0.1),
-    grDevices,
+Imports:
     methods,
-    grid,
-    lattice
+    lattice,
+    dplyr,
+    rgl,
+    ggplot2,
+    testthat,
+    lme4
 Suggests:
-    lme4,
     qvalue
 License: BSD
 LazyLoad: yes

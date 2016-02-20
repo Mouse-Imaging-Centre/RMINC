@@ -2,24 +2,6 @@
 # export all main functions
 
 #############################
-# AllGeneric.R
-export( mincIO.asVolume )
-export( mincIO.getProperty )
-export( mincIO.getSliceFromSliceArray )
-export( mincIO.getSliceX )
-export( mincIO.getSliceY )
-export( mincIO.getSliceZ )
-export( mincIO.makeNewSliceZ )
-#export( mincIO.makeNewVolume )
-export( mincIO.putSlice )
-export( mincIO.readBySlice )
-export( mincIO.readByVoxel )
-export( mincIO.readVolume )
-export( mincIO.setProperty )
-export( mincIO.writeVolume )
-
-
-#############################
 # civet.R
 export( civetAllROIs )
 export( civet.AllROIs )
@@ -49,6 +31,7 @@ export( civet.readCivetDatFiles )
 export( civet.readAllCivetFiles )
 export( civet.CreateBrainViewFile )
 export( civet.CreateBrainViewROI )
+export( civet.flattenForDplyr )
 export( civetFilenames )
 
 #############################
@@ -142,27 +125,6 @@ export( rminc.isMinc1 )
 export( rminc.isMinc2 )
 export( rminc.isReadable )
 export( rminc.readLinearXfmFile )
-
-
-#############################
-# mincInfo_class.R
-export( mincIO.printMincInfo )
-export( mincIO.readMincInfo )
-
-
-#############################
-# mincSlice_class.R
-#export( mincIO.plotSlicePretty )
-
-#############################
-# mincVolumeIO_class.R
-#export( mincIO.makeNewVolumeX )
-#export( mincIO.readVolumeX )
-#export( mincIO.writeVolumeX )
-
-#############################
-# mincVoxelIO_class.R
-#export( mincIO.readByVoxelX )
 
 #############################
 # rmincLmeLoop.R
@@ -343,6 +305,16 @@ export( mincImage )
 export( mincContour )
 
 #############################
+# obj_functions.R
+export( read_obj )
+export( create_mesh )
+export( colour_mesh )
+export( plot.bic_obj )
+export( plot_bic_obj_overlay )
+export( add_colour_bar )
+export( obj_montage )
+
+#############################
 # load shared objects
 useDynLib(RMINC)
 
@@ -350,6 +322,9 @@ useDynLib(RMINC)
 #############################
 # import all required packages
 import(
+  dplyr,
+  lme4,
+  rgl,
   grDevices,
   methods,
   grid,
