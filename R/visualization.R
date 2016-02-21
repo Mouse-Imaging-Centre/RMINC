@@ -94,10 +94,10 @@ plotLocator <- function(dimension, anatomy, indicatorLevels, slices){
               axes=F, drawlabels=F)
   
   if (dimension %in% 1:2) {
-    abline(v=slices/d[dimension], col="yellow")
+    abline(v=slices, col="yellow")
   }
   else {
-    abline(h=slices/d[dimension], col="yellow")
+    abline(h=slices, col="yellow")
   }
   
   invisible(NULL)
@@ -499,7 +499,7 @@ mincImage <- function(volume, dimension=2, slice=NULL,
     colourizedSlice <- col[scaledSlice]
       
     dim(colourizedSlice) <- dim(scaledSlice)
-    colourizedSlice <- t(colourizedSlice) #transpose for raster plotting
+    colourizedSlice <- t(colourizedSlice[,sliceDims[2]:1]) #transpose for raster plotting
     
     rasterImage(colourizedSlice, 
                 xleft = 0, xright = sliceDims[1],
@@ -525,7 +525,8 @@ mincImage <- function(volume, dimension=2, slice=NULL,
 #' }
 mincContour <- function(volume, dimension=2, slice=NULL, ...) {
   s <- getSlice(volume, slice, dimension)
-  contour(s$slice, asp=s$asp, ...)
+  sliceDims <- dim(s$slice)
+  contour(1:sliceDims[1], 1:sliceDims[2], s$slice, asp=1, ...)
 }
 
 scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
