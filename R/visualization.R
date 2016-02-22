@@ -430,13 +430,27 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
   }
 
   if (!is.null(legend)){
+    # get the dimensions of the current plot
+    plotdims <- par("usr")
     if (symmetric==TRUE) {
-      color.legend(1.01, 0.05, 1.03, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
-      color.legend(1.01, 0.55, 1.03, 0.95, c(low, high), col, gradient="y", align="rb")
+      color.legend(0.97 * plotdims[2], 
+                   0.05 * plotdims[4], 
+                   0.99 * plotdims[2], 
+                   0.45 * plotdims[4], 
+                   c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
+      color.legend(0.97 * plotdims[2], 
+                   0.55 * plotdims[4], 
+                   0.99 * plotdims[2], 
+                   0.95 * plotdims[4], 
+                   c(low, high), col, gradient="y", align="rb")
       text(1.10, 0.5, labels=legend, srt=90)
     }
     else {
-      color.legend(1.01, 0.25, 1.03, 0.75, c(low, high), col, gradient="y", align="rb")
+      color.legend(0.97 * plotdims[2], 
+                   0.25 * plotdims[4], 
+                   0.99 * plotdims[2], 
+                   0.75 * plotdims[4], 
+                   c(low, high), col, gradient="y", align="rb")
       text(1.05, 0.5, labels=legend, srt=90)
     }
     opar <- par(no.readonly = TRUE) #I think this gets lost anyway
