@@ -12,6 +12,9 @@ Here we will step through some of the new visualization tools built into RMINC 1
 library(RMINC)
 library(plotrix) # for legends
 
+# some weirdness potentially particular to my mac. Images are flipped, so fix that:
+options(RMINC_flip_image=TRUE)
+
 # load an existing dataset
 load("~/data/CREB/CREB-analyses/wtonly.RData")
 table(gfwt$Sex)

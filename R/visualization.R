@@ -133,7 +133,7 @@ sliceSeriesLayout <-
     return(slices)
   }
 
-#' Minc Slice Series
+#' MINC Slice Series
 #' 
 #' Plot a simple series of slices through a minc volume
 #' on a given dimension. Optionally include a locator
@@ -148,6 +148,7 @@ sliceSeriesLayout <-
 #' or the lowest col
 #' @param begin the first slice to plot, defaults to 1
 #' @param end the last slice to plot, defaults to the last slice
+#' @param symmetric whether the statistics are symmetric (such as for t-statistics)
 #' @param plottitle the title of the plot if desired
 #' @param legend an optional string to name the legend, indicating desire for a legend
 #' (or not)
@@ -156,8 +157,22 @@ sliceSeriesLayout <-
 #' @param indicatorLevels numeric vector indicating where to draw slice lines on the 
 #' locator, defaults to every slice
 #' @details 
+#' You can get a fuller tutorial on how to use the visualization tools by executing
+#' the following command:
+#' \code{file.show(system.file("doc/visualizationTutorial.html", package="RMINC"))}
+#' 
 #' On certain systems the slices are plotted with a reflected y-axis. To fix this
 #' configure \code{options(RMINC_flip_image = TRUE)}  
+#' @examples
+#' \dontrun{
+#' mincPlotSliceSeries(mincArray(anatVol),           # the anatomical volume
+#'                     mincArray(vs, "tvalue-SexM"), # pull out one column of the stats
+#'                     anatLow=700, anatHigh=1400,   # set anatomy thresholds
+#'                     low=2.5, high=10,             # set stats thresholds
+#'                     symmetric=T,                  # show separate upper and lower
+#'                     begin=25, end=-25  ,          # remove slices from both sides  
+#'                     legend="t-statistics")
+#' }
 #' @export
 mincPlotSliceSeries <- 
   function(anatomy, statistics = NULL, dimension=2,
@@ -446,6 +461,10 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
 #'   range transparent.
 #' @param ... other parameters to pass on to the \code{\link{image}} function.
 #' @details 
+#' You can get a fuller tutorial on how to use the visualization tools by executing
+#' the following command:
+#' \code{file.show(system.file("doc/visualizationTutorial.html", package="RMINC"))}
+#' 
 #' On certain systems the slices are plotted with a reflected y-axis. To fix this
 #' configure \code{options(RMINC_flip_image = TRUE)}   
 #' @export
