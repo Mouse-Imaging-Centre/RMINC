@@ -6,7 +6,7 @@
 mincImage(volume, dimension = 2, slice = NULL, low = min(volume, na.rm =
   TRUE), high = max(volume, na.rm = TRUE), reverse = FALSE,
   underTransparent = FALSE, col = gray.colors(255), scale = TRUE,
-  add = FALSE, ...)
+  add = FALSE, flip = FALSE, ...)
 }
 \arguments{
 \item{volume}{a MINC volume as returned by \code{\link{mincArray}}}
@@ -27,6 +27,10 @@ be estimated based on the volume's histogram.}
 range transparent.}
 
 \item{...}{other parameters to pass on to the \code{\link{image}} function.}
+
+\item{flip}{boolean, whether to invert the y-axis.
+On certain systems \link{mincImage} produces vertically reflected images, use this switch
+to fix that.}
 }
 \description{
 Calls the \code{\link{image}} plotting function from the base R graphics with
