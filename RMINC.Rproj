@@ -14,6 +14,6 @@ LaTeX: pdfLaTeX
 
 BuildType: Package
 PackageUseDevtools: Yes
-PackageInstallArgs: --no-multiarch --with-keep.source --configure-args="--with-build-path=$RMINC_BUILD_PATH" --no-lock
+PackageInstallArgs: --no-multiarch --with-keep.source --configure-args="--with-build-path=$RMINC_BUILD_PATH" --no-lock --no-test-load
 PackageBuildArgs: --configure-args="--with-build-path=$RMINC_BUILD_PATH"
 PackageBuildBinaryArgs: --no-multiarch --with-keep.source --configure-args="--with-build-path=$RMINC_BUILD_PATH"
