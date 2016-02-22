@@ -179,9 +179,7 @@ mincPlotSliceSeries <-
            mfrow = c(4,5),                   # layout
            low = NULL, high = NULL,          # stat thresholding
            anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
-           col = ifelse(symmetric,
-                        heat.colors(255),
-                        colorRampPalette(c("red", "yellow"))(255)),
+           col =  heat.colors(255),
            begin = 1,                          # first slice
            end = (dim(anatomy)[dimension] - 1),# last slice 
            symmetric = FALSE,
@@ -250,9 +248,7 @@ mincPlotStatsSliceSeries <-
            mfrow = c(4,5),                   # layout
            low = NULL, high = NULL,          # stat thresholding
            anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
-           col = ifelse(symmetric,
-                        heat.colors(255),
-                        colorRampPalette(c("red", "yellow"))(255)),
+           col = heat.colors(255),
            begin = 1,                        # first slice
            end = dim(anatomy)[dimension] - 1,# last slice 
            symmetric = FALSE,
@@ -283,7 +279,7 @@ mincPlotStatsSliceSeries <-
     } else { # otherwise do
       statRange <- getRangeFromHistogram(statistics, low, high)
     }
-    
+
     for (i in 1:length(slices)) {
       mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                                 low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
