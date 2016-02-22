@@ -3,7 +3,7 @@
 \alias{add_colour_bar}
 \title{Add a colour bar for a mesh}
 \usage{
-add_colour_bar(mesh, title = "", ..., column_widths = c(0.85, 0.15),
+add_colour_bar(mesh, title = "", ..., column_widths = c(0.75, 0.25),
   which_col = length(column_widths))
 }
 \arguments{

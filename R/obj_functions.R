@@ -25,7 +25,9 @@ read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
   ## Hacky parsing BIC .obj format see https://github.com/BIC-MNI/bicpl/Documentation
   ## This probably only works with output from CIVET 1.1.12
   section_ends <- 
-    grep("^$", lines) %>%
+    lines %>%
+    `==`("") %>%
+    which %>%
     as.list %>%
     setNames(c("vertices", "colours", "metadata", "multiples_of_three", "triangles"))
   
@@ -55,6 +57,15 @@ read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
   
   structure(list(vertex_matrix = vertices, triangle_matrix = polygons), class = "bic_obj")
 }
+
+add_mesh <-
+  function(mesh){
+    if(!is.null(mesh$id)) 
+      
+    shade3d(mesh)
+    rgl_id <- rgl.ids()$id %>% tail(1)
+    mesh$id <- rgl_id
+  }
 
 
 #' Create surface mesh for a bic_obj

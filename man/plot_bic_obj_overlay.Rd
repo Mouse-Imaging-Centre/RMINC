@@ -3,7 +3,8 @@
 \alias{plot_bic_obj_overlay}
 \title{Plot a BIC obj with a colour map}
 \usage{
-plot_bic_obj_overlay(bic_obj, colour_map, palette = heat.colors(255), ...)
+plot_bic_obj_overlay(bic_obj, colour_map, palette = heat.colors(255),
+  colour_bar = TRUE, ...)
 }
 \arguments{
 \item{bic_obj}{A \code{bic_obj} probably created by \link{read_obj}}
@@ -12,7 +13,7 @@ plot_bic_obj_overlay(bic_obj, colour_map, palette = heat.colors(255), ...)
 in the \code{bic_obj} or the path to a text file with one line per vertex with
 colour information.}
 
-\item{A}{palette, AKA look-up-table providing a linear colour scale for the colours in
+\item{A}{palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}
 
 \item{...}{additional arguments to \link{create_mesh} including but not limited
