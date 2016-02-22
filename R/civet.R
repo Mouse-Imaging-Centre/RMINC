@@ -1221,6 +1221,10 @@ civet.flattenForDplyr <-
     colnames(lobeThickness) <- cleanAndPrefixColNames(lobeThickness)
     lobeThickness <- lobeThickness %>% as.data.frame
     
+    lobeVolume <- civetResults$lobeVolume
+    colnames(lobeVolume) <- cleanAndPrefixColNames(lobeVolume)
+    lobeVolume <- lobeVolume %>% as.data.frame
+    
     GI <- civetResults$GI
     colnames(GI) <- cleanAndPrefixColNames(GI)
     GI <- GI %>% as.data.frame
@@ -1243,7 +1247,7 @@ civet.flattenForDplyr <-
     
     normalized_frame <-
       normalized_frame %>%
-      bind_cols(lobeArea40mm, lobeThickness, GI, BrainVolume) %>%
+      bind_cols(lobeArea40mm, lobeVolume, lobeThickness, GI, BrainVolume) %>%
       mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
   }
 
