@@ -9,7 +9,7 @@ mincPlotSliceSeries(anatomy, statistics = NULL, dimension = 2,
   colorRampPalette(c("red", "yellow"))(255)), begin = 1,
   end = (dim(anatomy)[dimension] - 1), symmetric = FALSE, legend = NULL,
   locator = !is.null(legend), plottitle = NULL, indicatorLevels = NULL,
-  discreteStats = FALSE, flip = FALSE)
+  discreteStats = FALSE)
 }
 \arguments{
 \item{anatomy}{A minc array of the anatomy volume to plot}
@@ -39,14 +39,14 @@ you requested a legend}
 
 \item{indicatorLevels}{numeric vector indicating where to draw slice lines on the
 locator, defaults to every slice}
-
-\item{flip}{boolean, whether to invert the y-axis.
-On certain systems \link{mincImage} produces vertically reflected images, use this switch
-to fix that.}
 }
 \description{
 Plot a simple series of slices through a minc volume
 on a given dimension. Optionally include a locator
 contour to show where slices are.
+}
+\details{
+On certain systems the slices are plotted with a reflected y-axis. To fix this
+configure \code{options(RMINC_flip_image = TRUE)}
 }
 

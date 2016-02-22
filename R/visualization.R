@@ -155,9 +155,9 @@ sliceSeriesLayout <-
 #' you requested a legend
 #' @param indicatorLevels numeric vector indicating where to draw slice lines on the 
 #' locator, defaults to every slice
-#' @param flip boolean, whether to invert the y-axis. 
-#' On certain systems \link{mincImage} produces vertically reflected images, use this switch
-#' to fix that.
+#' @details 
+#' On certain systems the slices are plotted with a reflected y-axis. To fix this
+#' configure \code{options(RMINC_flip_image = TRUE)}  
 #' @export
 mincPlotSliceSeries <- 
   function(anatomy, statistics = NULL, dimension=2,
@@ -174,8 +174,7 @@ mincPlotSliceSeries <-
            locator = !is.null(legend),
            plottitle = NULL, 
            indicatorLevels = NULL,
-           discreteStats = FALSE,
-           flip = FALSE){
+           discreteStats = FALSE){
     
     plot_function <- 
       ifelse(is.null(statistics), 
@@ -204,8 +203,7 @@ mincPlotSimpleSliceSeries <-
            plottitle = NULL,
            legend = NULL,
            locator = !is.null(legend),
-           indicatorLevels = NULL,
-           flip = FALSE){
+           indicatorLevels = NULL){
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
@@ -220,7 +218,7 @@ mincPlotSimpleSliceSeries <-
     lapply(slices, function(current_slice) {
       mincImage(anatomy, dimension, slice=current_slice,
                 low=anatRange[1], high=anatRange[2], 
-                axes = FALSE, underTransparent = TRUE, flip = flip)
+                axes = FALSE, underTransparent = TRUE)
     })
     
     if(locator) plotLocator(dimension, anatomy, 
@@ -247,8 +245,7 @@ mincPlotStatsSliceSeries <-
            locator = !is.null(legend),
            plottitle = NULL, 
            indicatorLevels = c(900, 1200),
-           discreteStats = FALSE,
-           flip = FALSE) {
+           discreteStats = FALSE) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
@@ -276,8 +273,7 @@ mincPlotStatsSliceSeries <-
       mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                                 low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
                                 anatHigh=anatRange[2], col=col, legend=NULL, 
-                                symmetric=symmetric, discreteStats = discreteStats,
-                                flip = flip)
+                                symmetric=symmetric, discreteStats = discreteStats)
     }
     
     #Add the plot locator if desired
@@ -388,8 +384,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           anatHigh=max(anatomy, na.rm = TRUE), 
                           symmetric=FALSE,
                           col=NULL, rcol=NULL, legend=NULL,
-                          discreteStats = FALSE,
-                          flip = FALSE) {
+                          discreteStats = FALSE) {
   if (is.null(slice)) {
     halfdims <- ceiling(dim(anatomy)/2)
     slice <- halfdims[dimension]
@@ -450,9 +445,9 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
 #' @param underTransparent whether to make anything below the low end of the
 #'   range transparent.
 #' @param ... other parameters to pass on to the \code{\link{image}} function.
-#' @param flip boolean, whether to invert the y-axis. 
-#' On certain systems \link{mincImage} produces vertically reflected images, use this switch
-#' to fix that.   
+#' @details 
+#' On certain systems the slices are plotted with a reflected y-axis. To fix this
+#' configure \code{options(RMINC_flip_image = TRUE)}   
 #' @export
 #' @examples
 #' \dontrun{
@@ -467,7 +462,6 @@ mincImage <- function(volume, dimension=2, slice=NULL,
                       col = gray.colors(255),
                       scale = TRUE,
                       add = FALSE,
-                      flip = FALSE,
                       ...) {
   s <- getSlice(volume, slice, dimension)
   # reverse means multiply scaling by -1
@@ -510,8 +504,11 @@ mincImage <- function(volume, dimension=2, slice=NULL,
     colourizedSlice <- col[scaledSlice]
       
     dim(colourizedSlice) <- dim(scaledSlice)
-    if(flip) colourizedSlice <- colourizedSlice[,sliceDims[2]:1]
     
+    flip_option <- options()$RMINC_flip_image
+    if(!is.null(flip_option) && flip_option)
+      colourizedSlice <- colourizedSlice[,sliceDims[2]:1]
+      
     colourizedSlice <- t(colourizedSlice) #transpose for raster plotting
     
     rasterImage(colourizedSlice, 
