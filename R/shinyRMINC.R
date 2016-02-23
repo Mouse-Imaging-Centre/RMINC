@@ -1,19 +1,19 @@
 #' launch a shiny based inspector
 #' 
-#' This uses shiny to inspect the output of mincLm or mincAnova. Produces
-#' various views, the ability to plot individual voxels, and get the
-#' output of the stats model at that voxel.
-#'
+#' This uses shiny to inspect the output of mincLm or mincAnova. Produces 
+#' various views, the ability to plot individual voxels, and get the output of
+#' the stats model at that voxel.
+#' 
 #' @param statsoutput the output of mincLm or mincAnova
-#' @param anatVol the anatomical volume on which to display the statistics
+#' @param anatVol the anatomical volume on which to display the statistics. Can
+#'   be passed a filename, a MINC volume (from mincGetVol), or a mincArray.
 #' @param volumes not used yet
 #' @param keepBetas whether to include the beta coefficients
 #' @param plotcolumns extra data to be used for plotting
 #' @param modelfunc optional modelling function
-#'
-#' @return
+#'   
 #' @export
-#'
+#' 
 #' @examples
 #' \dontrun{
 #' vs <- mincLm(reljacobians02 ~ sex*treatment, subset(gfs, treatment != "None"))
@@ -25,6 +25,17 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALS
   if (!is.null(plotcolumns)) {
     gfs <- cbind(gfs, plotcolumns)
   }
+  
+  # if anatVol is a filename, read it in now.
+  if (is.character(anatVol)) {
+    anatVol <- mincArray(mincGetVolume(anatVol))
+  }
+  
+  # hokey check for whether anatVol is a mincArray or not
+  if (is.null(dim(anatVol))) {
+    anatVol <- mincArray(anatVol)
+  }
+  
   statsList <- list()
   sType <- attributes(statsoutput)$`stat-type`
   cNames <- colnames(statsoutput)
