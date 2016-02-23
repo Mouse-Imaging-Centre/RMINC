@@ -17,6 +17,8 @@ statsList <- get("statsList", sys.frame(1))
 d <- get("d", sys.frame(1))
 anatVol <- get("anatVol", sys.frame(1))
 gfs <- get("gfs", sys.frame(1))
+m <- get("m", sys.frame(1))
+modelfunc <- get("modelfunc", sys.frame(1))
 
 cat(names(statsList))
 
@@ -25,51 +27,59 @@ shinyServer(function(input, output, clientData, session) {
   # update some elements based on the data being accessed
   updateSelectInput(session, "statistic", choices=names(statsList))
 
+  statsChoices <- colnames(gfs)[colnames(gfs) != "filenames"]
+  updateSelectInput(session, "xvar", choices=statsChoices)
+  updateSelectInput(session, "colour", choices=statsChoices)
+  updateSelectInput(session, "fill", choices=statsChoices)
+
   # a function to plot either voxels or volumes based on the input data, colours, fill, etc.
   graphData <- function(ydata, ycaption, inputdata) {
     inputdata$data = ydata
-    inputdata$xvar <- inputdata[,statsList[[input$statistic]]$xvar]
-    inputdata$colour <- inputdata[,statsList[[input$statistic]]$colour]
+    inputdata$xvar <- inputdata[,input$xvar]
+    inputdata$colour <- inputdata[,input$colour]
+    inputdata$fill <- inputdata[,input$fill]
 
-    if (statsList[[input$statistic]]$fill == FALSE) {
-      p <- qplot(xvar, ydata, data=inputdata, geom=input$graphType, colour=colour) +
-        xlab(statsList[[input$statistic]]$xvar) +
+    #if (statsList[[input$statistic]]$fill == FALSE) {
+    #  p <- qplot(xvar, ydata, data=inputdata, geom=input$graphType, colour=colour) +
+    #    xlab(statsList[[input$statistic]]$xvar) +
+    #    ylab(ycaption) +
+    #    scale_colour_brewer(statsList[[input$statistic]]$colour, palette="Set1")
+    #}
+    #else {
+    #  inputdata$fill <- inputdata[,statsList[[input$statistic]]$fill]
+    p <- qplot(xvar, ydata, data=inputdata, geom=input$graphType, colour=colour, fill=fill) +
+        xlab(input$xvar) +
         ylab(ycaption) +
-        scale_colour_brewer(statsList[[input$statistic]]$colour, palette="Set1")
-    }
-    else {
-      inputdata$fill <- inputdata[,statsList[[input$statistic]]$fill]
-      p <- qplot(xvar, ydata, data=inputdata, geom=input$graphType, colour=colour, fill=fill) +
-        xlab(statsList[[input$statistic]]$xvar) +
-        ylab(ycaption) +
-        scale_colour_brewer(statsList[[input$statistic]]$colour, palette="Set1") +
-        scale_fill_grey(statsList[[input$statistic]]$fill)
-    }
+        scale_colour_brewer(input$colour, palette="Set1") +
+        scale_fill_grey(input$fill)
+    #}
     return(p)
   }
 
   getLocation3 <- function() {
     location <- c(input$click_axial$x, input$click_axial$y)
-    location <- ceiling(location * c(d[1], d[2]))
+    #location <- ceiling(location * c(d[1], d[2]))
     location <- c(v$loc1, location[2], location[1])
     return(location)
   }
 
   getLocation2 <- function() {
     location <- c(input$plot_click$x, input$plot_click$y)
-    location <- ceiling(location * c(d[1], d[3]))
+    #location <- ceiling(location * c(d[1], d[3]))
     location <- c(location[2], v$loc2,location[1])
     return(location)
   }
 
   getLocation1 <- function(){
     location <- c(input$click_sagittal$x, input$click_sagittal$y)
-    location <- ceiling(location * c(d[2], d[3]))
+    #location <- ceiling(location * c(d[2], d[3]))
     location <- c(location[2],location[1],v$loc3)
     return(location)
   }
   getVoxel <- function() {
-    voxel <- mincGetVoxel(gfs$reljacobians02, v$loc1, v$loc2, v$loc3)
+    cat("VOXEL", v$loc1, v$loc2, v$loc3, "\n")
+    cat("fnames", gfs$filenames[1])
+    voxel <- mincGetVoxel(gfs$filenames, v$loc1, v$loc2, v$loc3)
     return(voxel)
   }
 
@@ -131,7 +141,7 @@ shinyServer(function(input, output, clientData, session) {
                         anatLow=700, anatHigh=1400, low=input$low, high=input$high,
                         begin=input$begin, end=input$end, plottitle = input$statistic,
                         dim=as.integer(input$dimension), symmetric=statsList[[input$statistic]]$symmetric,
-                        legend="F-statistic", mfrow=c(input$rows, input$columns))
+                        legend=statsList[[input$statistic]]$legendTitle, mfrow=c(input$rows, input$columns))
 
 
   }, bg="black")
@@ -145,8 +155,10 @@ shinyServer(function(input, output, clientData, session) {
                               slice=v$loc2, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=2)
     #mincContour(statsList[[input$statistic]]$data, slice=v$loc2, col="green", add=T, levels=statsList[[input$statistic]]$thresholds[3])
-    abline(h=v$loc1/d[3])
-    abline(v=v$loc3/d[1])
+    #abline(h=v$loc1/d[3])
+    abline(h=v$loc1)
+    #abline(v=v$loc3/d[1])
+    abline(v=v$loc3)
   })
   output$sagittalPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
@@ -155,8 +167,10 @@ shinyServer(function(input, output, clientData, session) {
                               low=input$low, high=input$high,
                               slice=v$loc3, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=1, legend="F-statistic")
-    abline(h=v$loc1/d[3])
-    abline(v=v$loc2/d[2])
+    #abline(h=v$loc1/d[3])
+    abline(h=v$loc1)
+    #abline(v=v$loc2/d[2])
+    abline(v=v$loc2)
   })
   output$axialPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
@@ -165,12 +179,14 @@ shinyServer(function(input, output, clientData, session) {
                               low=input$low, high=input$high,
                               slice=v$loc1, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=3)
-    abline(v=v$loc3/d[1])
-    abline(h=v$loc2/d[2])
+    #abline(v=v$loc3/d[1])
+    abline(v=v$loc3)
+    #abline(h=v$loc2/d[2])
+    abline(h=v$loc2)
   })
 
   output$graphPlot <- renderPlot({
-    #gfs$voxel <- v$voxel
+    gfs$voxel <- v$voxel
     graphData(exp(v$voxel), "jacobians", gfs)
 
     #qplot(xvar, exp(voxel), data=gfs, geom=input$graphType, colour=colour, fill=fill)
@@ -179,10 +195,10 @@ shinyServer(function(input, output, clientData, session) {
   output$summaryText <- renderPrint({
     #location <- c(input$plot_click$x, input$plot_click$y)
     #location <- ceiling(location * c(d[1], d[3]))
-    gfs$voxel <- v$voxel #mincGetVoxel(gfs$reljacobians02, location[2], input$slice, location[1])
-
+    gfs$voxel <- v$voxel #mincGetVoxel(gfs$filenames, location[2], input$slice, location[1])
+    modelfunc(gfs$voxel)
     #anova(lm(voxel ~ mouse.gender + Neonatal, gfs))
-    statsList[[input$statistic]]$modelfunc(gfs)
+    #statsList[[input$statistic]]$modelfunc(gfs)
   })
 
   output$volumesTable <- DT::renderDataTable({

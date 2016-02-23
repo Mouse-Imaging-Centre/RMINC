@@ -305,6 +305,10 @@ export( mincImage )
 export( mincContour )
 
 #############################
+# shinyRMINC.R
+export( launch_shinyRMINC )
+
+#############################
 # obj_functions.R
 export( read_obj )
 export( create_mesh )

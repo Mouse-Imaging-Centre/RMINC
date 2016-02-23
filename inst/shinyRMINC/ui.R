@@ -1,17 +1,17 @@
 
 # This is the user-interface definition of a Shiny web application.
 # You can find out more about building applications with Shiny here:
-# 
+#
 # http://www.rstudio.com/shiny/
 #
 
 library(shiny)
 
 shinyUI(pageWithSidebar(
-  
+
   # Application title
-  headerPanel("Simon's Painful Data"),
-  
+  headerPanel("RMINC data explorer"),
+
   # Sidebar with a slider input for number of bins
   sidebarPanel(
     conditionalPanel(
@@ -20,7 +20,7 @@ shinyUI(pageWithSidebar(
                   "Lower Threshold",
                   min = 0,
                   max = 15,
-                  step=0.1,
+                  step=0.01,
                   value = 2)),
     conditionalPanel(
       'input.tab == "Slice Series" || input.tab == "Single Slice"',
@@ -28,16 +28,16 @@ shinyUI(pageWithSidebar(
                   "Upper Threshold",
                   min = 0,
                   max = 15,
-                  step=0.1,
+                  step=0.01,
                   value = 20)),
     selectInput("statistic", "Statistic to display:", choices=c()),
-                #choices=c("Neonatal" = "Neonatal", 
+                #choices=c("Neonatal" = "Neonatal",
                 #          "Sex" = "mouse.gender")),
     conditionalPanel(
       'input.tab == "Slice Series"',
       selectInput("dimension", "Dimension to display:",
-                  choices=c("coronal" = 2, 
-                            "sagittal" = 1, 
+                  choices=c("coronal" = 2,
+                            "sagittal" = 1,
                             "axial" = 3))),
     conditionalPanel(
       'input.tab == "Slice Series"',
@@ -85,17 +85,17 @@ shinyUI(pageWithSidebar(
 
     conditionalPanel(
       'input.tab == "Single Slice" || input.tab == "Volumes"',
-      selectInput("graphType", "Graph type", 
+      selectInput("graphType", "Graph type",
                 choices=c("boxplot", "point" = "jitter")))
-    
+
   ),
-  
+
   # Show a plot of the generated distribution
   mainPanel(
     tabsetPanel(
       id="tab",
       tabPanel("Slice Series", plotOutput("seriesPlot", height="800px")),
-      tabPanel("Single Slice", 
+      tabPanel("Single Slice",
                fluidRow(
                  column(7,
                         plotOutput("coronalPlot", height="500px", click="plot_click")),
@@ -113,18 +113,17 @@ shinyUI(pageWithSidebar(
 
                  column(12,
                         verbatimTextOutput("summaryText")))),
-      tabPanel("Volumes", 
+      tabPanel("Volumes",
                fluidRow(
                  DT::dataTableOutput(outputId="volumesTable")),
                fluidRow(
                  plotOutput("volumesPlot")
-                 #column(6, 
+                 #column(6,
                   #      plotOutput("volumesPlot2"))
                )
                )
                #),
-      
+
     )
   )
 ))
-
