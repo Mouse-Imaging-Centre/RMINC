@@ -1,9 +1,31 @@
+#' launch a shiny based inspector
+#' 
+#' This uses shiny to inspect the output of mincLm or mincAnova. Produces
+#' various views, the ability to plot individual voxels, and get the
+#' output of the stats model at that voxel.
+#'
+#' @param statsoutput the output of mincLm or mincAnova
+#' @param anatVol the anatomical volume on which to display the statistics
+#' @param volumes not used yet
+#' @param keepBetas whether to include the beta coefficients
+#' @param plotcolumns extra data to be used for plotting
+#' @param modelfunc optional modelling function
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' vs <- mincLm(reljacobians02 ~ sex*treatment, subset(gfs, treatment != "None"))
+#' anatVol <- mincArray(mincGetVolume("anatomyfile.mnc"))
+#' launch_shinyRMINC(vs, anatVol, plotcolumns=subset(gfs, treatment=="None")[,c("sex", "Neonatal")], keepBetas=F)
+#' }
 launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL) {
   # output goes into temporary directory
   tmpDir <- tempdir()
   # copy two files into temporary directory
-  file.copy(from = "/home/jlerch/git/RMINC-rstudio/inst/shinyRMINC/server.R", to = tmpDir, overwrite=TRUE)
-  file.copy(from = "/home/jlerch/git/RMINC-rstudio/inst/shinyRMINC/ui.R", to = tmpDir, overwrite=TRUE)
+  #file.copy(from = "/home/jlerch/git/RMINC-rstudio/inst/shinyRMINC/server.R", to = tmpDir, overwrite=TRUE)
+  #file.copy(from = system.file("shinyRMINC/ui.R", package="RMINC"), to = tmpDir, overwrite=TRUE)
   # need to turn the statsoutput into a list
   gfs <- data.frame(filenames = attributes(statsoutput)$filenames)
   if (!is.null(plotcolumns)) {
@@ -39,5 +61,5 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALS
   }
   # save file into tempdir
   cat("Launching shiny\n")
-  shiny:::runApp(tmpDir)
+  shiny:::runApp(system.file("shinyRMINC/", package="RMINC"))
 }
