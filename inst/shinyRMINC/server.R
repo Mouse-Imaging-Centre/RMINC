@@ -101,21 +101,21 @@ shinyServer(function(input, output, clientData, session) {
     v$loc1 <- location[1]
     v$loc2 <- location[2]
     v$loc3 <- location[3]
-    v$voxel <- rvoxel()
+    if(input$updatePlot) { v$voxel <- rvoxel() }
   })
   observeEvent(input$click_sagittal, {
     location <- getLocation1()
     v$loc1 <- location[1]
     v$loc2 <- location[2]
     v$loc3 <- location[3]
-    v$voxel <- rvoxel()
+    if (input$updatePlot) { v$voxel <- rvoxel() }
   })
   observeEvent(input$click_axial, {
     location <- rlocation3()
     v$loc1 <- location[1]
     v$loc2 <- location[2]
     v$loc3 <- location[3]
-    v$voxel <- rvoxel()
+    if (input$updatePlot) { v$voxel <- rvoxel() }
   })
 
   # update user interface elements based on other selections

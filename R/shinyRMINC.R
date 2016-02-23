@@ -21,12 +21,6 @@
 #' launch_shinyRMINC(vs, anatVol, plotcolumns=subset(gfs, treatment=="None")[,c("sex", "Neonatal")], keepBetas=F)
 #' }
 launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL) {
-  # output goes into temporary directory
-  tmpDir <- tempdir()
-  # copy two files into temporary directory
-  #file.copy(from = "/home/jlerch/git/RMINC-rstudio/inst/shinyRMINC/server.R", to = tmpDir, overwrite=TRUE)
-  #file.copy(from = system.file("shinyRMINC/ui.R", package="RMINC"), to = tmpDir, overwrite=TRUE)
-  # need to turn the statsoutput into a list
   gfs <- data.frame(filenames = attributes(statsoutput)$filenames)
   if (!is.null(plotcolumns)) {
     gfs <- cbind(gfs, plotcolumns)
@@ -59,7 +53,6 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALS
       modelfunc <- function(x) { anoval(lm(x ~ m -1)) }
     }
   }
-  # save file into tempdir
   cat("Launching shiny\n")
   shiny:::runApp(system.file("shinyRMINC/", package="RMINC"))
 }
