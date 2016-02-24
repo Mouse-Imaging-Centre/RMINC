@@ -19,7 +19,7 @@ anatVol <- get("anatVol", sys.frame(1))
 gfs <- get("gfs", sys.frame(1))
 m <- get("m", sys.frame(1))
 modelfunc <- get("modelfunc", sys.frame(1))
-
+vols <- get("volumes", sys.frame(1))
 cat(names(statsList))
 
 shinyServer(function(input, output, clientData, session) {
@@ -27,7 +27,7 @@ shinyServer(function(input, output, clientData, session) {
   # update some elements based on the data being accessed
   updateSelectInput(session, "statistic", choices=names(statsList))
 
-  statsChoices <- colnames(gfs)[colnames(gfs) != "filenames"]
+  statsChoices <- colnames(gfs)[!( colnames(gfs) %in% c("filenames", "vols"))]
   updateSelectInput(session, "xvar", choices=statsChoices)
   updateSelectInput(session, "colour", choices=statsChoices)
   updateSelectInput(session, "fill", choices=statsChoices)
@@ -202,19 +202,19 @@ shinyServer(function(input, output, clientData, session) {
   })
 
   output$volumesTable <- DT::renderDataTable({
-
-    usableNames <- unique(statsList[[input$statistic]][c("xvar", "colour", "fill")])
-    isFalse <- usableNames %in% FALSE
-    usableNames <- usableNames[!isFalse]
-    gfs$newGrouping <- ""
-    for (i in 1:length(usableNames)) {
-      gfs$newGrouping <- paste(gfs$newGrouping, gfs[,usableNames[[i]]])
-      cat("usableNames i: ", usableNames[[i]], " ")
-    }
-    cat("\n")
+    usableNames <- input$xvar #colnames(gfs)[!(colnames(gfs) %in% c("filenames", "vols"))]
+    #isFalse <- usableNames %in% FALSE
+    #usableNames <- usableNames[!isFalse]
+    #gfs$newGrouping <- ""
+    #for (i in 1:length(usableNames)) {
+      #cat("usableNames", i , usableNames[[i]], " ")
+      #gfs$newGrouping <- paste(gfs$newGrouping, gfs[,usableNames[[i]]])
+    #}
+    #cat("done\n")
 
     #gfs$newGrouping <- paste(gfs[,as.vector(usableNames)], sep="::")
-    gfs$newGrouping <- factor(gfs$newGrouping)
+    #gfs$newGrouping <- factor(gfs$newGrouping)
+    gfs$newGrouping <- factor(gfs[,usableNames])
     cat(gfs$newGrouping[1])
 
     dt <- as.data.frame(t(apply(gfs$vols, 2, function(x) { tapply(x, gfs[,"newGrouping"], mean)})))
@@ -227,26 +227,27 @@ shinyServer(function(input, output, clientData, session) {
     }
     #dt$'effect size' <- (dt[,"male"] - dt[,"female"]) / dtsd[,"male"]
 
-    colnames(qavs) <- paste("q-value", colnames(qavs))
-    dt <- cbind(qavs, dt)
+    #colnames(qavs) <- paste("q-value", colnames(qavs))
+    #dt <- cbind(qavs, dt)
     dt
 
   })
   output$volumesPlot <- renderPlot({
     selectedStructures <- input$volumesTable_rows_selected
 
-    usableNames <- unique(statsList[[input$statistic]][c("xvar", "colour", "fill")])
-    isFalse <- usableNames %in% FALSE
-    usableNames <- usableNames[!isFalse]
-    cat(1)
+    usableNames <- colnames(gfs)[!(colnames(gfs) %in% c("filenames", "vols"))]
+    #isFalse <- usableNames %in% FALSE
+    #usableNames <- usableNames[!isFalse]
+    #cat(1)
     v <- as.data.frame(gfs$vols)
+    cat("V", nrow(v), ncol(v), "\n")
     for (i in 1:length(usableNames)) {
-      v[,usableNames[[i]]] = gfs[,usableNames[[i]]]
+      v[,usableNames] = gfs[,usableNames]
     }
-    usableNames <- unlist(usableNames)
-    cat(2)
+    #usableNames <- unlist(usableNames)
+    #cat(2)
     #v[,statsList[[input$statistic]]$xvar] = gfs[,statsList[[input$statistic]]$xvar]
-    cat(" ", usableNames[1], " ")
+    #cat(" ", usableNames[1], " ")
     m <- melt(v, id.vars=usableNames) #statsList[[input$statistic]]$xvar)
     cat(3)
     m <- subset(m, variable %in% selectedStructures)
