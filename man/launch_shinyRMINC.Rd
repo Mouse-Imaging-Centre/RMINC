@@ -12,7 +12,7 @@ launch_shinyRMINC(statsoutput, anatVol, volumes = NULL, keepBetas = FALSE,
 \item{anatVol}{the anatomical volume on which to display the statistics. Can
 be passed a filename, a MINC volume (from mincGetVol), or a mincArray.}
 
-\item{volumes}{not used yet}
+\item{volumes}{a matrix or data frame of volumes for plotting}
 
 \item{keepBetas}{whether to include the beta coefficients}
 
@@ -29,7 +29,7 @@ the stats model at that voxel.
 \dontrun{
 vs <- mincLm(reljacobians02 ~ sex*treatment, subset(gfs, treatment != "None"))
 anatVol <- mincArray(mincGetVolume("anatomyfile.mnc"))
-launch_shinyRMINC(vs, anatVol, plotcolumns=subset(gfs, treatment=="None")[,c("sex", "Neonatal")], keepBetas=F)
+launch_shinyRMINC(vs, anatVol, volumes=gfs$vols, plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
 }
 }
 

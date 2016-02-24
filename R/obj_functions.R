@@ -343,19 +343,6 @@ obj_montage <- function(left_obj,
   invisible(NULL)
 }
 
-single_closest_vertex <-
-  function(vertices, target, returns){
-    if(ncol(vertices) == 3) vertices <- cbind(vertices, 1)
-    if(length(target) == 3) target <- c(target, 1)
-    
-    distances <- colSums((t(vertices) - as.numeric(target))^2)
-    closest <- which(distances == min(distances))
-    
-    if(returns == "coordinates") return(vertices[closest, -4])
-    
-    return(closest)
-  }
-
 #' Find Closest Vertex
 #' 
 #' Given a set of vertices (3-column matrix or data frame of x,y,z coordinates)
@@ -386,6 +373,19 @@ closestVertex <-
     if(nrow(results) == 1) dim(results) <- NULL
     
     results
+  }
+
+single_closest_vertex <-
+  function(vertices, target, returns){
+    if(ncol(vertices) == 3) vertices <- cbind(vertices, 1)
+    if(length(target) == 3) target <- c(target, 1)
+    
+    distances <- colSums((t(vertices) - as.numeric(target))^2)
+    closest <- which(distances == min(distances))
+    
+    if(returns == "coordinates") return(vertices[closest, -4])
+    
+    return(closest)
   }
 
 #' Select Vertices From a Surface
