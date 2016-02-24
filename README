@@ -1,7 +1,6 @@
 Statistics for MINC volumes: A library to integrate voxel-based statistics for MINC volumes into the R environment. 
 Supports getting and writing of MINC volumes, running voxel-wise linear models, correlations, etc.; correcting for 
-multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Jim Nikelski, 
-Matthijs van Eede and Daniel Cassel. Some additional information can be found here:
+multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some additional information can be found here:
 
 https://wiki.phenogenomics.ca/display/MICePub/RMINC
 
