@@ -3,19 +3,26 @@
 \alias{plot.bic_obj}
 \title{Plot a BIC obj}
 \usage{
-plot.bic_obj(x, ...)
+plot.bic_obj(x, colour_map = NULL, palette = heat.colors(255),
+  colour_bar = TRUE, ...)
 }
 \arguments{
 \item{x}{A \code{bic_obj} probably created by \link{read_obj}}
 
+\item{colour_map}{A numeric vector equal in length to the number of vertices
+in the \code{bic_obj} or the path to a text file with one line per vertex with
+colour information.}
+
+\item{A}{palette, AKA look-up-table, providing a linear colour scale for the colours in
+\code{colour_map}}
+
 \item{...}{additional arguments to \link{create_mesh} including but not limited
 to colour, specular, and add_normals}
-}
-\value{
-Invisibly returns the created mesh
+
+\item{invisibly}{returns the mesh object}
 }
 \description{
-Create a basic plot of a BIC obj with a uniformly coloured mesh in the
-current rgl device, opening a new one if necessary.
+Create a basic plot of a BIC obj in the current rgl device, opening a
+new one if necessary. If colour_map is supplied, an overlay is added to the mesh
 }
 

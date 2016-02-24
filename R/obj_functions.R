@@ -58,15 +58,6 @@ read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
   structure(list(vertex_matrix = vertices, triangle_matrix = polygons), class = "bic_obj")
 }
 
-add_mesh <-
-  function(mesh){
-    if(!is.null(mesh$id)) 
-      
-    shade3d(mesh)
-    rgl_id <- rgl.ids()$id %>% tail(1)
-    mesh$id <- rgl_id
-  }
-
 
 #' Create surface mesh for a bic_obj
 #'
@@ -158,19 +149,36 @@ colour_mesh <- function(mesh,
 
 #' Plot a BIC obj
 #' 
-#' Create a basic plot of a BIC obj with a uniformly coloured mesh in the
-#' current rgl device, opening a new one if necessary.
+#' Create a basic plot of a BIC obj in the current rgl device, opening a 
+#' new one if necessary. If colour_map is supplied, an overlay is added to the mesh
 #' 
 #' @param x A \code{bic_obj} probably created by \link{read_obj}
+#' @param colour_map A numeric vector equal in length to the number of vertices
+#' in the \code{bic_obj} or the path to a text file with one line per vertex with
+#' colour information.
+#' @param A palette, AKA look-up-table, providing a linear colour scale for the colours in
+#' \code{colour_map}
 #' @param ... additional arguments to \link{create_mesh} including but not limited
 #' to colour, specular, and add_normals
-#' @return Invisibly returns the created mesh
+#' @param invisibly returns the mesh object
 #' @export
 plot.bic_obj <- 
-  function(x, ...){
-   mesh <- create_mesh(x, ...) 
-   mesh %>% shade3d()
-   invisible(mesh)
+  function(x, 
+           colour_map = NULL, 
+           palette = heat.colors(255),
+           colour_bar = TRUE,
+           ...){
+    mesh <-
+      x %>%
+      create_mesh(...)
+    
+    if(!is.null(colour_map))
+     mesh <- mesh %>% colour_mesh(colour_map)
+    
+    mesh %>% shade3d(override = FALSE)
+    if(colour_bar && !is.null(colour_map)) mesh %>% add_colour_bar
+    
+    invisible(mesh)
   }
 
 #' Plot an BIC obj mesh
@@ -191,38 +199,6 @@ plot.obj_mesh <-
     invisible(x)
   }
 
-#' Plot a BIC obj with a colour map
-#' 
-#' Create a colour mapped bic_obj and plot it in the current rgl
-#' device, opening a new one if necessary.
-#' 
-#' @param bic_obj A \code{bic_obj} probably created by \link{read_obj}
-#' @param colour_map A numeric vector equal in length to the number of vertices
-#' in the \code{bic_obj} or the path to a text file with one line per vertex with
-#' colour information.
-#' @param A palette, AKA look-up-table, providing a linear colour scale for the colours in
-#' \code{colour_map}
-#' @param ... additional arguments to \link{create_mesh} including but not limited
-#' to colour, specular, and add_normals
-#' @param invisibly return the colourized mesh object
-#' @export
-plot_bic_obj_overlay <- 
-  function(bic_obj, 
-           colour_map, 
-           palette = heat.colors(255),
-           colour_bar = TRUE,
-           ...){
-    
-    mesh <-
-      bic_obj %>%
-      create_mesh(...)  %>%
-      colour_mesh(colour_map)
-      
-    mesh %>% shade3d(override = FALSE)
-    if(colour_bar) mesh %>% add_colour_bar
-    
-    invisible(mesh)
-  }
 
 #' Add a colour bar for a mesh
 #' 
@@ -245,7 +221,7 @@ add_colour_bar <- function(mesh,
                            ...,
                            column_widths = c(.75, .25), 
                            which_col = length(column_widths)){
-  if(is.null(mesh$legend)) stop("Your mesh has not colour information")
+  if(is.null(mesh$legend)) stop("Your mesh has no colour information")
   with(mesh$legend, {
     bgplot3d({
       par(mar = c(4,8,4,2))
@@ -446,6 +422,7 @@ vertexSelect <-
       selected_vertices <- rbind(selected_vertices, selected_vertex)
     }
     rownames(selected_vertices) <- NULL
+    colnames(selected_vertices) <- c("x", "y", "z")
     
     if(indicate) 
       spheres3d(selected_vertices[,1], 
@@ -453,6 +430,11 @@ vertexSelect <-
                 selected_vertices[,3], 
                 alpha = .2,
                 specular = "black")
+    
+    if(nrow(selected_vertices) == 1){
+      dim(selected_vertices) <- NULL
+      names(selected_vertices) <- c("x", "y", "z")
+    }
     
     return(selected_vertices)
   }
