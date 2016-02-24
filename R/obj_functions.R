@@ -343,3 +343,201 @@ obj_montage <- function(left_obj,
   invisible(NULL)
 }
 
+single_closest_vertex <-
+  function(vertices, target, returns){
+    if(ncol(vertices) == 3) vertices <- cbind(vertices, 1)
+    if(length(target) == 3) target <- c(target, 1)
+    
+    distances <- colSums((t(vertices) - as.numeric(target))^2)
+    closest <- which(distances == min(distances))
+    
+    if(returns == "coordinates") return(vertices[closest, -4])
+    
+    return(closest)
+  }
+
+#' Find Closest Vertex
+#' 
+#' Given a set of vertices (3-column matrix or data frame of x,y,z coordinates)
+#' determine the index or coordinates of the closest vertex to a given set of
+#' target vertices (either a 3 element vector, or x-y-z table like structure)
+#' 
+#' @param vertices A matrix-like object with 3-columns, an n rows representing vertices
+#' @param target either a 3-element numeric vector representing x-y-z coordinates for
+#' a single target, or a matrix-like object as described above containing multiple targets.
+#' @param returns Whether to return the index of each match (one per target), or the coordinates
+#' of the matches, the later being useful when exact matches aren't expected.
+#' @return In most cases, a numeric vector of match results, in the case of multiple targets
+#' and \code{returns = "coordinates"} the output is a 3-column matrix of coordinates.
+#' 
+#' @details Vertices are matched to the target by finding the vertex with the minimum euclidean
+#' distance from the target.
+#' @export
+closestVertex <-
+  function(vertices, target, returns = c("index", "coordinates")){
+    if(!is.data.frame(target) & !is.matrix(target))
+      target <- matrix(target, ncol = 3)
+    
+    return_type <- match.arg(returns)
+    
+    results <- apply(target, 1, single_closest_vertex, vertices = vertices, returns = return_type)
+    
+    results <- t(results)
+    if(nrow(results) == 1) dim(results) <- NULL
+    
+    results
+  }
+
+#' Select Vertices From a Surface
+#' 
+#' Interactively select one or more vertices from an \code{rgl} surface.
+#' 
+#' @param object An rgl id for the object from which to choose vertices. Defaults to
+#' the first id. To check the ids available for selection call \code{\link{rgl.ids}()}
+#' unfortunately there is no elegant way at the present for determining which object is which.
+#' @param tolerance The tolerance, in fractions of the visible window, for finding points.
+#' See details for more.
+#' @param multiples Whether to stop after the first selection, or to allow multiples (explicitly stopped
+#' by pressing escape). 
+#' @param indicate Whether to draw indicator points to highlight the clicked points. Useful for ensuring
+#' point click accuracy.
+#' 
+#' @details 
+#' The vertex selection algorithm has two parts, selecting the vertices near the clicked point 
+#' and determining which points are closest to the observer. \cr
+#' To determine the vertices near the click point
+#' \itemize{
+#' \item{Determine the x-y coordinates of the click in window space}
+#' \item{Convert those coordinates to a rectangle defined by 
+#' (x - tolerance, y - tolerance, x + tolerance, y + tolerance)}
+#' \item{Convert the rectangle coordinates from window to user coordinates}
+#' \item{Filter the vertices of the object within the rectangle}
+#' }
+#' To determine the vertex closest to observer
+#' \itemize{
+#' \item{Determine the x-y click location}
+#' \item{Append z=0 to the coordinates to create a 3d window coordinate, since the
+#' rgl observe looks in the positive z direction, a window z coordinate of zero puts the point
+#' as far from the surface as possible while remaining in the window coordinates}
+#' \item{Convert from window to user coordinates}
+#' \item{Calculate the vertex from the set identified above that is closest to those coordinates}
+#' }
+#' This algorithm is not perfect, and can yeild spurious coordinates for irregular topologies.
+#' For more accurate vertex selection, use a high magnification (controlled with the scroll wheel), 
+#' the higher the magnification the more accurate the vertex selection becomes. Additionally, set
+#' indicate = TRUE, this will place indicator points on the identified vertices, they will allow you
+#' to ensure your coordinates are accurate, and can always be removed with \code{rgl::\link{pop3d}()}
+#' @export
+vertexSelect <-
+  function(object = first(rgl.ids()$id),
+           tolerance = 0.01,
+           multiples = FALSE,
+           indicate = FALSE,
+           ...){
+    
+    first = TRUE
+    selected_vertices <- matrix(NA, nrow = 0, ncol = 3)
+    
+    while(first || multiples){
+      first <- FALSE
+      selected_vertex <- select_one_vertex(object, tolerance, indicate)
+      if(is.null(selected_vertex)) break
+      
+      selected_vertices <- rbind(selected_vertices, selected_vertex)
+    }
+    rownames(selected_vertices) <- NULL
+    
+    if(indicate) 
+      spheres3d(selected_vertices[,1], 
+                selected_vertices[,2], 
+                selected_vertices[,3], 
+                alpha = .2,
+                specular = "black")
+    
+    return(selected_vertices)
+  }
+
+select_one_vertex <- 
+  function(object, tolerance, indicate, ...){
+    
+    selection <- as.list(environment(select3d(...)))
+    if(is.null(selection$rect)) return(invisible(NULL))
+    
+    rect_bounds <- selection$rect
+    click_location <- rect_bounds[1:2]
+    
+    if(rect_bounds[1] != rect_bounds[3] || rect_bounds[2] != rect_bounds[4])
+      warning("Click-and-drag selection does not work with vertexSelect, using position of button press",
+              call. = FALSE)
+    
+    inflated_bounds <- rep(click_location, 2) - c(1,1,-1,-1) * tolerance
+    
+    object_vertices <- rgl.attrib(object, "vertices")
+    window_coords <- rgl.user2window(object_vertices, projection = selection$proj)
+    
+    selected_vertices <-
+      which(window_coords[,1] > inflated_bounds[1] &
+              window_coords[,2] > inflated_bounds[2] &
+              window_coords[,1] < inflated_bounds[3] &
+              window_coords[,2] < inflated_bounds[4])
+    
+    if(length(selected_vertices) == 0) return(NULL)
+    
+    selected_coords <-
+      object_vertices[selected_vertices,]
+    
+    unique_coords <-
+      selected_coords[!duplicated(selected_coords, MARGIN = 1),]
+    
+    target_location <- rgl.window2user(click_location[1], click_location[2], 0, 
+                                       projection = selection$proj)
+    
+    closest_vertex <- closestVertex(unique_coords, target_location, returns = "coordinates")
+    
+    closest_vertex
+  }
+
+#' Vertex Lookup
+#' 
+#' Find the vertices closest one or more targets, potentially returning the values
+#' for the vertices from a data map.
+#' 
+#' @param vertices A descendent of \link{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns, 
+#' and n rows representing vertices.
+#' @param target either a 3-element numeric vector representing x-y-z coordinates for
+#' a single target, or a matrix-like object as described above containing multiple targets.
+#' @param data_map Either NULL, a vector of data about each vertex, or a file containing such
+#' a vector spread over multiple lines
+#' @param returns Whether to return the index of each match (one per target), or the coordinates
+#' of the matches, the later being useful when exact matches aren't expected.
+#' @param coerce A function to coerce the final results to a given type. Defaults to \link{as.numeric},
+#' if set to NULL, no coersion is performed.
+#' @return If a data_map is specified: a vector, typically numeric, if coerce is set to NULL 
+#' and data_map is a file, the results will be character. If coerce is null and data_map is a vector
+#' it will return the same type as data_map. If data_map is unspecified, it acts like \link{closestVertex}
+#' @export
+vertexLookup <- 
+  function(vertices, target, data_map = NULL,
+           returns = c("index", "coordinates"),
+           coerce = as.numeric){
+    if(vertices %>% is("mesh3d")) vertices <- t(vertices$vb)
+    if(vertices %>% is("bic_obj")) vertices <- vertices$vertex_matrix
+    
+    if(is.null(data_map)){
+      return_type <- match.arg(returns)
+      closest <- closestVertex(vertices, target, returns = return_type)
+      return(closest)
+    }
+    
+    closest <- closestVertex(vertices, target)
+    if(is.character(data_map) && length(data_map) == 1)
+      data_map <- readLines(data_map)
+    
+    map_value <- data_map[closest]
+    
+    if(is.null(coerce)) return(map_value)
+    
+    coersion_function <- match.fun(coerce)
+    coersion_function(map_value)
+  }
+
