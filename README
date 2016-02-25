@@ -1,7 +1,6 @@
 Statistics for MINC volumes: A library to integrate voxel-based statistics for MINC volumes into the R environment. 
 Supports getting and writing of MINC volumes, running voxel-wise linear models, correlations, etc.; correcting for 
-multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Jim Nikelski, 
-Matthijs van Eede and Daniel Cassel. Some additional information can be found here:
+multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some additional information can be found here:
 
 https://wiki.phenogenomics.ca/display/MICePub/RMINC
 
@@ -41,7 +40,6 @@ $ ./autogen.sh
 $ cd ../
 $ R CMD INSTALL RMINC /directory/where/sourcefiles/go --preclean --configure-args='--with-build-path=/install/directory/minc2'
 
-
 Installation of a release:
 
 Download the tarball from the Github RMINC website https://github.com/mcvaneede/RMINC/tree/master/releases
@@ -66,3 +64,11 @@ library(devtools)
 options(devtools.install.args = "--configure-args='--with-build-path=/opt/minc-itk4/'")
 install_github('Mouse-Imaging-Centre/RMINC')
 
+Development with RStudio
+------------------------
+
+Newer versions of RMINC ship with an RMINC.Rproj file for easy integration
+with RStudio's build tools. Build tool arguments can be modified from 
+Build > Configure Build Tools. For most cases it suffices to modify
+the environment variable $RMINC_BUILD_PATH to point to the directory
+containing hdf5.h

@@ -1,3 +1,24 @@
+New in Version 1.3.0.0
+=======================
+***RMINC now with more Graphics***
+* mincArray - give your minc volume objects dimensionsality
+* mincImage - view a slice through a minc array
+* mincPlotAnatAndStatsSlice - view a slice with a statistic overlay
+* mincPlotSliceSeries - a convenient way to view a volume, potentially with
+  statistic overlays
+* launch_shinyRMINC - a handy app for interactively exploring anatomy and statistics
+*** 3D tools *Warning, API will likely change*
+* read_obj - a reader for BIC-MNI obj files
+* plot.bic_obj - create an interactive rgl rendering of an obj, potentially 
+  with a statistic overlay with plot(bic_obj)
+* obj_montage - create a figure with multiple views of two obj files with overlays
+* selectVertex - interactive pick vertices from an obj rendering
+* vertexLookup - find vertices from within a set, or look-up statistic values for
+  known vertices
+*** Tutorials
+* inst/doc/visualizationTutorial.html - an exploration of the new 2D tools
+* inst/doc/RMINC_rgl.html - a brief overview of the new 3D tools
+
 New in Version 1.2.4.9
 ======================
 * label definitions for the anat* functions are now set by the following 
