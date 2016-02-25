@@ -13,7 +13,7 @@ library(rgl)
 setupKnitr()
 ```
 
-Let pull in a demonstration object file. The file format currently supported by RMINC is the BIC-MNI text obj format, documented [on their github](https://github.com/BIC-MNI/bicpl/Documentation). This file format is used by CIVET, amongst other tools, to store brain surfaces. The figures produces are interactive and can be rotated and magnified with the mouse.
+Lets pull in a demonstration object file. The file format currently supported by RMINC is the BIC-MNI text obj format, documented [on their github](https://github.com/BIC-MNI/bicpl/Documentation). This file format is used by CIVET, amongst other tools, to store brain surfaces. The figures produced are interactive and can be rotated and magnified with the mouse.
 
 ```{R, rgl = TRUE}
 mouse_cortex <- 
@@ -22,7 +22,7 @@ mouse_cortex <-
 plot(mouse_cortex)
 ```
 
-In addition to creating surfaces, it is possible to add statistics maps, thresholded and with colour legends
+In addition to creating surfaces, it is possible to add thresholdable statistics maps with colour legends
 
 ```{R, rgl = TRUE}
 demo_stats <- #Generate some random uniform vertex data
@@ -46,7 +46,7 @@ selected_vertices <-
 
 ![](RMINC_rgl_data/selected_vertices.png)
 
-To disable the indicator spheres, simply run `vertexSelect` with `indicate = FALSE`. To remove the spheres after you've verified the are correct, run `rgl::pop3d()`, only do this if you have not added elements to the rgl scene after the spheres, otherwise you will need to look up their id's with `rgl::ids()`. See `?vertexSelect` for details.
+To disable the indicator spheres, simply run `vertexSelect` with `indicate = FALSE`. To remove the spheres after you've verified they are correct, run `rgl::pop3d()`, only do this if you have not added elements to the rgl scene after the spheres, otherwise you will need to look up their ids with `rgl::ids()`. See `?vertexSelect` for details.
 
 Once you've identified your vertices of interest, you can find those vertices within the statistic map
 
