@@ -16,8 +16,8 @@ New in Version 1.3.0.0
 * vertexLookup - find vertices from within a set, or look-up statistic values for
   known vertices
 *** Tutorials
-* doc/visualizationTutorial.html - an exploration of the new 2D tools
-* doc/RMINC_rgl.html - a brief overview of the new 3D tools
+* inst/doc/visualizationTutorial.html - an exploration of the new 2D tools
+* inst/doc/RMINC_rgl.html - a brief overview of the new 3D tools
 
 New in Version 1.2.4.9
 ======================
