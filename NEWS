@@ -7,7 +7,7 @@ New in Version 1.3.0.0
 * mincPlotSliceSeries - a convenient way to view a volume, potentially with
   statistic overlays
 * launch_shinyRMINC - a handy app for interactively exploring anatomy and statistics
-*** 3D tools
+*** 3D tools *Warning, API will likely change*
 * read_obj - a reader for BIC-MNI obj files
 * plot.bic_obj - create an interactive rgl rendering of an obj, potentially 
   with a statistic overlay with plot(bic_obj)
@@ -17,6 +17,7 @@ New in Version 1.3.0.0
   known vertices
 *** Tutorials
 * doc/visualizationTutorial.html - an exploration of the new 2D tools
+* doc/RMINC_rgl.html - a brief overview of the new 3D tools
 
 New in Version 1.2.4.9
 ======================

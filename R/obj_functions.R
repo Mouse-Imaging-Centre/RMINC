@@ -101,7 +101,7 @@ create_mesh <-
 #' allowable labels/measures/statistics to be includedon the surface
 #' @param colour_default The colour given to vertices excluded by colour_range
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
-#' @param an \code{obj_mesh} object descended from \link{mesh3d}, with added colour information
+#' @return an \code{obj_mesh} object descended from \link{mesh3d}, with added colour information
 #' and an additional \code{legend} element to be used in building a colour bar
 #' @export  
 colour_mesh <- function(mesh, 
@@ -156,24 +156,44 @@ colour_mesh <- function(mesh,
 #' @param colour_map A numeric vector equal in length to the number of vertices
 #' in the \code{bic_obj} or the path to a text file with one line per vertex with
 #' colour information.
-#' @param A palette, AKA look-up-table, providing a linear colour scale for the colours in
+#' @param colour_range a two element numeric vector indicating the min and max values of 
+#' allowable labels/measures/statistics to be includedon the surface
+#' @param colour_default The colour given to vertices excluded by colour_range
+#' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
+#' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
 #' @param ... additional arguments to \link{create_mesh} including but not limited
 #' to colour, specular, and add_normals
-#' @param invisibly returns the mesh object
+#' @return invisibly returns the mesh object
 #' @export
 plot.bic_obj <- 
   function(x, 
            colour_map = NULL, 
+           colour_range = NULL,
+           colour_default = "grey",
+           reverse = NULL,
            palette = heat.colors(255),
            colour_bar = TRUE,
            ...){
+    .check3d()
+    window_dimensions <- par3d("windowRect")
+    
+    #Small windows prevent legend plotting
+    if(diff(window_dimensions[c(1,3)]) < 400 && 
+       diff(window_dimensions[c(2,4)]) < 400 ){
+      par3d(windowRect = c(100,100, 900, 900))
+      #This isn't my fault I swear, see the ?bgplot3d examples, weird bugs happen
+      #without waiting, e.g. brains will only draw when there is an inactive rgl device
+      Sys.sleep(.25)
+      par3d(viewport = c(0,0,800,800)) 
+    }
+    
     mesh <-
       x %>%
       create_mesh(...)
     
     if(!is.null(colour_map))
-     mesh <- mesh %>% colour_mesh(colour_map)
+     mesh <- mesh %>% colour_mesh(colour_map, colour_range, colour_default, reverse, palette)
     
     mesh %>% shade3d(override = FALSE)
     if(colour_bar && !is.null(colour_map)) mesh %>% add_colour_bar
@@ -400,7 +420,7 @@ single_closest_vertex <-
 #' }
 #' This algorithm is not perfect, and can yeild spurious coordinates for irregular topologies.
 #' For more accurate vertex selection, use a high magnification (controlled with the scroll wheel), 
-#' the higher the magnification the more accurate the vertex selection becomes. Additionally, set
+#' the higher the magnification the more accurate the vertex selection becomes. Additionally, keep
 #' indicate = TRUE, this will place indicator points on the identified vertices, they will allow you
 #' to ensure your coordinates are accurate, and can always be removed with \code{rgl::\link{pop3d}()}
 #' @export
@@ -408,7 +428,7 @@ vertexSelect <-
   function(object = first(rgl.ids()$id),
            tolerance = 0.01,
            multiples = FALSE,
-           indicate = FALSE,
+           indicate = TRUE,
            ...){
     
     first = TRUE
@@ -424,12 +444,17 @@ vertexSelect <-
     rownames(selected_vertices) <- NULL
     colnames(selected_vertices) <- c("x", "y", "z")
     
-    if(indicate) 
+    if(indicate){
+      bbox <- par3d("bbox")
+      bbox_smallest_dimension <- min(abs(bbox[4:6] - bbox[1:3]))
+      
       spheres3d(selected_vertices[,1], 
                 selected_vertices[,2], 
                 selected_vertices[,3], 
                 alpha = .2,
+                radius = bbox_smallest_dimension / 100,
                 specular = "black")
+    }
     
     if(nrow(selected_vertices) == 1){
       dim(selected_vertices) <- NULL
@@ -503,7 +528,7 @@ vertexLookup <-
            returns = c("index", "coordinates"),
            coerce = as.numeric){
     if(vertices %>% is("mesh3d")) vertices <- t(vertices$vb)
-    if(vertices %>% is("bic_obj")) vertices <- vertices$vertex_matrix
+    if(vertices %>% is("bic_obj")) vertices <- t(vertices$vertex_matrix)
     
     if(is.null(data_map)){
       return_type <- match.arg(returns)

@@ -3,7 +3,8 @@
 \alias{plot.bic_obj}
 \title{Plot a BIC obj}
 \usage{
-plot.bic_obj(x, colour_map = NULL, palette = heat.colors(255),
+plot.bic_obj(x, colour_map = NULL, colour_range = NULL,
+  colour_default = "grey", reverse = NULL, palette = heat.colors(255),
   colour_bar = TRUE, ...)
 }
 \arguments{
@@ -13,13 +14,21 @@ plot.bic_obj(x, colour_map = NULL, palette = heat.colors(255),
 in the \code{bic_obj} or the path to a text file with one line per vertex with
 colour information.}
 
-\item{A}{palette, AKA look-up-table, providing a linear colour scale for the colours in
+\item{colour_range}{a two element numeric vector indicating the min and max values of
+allowable labels/measures/statistics to be includedon the surface}
+
+\item{colour_default}{The colour given to vertices excluded by colour_range}
+
+\item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
+
+\item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}
 
 \item{...}{additional arguments to \link{create_mesh} including but not limited
 to colour, specular, and add_normals}
-
-\item{invisibly}{returns the mesh object}
+}
+\value{
+invisibly returns the mesh object
 }
 \description{
 Create a basic plot of a BIC obj in the current rgl device, opening a

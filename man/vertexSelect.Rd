@@ -4,7 +4,7 @@
 \title{Select Vertices From a Surface}
 \usage{
 vertexSelect(object = first(rgl.ids()$id), tolerance = 0.01,
-  multiples = FALSE, indicate = FALSE, ...)
+  multiples = FALSE, indicate = TRUE, ...)
 }
 \arguments{
 \item{object}{An rgl id for the object from which to choose vertices. Defaults to
@@ -45,7 +45,7 @@ as far from the surface as possible while remaining in the window coordinates}
 }
 This algorithm is not perfect, and can yeild spurious coordinates for irregular topologies.
 For more accurate vertex selection, use a high magnification (controlled with the scroll wheel),
-the higher the magnification the more accurate the vertex selection becomes. Additionally, set
+the higher the magnification the more accurate the vertex selection becomes. Additionally, keep
 indicate = TRUE, this will place indicator points on the identified vertices, they will allow you
 to ensure your coordinates are accurate, and can always be removed with \code{rgl::\link{pop3d}()}
 }

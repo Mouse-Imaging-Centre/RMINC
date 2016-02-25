@@ -18,9 +18,10 @@ allowable labels/measures/statistics to be includedon the surface}
 \item{colour_default}{The colour given to vertices excluded by colour_range}
 
 \item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
-
-\item{an}{\code{obj_mesh} object descended from \link{mesh3d}, with added colour information
-and an additional \code{legend} element to be used in building a colour bar}
+}
+\value{
+an \code{obj_mesh} object descended from \link{mesh3d}, with added colour information
+and an additional \code{legend} element to be used in building a colour bar
 }
 \description{
 Add colour information to your mesh, either from a vertex atlas like AAL
