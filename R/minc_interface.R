@@ -51,7 +51,16 @@ mincFileCheck <- function(filenames) {
 }
 
 
-# get the real value of one voxel from all files using world coordinates
+#' World Vector
+#' 
+#' Given a set of world coordinates return the value at those coordinates
+#' from a set of minc files as a numeric vector
+#' 
+#' @param filenames A character vector of one or more filenames
+#' @param v1 First world coordinate
+#' @param v2 Second world coordinate
+#' @param v3 Third world coordinate
+#' @return a vector of values 
 mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   num.files <- length(filenames)
   if (length(v1) == 3){
@@ -88,9 +97,20 @@ print.mincVoxel <- function(x, ..., filenames=FALSE, digits=NULL) {
   cat("World Coordinates:", attr(x, "worldCoord"), "\n")
 }
 
-# gets a vector from a series of 4D minc volumes
-mincGetVector <- function(filenames, v1, v2, v3, v.length) {
+#' Voxel Vector
+#' 
+#' Given a voxel coordinate, return the value at those coordinates
+#' from a set of minc files as a numeric vector
+#' 
+#' @param filenames A character vector of one or more filenames
+#' @param v1 First voxel coordinate
+#' @param v2 Second voxel coordinate
+#' @param v3 Third voxel coordinate
+#' @param v.length The number of values to return
+mincGetVector <- function(filenames, v1, v2, v3, v.length = NULL) {
   num.files <- length(filenames)
+  if(is.null(v.length)) v.length <- num.files
+  
   output <- .Call("get_vector_from_files",
                   as.character(filenames),
                   as.integer(num.files),
@@ -105,6 +125,14 @@ mincGetVector <- function(filenames, v1, v2, v3, v.length) {
   return(output)
 }
 
+#' Voxel to World
+#' 
+#' Convert a discrete set of voxel coordinates into the volumes
+#' continous world coordinate space
+#' @param filename
+#' @param v1 First voxel coordinate
+#' @param v2 Second voxel coordinate
+#' @param v3 Third voxel coordinate
 mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
   output <- .C("convert_voxel_to_world",
                as.character(filename),
@@ -115,6 +143,14 @@ mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
   return(output)
 }
 
+#' World to Voxel
+#' 
+#' Convert coordinates in the volumes world space (a continuous coordinate space)
+#' to a discrete set of voxel coordinates
+#' @param filename A path to a minc file
+#' @param v1 First world coordinate
+#' @param v2 Second world coordinate
+#' @param v3 Third world coordinate
 mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
   output <- .C("convert_world_to_voxel",
                as.character(filename),
@@ -125,19 +161,20 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
   return(round(output))
 }
 
-# 
-###########################################################################################
+#' @title Read a MINC file
 #' @description Load a 3-dimensional MINC2 volume and returns it as a 1D array
 #' @name mincGetVolume
 #' @title Return a volume as a 1D array
 #' @param filename A string corresponding to the location of the MINC2 file to
 #' be read.
-#' @return out Returns a vector of mincSingleDim class
+#' @return Returns a vector of mincSingleDim class
 #' @seealso mincWriteVolume
 #' @examples
+#' \dontrun{
 #' getRMINCTestData()
-#' testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc");
-###########################################################################################
+#' testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc")
+#' }
+#' @export
 mincGetVolume <- function(filename) {
   mincFileCheck(filename)
   sizes <- minc.dimensions.sizes(filename)
@@ -155,13 +192,18 @@ mincGetVolume <- function(filename) {
   return(output)
 }
 
-# print function for multidimensional files
+## This is not the right place to document print.mincMultiDim, but best I
+## could think of off hand
+#' @describeIn mincGetVolume
+#' @export
 print.mincMultiDim <- function(x, ...) {
   cat("Multidimensional MINC volume\n")
   cat("Columns:      ", colnames(x), "\n")
   print(attr(x, "likeVolume"))
 }
 
+#' @describeIn mincLogLikRatio
+#' @export
 print.mincLogLikRatio <- function(x, ...) {
   cat("mincLogLikRatio output\n\n")
   mincLmerLists <- attr(x, "mincLmerLists")
@@ -174,6 +216,8 @@ print.mincLogLikRatio <- function(x, ...) {
   cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
 }
 
+#' @describeIn mincLmer
+#' @export
 print.mincLmer <- function(x, ...) {
   cat("mincLmer output\n")
   cat("Formula:  ")
@@ -194,13 +238,16 @@ print.vertexMultiDim <- function(x, ...) {
   cat("Columns:      ", colnames(x), "\n")
 }
       
-
+#' @describeIn mincGetVolume
+#' @export
 print.mincSingleDim <- function(x, ...) {
   cat("MINC volume\n")
   print(attr(x, "likeVolume"))
   print(attr(x, "filename"))
 }
 
+#' @describeIn mincFDR
+#' @export
 print.mincQvals <- function(x, ...) {
   print.mincMultiDim(x)
   cat("Degrees of Freedom:", paste(attr(x, "DF")), "\n")
@@ -209,9 +256,9 @@ print.mincQvals <- function(x, ...) {
 }
 
 
-###########################################################################################
-#' @description Writes a MINC volume to file
-#' @name mincWriteVolume
+#' Volume Export
+#' 
+#' Writes a MINC volume to file
 #' @aliases mincWriteVolume.mincSingleDim,mincWriteVolume.mincMultiDim
 #' @title Write a MINC volume to file
 #' @param buffer The data to be written to file. Usually the result of
@@ -230,6 +277,7 @@ print.mincQvals <- function(x, ...) {
 #' @return A list with the parameters of the minc volume written
 #' @seealso mincWriteVolume,mincLm,mincFDR,mincMean,mincSd
 #' @examples
+#' \dontrun{
 #' getRMINCTestData()
 #' # read the text file describing the dataset
 #' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
@@ -237,16 +285,20 @@ print.mincQvals <- function(x, ...) {
 #' vs <- mincLm(gf$jacobians_fixed_2 ~ Sex, gf)
 #' # write the results to file
 #' mincWriteVolume(vs, "Fstat.mnc", "F-statistic")
-###########################################################################################
+#' }
+#' @export
 mincWriteVolume <- function(buffer, ...) {
   UseMethod("mincWriteVolume")
 }
 
+#' @describeIn mincWriteVolume
+#' @export
 mincWriteVolume.mincSingleDim <- function(buffer, output.filename, clobber = NULL) {
   mincWriteVolume.default(buffer, output.filename, attr(buffer, "likeVolume"), clobber)
 }
 
-# write out one column of a multidim MINC volume
+#' @describeIn mincWriteVolume
+#' @export
 mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, 
 																				like.filename = NULL, clobber = NULL) {
   cat("Writing column", column, "to file", output.filename, "\n")
@@ -260,8 +312,8 @@ mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1,
   mincWriteVolume.default(buffer[,column], output.filename, like.filename, clobber)
 }
 
-# the default MINC output function
-# the buffer is a vector in this case
+#' @describeIn mincWriteVolume
+#' @export
 mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                                     clobber = NULL) {
 	
@@ -295,6 +347,8 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                as.double(b.max),
                as.double(b.min),
                as.double(buffer), PACKAGE="RMINC")
+  
+  return(invisible(NULL))
 }
 ###########################################################################################
 
@@ -354,10 +408,9 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(mmatrix)
 }
 
-###########################################################################################
-#' @description compute a sequential ANOVA at each voxel
-#' @name mincAnova
-#' @title Anova at Every Voxel
+#' Voxel-wise ANOVA
+#'  
+#' Compute a sequential ANOVA at each voxel
 #' @param formula The anova formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
 #' @param data The dataframe which contains the model terms.
 #' @param subset Subset definition.
@@ -367,14 +420,15 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
 #' 	minc file names input,dimensions,dimension names, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
-#' @examples 
+#' @examples
+#' \dontrun{ 
 #' getRMINCTestData() 
 #' # read the text file describing the dataset
 #' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 #' # run an ANOVA at each voxel
 #' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
-###########################################################################################
-
+#' }
+#' @export
 mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -437,7 +491,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
-###########################################################################################
+
 #' @description Linear Model at Every Voxel
 #' @name mincLm
 #' @title Linear model at Every Voxel
@@ -452,12 +506,14 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' column is the F-statistic of the significance of the entire volume, the following columns contain the R-Squared term, the marginal t-statistics for each of the terms in the model along with their respective coefficients.
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' # read the text file describing the dataset
 #' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 #' # Compute a linear model at each voxel
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
-###########################################################################################
+#' }
+#' @export
 mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
 
   #INITIALIZATION
@@ -572,8 +628,13 @@ pt2 <- function(q, df,log.p=FALSE) {
   2*pt(-abs(q), df, log.p=log.p)
 }
 
-# returns a mask as a vector - either by loading the file
-# or just passing through the vector passed in.
+#' Minc Masks
+#' 
+#' Either create a mask from a file name (by reading the volume)
+#' or pass the vector along undisturbed.
+#' 
+#' @param mask Either the path to a mask file or a numeric vector representing the mask
+#' @return a numeric mask vector
 mincGetMask <- function(mask) {
   if (class(mask) == "character") {
     return(mincGetVolume(mask))
@@ -583,13 +644,11 @@ mincGetMask <- function(mask) {
   }
 }
 
-###########################################################################################
-#' @description Takes the output of a mincLm type run and computes the False Discovery Rate on the results.
+
+#' Minc False Discovery Rates
+#' 
+#' Takes the output of a mincLm type run and computes the False Discovery Rate on the results.
 #' @name mincFDR
-#' @aliases mincFDR vertexFDR anatFDR
-#' @title Compute the False Discovery Rate on the output of a mincLm type run
-#' @usage \method{mincFDR}{mincSingleDim}(buffer, df, mask=NULL, method="qvalue", \dots)
-#' \method{mincFDR}{mincMultiDim}(buffer, columns=NULL, mask=NULL, df=NULL,method="FDR", statType=NULL)
 #' @param buffer The results of a mincLm type run.
 #' @param columns A vector of column names. By default the threshold will
 #' be computed for all columns; with this argument the computation can
@@ -610,8 +669,19 @@ mincGetMask <- function(mask) {
 #'  used as specified by the method argument. "FDR" uses the
 #'  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
 #'  postivie False Discovery Rate as found in John Storey's \code{qvalue}
-#'  package. 
-#' @return qvals mincFDR returns an object with the same number of columns
+#'  package. The main interface functions are 
+#'  \itemize{
+#'  \item{mincFDR.mincMultiDim}{ The workhorse function, used to compute q-values
+#'  and thresholds for sets of minc volumes}
+#'  \item{mincFDR.logLikRatio}{ Similar to above, but calculates thresholds by parametric
+#'  bootstrap when possible}
+#'  \item{mincFDR.mincSingleDim}{ Used when \link{mincLm}-like results are written out and read back in
+#'  either to the same or another R session. In this case it loses it's \code{minMultiDim} class
+#'  and must be converted back}
+#'  \item{vertexFDR}{ Used with results of a \link{vertexLm}-like command. Results are converted internally
+#'  to resemble a mincMultiDim and processed as normal}
+#'  } 
+#' @return A object of type \code{mincQvals} with the same number of columns
 #'  as the input (or the subset specified by the columns argument to
 #'  mincFDR). Each column now contains the qvalues for each voxel. Areas
 #'  outside the mask (if a mask was specified) will be represented by a
@@ -620,6 +690,7 @@ mincGetMask <- function(mask) {
 #'  thresholds.
 #' @seealso mincWriteVolume,mincLm,mincWilcoxon or mincTtest 
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' # read the text file describing the dataset
 #' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
@@ -627,18 +698,21 @@ mincGetMask <- function(mask) {
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 #' # compute the False Discovery Rate
 #' qvals <- mincFDR(vs)
-###########################################################################################
+#' }
+#' @export
 mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
 
-vertexFDR <- function(buffer, method="FDR") {
+#' @describeIn mincFDR
+#' @export
+vertexFDR <- function(buffer, method="FDR", mask = mask) {
   mincFDR.mincMultiDim(buffer, columns=NULL, mask=NULL, df=NULL,
                        method=method)
 }
 
-# mincFDR for data not created in the same R session; i.e. obtained
-# from mincGetVolume
+#' @describeIn mincFDR
+#' @export
 mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue", ...) {
   if (is.null(df)) {
     stop("Error: need to specify the degrees of freedom")
@@ -666,23 +740,8 @@ mincFDRMask <- function(mask, buffer) {
   return(mask)
 }
 
-#' mincFDR for the output of mincLogLikRatio
-#'
-#' Very similar to the default mincFDR, except that it adds
-#' the ability to correct the p-values based on having run
-#' the parametric bootstrap first.
-#'
-#' @examples
-#' \dontrun{
-#' test <- mincLmer(jacobians ~ day + (1|mouse), gf, mask="/micehome/jlerch/R-tests/small-mask.mnc",REML=F)
-#' test2 <- mincLmer(jacobians ~ ns(day,2) + (1|mouse), gf, mask="/micehome/jlerch/R-tests/small-mask.mnc",REML=F)
-#' out <- mincLogLikRatio(test, test2)
-#' # compute the FDR just using the chi squared approximation
-#' mincFDR(out)
-#' out <- mincLogLikRatioParametricBootstrap(out, nvoxels=25, nsims=500)
-#' # also compute the FDR with corrected p-values based on the chi-squared approximation
-#' mincFDR(out)
-#' }
+#' @describeIn mincFDR
+#' @export
 mincFDR.mincLogLikRatio <- function(buffer, mask=NULL) {
   cat("Computing FDR for mincLogLikRatio\n")
   df <- attr(buffer, "df")
@@ -784,10 +843,8 @@ mincFDRThresholdVector <- function(pvals, qvals, thresholdFunc=NULL,
 }
 
 
-#' mincFDR for the output of mincLmer
-#'
-#' same as mincFDR, except adds warnings based on difficulty in estimating
-#' degrees of freedom for mixed effects models
+#' @describeIn mincFDR
+#' @export
 mincFDR.mincLmer <- function(buffer, mask=NULL) {
   cat("In mincFDR.mincLmer\n")
 
@@ -854,9 +911,8 @@ mincFDR.mincLmer <- function(buffer, mask=NULL) {
   return(output)
 }
 
-# mincFDR for a local buffer created by mincLm
-# note: this function is slowly being deprecated. New stats types should be
-# dealt with using separate classes and methods; see mincFDR.mincLmer for example
+#' @describeIn mincFDR
+#' @export
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
                                  method="FDR", statType=NULL) {
   if (method == "qvalue") {
@@ -1078,15 +1134,12 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
 }
 
 
-###########################################################################################
-#' @description This function is used to compute the mean, standard deviation,
-#'    		sum, or variance of every region in a set of MINC volumes.
-#' 		An optional grouping variable will split the computation by group
-#'     		rather than performing it across all volumes as is the default.
-
-#' @name mincSummaries
-#' @aliases mincMean mincSd mincVar mincSum
-#' @title Create descriptive statistics across a series of MINC volumes
+#' Minc Voxel Summary Functions
+#' 
+#' Compute the mean, standard deviation, sum, or variance at every voxel across a
+#' a set of MINC volumes.
+#' An optional grouping variable will split the computation by group
+#' rather than performing it across all volumes as is the default.
 #' @param filenames Filenames of the MINC volumes across which to create the
 #' descriptive statistic.
 #' @param grouping Optional grouping - contains same number of elements as
@@ -1094,45 +1147,50 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
 #' statistic computed separately for each group.
 #' @param mask A mask specifying which voxels are to be included in the
 #' summary.
-
-
 #' @return  The output will be a single vector containing as many
 #'          elements as there are voxels in the input files. If a
 #'          grouping factor was specified then the output will be a
 #'          matrix consisiting of as many rows as there were voxels in
 #'          the files, and as many columns as there were groups.
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
-#' mm <- mincMean(gf$jacobians_0.2); 
-#' ms <- mincSd(gf$jacobians_0.2); 
-#' mv <- mincVar(gf$jacobians_0.2,gf$Strain); 
-#' ms2 <- mincSum(gf$jacobians_0.2,gf$Strain); 
-###########################################################################################
+#' mm <- mincMean(gf$jacobians_0.2) 
+#' ms <- mincSd(gf$jacobians_0.2)
+#' mv <- mincVar(gf$jacobians_0.2,gf$Strain) 
+#' ms2 <- mincSum(gf$jacobians_0.2,gf$Strain)
+#' }
+#' @export
 mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="mean", maskval=maskval)
   return(result)
 }
 
+#' @describeIn mincMean
+#' @export
 mincVar <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   return(result)
 }
 
+#' @describeIn mincMean
+#' @export
 mincSum <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="sum", maskval=maskval)
   return(result)
 }
 
+#' @describeIn mincMean
+#' @export
 mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   result <- sqrt(result)
   return(result)
 }
-###########################################################################################
+
+#' @name Minc T-test
 #' @description Perform an unpaired,unequal variance t-test across a set of minc volumes
-#' @name mincTtest
-#' @title Perform an unpaired,unequal variance t-test across a set of minc volumes
 #' @param filenames Filenames of the MINC volumes across which to run the t-test
 #' @param grouping  Contains same number of elements as
 #' filenames; must contain exactly two groups with which to compare means
@@ -1140,11 +1198,13 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @param maskval The value with which to mask the data (data will masked +/- 0.5 around this value
 #' @return  The output will be a single vector containing as many
 #'          elements as there are voxels in the input files, with that voxel's t-statistic
-#' @examples 
+#' @examples
+#' \dontrun{ 
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
-#' mtt <- mincTtest(gf$jacobians_0.2,gf$Strain); 
-###########################################################################################
+#' mtt <- mincTtest(gf$jacobians_0.2,gf$Strain)
+#' } 
+#' @export
 mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   # the grouping for a t test should only contain 2 groups. Should 
   # also be converted to a factor if it's not.
@@ -1170,10 +1230,9 @@ mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   class(result) <- c("mincMultiDim", "matrix")
   return(result)
 }
-###########################################################################################
+
+#' @title Minc Paired T Test
 #' @description Perform a paired t-test across a set of minc volumes
-#' @name mincPairedTtest
-#' @title Perform an paired t-test across a set of minc volumes
 #' @param filenames Filenames of the MINC volumes across which to run the t-test
 #' @param grouping  Contains same number of elements as
 #' filenames; must contain exactly two groups with which to compare means. The two groups
@@ -1182,11 +1241,14 @@ mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @param maskval The value with which to mask the data (data will masked +/- 0.5 around this value
 #' @return  The output will be a single vector containing as many
 #'          elements as there are voxels in the input files, with that voxel's t-statistic
-#' @examples 
+#' @examples
+#' \dontrun{ 
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
 #' gf = gf[1:20,]
 #' mptt <- mincPairedTtest(gf$jacobians_0.2,gf$Strain)
+#' }
+#' @export
 ###########################################################################################
 mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   # here, similarly to the t-test, there should be 2 groups in the data. However
@@ -1222,10 +1284,10 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   class(result) <- c("mincMultiDim", "matrix")
   return(result)
 }
-###########################################################################################
-#' @description Perform a correlation between a set of minc volumes.
-#' @name mincCorrelation
-#' @title Perform a correlation between a set of minc volumes and another variable.
+
+
+#' @title Minc Correlation
+#' @description Perform a correlation between a set of minc volumes and a covariate.
 #' @param filenames Filenames of the MINC volumes across which to run the correlation
 #' @param grouping  Contains same number of elements as
 #' filenames; contains values with which to correlate
@@ -1235,18 +1297,19 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' elements as there are voxels in the input files, with that voxel's correlation value (Pearson
 #' correlation coefficient)
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
-#' mc <- mincCorrelation(gf$jacobians_0.2,gf$Weight);
-###########################################################################################
+#' mc <- mincCorrelation(gf$jacobians_0.2,gf$Weight)
+#' }
+#' @export 
 mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="correlation", maskval=maskval)
   return(result)
 }
-###########################################################################################
+
+#' @title Minc Wilcoxon
 #' @description Perform a Mann-Whitney U test between a set of minc volumes.
-#' @name mincWilcoxon
-#' @title Perform a Mann-Whitney U  between a set of minc volumes.
 #' @param filenames Filenames of the MINC volumes across which to run the test
 #' @param grouping  Contains same number of elements as
 #' filenames; must contain exactly two groups.
@@ -1256,11 +1319,13 @@ mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' elements as there are voxels in the input files, with that voxel's U value (lower one).
 #' The number of observations in each sample is also saved as an attribute(m and n) so the result
 #' can be passed into mincFDR.
-#' @examples 
+#' @examples
+#' \dontrun{ 
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
-#' mw <- mincWilcoxon(gf$jacobians_0.2,gf $Strain);
-###########################################################################################
+#' mw <- mincWilcoxon(gf$jacobians_0.2,gf $Strain)
+#' }
+#' @export
 mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="wilcoxon", maskval=maskval)
   result <- as.matrix(result);
@@ -1337,6 +1402,8 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
+#' @describeIn mincApply
+#' @export
 pMincApply <- function(filenames, function.string,
                        mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="", modules="",vmem="8",walltime="01:00:00") {
   
@@ -1672,7 +1739,8 @@ pMincApply <- function(filenames, function.string,
   unlink(maskFilename)
   return(output)
 }
-###########################################################################################
+
+
 #' @description Can execute any R function at every voxel for a set of MINC files
 #' @name mincApply
 #' @aliases pMincApply
@@ -1729,6 +1797,7 @@ pMincApply <- function(filenames, function.string,
 
 #' @seealso mincWriteVolume,mincMean,mincSd,mincLm,mincAnova
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 #' ma <- mincApply(gf$jacobians_fixed_2,quote(mean(x))); 
@@ -1737,16 +1806,15 @@ pMincApply <- function(filenames, function.string,
 #' testFunc <- function (x) { return(c(1,2))}
 #' pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,global = c('gf','testFunc'))
 #' mincWriteVolume(pout, "pmincOut.mnc")
-
-#' pbs example 1 (hpf)
+#' 
+#' ### pbs example 1 (hpf)
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 #' testFunc <- function (x) { return(c(1,2))}
 #' options(TMPDIR="/localhd/$PBS_ID")
 #' pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,method="pbs",global = c('gf','testFunc'))
 #'
-
-#' pbs example 2 (scinet)
+#' ### pbs example 2 (scinet)
 #' getRMINCTestData() 
 #' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 #' testFunc <- function (x) { return(c(1,2))}
@@ -1754,9 +1822,10 @@ pMincApply <- function(filenames, function.string,
 #' options(MAX_NODES=8)
 #' options(TMP_DIR="/tmp")
 #' pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),modules=c("intel","openmpi","R/3.1.1"),workers = 4,method="pbs",global = c('gf','testFunc'))
-#' NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
-#' NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
-###########################################################################################
+#' #NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
+#' #NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
+#' }
+#' @export
 mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
   if (is.null(maskval)) {
     minmask = 1
@@ -1896,7 +1965,8 @@ mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
   
   return(results)
 }
-  
+
+
 vertexTable <- function(filenames) {
   nSubjects <- length(filenames)
   nvertices <- nrow(read.table(filenames[1]))
@@ -1907,7 +1977,7 @@ vertexTable <- function(filenames) {
   return(output)
 }
 
-###########################################################################################
+
 #' Performs ANOVA on each vertex point specified 
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
@@ -1916,12 +1986,14 @@ vertexTable <- function(filenames) {
 #' 	vertex file names input, stat-type: type of statistic used,dimensions,dimension names, and df – degrees of freedom of each statistic. 
 #' @seealso mincAnova,anatAnova 
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-#' result = vertexAnova(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf) 
-###########################################################################################
+#' result = vertexAnova(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf)
+#' }
+#' @export 
 vertexAnova <- function(formula, data, subset=NULL) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
@@ -1960,7 +2032,8 @@ vertexAnova <- function(formula, data, subset=NULL) {
   class(result) <- c("vertexMultiDim", "matrix")
   return(result)
 }
-###########################################################################################
+
+
 #' Calculates statistics and coefficients for linear model of specified vertex files
 #' @param formula a model formula. The RHS of the formula may contain one term with filenames. If
 #' so only the + operator may be used, and only two terms may appear on the RHS
@@ -1969,13 +2042,15 @@ vertexAnova <- function(formula, data, subset=NULL) {
 #' @return Returns an object containing the R-Squared value,beta coefficients, F 
 #' and t statistcs that can be passed directly into vertexFDR.
 #' @seealso mincLm,anatLm,vertexFDR 
-#' @examples 
+#' @examples
+#' \dontrun{ 
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' result = vertexLm(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf) 
-###########################################################################################
+#' }
+#' @export
 vertexLm <- function(formula, data, subset=NULL) {
 
   # Build model.frame
@@ -2054,13 +2129,14 @@ vertexLm <- function(formula, data, subset=NULL) {
 #' @return  out: The output will be a single vector containing as many
 #'          elements as there are vertices in the input variable. 
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft,quote(mean(x)))
-###########################################################################################
-
+#' }
+#' @export
 vertexApply <- function(filenames,function.string) 
 {
   # Load the data
@@ -2547,7 +2623,6 @@ parseLmFormula <- function(formula,data,mf)
 #' using more complicated random effects structures.
 #'
 #' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
-#'
 #' @examples
 #' \dontrun{
 #' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
@@ -2570,6 +2645,7 @@ parseLmFormula <- function(formula,data,mf)
 #' modelCompare <- mincLogLikRatioParametricBootstrap(modelCompare)
 #' mincFDR(modelCompare)
 #' }
+#' @export
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
 
@@ -2685,6 +2761,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
 #' for multiple comparisons corrections.
 #'
 #' @examples
+#' @export
 #' \dontrun{
 #' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
 #' vs <- mincLmerEstimateDF(vs)
@@ -2843,13 +2920,14 @@ mincLmerOptimizeAndExtract <- function(x) {
 #' fitted with maximum likelihood, and not restricted maximum likelihood; in other words, if you want
 #' to use these log likelihood tests, make sure to specify REML=FALSE in mincLmer.
 #'
+#' @param ... Two or more mincLmer objects
 #' @return the voxel wise log likelihood test. Will have a number of columns corresponding to the
 #' number of inputs -1. Note that it resorts the inputs from lowest to highest degrees of freedom
 #'
 #' @seealso \code{\link{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
 #' \code{\link{mincFDR}} for using the False Discovery Rate to correct for multiple comparisons,
 #' and \code{\link{mincWriteVolume}} for outputting the values to MINC files.
-#'
+#' @export
 #' @examples
 #' \dontrun{
 #' m1 <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
@@ -2938,8 +3016,8 @@ mincLogLikRatio <- function(...) {
 #' @param selection the algorithm for randomly chosing voxels. Only "random" works for now.
 #' @param nsims the number of simulations to run per voxel
 #' @param nvoxels the number of voxels to run the parametric bootstrap on
-#'
 #' @return a matrix containing the chi-square p-values and the bootstrapped p-values
+#' @export
 mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
                                                nsims=500, nvoxels=50) {
   mincLmerLists <- attr(logLikOutput, "mincLmerLists")
@@ -3007,7 +3085,7 @@ mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
 #' @param vectorCoord the integer array index to convert
 #'
 #' @return a vector of length 3 containing the MINC indices in volume dimension order
-#'
+#' @export
 #' @examples
 #' \dontrun{
 #' index <- mincVectorToVoxelCoordinates("filename.mnc", 345322)
@@ -3031,6 +3109,9 @@ mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
 #' @param volumeFileName the filename for a MINC volume
 #' @param nvoxel the number of voxels to select
 #' @param convert whether to convert to MINC voxel space (default) or keep in index space  
+#' @return A vector of length \code{nvoxels} containing selected voxel indices or if convert is true
+#' a matrix containing the x-y-z coordinates of the selected voxels. 
+#' @export
 mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
   #load volume - should be a binary mask
   mvol <- mincGetVolume(volumeFileName) 
