@@ -348,6 +348,16 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                as.double(b.min),
                as.double(buffer), PACKAGE="RMINC")
   
+  #Create starter history
+  history <- 
+    sprintf("%s>>> RMINC output volume, from a(n) %s buffer, like %s",
+            Sys.time() %>% format("%a %b %d %H:%M:%S %Y"),
+            class(buffer)[1],
+            like.filename)
+  
+  #Initialize output volume's history to the starter history
+  .Call("minc_overwrite_history", output.filename, history, nchar(history))
+  
   return(invisible(NULL))
 }
 ###########################################################################################
@@ -359,6 +369,37 @@ minc.dimensions.sizes <- function(filename) {
               sizes = integer(3), PACKAGE="RMINC")$sizes
   return(sizes)
 }
+
+minc.get.history <- 
+  function(filename){
+    history <- 
+      .Call("get_minc_history",
+            filename,
+            20000) #Hardcode 20,000 character history limit - up for debate/fix
+    
+    unlist(strsplit(history, "\n"))
+  }
+
+minc.append.history <-
+  function(filename, 
+           new_history = NULL){
+    
+    old_history <- minc.get.history(filename)
+    
+    if(is.null(new_history)){
+      new_history <-
+        sprintf("%s>>> Written out by RMINC",
+                Sys.time() %>% format("%a %b %d %H:%M:%S %Y"))
+    }
+    
+    new_history <- 
+      paste0(c(old_history, new_history), collapse = "\n")
+    
+    .Call("minc_overwrite_history", filename, new_history, nchar(new_history))
+    
+    invisible(NULL)
+  }
+
 
 # get a hypeslab from an existing volume with given start and counts.
 minc.get.hyperslab <- function(filename, start, count, buffer=NA) {
