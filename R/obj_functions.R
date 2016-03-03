@@ -126,8 +126,8 @@ colour_mesh <- function(mesh,
   
   colour_indices <- 
     floor(
-      (colour_map - min(colour_map, na.rm = TRUE)) / 
-        diff(range(colour_map, na.rm = TRUE)) * (colour_depth - 1)) + 1
+      (colour_map - colour_range[1]) / 
+        diff(colour_range) * (colour_depth - 1)) + 1
   
   #Internally in tmesh3d, the vertex matrix is expanded
   #Such that the vertices for each triangle appear sequentially
@@ -174,7 +174,11 @@ plot.bic_obj <-
            reverse = NULL,
            palette = heat.colors(255),
            colour_bar = TRUE,
+           add = FALSE,
            ...){
+    
+    if(!add) open3d()
+    
     .check3d()
     window_dimensions <- par3d("windowRect")
     
