@@ -66,6 +66,8 @@ mincArray <- function(volume, dimIndex=1) {
 
 getSlice <- function(volume, slice, dimension) {
   d <- dim(volume)
+  if(length(d) != 3) stop("volume must be 3 dimensional, you may be missing a call to mincArray")
+  
   if (dimension == 1) {
     outs <- volume[slice,,]
     outa <- d[3]/d[2]
@@ -79,13 +81,15 @@ getSlice <- function(volume, slice, dimension) {
     outa <- d[2]/d[1]
   }
   else if (dimension > 3) {
-    error("Can only handle three dimensions at the moment")
+    stop("Can only handle three dimensions at the moment")
   }
   return(list(slice=outs, asp=outa))
 }
 
 plotLocator <- function(dimension, anatomy, indicatorLevels, slices){
   d <- dim(anatomy)
+  if(length(d) != 3) stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
+  
   locatorDimension <- ifelse(dimension %in% 2:3, 1, 2)
   locatorSlice <- ceiling(d[locatorDimension] / 2)
   
@@ -127,6 +131,8 @@ sliceSeriesLayout <-
     
     # figure out location of slices
     d <- dim(anatomy)
+    if(length(d) != 3) stop("anatomy must be 3 dimensional")
+  
     if (end < 0) { end <- d[dimension] + end }
     slices <- ceiling(seq(begin, end, length=nslices))
     
@@ -188,6 +194,9 @@ mincPlotSliceSeries <-
            plottitle = NULL, 
            indicatorLevels = NULL,
            discreteStats = FALSE){
+    
+    if(length(dim(anatomy)) != 3) 
+      stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
     
     plot_function <- 
       ifelse(is.null(statistics), 
@@ -327,6 +336,10 @@ getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
 mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL, 
                                    layoutMatrix=NULL, ...) {
   opar <- par(no.readonly = TRUE)
+  
+  if(length(dim(anatomy)) != 3) 
+    stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
+  
   #layout(matrix(c(1,1,2,3), 2, 2, byrow=T))
   if (is.null(layoutMatrix)) {
     layout(matrix(c(1,2,2, 1,3,3), 2, 3, byrow=T))
@@ -396,6 +409,10 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           symmetric=FALSE,
                           col=NULL, rcol=NULL, legend=NULL,
                           discreteStats = FALSE) {
+  
+  if(length(dim(anatomy)) != 3) 
+    stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
+  
   if (is.null(slice)) {
     halfdims <- ceiling(dim(anatomy)/2)
     slice <- halfdims[dimension]
@@ -492,6 +509,9 @@ mincImage <- function(volume, dimension=2, slice=NULL,
                       scale = TRUE,
                       add = FALSE,
                       ...) {
+  if(length(dim(volume)) != 3) 
+    stop("volume must be 3 dimensional, you may be missing a call to mincArray")
+  
   s <- getSlice(volume, slice, dimension)
   # reverse means multiply scaling by -1
   if (reverse) { m <- -1 } else { m <- 1 }
@@ -563,6 +583,10 @@ mincImage <- function(volume, dimension=2, slice=NULL,
 #' mincContour(mincArray(anatVol), slice=100, add=T, col=rainbow(2), levels=c(1000, 1400))
 #' }
 mincContour <- function(volume, dimension=2, slice=NULL, ...) {
+  
+  if(length(dim(volume)) != 3) 
+    stop("volume must be 3 dimensional, you may be missing a call to mincArray")
+  
   s <- getSlice(volume, slice, dimension)
   sliceDims <- dim(s$slice)
   contour(1:sliceDims[1], 1:sliceDims[2], s$slice, asp=1, ...)
