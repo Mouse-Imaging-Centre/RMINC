@@ -40,6 +40,8 @@ export( fast.qvalue )
 
 #############################
 # minc_interface.R
+export( setRMINCMaskedValue )
+export( print.RMINC_MASKED_VALUE )
 export( getRMINCTestData )
 export( minc.dimensions.sizes )
 export( minc.get.hyperslab )
@@ -87,6 +89,7 @@ export( mincWriteVolume )
 export( mincWriteVolume.default )
 export( mincWriteVolume.mincMultiDim )
 export( mincWriteVolume.mincSingleDim )
+export( mincApplyRCPP )
 export( pMincApply )
 export( print.mincLmer )
 export( print.mincLogLikRatio )
@@ -321,7 +324,6 @@ export( vertexLookup )
 # load shared objects
 useDynLib(RMINC)
 
-
 #############################
 # import all required packages
 import(
@@ -331,5 +333,6 @@ import(
   grDevices,
   methods,
   grid,
-  lattice
+  lattice,
+  Rcpp
 )

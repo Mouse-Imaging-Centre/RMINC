@@ -1,3 +1,20 @@
+#' Set Masked Value
+#' 
+#' Use this function to configure how masked values should be treated
+#' @param The new value for RMINC_MASKED_VALUE, defaults to resetting
+#' the masked value to NA
+#' @export
+setRMINCMaskedValue <- 
+  function(val = NA){
+    options(RMINC_MASKED_VALUE = structure(val, class = "RMINC_MASKED_VALUE"))
+    return(invisible(NULL))
+  }
+
+#' @export
+print.RMINC_MASKED_VALUE <-
+  function(x, ...)
+    print(as.symbol("masked"))
+    
 mincGetTagFile <- function(filename) {
   tags <- scan(filename, what="character")
   # tag points begin after Points = line
@@ -1867,53 +1884,54 @@ pMincApply <- function(filenames, function.string,
 #' #NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
 #' }
 #' @export
-mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
-  if (is.null(maskval)) {
-    minmask = 1
-    maxmask = 99999999
-  }
-  else {
-    minmask = maskval
-    maxmask = maskval
-  }
-  # Need to get one voxel, x, to test number of values returned from function.string
-  x <- mincGetVoxel(filenames, 0,0,0)
-  test <- eval(function.string)
-
-  results <- .Call("minc2_model",
-              as.character(filenames),
-              matrix(),
-              function.string,
-              NULL,
-              as.double(! is.null(mask)),
-              as.character(mask),
-              as.double(minmask),
-              as.double(maxmask),
-              .GlobalEnv,
-              as.double(length(test)),
-              as.character("eval"), PACKAGE="RMINC");
-
-  if (length(test) > 1) {
-    if (reduce==TRUE) {
-      maskV <- mincGetVolume(mask)
-      results <- results[maskV > (minmask-0.5) & maskV < (maxmask+0.5),]
+mincApply <- 
+  function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
+    if (is.null(maskval)) {
+      minmask = 1
+      maxmask = 99999999
     }
-    class(results) <- c("mincMultiDim", "matrix")
-  }
-  else {
-    if (reduce==TRUE) {
-      maskV <- mincGetVolume(mask)
-      results <- results[maskV > (minmask-0.5) & maskV < (maxmask+0.5)]
+    else {
+      minmask = maskval
+      maxmask = maskval
     }
-    class(results) <- c("mincSingleDim", "numeric")
+    # Need to get one voxel, x, to test number of values returned from function.string
+    x <- mincGetVoxel(filenames, 0,0,0)
+    test <- eval(function.string)
+    
+    results <- .Call("minc2_model",
+                     as.character(filenames),
+                     matrix(),
+                     function.string,
+                     NULL,
+                     as.double(! is.null(mask)),
+                     as.character(mask),
+                     as.double(minmask),
+                     as.double(maxmask),
+                     .GlobalEnv,
+                     as.double(length(test)),
+                     as.character("eval"), PACKAGE="RMINC");
+    
+    if (length(test) > 1) {
+      if (reduce==TRUE) {
+        maskV <- mincGetVolume(mask)
+        results <- results[maskV > (minmask-0.5) & maskV < (maxmask+0.5),]
+      }
+      class(results) <- c("mincMultiDim", "matrix")
+    }
+    else {
+      if (reduce==TRUE) {
+        maskV <- mincGetVolume(mask)
+        results <- results[maskV > (minmask-0.5) & maskV < (maxmask+0.5)]
+      }
+      class(results) <- c("mincSingleDim", "numeric")
+    }
+    attr(results, "likeVolume") <- filenames[1]
+    
+    # run the garbage collector...
+    gcout <- gc()
+    
+    return(results)
   }
-  attr(results, "likeVolume") <- filenames[1]
-  
-  # run the garbage collector...
-  gcout <- gc()
-  
-  return(results)
-}
 
 # use the eval interface to run mixed effect models at every vertex.
 # NOTE: since it uses the eval interface it suffers from several
@@ -1922,7 +1940,7 @@ mincApply <- function(filenames, function.string, mask=NULL, maskval=NULL, reduc
 # * is numbingly, dreadfully, stupifyingly slow.
 
 mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
-
+  
   # determine the number of output variables
   x <- rnorm(length(filenames))
   s <- summary(lme(as.formula(fixed.effect), random=as.formula(random.effect)))$tTable[,4]
@@ -1940,32 +1958,32 @@ mincSlowLme <- function(filenames, fixed.effect, random.effect, mask){
   assign("voxel.slow.lme", voxel.slow.lme, env=.GlobalEnv)
   output <- mincApply(filenames, quote(voxel.slow.lme(x)), mask)
   return(output)
-
+  
 }
 
 mincLme <- function(filenames, fixed.effect, random.effect, mask=NULL)
 {
   # mincLme is deprecated, mincLmer should be used:
   warning("The mincLme function is deprecated, please use mincLmer")
-
+  
   # determine the number of output variables
   x <- rnorm(length(filenames))
   s <- rmincLme(as.formula(fixed.effect), random=as.formula(random.effect))
-
+  
   voxel.lme <- function(x) {
     s <- rmincLmeLoop(dataMix, X, Z, grps, lmeSt, controlvals, dims, listNncols, listrownames, x)
     if (inherits(s, "try-error")) {
       return(vector("numeric", length=2))
     }
     else {
-	return(s)
+      return(s)
     }
     
   }
   assign("voxel.lme", voxel.lme, env=.GlobalEnv)
   output <- mincApplyLme(filenames, quote(voxel.lme(x)), mask)
   return(output)
-
+  
 }
 
 mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
@@ -1981,7 +1999,7 @@ mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
   }
   results <- .Call("minc2_model",
                    as.character(filenames),
-		   matrix(),
+                   matrix(),
                    function.string,
                    NULL,
                    as.double(! is.null(mask)),
@@ -1991,7 +2009,7 @@ mincApplyLme <- function(filenames, function.string, mask=NULL, maskval=NULL) {
                    .GlobalEnv,
                    as.double(length(test)),
                    as.character("eval"), PACKAGE="RMINC");
-
+  
   attr(results, "likeVolume") <- filenames[1]
   if (length(test) > 1) {
     class(results) <- c("mincMultiDim", "matrix")
@@ -3218,6 +3236,67 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
   }
 
   return(invisible(testReport))
+}
+
+#' Perform Arbitrary calculations on a collection of mincVolumes
+#' 
+#' An RCPP variant of \link{mincApply}, the primary advantage being
+#' that functions of an arbitrary number of arguments can be passed
+#' to mincApplyRCPP.
+mincApplyRCPP <- 
+  function(filenames, 
+           fun, 
+           ..., 
+           mask = NULL, 
+           maskval = NULL,
+           filter_masked = FALSE,
+           collate = identity){
+  
+  apply_fun <- 
+    function(x, extra_arguments)
+      do.call(match.fun(fun), c(list(x), extra_arguments))
+  
+  args <- list(...)
+  filenames <- as.character(filenames)
+  
+  if(is.null(maskval)){
+    minmask <- 1
+    maxmask <- 99999999
+  } else {
+    minmask <- maxmask <- maskval
+  }
+  
+  if(is.null(mask)){
+    use_mask <- FALSE
+    mask = ""
+  } else {
+    use_mask <- TRUE
+  }
+  
+  masked_value <- options()$RMINC_MASKED_VALUE
+  
+  results <-
+    .Call("RMINC_rcpp_minc_apply",
+        filenames,
+        use_mask = use_mask,
+        mask = mask,
+        mask_lower_val = minmask,
+        mask_upper_val = maxmask,
+        value_for_mask = masked_value,
+        filter_masked = filter_masked,
+        fun = apply_fun,
+        args = args,
+        PACKAGE = "RMINC")
+  
+  # run the garbage collector...
+  gcout <- gc()
+  
+  collation_function <- match.fun(collate)
+  results <- collation_function(results)
+  attr(results, "likeVolume") <- filenames[1]
+  attr(results, "filenames") <- filenames
+  
+  return(results)
 }
 
 # Get Test Data (i.e. for running examples from man pages)

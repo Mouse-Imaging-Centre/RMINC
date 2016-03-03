@@ -17,6 +17,10 @@ Imports:
     rgl,
     ggplot2,
     testthat,
+    lme4,
+    Rcpp
+LinkingTo:
+    Rcpp,
     lme4
 Suggests:
     qvalue
