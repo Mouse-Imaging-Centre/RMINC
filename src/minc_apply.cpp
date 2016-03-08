@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include "minc2.h"
+#include "minc_apply.h"
 using namespace Rcpp;
 using namespace std;
 
