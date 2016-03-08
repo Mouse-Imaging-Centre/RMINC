@@ -119,7 +119,7 @@ print.mincVoxel <- function(x, ..., filenames=FALSE, digits=NULL) {
 #' Given a voxel coordinate, return the value at those coordinates
 #' from a set of minc files as a numeric vector
 #' 
-#' @param filenames A character vector of one or more filenames
+#' @param filenames Character vector with paths to minc files
 #' @param v1 First voxel coordinate
 #' @param v2 Second voxel coordinate
 #' @param v3 Third voxel coordinate
@@ -146,10 +146,12 @@ mincGetVector <- function(filenames, v1, v2, v3, v.length = NULL) {
 #' 
 #' Convert a discrete set of voxel coordinates into the volumes
 #' continous world coordinate space
-#' @param filename
+#' @param filename Character vector with paths to minc files
 #' @param v1 First voxel coordinate
 #' @param v2 Second voxel coordinate
 #' @param v3 Third voxel coordinate
+#' @return a 3-component numeric vector of world coordinates
+#' @export
 mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
   output <- .C("convert_voxel_to_world",
                as.character(filename),
@@ -168,6 +170,8 @@ mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
 #' @param v1 First world coordinate
 #' @param v2 Second world coordinate
 #' @param v3 Third world coordinate
+#' @return a 3-component numeric vector of voxel coordinates
+#' @export
 mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
   output <- .C("convert_world_to_voxel",
                as.character(filename),
@@ -211,7 +215,7 @@ mincGetVolume <- function(filename) {
 
 ## This is not the right place to document print.mincMultiDim, but best I
 ## could think of off hand
-#' @describeIn mincGetVolume
+#' @describeIn mincGetVolume print
 #' @export
 print.mincMultiDim <- function(x, ...) {
   cat("Multidimensional MINC volume\n")
@@ -219,8 +223,8 @@ print.mincMultiDim <- function(x, ...) {
   print(attr(x, "likeVolume"))
 }
 
-#' @describeIn mincLogLikRatio
-#' @export
+#' @describeIn mincLogLikRatio print
+#' @export print.mincLogLikRatio
 print.mincLogLikRatio <- function(x, ...) {
   cat("mincLogLikRatio output\n\n")
   mincLmerLists <- attr(x, "mincLmerLists")
@@ -233,8 +237,8 @@ print.mincLogLikRatio <- function(x, ...) {
   cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
 }
 
-#' @describeIn mincLmer
-#' @export
+#' @describeIn mincLmer print
+#' @export print.mincLmer
 print.mincLmer <- function(x, ...) {
   cat("mincLmer output\n")
   cat("Formula:  ")
@@ -255,16 +259,15 @@ print.vertexMultiDim <- function(x, ...) {
   cat("Columns:      ", colnames(x), "\n")
 }
       
-#' @describeIn mincGetVolume
-#' @export
+#' @describeIn mincGetVolume print
+#' @export print.mincSingleDim
 print.mincSingleDim <- function(x, ...) {
   cat("MINC volume\n")
   print(attr(x, "likeVolume"))
   print(attr(x, "filename"))
 }
 
-#' @describeIn mincFDR
-#' @export
+#' @export print.mincQvals
 print.mincQvals <- function(x, ...) {
   print.mincMultiDim(x)
   cat("Degrees of Freedom:", paste(attr(x, "DF")), "\n")
@@ -308,13 +311,13 @@ mincWriteVolume <- function(buffer, ...) {
   UseMethod("mincWriteVolume")
 }
 
-#' @describeIn mincWriteVolume
+#' @describeIn mincWriteVolume mincSingleDim
 #' @export
 mincWriteVolume.mincSingleDim <- function(buffer, output.filename, clobber = NULL) {
   mincWriteVolume.default(buffer, output.filename, attr(buffer, "likeVolume"), clobber)
 }
 
-#' @describeIn mincWriteVolume
+#' @describeIn mincWriteVolume mincMultiDim
 #' @export
 mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1, 
 																				like.filename = NULL, clobber = NULL) {
@@ -329,7 +332,7 @@ mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1,
   mincWriteVolume.default(buffer[,column], output.filename, like.filename, clobber)
 }
 
-#' @describeIn mincWriteVolume
+#' @describeIn mincWriteVolume default
 #' @export
 mincWriteVolume.default <- function(buffer, output.filename, like.filename,
                                     clobber = NULL) {
@@ -762,14 +765,14 @@ mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
 
-#' @describeIn mincFDR
+
 #' @export
 vertexFDR <- function(buffer, method="FDR", mask = mask) {
   mincFDR.mincMultiDim(buffer, columns=NULL, mask=NULL, df=NULL,
                        method=method)
 }
 
-#' @describeIn mincFDR
+#' @describeIn mincFDR mincSingleDim
 #' @export
 mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue", ...) {
   if (is.null(df)) {
@@ -798,7 +801,7 @@ mincFDRMask <- function(mask, buffer) {
   return(mask)
 }
 
-#' @describeIn mincFDR
+#' @describeIn mincFDR mincLogLikRatio
 #' @export
 mincFDR.mincLogLikRatio <- function(buffer, mask=NULL) {
   cat("Computing FDR for mincLogLikRatio\n")
@@ -901,7 +904,7 @@ mincFDRThresholdVector <- function(pvals, qvals, thresholdFunc=NULL,
 }
 
 
-#' @describeIn mincFDR
+#' @describeIn mincFDR mincLmer
 #' @export
 mincFDR.mincLmer <- function(buffer, mask=NULL) {
   cat("In mincFDR.mincLmer\n")
@@ -969,7 +972,7 @@ mincFDR.mincLmer <- function(buffer, mask=NULL) {
   return(output)
 }
 
-#' @describeIn mincFDR
+#' @describeIn mincFDR mincMultiDim
 #' @export
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
                                  method="FDR", statType=NULL) {
@@ -979,8 +982,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       stop("The qvalue package must be installed for mincFDR to work")
     }
   }
-
-
+  
   # Remove coefficients from buffer
   stattype = attr(buffer, "stat-type")
   df  = attr(buffer,"df")
@@ -1130,7 +1132,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     
     # determine corresponding q values
     if (method=="qvalue") {
-      qobj <- qvalue(pvals)
+      qobj <- qvalue::qvalue(pvals)
     }
     else if (method == "FDR" | method == "p.adjust") {
       qobj$pvalue <- pvals
@@ -1225,21 +1227,21 @@ mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   return(result)
 }
 
-#' @describeIn mincMean
+#' @describeIn mincMean Variance
 #' @export
 mincVar <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   return(result)
 }
 
-#' @describeIn mincMean
+#' @describeIn mincMean Sum
 #' @export
 mincSum <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="sum", maskval=maskval)
   return(result)
 }
 
-#' @describeIn mincMean
+#' @describeIn mincMean Standard Deviation
 #' @export
 mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
@@ -1247,8 +1249,9 @@ mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
   return(result)
 }
 
-#' @name Minc T-test
-#' @description Perform an unpaired,unequal variance t-test across a set of minc volumes
+#' Minc T-test
+#' 
+#' Perform an unpaired,unequal variance t-test across a set of minc volumes
 #' @param filenames Filenames of the MINC volumes across which to run the t-test
 #' @param grouping  Contains same number of elements as
 #' filenames; must contain exactly two groups with which to compare means
@@ -1460,7 +1463,7 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
-#' @describeIn mincApply
+#' @describeIn mincApply parallel
 #' @export
 pMincApply <- function(filenames, function.string,
                        mask=NULL, workers=4, tinyMask=FALSE, method="snowfall",global="",packages="", modules="",vmem="8",walltime="01:00:00") {
@@ -1516,9 +1519,8 @@ pMincApply <- function(filenames, function.string,
   if (method == "local") {
     stop("Lovely code ... that generates inconsistent results because something somewhere is not thread safe ...")
     
-    library(multicore)
-    library(doMC)
-    library(foreach)
+    #library(doMC)
+    #library(foreach)
     registerDoMC(workers)
     
     # run the job spread across each core
@@ -1693,7 +1695,7 @@ pMincApply <- function(filenames, function.string,
 }
 
   else if (method == "sge") {
-    library(Rsge)
+    #library(Rsge)
 
     options(sge.use.cluster = TRUE)
     options(sge.block.size = 100)
@@ -1741,7 +1743,7 @@ pMincApply <- function(filenames, function.string,
       function.string = eval(function.string)
   }
   else if (method == "snowfall") {
-    library(snowfall)
+    #library(snowfall)
     sfInit(parallel=TRUE, cpus=workers)
 
     for (nPackage in 1:length(packageList)) {
@@ -1803,9 +1805,6 @@ pMincApply <- function(filenames, function.string,
 #' @name mincApply
 #' @aliases pMincApply
 #' @title Apply arbitrary R function at every voxel
-#' @usage mincApply(filenames, quote(mean(x)), mask="mask.mnc")
-#' pMincApply(filenames, quote(mean(x)), mask="mask.mnc", workers=4,
-#'            method="snowfall", tinyMask=FALSE, global = "",packages = "",walltime="01:00:00",vmem="8",modules="")
 #' @param filenames The MINC files over which to apply the function. Have to be
 #' the same sampling.
 #' @param function-string The function which to apply. Can only take a single
@@ -2709,11 +2708,11 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
 
   #Try and load lme4
-  result = tryCatch({
-	library(lme4)
-  }, error = function(e) {
-	stop("Could not find lme4. Please install this package.")
-  })
+#   result = tryCatch({
+# 	library(lme4)
+#   }, error = function(e) {
+# 	stop("Could not find lme4. Please install this package.")
+#   })
 
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -2820,21 +2819,21 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
 #' for multiple comparisons corrections.
 #'
 #' @examples
-#' @export
 #' \dontrun{
 #' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
 #' vs <- mincLmerEstimateDF(vs)
 #' qvals <- mincFDR(vs, mask=attr(vs, "mask"))
 #' qvals
 #' }
+#' @export
 mincLmerEstimateDF <- function(model) {
   # set the DF based on the Satterthwaite approximation
   # load lmerTest library if not loaded; lmerTest takes over some lmer functions, so unload if
   # it wasn't loaded in the first place
-  lmerTestLoaded <- "package:lmerTest" %in% search()
-  if (lmerTestLoaded == FALSE) {
-    library(lmerTest)
-  }
+  # lmerTestLoaded <- "package:lmerTest" %in% search()
+  # if (lmerTestLoaded == FALSE) {
+  #   library(lmerTest)
+  # }
 
   # put the lmod variable back in the global environment
   #lmod <<- attr(model, "mincLmerList")[[1]]
@@ -3203,9 +3202,9 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE) {
 #' @export
 runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
   
-	if(!require(testthat)){
-	  stop("Sorry, you need to install testthat to run the testbed")
-	}
+	# if(!require(testthat)){
+	#   stop("Sorry, you need to install testthat to run the testbed")
+	# }
 
   options(verbose = verboseTest)
   # Make sure environment is clear

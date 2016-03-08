@@ -327,12 +327,18 @@ useDynLib(RMINC)
 #############################
 # import all required packages
 import(
-  dplyr,
-  lme4,
-  rgl,
-  grDevices,
-  methods,
-  grid,
-  lattice,
-  Rcpp
+    methods,
+    lattice,
+    dplyr,
+    rgl,
+    ggplot2,
+    testthat,
+    lme4,
+    shiny,
+    lmerTest,
+    Rsge,
+    doMC,
+    snowfall,
+    foreach,
+    Rcpp
 )

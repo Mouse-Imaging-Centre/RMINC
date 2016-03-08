@@ -408,11 +408,12 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 #' @return gf is returned with CIVET filenames 
 #' @seealso civet.readAllCivetFiles
 #' @examples
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-###########################################################################################
-
+#' }
+#' @export
 civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9") {
 	# designed for use with CIVET 1.1.9 and CIVET 1.1.12
 	if ( civetVersion != "1.1.9"  && civetVersion != "1.1.12" ) {
@@ -739,11 +740,13 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' }
 #' @seealso  civet.getAllFilenames
 #' @examples
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET", TRUE, "1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-###########################################################################################
+#' }
+#' @export
 civet.readAllCivetFiles = function(atlasFile,gf)
 {
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1141,9 +1144,7 @@ else
 write.table(roiObj,outputFileName,FALSE,TRUE," ","\n","NA",".",FALSE,FALSE)
 }
 
-###########################################################################################
 #' @description Create a brainview file of a specific ROI
-#' @name civet.CreateBrainViewROI
 #' @title civet.CreateBrainViewROI
 #' @param atlasFile File with Atlas label (string-label(int)) mappings
 #' @param atlasVertices File with vertex label(int) mappings
@@ -1153,12 +1154,14 @@ write.table(roiObj,outputFileName,FALSE,TRUE," ","\n","NA",".",FALSE,FALSE)
 #' Currently only CIVET version 1.1.12 is supported.
 #' @seealso civet.CreateBrainViewFile
 #' @examples
+#' \dontrun{
 #' getRMINCTestData() 
 #' civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv","/tmp/rminctestdata/AAL_atlas_left.txt","Left Insula")
 #' q()
-#' (The .txt file is written in the working directory and can be viewed via the command)
-#' brain-view2 $CIVET_DIR/models/surf_reg_model_left.obj ./LeftInsula.txt
-###########################################################################################
+#' #(The .txt file is written in the working directory and can be viewed via the command)
+#' #brain-view2 $CIVET_DIR/models/surf_reg_model_left.obj ./LeftInsula.txt
+#' }
+#' @export
 civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion="1.1.12") {
 	
 	if ( civetVersion != "1.1.12" ) {

@@ -9,7 +9,7 @@ Description: A package for reading and writing MINC2 files
     and running arbitrary R functions at every voxel of a set of files.
 Additional_Repositiories: http://bioconductor.org/packages/3.1/bioc
 Depends:
-    R (>= 3.0.1),
+    R (>= 3.0.1)
 Imports:
     methods,
     lattice,
@@ -18,9 +18,14 @@ Imports:
     ggplot2,
     testthat,
     lme4,
+    shiny,
+    lmerTest,
+    Rsge,
+    doMC,
+    snowfall,
+    foreach,
     Rcpp
-LinkingTo:
-    Rcpp,
+LinkingTo: Rcpp,
     lme4
 Suggests:
     qvalue
@@ -31,3 +36,4 @@ SystemRequirements:
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
 BuildVignettes: False
+RoxygenNote: 5.0.1
