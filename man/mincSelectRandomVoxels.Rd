@@ -4,14 +4,16 @@
 \alias{mincSelectRandomVoxels}
 \title{selects a few random indices from a volume}
 \usage{
-mincSelectRandomVoxels(volumeFileName, nvoxels = 50, convert = TRUE)
+mincSelectRandomVoxels(volumeFileName, nvoxels = 50, convert = TRUE, ...)
 }
 \arguments{
 \item{volumeFileName}{the filename for a MINC volume}
 
+\item{nvoxels}{the number of voxels to select}
+
 \item{convert}{whether to convert to MINC voxel space (default) or keep in index space}
 
-\item{nvoxel}{the number of voxels to select}
+\item{...}{additional arguments}
 }
 \value{
 A vector of length \code{nvoxels} containing selected voxel indices or if convert is true

@@ -25,11 +25,13 @@ has the attributes for model,stat type and degrees of freedom.
 Calculates statistics and coefficients for linear model of specified anat structure
 }
 \examples{
+\dontrun{
 getRMINCTestData() 
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-rmincLm= anatLm(~ Sex,gf,gf$lobeThickness); 
+rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
+} 
 }
 \seealso{
 mincLm,anatLm,anatFDR

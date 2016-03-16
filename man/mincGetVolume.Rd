@@ -2,15 +2,9 @@
 % Please edit documentation in R/minc_interface.R
 \name{mincGetVolume}
 \alias{mincGetVolume}
-\alias{print.mincMultiDim}
-\alias{print.mincSingleDim}
 \title{Read a MINC file}
 \usage{
 mincGetVolume(filename)
-
-print.mincMultiDim(x, ...)
-
-print.mincSingleDim(x, ...)
 }
 \arguments{
 \item{filename}{A string corresponding to the location of the MINC2 file to
@@ -22,12 +16,6 @@ Returns a vector of mincSingleDim class
 \description{
 Load a 3-dimensional MINC2 volume and returns it as a 1D array
 }
-\section{Functions}{
-\itemize{
-\item \code{print.mincMultiDim}: print
-
-\item \code{print.mincSingleDim}: print
-}}
 \examples{
 \dontrun{
 getRMINCTestData()

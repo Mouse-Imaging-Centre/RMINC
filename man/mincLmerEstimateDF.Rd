@@ -15,7 +15,7 @@ the same mincLmer model, now with degrees of freedom set
 \description{
 There is much uncertainty in how to compute p-values for mixed-effects
 statistics, related to the correct calculation of the degrees of freedom
-of the model (see here \link{http://glmm.wikidot.com/faq#df}). mincLmer by
+of the model (see here \url{http://glmm.wikidot.com/faq#df}). mincLmer by
 default does not return the degrees of freedom as part of its model, instead
 requiring an explicit call to a separate function (such as this one).
 The implementation here is the Satterthwaite approximation. This approximation

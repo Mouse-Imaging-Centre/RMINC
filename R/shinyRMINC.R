@@ -11,16 +11,13 @@
 #' @param keepBetas whether to include the beta coefficients
 #' @param plotcolumns extra data to be used for plotting
 #' @param modelfunc optional modelling function
-#'
-#' @export
-#'
 #' @examples
 #' \dontrun{
 #' vs <- mincLm(reljacobians02 ~ sex*treatment, subset(gfs, treatment != "None"))
 #' anatVol <- mincArray(mincGetVolume("anatomyfile.mnc"))
 #' launch_shinyRMINC(vs, anatVol, volumes=gfs$vols, plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
-
 #' }
+#' @export
 launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL) {
   gfs <- data.frame(filenames = attributes(statsoutput)$filenames)
   if (!is.null(plotcolumns)) {
@@ -70,5 +67,5 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALS
     }
   }
   cat("Launching shiny\n")
-  shiny:::runApp(system.file("shinyRMINC/", package="RMINC"))
+  shiny::runApp(system.file("shinyRMINC/", package="RMINC"))
 }

@@ -30,11 +30,18 @@ measure. If "jacobians","sums",or "labels" is selected then the sum of the left 
 the mean is produced.
 }
 \examples{
+\dontrun{
 getRMINCTestData()
 filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
-volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", 
-                      method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
-volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
+volumes <- anatGetAll(filenames=filenames$absolute_jacobian, 
+                      atlas="/tmp/rminctestdata/test_segmentation.mnc", 
+                      method="jacobians",
+                      defs="/tmp/rminctestdata/test_defs.csv")
+volumes_combined <- 
+     anatCombineStructures(vols=volumes, 
+                           method="jacobians",
+                           defs="/tmp/rminctestdata/test_defs.csv")
+}
 }
 \seealso{
 anatLm,anatGetAll

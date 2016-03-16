@@ -4,7 +4,7 @@
 \alias{plot.bic_obj}
 \title{Plot a BIC obj}
 \usage{
-plot.bic_obj(x, colour_map = NULL, colour_range = NULL,
+\method{plot}{bic_obj}(x, colour_map = NULL, colour_range = NULL,
   colour_default = "grey", reverse = NULL, palette = heat.colors(255),
   colour_bar = TRUE, add = FALSE, ...)
 }
@@ -24,6 +24,11 @@ allowable labels/measures/statistics to be includedon the surface}
 
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}
+
+\item{colour_bar}{whether to draw a colour bar}
+
+\item{add}{whether or not to add this object to the current rgl device (if possible)
+defaults to opening a new device}
 
 \item{...}{additional arguments to \link{create_mesh} including but not limited
 to colour, specular, and add_normals}

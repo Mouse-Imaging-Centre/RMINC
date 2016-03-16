@@ -15,6 +15,10 @@ mincLm(formula, data = NULL, subset = NULL, mask = NULL, maskval = NULL)
 
 \item{mask}{Either a filename or a vector of values of the same length as the input files. The linear model will only be computed
 inside the mask.}
+
+\item{maskval}{the value in the mask used to select unmasked voxels, defaults to any positive intensity
+from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities 
+within 0.5 of the chosen value are considered selected.}
 }
 \value{
 mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first

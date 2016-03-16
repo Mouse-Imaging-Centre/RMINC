@@ -13,15 +13,17 @@ mincFDR(buffer, ...)
 \method{mincFDR}{mincSingleDim}(buffer, df, mask = NULL, method = "qvalue",
   ...)
 
-\method{mincFDR}{mincLogLikRatio}(buffer, mask = NULL)
+\method{mincFDR}{mincLogLikRatio}(buffer, mask = NULL, ...)
 
-\method{mincFDR}{mincLmer}(buffer, mask = NULL)
+\method{mincFDR}{mincLmer}(buffer, mask = NULL, ...)
 
 \method{mincFDR}{mincMultiDim}(buffer, columns = NULL, mask = NULL,
   df = NULL, method = "FDR", statType = NULL)
 }
 \arguments{
 \item{buffer}{The results of a mincLm type run.}
+
+\item{...}{extra parameters to pass to methods}
 
 \item{df}{The degrees of freedom - normally this can be determined
 from the input object.}

@@ -2,11 +2,22 @@
 % Please edit documentation in R/minc_interface.R
 \name{mincFDRMask}
 \alias{mincFDRMask}
-\title{returns the specified mask, the mask associated with the buffer, or a vector of ones}
+\title{mincFDRMask}
 \usage{
-mincFDRMask(mask, buffer)
+mincFDRMask(mask = NULL, buffer)
+}
+\arguments{
+\item{mask}{a mask file or vector to be passed to mincGetMask
+if left null, the buffer is checked for a mask attribute, if no mask
+is found, a vector of ones is used}
+
+\item{buffer}{a buffer describing a minc volume}
+}
+\value{
+a numeric mask vector
 }
 \description{
-returns the specified mask, the mask associated with the buffer, or a vector of ones
+Returns either the specified mask, the mask associated with the buffer, 
+or a vector of ones to be used as a mask.
 }
 

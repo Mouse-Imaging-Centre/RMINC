@@ -16,6 +16,9 @@ mincApply(filenames, function.string, mask = NULL, maskval = NULL,
 \item{filenames}{The MINC files over which to apply the function. Have to be
 the same sampling.}
 
+\item{function.string}{The function which to apply. Can only take a single
+argument, which has to be 'x'. See details and examples.}
+
 \item{mask}{The filename of a mask - function will only be evaluated
 inside the mask.}
 
@@ -37,13 +40,18 @@ only one node (32 workers) can be requested
 
 \item{packages}{R Packages to be exported}
 
+\item{modules}{modules to be loaded on the cluster nodes}
+
+\item{vmem}{Amount of virtual memory to request}
+
+\item{walltime}{Amount of walltime to request}
+
 \item{maskval}{An integer specifying the value inside the mask where to
 apply the function. If left blank (the default) then anything
 above 0.5 will be considered inside the mask. This argument
 only works for mincApply, not pMincApply.}
 
-\item{function-string}{The function which to apply. Can only take a single
-argument, which has to be 'x'. See details and examples.}
+\item{reduce}{Whether or not to collapse the results into a \code{mincMultiDim} object}
 }
 \value{
 out The output is a matrix with the same number of rows a the
@@ -87,7 +95,10 @@ ma <- mincApply(gf$jacobians_fixed_2,quote(mean(x)));
 mincWriteVolume(ma, "means.mnc")
 ### run the whole thing in parallel on the local machine
 testFunc <- function (x) { return(c(1,2))}
-pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,global = c('gf','testFunc'))
+pout <- pMincApply(gf$jacobians_fixed_2, 
+                   quote(testFunc(x)),
+                   workers = 4,
+                   global = c('gf','testFunc'))
 mincWriteVolume(pout, "pmincOut.mnc")
 
 ### pbs example 1 (hpf)
@@ -95,7 +106,11 @@ getRMINCTestData()
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 testFunc <- function (x) { return(c(1,2))}
 options(TMPDIR="/localhd/$PBS_ID")
-pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),workers = 4,method="pbs",global = c('gf','testFunc'))
+pout <- pMincApply(gf$jacobians_fixed_2, 
+                   quote(testFunc(x)),
+                   workers = 4,
+                   method="pbs",
+                   global = c('gf','testFunc'))
 
 ### pbs example 2 (scinet)
 getRMINCTestData() 
@@ -104,7 +119,13 @@ testFunc <- function (x) { return(c(1,2))}
 options(WORKDIR="$SCRATCH")
 options(MAX_NODES=8)
 options(TMP_DIR="/tmp")
-pout <- pMincApply(gf$jacobians_fixed_2, quote(testFunc(x)),modules=c("intel","openmpi","R/3.1.1"),workers = 4,method="pbs",global = c('gf','testFunc'))
+pout <- pMincApply(gf$jacobians_fixed_2, 
+                   quote(testFunc(x)),
+                   modules=c("intel","openmpi","R/3.1.1"),
+                   workers = 4,
+                   method="pbs",
+                   global = c('gf','testFunc'))
+                   
 #NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
 #NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
 }

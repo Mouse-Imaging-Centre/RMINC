@@ -161,12 +161,18 @@ print.anatMatrix <- function(x, ...) {
 
 #' @seealso anatLm,anatCombineStructures
 #' @examples
+#' \dontrun{
 #' getRMINCTestData()
 #' filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
-#' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", 
-#'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
-###########################################################################################
-anatGetAll <- function(filenames, atlas, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), dropLabels=TRUE, side="both") {
+#' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, 
+#'                       atlas="/tmp/rminctestdata/test_segmentation.mnc", 
+#'                       method="jacobians",
+#'                       defs="/tmp/rminctestdata/test_defs.csv")
+#'}
+#'@export
+anatGetAll <- function(filenames, atlas, method="jacobians", 
+                       defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), 
+                       dropLabels=TRUE, side="both") {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
@@ -241,12 +247,19 @@ anatGetAll <- function(filenames, atlas, method="jacobians", defs=Sys.getenv("RM
 
 #' @seealso anatLm,anatGetAll
 #' @examples
+#' \dontrun{
 #' getRMINCTestData()
 #' filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
-#' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, atlas="/tmp/rminctestdata/test_segmentation.mnc", 
-#'                       method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
-#' volumes_combined <- anatCombineStructures(vols=volumes, method="jacobians",defs="/tmp/rminctestdata/test_defs.csv")
-###########################################################################################
+#' volumes <- anatGetAll(filenames=filenames$absolute_jacobian, 
+#'                       atlas="/tmp/rminctestdata/test_segmentation.mnc", 
+#'                       method="jacobians",
+#'                       defs="/tmp/rminctestdata/test_defs.csv")
+#' volumes_combined <- 
+#'      anatCombineStructures(vols=volumes, 
+#'                            method="jacobians",
+#'                            defs="/tmp/rminctestdata/test_defs.csv")
+#' }
+#' @export
 anatCombineStructures <- function(vols, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
@@ -285,18 +298,20 @@ anatCombineStructures <- function(vols, method="jacobians", defs=Sys.getenv("RMI
 #' @description This function is used to compute an arbitrary function of every region in an anat structure.
 #' @name anatApply
 #' @title Apply function over anat structure
-#' @param anat anat structure.
+#' @param vols anatomy volumes
 #' @param grouping grouping with which to perform operations
 #' @param method The function which to apply [default mean]
 #' @return  out: The output will be a single vector containing as many
 #'          elements as there are regions in the input variable by the number of groupings
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
-###########################################################################################
+#' }
+#' @export
 anatApply <- function(vols, grouping, method=mean) {
   ngroups <- length(levels(grouping))
   output <- matrix(nrow=ncol(vols), ncol=ngroups)
@@ -320,12 +335,14 @@ anatApply <- function(vols, grouping, method=mean) {
 #' has the attributes for model,stat type and degrees of freedom.
 #' @seealso mincLm,anatLm,anatFDR 
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-#' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness); 
-###########################################################################################  
+#' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
+#' } 
+#' @export
 anatLm <- function(formula, data, anat, subset=NULL) {
   
   #INITIALIZATION
@@ -436,7 +453,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   
   return(result)
 }
-###########################################################################################
+
 #' Performs ANOVA on each region specified 
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
@@ -446,12 +463,14 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' 	, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
 #' @seealso mincAnova,vertexAnova 
 #' @examples
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-#' rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness); 
-###########################################################################################
+#' rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
+#' } 
+#' @export
 anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
   # Create Model
   m  <- match.call()
@@ -516,60 +535,44 @@ anatFDR <- function(buffer, method="FDR") {
   vertexFDR(buffer, method)
 }
 
-###########################################################################################
-#' @description This function is used to compute the mean, standard deviation,
+#' anatSummaries
+#' 
+#' These functions are used to compute the mean, standard deviation,
 #'    		sum, or variance of every region in an anat structure.
-#' @name anatSummaries
-#' @aliases anatMean anatSd anatVar anatSum vertexMean vertexSd vertexSum vertexVar
-#' @title Create descriptive statistics across an anat structure
 #' @param anat anat structure.
 #' @return  out: The output will be a single vector containing as many
 #'          elements as there are regions in the input variable. 
 #' @examples 
+#' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' vm <- anatMean(gf$lobeThickness)
-###########################################################################################
+#' }
+#' @name anatSummaries
+NULL
 
+#' @describeIn anatSummaries mean
+#' @export 
 anatMean <- function(anat) {
    return(rowMeans(t(anat)))
 }
+
+#' @describeIn anatSummaries sum
+#' @export
 anatSum <- function(anat) {
    return(rowSums(t(anat)))
 }
 
+#' @describeIn anatSummaries variance
+#' @export
 anatVar <- function(anat) {
    return(apply(t(anat),1,var))
 }
 
+#' @describeIn anatSummaries standard deviation
+#' @export
 anatSd <- function(anat) {
    return(apply(t(anat),1,sd))
 }
-
-
-# Alternate version for anatApply --> matches mincApply and vertexApply interface
-###########################################################################################
-#' @description This function is used to compute an arbitrary function of every region in an anat structure.
-#' @name anatApply
-#' @title Apply function over anat structure
-#' @param anat anat structure.
-#' @function.string The function which to apply. Can only take a single
-#' argument, which has to be 'x'.
-#' @return  out: The output will be a single vector containing as many
-#'          elements as there are regions in the input variable. 
-#' @examples 
-#' getRMINCTestData() 
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-#' vm <- anatApply(gf$lobeThickness,quote(mean(x)))
-###########################################################################################
-
-
-#anatApply <- function(anat,function.string) {
-#   function.string = gsub('(x)','',function.string)
-#   return(t(apply(t(anat),1,function.string[1])))
-#}
-

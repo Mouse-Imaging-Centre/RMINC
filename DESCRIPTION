@@ -11,20 +11,19 @@ Additional_Repositiories: http://bioconductor.org/packages/3.1/bioc
 Depends:
     R (>= 3.0.1)
 Imports:
-    methods,
-    lattice,
     dplyr,
     rgl,
-    ggplot2,
-    testthat,
     lme4,
     shiny,
     lmerTest,
+    Rcpp
+Suggests:
+    qvalue,
     Rsge,
     doMC,
     snowfall,
     foreach,
-    Rcpp
+    testthat
 LinkingTo: Rcpp,
     lme4
 Suggests:

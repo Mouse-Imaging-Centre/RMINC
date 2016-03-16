@@ -18,9 +18,18 @@ mincPlotSliceSeries(anatomy, statistics = NULL, dimension = 2,
 
 \item{dimension}{integer denoting which dimension to slice across}
 
-\item{low}{the minimum intensity to plot, calculated from the histogram if NULL}
+\item{mfrow}{A 2 element vector of the form c(rows, columns) indicating
+the number and position of slices to draw - slices are added by rows}
 
-\item{high}{the maximum intensity to plot, calculated from the histogram if NULL}
+\item{low}{the minimum statistic to plot, calculated from the histogram if NULL}
+
+\item{high}{the maximum statistic to plot, calculated from the histogram if NULL}
+
+\item{anatLow}{the minimum anatomy intensity to plot, calculated from the histogram
+if NULL}
+
+\item{anatHigh}{the maximum antomy intensity to plot, calculated from the histogram
+if NULL}
 
 \item{begin}{the first slice to plot, defaults to 1}
 
@@ -31,16 +40,16 @@ mincPlotSliceSeries(anatomy, statistics = NULL, dimension = 2,
 \item{legend}{an optional string to name the legend, indicating desire for a legend
 (or not)}
 
+\item{locator}{whether or not to draw the locator, defaults to whether or not
+you requested a legend}
+
 \item{plottitle}{the title of the plot if desired}
 
 \item{indicatorLevels}{numeric vector indicating where to draw slice lines on the 
 locator, defaults to every slice}
 
-\item{underTransparent}{boolean whether or not the background should be transparent
-or the lowest col}
-
-\item{boolean}{whether or not to draw the locator, defaults to whether or not
-you requested a legend}
+\item{discreteStats}{should the statistics be treated as discrete or continuous
+values, useful if plotting labels}
 }
 \description{
 Plot a simple series of slices through a minc volume

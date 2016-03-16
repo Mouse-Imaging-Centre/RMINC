@@ -19,6 +19,9 @@ allowable labels/measures/statistics to be includedon the surface}
 \item{colour_default}{The colour given to vertices excluded by colour_range}
 
 \item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
+
+\item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
+\code{colour_map}}
 }
 \value{
 an \code{obj_mesh} object descended from \link{mesh3d}, with added colour information

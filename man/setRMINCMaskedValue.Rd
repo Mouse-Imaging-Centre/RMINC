@@ -7,7 +7,7 @@
 setRMINCMaskedValue(val = NA)
 }
 \arguments{
-\item{The}{new value for RMINC_MASKED_VALUE, defaults to resetting
+\item{val}{The new value for RMINC_MASKED_VALUE, defaults to resetting
 the masked value to NA}
 }
 \description{

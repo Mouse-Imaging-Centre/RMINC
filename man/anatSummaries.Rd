@@ -6,13 +6,15 @@
 \alias{anatSum}
 \alias{anatSummaries}
 \alias{anatVar}
-\alias{vertexMean}
-\alias{vertexSd}
-\alias{vertexSum}
-\alias{vertexVar}
-\title{Create descriptive statistics across an anat structure}
+\title{anatSummaries}
 \usage{
 anatMean(anat)
+
+anatSum(anat)
+
+anatVar(anat)
+
+anatSd(anat)
 }
 \arguments{
 \item{anat}{anat structure.}
@@ -22,14 +24,26 @@ out: The output will be a single vector containing as many
          elements as there are regions in the input variable.
 }
 \description{
-This function is used to compute the mean, standard deviation,
+These functions are used to compute the mean, standard deviation,
    		sum, or variance of every region in an anat structure.
 }
+\section{Functions}{
+\itemize{
+\item \code{anatMean}: mean
+
+\item \code{anatSum}: sum
+
+\item \code{anatVar}: variance
+
+\item \code{anatSd}: standard deviation
+}}
 \examples{
+\dontrun{
 getRMINCTestData() 
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 vm <- anatMean(gf$lobeThickness)
+}
 }
 
