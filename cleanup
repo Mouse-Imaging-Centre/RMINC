@@ -1,0 +1,11 @@
+rm src/*.o /src/*.so src/Makevars
+rm config.status config.log 
+rm -rf autom4te*
+
+if [ -v $TMPDIR ]; then
+   TMPDIR=/TMP
+fi
+
+if [ -z $KEEP_MINC_TOOLKIT_FILES  || $KEEP_MINC_TOOLKIT_FILES ]; then
+   rm -rf $TMPDIR/minc-toolkit-v2/
+fi

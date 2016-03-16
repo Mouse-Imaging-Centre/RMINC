@@ -2867,9 +2867,9 @@ mincLmerEstimateDF <- function(model) {
   cat("Sd df: ", apply(dfs, 2, sd), "\n")
   
   attr(model, "df") <- df
-  if (lmerTestLoaded == FALSE) {
-    detach("package:lmerTest")
-  }
+  # if (lmerTestLoaded == FALSE) {
+  #   detach("package:lmerTest")
+  # }
   return(model)
 }
 # the actual optimization of the mixed effects models; everything that has to be recomputed

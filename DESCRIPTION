@@ -29,6 +29,9 @@ LinkingTo: Rcpp,
     lme4
 Suggests:
     qvalue
+SystemRequirements:
+    cmake,
+    git
 License: BSD
 LazyLoad: yes
 OS_type: unix
