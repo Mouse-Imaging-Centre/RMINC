@@ -33,7 +33,18 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
   return(out)
 }
 
-# get the real value of one voxel from all files.
+#' Retrieve Voxel Values
+#' 
+#' Return the intensity of a given voxel in a set of minc files
+#' 
+#' @param filenames paths to the minc files
+#' @param v1 Either a 3-element vector of voxel coordinates or the first
+#' @param v2 the second voxel coordinate if not NULL
+#' @param v3 the third voxel coordinate if not NULL
+#' @return Returns a \code{mincVoxel} object containing a vector
+#' of intensities and attributes specify the voxel and world coordinates
+#' of the values.
+#' @export
 mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   num.files <- length(filenames)
   if (length(v1) == 3){
@@ -58,13 +69,20 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   return(output)
 }
 
-# test to see whether files exist and are readable
+#' Minc File Check
+#' 
+#' test to see whether files exist and are readable
+#' @param filenames paths to the files to check
+#' @details Throws an error if a file is not found or not readable
+#' @return Returns NULL invisibly
 mincFileCheck <- function(filenames) {
   for(i in 1:length(filenames) ) {
     if(file.access(as.character(filenames[i]), 4) == -1 ){
         stop("The following file could not be read (full filename is between the dashes): ---", filenames[i], "---")
     }
   }
+  
+  return(invisible(NULL))
 }
 
 
@@ -723,6 +741,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
 }
 
 # two tailed version of pt
+#' @export
 pt2 <- function(q, df,log.p=FALSE) {
   2*pt(-abs(q), df, log.p=log.p)
 }
@@ -748,6 +767,7 @@ mincGetMask <- function(mask) {
 #' 
 #' Takes the output of a mincLm type run and computes the False Discovery Rate on the results.
 #' @name mincFDR
+#' @aliases vertexFDR anatFDR
 #' @param buffer The results of a mincLm type run.
 #' @param columns A vector of column names. By default the threshold will
 #' be computed for all columns; with this argument the computation can
@@ -2011,6 +2031,7 @@ mincApply <-
     return(results)
   }
 
+#' @export
 vertexTable <- function(filenames) {
   nSubjects <- length(filenames)
   nvertices <- nrow(read.table(filenames[1]))
@@ -3013,6 +3034,7 @@ mincLmerEstimateDF <- function(model) {
 # assumes that all the other info is in a variable called mincLmerList in the global
 # environment. This last part is a hack to get around the lack of multiple function arguments
 # for mincApply and friends.
+#' @export
 mincLmerOptimize <- function(x) {
   # code ripped straight from lme4::lmer
   # assignments from global variable set in mincLmer
@@ -3040,6 +3062,7 @@ mincLmerOptimize <- function(x) {
 
 # the core code that does the optimization. Only reason it is not part of mincLmerOptimize
 # is to allow for the reinitializtion in case of convergence error
+#' @export
 mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=F) {
     # finish building the dev function by adding the response term
   # code from lme4:::mkLmerDevFun
@@ -3086,6 +3109,7 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector
+#' @export
 mincLmerExtractVariables <- function(mmod) {
   se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
     sqrt(tmpDiag(vcov(mmod, T)))
@@ -3102,6 +3126,7 @@ mincLmerExtractVariables <- function(mmod) {
   return(c(fe,t, ll, converged))
 }
 
+#' @export 
 mincLmerOptimizeAndExtract <- function(x) {
   mmod <- mincLmerOptimize(x)
   return(mincLmerExtractVariables(mmod))
@@ -3121,7 +3146,6 @@ mincLmerOptimizeAndExtract <- function(x) {
 #' @seealso \code{\link{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
 #' \code{\link{mincFDR}} for using the False Discovery Rate to correct for multiple comparisons,
 #' and \code{\link{mincWriteVolume}} for outputting the values to MINC files.
-#' @export
 #' @examples
 #' \dontrun{
 #' m1 <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
@@ -3133,6 +3157,7 @@ mincLmerOptimizeAndExtract <- function(x) {
 #' mincFDR(llr)
 #' mincWriteVolume(llr, "m2vsm3.mnc", "m3")
 #' }
+#' @export
 mincLogLikRatio <- function(...) {
   dots <- list(...)
 
@@ -3362,7 +3387,7 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
   # Run Tests
   rmincPath = find.package("RMINC")
   cat("\n\nRunning tests in: ", paste(rmincPath,"/","tests/",sep=""), "\n\n\n")
-  testReport <- test_dir(paste(rmincPath,"/","tests/",sep=""), ...)
+  testReport <- testthat::test_dir(paste(rmincPath,"/","tests/",sep=""), ...)
   
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")
@@ -3381,6 +3406,21 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
 #' An RCPP variant of \link{mincApply}, the primary advantage being
 #' that functions of an arbitrary number of arguments can be passed
 #' to mincApplyRCPP.
+#' @param filenames The name of the files to apply over
+#' @param fun the function to apply
+#' @param ... additional parameters to fun
+#' @param mask a numeric mask vector
+#' @param maskval An integer specifying the value inside the mask where to
+#' apply the function. If left blank (the default) then anything
+#' above 0.5 will be considered inside the mask. This argument
+#' only works for mincApply, not pMincApply.
+#' @param filter_masked Whether or not to remove the masked values
+#' from the resultant object
+#' @param collate A function to (potentially) collapse the result list
+#' examples include link{unlist} and \link{simplify2array}, defaulting
+#' to \link{identify} which returns the unaltered list.
+#' @return a list of results subject the the collate function
+#' @export
 mincApplyRCPP <- 
   function(filenames, 
            fun, 
@@ -3437,7 +3477,12 @@ mincApplyRCPP <-
   return(results)
 }
 
-# Get Test Data (i.e. for running examples from man pages)
+#' Download Example Data
+#' 
+#' Download the example data needed to run our examples in your /tmp directory
+#' The data can be downloaded manually from 
+#' \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
+#' @export
 getRMINCTestData <- function() {
 
   system('mkdir /tmp/rminctestdata')
@@ -3451,6 +3496,7 @@ getRMINCTestData <- function() {
 }
 
 # Run function with/without output silenced; used in test bed
+#' @export
 verboseRun <- function(expr,verbose,env = parent.frame()) {
 	
 	env$expr <- expr

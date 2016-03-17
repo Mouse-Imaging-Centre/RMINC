@@ -516,6 +516,16 @@ anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
   return(result)
 }
 
+#' Create a Statistic Volume
+#' 
+#' Convert an anatomy volume into a statistic volume
+#' with the results of an \link{anatLm}
+#' 
+#' @param anat A minc volume object with a \code{labels} attribute
+#' @param filename the filename for the new minc volume
+#' @param which column of the \link{anatLm} results to use
+#' @return Invisibly returns the created volume
+#' @export
 anatCreateVolume <- function(anat, filename, column=1) {
   labels <- read.csv(attr(anat, "definitions"))
   volume <- mincGetVolume(attr(anat, "atlas"))
@@ -529,8 +539,11 @@ anatCreateVolume <- function(anat, filename, column=1) {
                 anat[labels$Structure[i], column]
   }
   mincWriteVolume(newvolume, filename, attr(anat, "atlas"))
+  
+  return(invisible(newvolume))
 }
 
+#' @export
 anatFDR <- function(buffer, method="FDR") {
   vertexFDR(buffer, method)
 }

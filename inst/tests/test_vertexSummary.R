@@ -1,3 +1,4 @@
+requireNamespace("testthat")
 #testthat test script for vertex summary functions
 # vertexMean, vertexSd, vertexVar, vertexSum 
 

@@ -1,3 +1,4 @@
+requireNamespace("testthat")
 context("anatApply")
 
 gf <- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
