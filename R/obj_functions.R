@@ -71,7 +71,7 @@ read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
 #' @param ... extra parameters passed to the material argument list of \link{tmesh3d} can include
 #' additional \link{rgl.material} parameters to give to your mesh
 #' 
-#' @return a \link{obj_mesh} descended from \link{mesh3d} object to be 
+#' @return a \code{obj_mesh} descended from \link{mesh3d} object to be
 #' plotted alone or subsequently colourized with \link{colour_mesh}
 #' @export
 create_mesh <- 
@@ -101,6 +101,8 @@ create_mesh <-
 #' allowable labels/measures/statistics to be includedon the surface
 #' @param colour_default The colour given to vertices excluded by colour_range
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
+#' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
+#' \code{colour_map}
 #' @return an \code{obj_mesh} object descended from \link{mesh3d}, with added colour information
 #' and an additional \code{legend} element to be used in building a colour bar
 #' @export  
@@ -162,6 +164,9 @@ colour_mesh <- function(mesh,
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
+#' @param colour_bar whether to draw a colour bar
+#' @param add whether or not to add this object to the current rgl device (if possible)
+#' defaults to opening a new device
 #' @param ... additional arguments to \link{create_mesh} including but not limited
 #' to colour, specular, and add_normals
 #' @return invisibly returns the mesh object
@@ -210,15 +215,15 @@ plot.bic_obj <-
 #' Create a plot of BIC obj_mesh, potentially colourized by \link{colour_mesh}
 #' and potentially including a colour bar
 #' 
-#' @param x a \link{obj_mesh} object
+#' @param x a \code{obj_mesh} object
 #' @param colour_bar whether or not to add a colour bar
-#' @param additional parameters to pass to add_colour_bar
+#' @param ... additional parameters to pass to add_colour_bar
 #' @return returns x invisibly
 #' @export
 plot.obj_mesh <-
   function(x, colour_bar = TRUE, ...){
     x %>% shade3d
-    if(colour_bar) x %>% add_colour_bar
+    if(colour_bar) x %>% add_colour_bar(...)
     
     invisible(x)
   }
@@ -284,6 +289,7 @@ add_colour_bar <- function(mesh,
 #' @param ... additonal parameters to be passed to \link{create_mesh}
 #' @param add_normals Whether or not to add normals to the surface objects, see \link{create_mesh} for
 #' details
+#' @param colour_title legend title for the colour bar if requested
 #' @param close_on_output Whether or not to close the output after taking a snapshot, defaults to
 #' TRUE
 #' @details
@@ -432,8 +438,7 @@ vertexSelect <-
   function(object = first(rgl.ids()$id),
            tolerance = 0.01,
            multiples = FALSE,
-           indicate = TRUE,
-           ...){
+           indicate = TRUE){
     
     first = TRUE
     selected_vertices <- matrix(NA, nrow = 0, ncol = 3)

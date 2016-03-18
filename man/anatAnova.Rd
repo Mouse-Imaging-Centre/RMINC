@@ -23,11 +23,13 @@ Returns an array with the F-statistic for each model specified by formula with t
 Performs ANOVA on each region specified
 }
 \examples{
+\dontrun{
 getRMINCTestData() 
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness); 
+rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
+} 
 }
 \seealso{
 mincAnova,vertexAnova

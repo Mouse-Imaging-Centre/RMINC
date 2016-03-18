@@ -1,0 +1,15 @@
+find src/ -name "*.o" -delete
+find src/ -name "*.so" -delete
+find src/ -name "Makevars" -delete
+find -maxdepth 1 -name "*~" -delete
+find -maxdepth 1 -name "config.*" -delete
+find -maxdepth 1 -type d -name "autom4te*" -prune -exec rm -rf '{}' \;
+find -maxdepth 1 -type d -name "conf*" -prune -exec rm -rf '{}' \;
+
+if [ -v $TMPDIR ]; then
+   TMPDIR=/tmp
+fi
+
+if [ -z $KEEP_MINC_TOOLKIT_FILES ] || [ $KEEP_MINC_TOOLKIT_FILES ]; then
+   find $TMPDIR -maxdepth 1 -type d -name "minc-toolkit-v2" -prune -exec rm -rf '{}' \;
+fi

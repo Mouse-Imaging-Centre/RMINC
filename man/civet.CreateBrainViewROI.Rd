@@ -26,7 +26,9 @@ Currently only CIVET version 1.1.12 is supported.
 \examples{
 \dontrun{
 getRMINCTestData() 
-civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv","/tmp/rminctestdata/AAL_atlas_left.txt","Left Insula")
+civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv",
+                         "/tmp/rminctestdata/AAL_atlas_left.txt",
+                         "Left Insula")
 q()
 #(The .txt file is written in the working directory and can be viewed via the command)
 #brain-view2 $CIVET_DIR/models/surf_reg_model_left.obj ./LeftInsula.txt

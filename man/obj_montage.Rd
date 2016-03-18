@@ -25,6 +25,8 @@ of a subject's brain}
 \item{add_normals}{Whether or not to add normals to the surface objects, see \link{create_mesh} for
 details}
 
+\item{colour_title}{legend title for the colour bar if requested}
+
 \item{close_on_output}{Whether or not to close the output after taking a snapshot, defaults to
 TRUE}
 }

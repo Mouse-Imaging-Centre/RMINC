@@ -5,23 +5,24 @@
 \alias{mincWriteVolume.default}
 \alias{mincWriteVolume.mincMultiDim}
 \alias{mincWriteVolume.mincSingleDim}
-\alias{mincWriteVolume.mincSingleDim,mincWriteVolume.mincMultiDim}
 \title{Write a MINC volume to file}
 \usage{
 mincWriteVolume(buffer, ...)
 
 \method{mincWriteVolume}{mincSingleDim}(buffer, output.filename,
-  clobber = NULL)
+  clobber = NULL, ...)
 
 \method{mincWriteVolume}{mincMultiDim}(buffer, output.filename, column = 1,
-  like.filename = NULL, clobber = NULL)
+  like.filename = NULL, clobber = NULL, ...)
 
 \method{mincWriteVolume}{default}(buffer, output.filename, like.filename,
-  clobber = NULL)
+  clobber = NULL, ...)
 }
 \arguments{
 \item{buffer}{The data to be written to file. Usually the result of
 \link{mincLm} or some such command}
+
+\item{...}{additional arguments to pass to methods}
 
 \item{output.filename}{The filename to which to write the data to}
 

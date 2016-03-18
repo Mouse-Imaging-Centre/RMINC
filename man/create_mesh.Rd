@@ -21,7 +21,7 @@ on the object, "black" prevents the objects from looking shiny}
 additional \link{rgl.material} parameters to give to your mesh}
 }
 \value{
-a \link{obj_mesh} descended from \link{mesh3d} object to be 
+a \code{obj_mesh} descended from \link{mesh3d} object to be
 plotted alone or subsequently colourized with \link{colour_mesh}
 }
 \description{

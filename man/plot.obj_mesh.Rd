@@ -4,14 +4,14 @@
 \alias{plot.obj_mesh}
 \title{Plot an BIC obj mesh}
 \usage{
-plot.obj_mesh(x, colour_bar = TRUE, ...)
+\method{plot}{obj_mesh}(x, colour_bar = TRUE, ...)
 }
 \arguments{
-\item{x}{a \link{obj_mesh} object}
+\item{x}{a \code{obj_mesh} object}
 
 \item{colour_bar}{whether or not to add a colour bar}
 
-\item{additional}{parameters to pass to add_colour_bar}
+\item{...}{additional parameters to pass to add_colour_bar}
 }
 \value{
 returns x invisibly

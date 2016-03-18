@@ -7,7 +7,7 @@
 runRMINCTestbed(..., verboseTest = FALSE, purgeData = TRUE)
 }
 \arguments{
-\item{...}{additional parameter for \link{testthat::test_dir}}
+\item{...}{additional parameter for \link[testthat]{test_dir}}
 
 \item{verboseTest}{Whether or not to verbosely print test output, default is
 to print simplified results}

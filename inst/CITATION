@@ -10,7 +10,7 @@ citEntry(entry="Manual",
 		note = vers,
 		organization = "McGill University",
 		address = "Montreal, Quebec, Canada",
-		textVersion = paste("Jason Lerch, Jim Nikelski, and the RMINC team (2009). Package RMINC: Voxel-Wise Morphometry using RMINC. ",
+		textVersion = paste("Jason Lerch, Jim Nikelski, and the RMINC team (2016). RMINC: Statistical Analysis of Medical Imaging NetCDF (MINC) Files.",
 		                     vers, ". ",
 		                    "McGill University, Montreal, Quebec, Canada.", sep="")
 )

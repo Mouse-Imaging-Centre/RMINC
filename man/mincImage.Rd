@@ -6,8 +6,7 @@
 \usage{
 mincImage(volume, dimension = 2, slice = NULL, low = min(volume, na.rm =
   TRUE), high = max(volume, na.rm = TRUE), reverse = FALSE,
-  underTransparent = FALSE, col = gray.colors(255), scale = TRUE,
-  add = FALSE, ...)
+  underTransparent = FALSE, col = gray.colors(255), add = FALSE, ...)
 }
 \arguments{
 \item{volume}{a MINC volume as returned by \code{\link{mincArray}}}
@@ -27,11 +26,16 @@ be estimated based on the volume's histogram.}
 \item{underTransparent}{whether to make anything below the low end of the
 range transparent.}
 
+\item{col}{a colour palette AKA look-up-table to colourize the slice intensities}
+
+\item{add}{whether to add the slice to the current plot device or open a new 
+one before plotting}
+
 \item{...}{other parameters to pass on to the \code{\link{image}} function.}
 }
 \description{
 Calls the \code{\link{image}} plotting function from the base R graphics with
-some additional data munging to make it easy to make with MINC volumes
+some additional data munging to make it easy to work with MINC slices
 }
 \details{
 You can get a fuller tutorial on how to use the visualization tools by executing

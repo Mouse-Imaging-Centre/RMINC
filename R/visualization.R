@@ -148,20 +148,26 @@ sliceSeriesLayout <-
 #' @param anatomy A minc array of the anatomy volume to plot
 #' @param statistics optional statistics or label file to overlay on anatomy slices
 #' @param dimension integer denoting which dimension to slice across
-#' @param low the minimum intensity to plot, calculated from the histogram if NULL
-#' @param high the maximum intensity to plot, calculated from the histogram if NULL
-#' @param underTransparent boolean whether or not the background should be transparent
-#' or the lowest col
+#' @param mfrow A 2 element vector of the form c(rows, columns) indicating
+#' the number and position of slices to draw - slices are added by rows
+#' @param low the minimum statistic to plot, calculated from the histogram if NULL
+#' @param high the maximum statistic to plot, calculated from the histogram if NULL
+#' @param anatLow the minimum anatomy intensity to plot, calculated from the histogram
+#' if NULL
+#' @param anatHigh the maximum antomy intensity to plot, calculated from the histogram
+#' if NULL
 #' @param begin the first slice to plot, defaults to 1
 #' @param end the last slice to plot, defaults to the last slice
 #' @param symmetric whether the statistics are symmetric (such as for t-statistics)
 #' @param plottitle the title of the plot if desired
 #' @param legend an optional string to name the legend, indicating desire for a legend
 #' (or not)
-#' @param  boolean whether or not to draw the locator, defaults to whether or not
+#' @param  locator whether or not to draw the locator, defaults to whether or not
 #' you requested a legend
 #' @param indicatorLevels numeric vector indicating where to draw slice lines on the 
 #' locator, defaults to every slice
+#' @param discreteStats should the statistics be treated as discrete or continuous
+#' values, useful if plotting labels
 #' @details 
 #' You can get a fuller tutorial on how to use the visualization tools by executing
 #' the following command:
@@ -474,7 +480,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
 #' Plot a slice from a MINC volume
 #' 
 #' Calls the \code{\link{image}} plotting function from the base R graphics with
-#' some additional data munging to make it easy to make with MINC volumes
+#' some additional data munging to make it easy to work with MINC slices
 #' 
 #' @param volume a MINC volume as returned by \code{\link{mincArray}}
 #' @param dimension the dimension (1-3) to obtain the slice from
@@ -486,6 +492,9 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
 #' @param reverse whether to look only at negative numbers.
 #' @param underTransparent whether to make anything below the low end of the
 #'   range transparent.
+#' @param col a colour palette AKA look-up-table to colourize the slice intensities
+#' @param add whether to add the slice to the current plot device or open a new 
+#' one before plotting 
 #' @param ... other parameters to pass on to the \code{\link{image}} function.
 #' @details 
 #' You can get a fuller tutorial on how to use the visualization tools by executing
@@ -506,7 +515,6 @@ mincImage <- function(volume, dimension=2, slice=NULL,
                       high=max(volume, na.rm = TRUE), 
                       reverse=FALSE, underTransparent=FALSE, 
                       col = gray.colors(255),
-                      scale = TRUE,
                       add = FALSE,
                       ...) {
   if(length(dim(volume)) != 3) 

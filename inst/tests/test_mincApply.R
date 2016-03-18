@@ -1,3 +1,4 @@
+requireNamespace("testthat")
 context("mincApply")
 
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")

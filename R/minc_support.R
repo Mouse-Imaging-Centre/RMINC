@@ -1,6 +1,6 @@
 
 # test to see whether files exist and are readable
-rminc.isReadable <- function(filenames) {
+minc.isReadable <- function(filenames) {
   rValue <- TRUE
   READ_PERMISSION <- 4
   if (sum(file.access(as.character(filenames), READ_PERMISSION)) != 0
@@ -19,128 +19,58 @@ rminc.isReadable <- function(filenames) {
 
 
 # test to see whether a given file is minc (minc1 or minc2)
-rminc.isMinc <- function(filename) {
-	rValue <- FALSE
-	if ( !file.exists(filename) ) { return(rValue) }
-	if ( rminc.isMinc1(filename) ) rValue <- TRUE
-	if ( rminc.isMinc2(filename) ) rValue <- TRUE
-	#
-	return(rValue)
+isMinc <- function(filename) {
+	return(
+	  file.exists(filename) &
+	    (isMinc1(filename) | isMinc2(filename)))
 }
 
 
 # test to see whether a given file is minc1
-rminc.isMinc1 <- function(filename) {
-	rValue <- FALSE
+isMinc1 <- function(filename) {
 	sysCmd <- paste("file", filename)
-#	print(sysCmd)
 	rtnString <- system(sysCmd, intern=TRUE)
-#	print(rtnString)
-	if ( grepl("NetCDF", rtnString, fixed=TRUE) ) rValue <- TRUE
-	return(rValue)
+
+	return(grepl("NetCDF", rtnString, fixed=TRUE))
 }
 
 
 # test to see whether a given file is minc2
-rminc.isMinc2 <- function(filename) {
-	rValue <- FALSE
-	sysCmd <- paste("file", filename)
-#	print(sysCmd)
-	rtnString <- system(sysCmd, intern=TRUE)
-#	print(rtnString)
-	if ( grepl("Hierarchical Data Format", rtnString, fixed=TRUE) ) rValue <- TRUE
-	return(rValue)
+isMinc2 <- function(filename) {
+  sysCmd <- paste("file", filename)
+  rtnString <- system(sysCmd, intern=TRUE)
+  
+  return(grepl("Hierachical Data Format", rtnString, fixed=TRUE))
 }
 
 
 # convert minc1 volume to minc2
-rminc.asMinc2 <- function(filename, keepName=TRUE) {
+asMinc2 <- function(filename, output, clobber = FALSE) {
 	
 	# is it already minc2? Just return the input filename.
-	if ( rminc.isMinc2(filename) ) return(filename)
+	if(isMinc2(filename) ) return(filename)
 	
 	# if it isn't minc1, tell 'em and run away
-	if ( !rminc.isMinc(filename) ) {
+	if(!isMinc(filename)) {
 		stop(paste("Error: Trying to convert a non-minc file (", filename, ") to minc", sep=""))
 	}
 	
 	# fine. So we now have a minc1 volume that we want to convert to minc2
 	#
 	# first, get a temporary filename
-	cmdOptions <- ""
-	if ( keepName ) {
-		# we want to use the input filename, but put the file in tmpdir
-		# ... allow for overwrite of file in tmpdir
-		cmdOptions <- "-clobber"
-		tmpFile <- basename(filename)
-		tmpFile <- file.path(tempdir(), tmpFile)
-		}
-	else {
-		tmpFile <- tempfile( pattern="R_mincIO_mincconvert_")
-	}
+	cmdOptions <- "-2"
+	if(clobber) cmdOptions <- paste(cmdOptions, "-clobber")
 	
 	# do the conversion
 	cat(paste(">> auto-converting", filename, "to minc2 format\n"))
-	sysCmd <- paste("mincconvert", cmdOptions, "-2",  filename, tmpFile)
-#	print(sysCmd)
-	system(sysCmd, wait=TRUE)
-	#
-	return(tmpFile)
+	sysCmd <- paste("mincconvert", cmdOptions, filename, output)
+
+	system(sysCmd)
+
+	return(invisible(NULL))
 }
 
-
-rminc.convertVoxelToWorld <- function(filename, voxCoords) {
-	#
-	
-	if ( R_DEBUG_mincIO ) cat(sprintf(">>rminc.convertVoxelToWorld\n"))
-
-	# the C routines want the coordinates 0-relative, AND in volume order
-	# ... so convert first
-	voxCoords <- rev(voxCoords) -1
-	
-	# dunno why, but the voxel coordinates are passed as doubles
-	output <- .Call("convert_voxel_to_world_mincIO",
-               as.character(filename),
-               as.double(voxCoords), PACKAGE="RMINC")
-
-	# return a vector of 3 doubles
-	if ( R_DEBUG_mincIO ) cat(sprintf("<<rminc.convertVoxelToWorld\n"))
-	return(output)
-}
-
-
-
-rminc.convertWorldToVoxel <- function(filename, worldCoords) {
-	#
-	# dunno why, but the voxel coordinates are passed as doubles
-	if ( R_DEBUG_mincIO ) cat(sprintf(">>rminc.convertWorldToVoxel\n"))
-
-	output <- .Call("convert_world_to_voxel_mincIO",
-               as.character(filename),
-               as.double(worldCoords), PACKAGE="RMINC")
-	if ( R_DEBUG_mincIO ) {
-	  cat(sprintf("voxel coordinates returned by .Call ...\n"))
-	  print(output)
-	}
-
-	# return a vector of 3 doubles 
-	# ... 0-relative and (t),z,y,x order from C, so let's adjust it for R
-	if ( length(output) == 3 ) {
-		output <- rev(output) +1
-		
-	} else {
-		# 4D volume, so ignore the (first) time dimension
-		output <- rev(output[2:4]) +1
-	}
-	
-	# send it back
-	if ( R_DEBUG_mincIO ) cat(sprintf("<<rminc.convertWorldToVoxel\n"))
-	return(output)
-}
-
-
-
-rminc.getDataTypes <- function() {
+mincGetDataTypes <- function() {
 	# =============================================================================
 	# Purpose: return a data.frame containing the minc2 data types
 	#
@@ -167,7 +97,7 @@ rminc.getDataTypes <- function() {
 
 
 
-rminc.getDataClasses <- function() {
+mincGetDataClasses <- function() {
 	# =============================================================================
 	# Purpose: return a data.frame containing the minc2 data classes
 	#
@@ -187,96 +117,52 @@ rminc.getDataClasses <- function() {
 }
 
 
+rminc.readLinearXfmFile <- function(xfmFilename) {
+  program <- "xfm2param"
+  progOptions <- "-version"
+  test_string <- "mni_autoreg"
+  status <- rminc.checkForExternalProgram(program, test_string, progOptions)
+  if ( !status ) { stop("Program xfm2param of package mni_autoreg cannot be found on PATH") }
+  # OK, so we have xfm2pram -- now let's do the read
+  # ... first have xfm2param place tabular output in a temp file
+  tmpfile <- tempfile("rminc.readLinearXfmFile")
+  cmd <- paste("xfm2param", xfmFilename, "> ", tmpfile)
+  # ... now read the nicely formatted tabular file
+  system(cmd, intern=TRUE, wait=TRUE)
+  xfm.df <- read.table(tmpfile, skip=1, stringsAsFactors=FALSE)
+  
+  # make first column into row names
+  rowNames <- xfm.df[,1]
+  rowNames <- gsub("^-", "", rowNames)
+  row.names(xfm.df) <- rowNames
+  
+  # change col names and then remove col 1
+  names(xfm.df) <- c("dummy", "x", "y", "z")
+  xfm.df <- subset(xfm.df,select=-dummy) 
+  
+  # return the xfm data.frame
+  return(xfm.df)
+}
 
 rminc.checkForExternalProgram <- function(program, test_string, prog_options="") {
-	# =============================================================================
-	# Purpose: Check for the existence of an external program.
-	#
-	# Details:
-	#	This function is passed the name of a program or script that is s'posed 
-	#	to be on the user's path, along with an option that generates a known
-	#	response (the test_string).  If the passed test_string is not found in
-	#	the returned output, we send a warning message and then return FALSE.
-	#	The user, given a FALSE, can then cobble together a fitting response to
-	#	the user.
-	#
-	# Example:
-	#	program <- "xfm2param_nonexisting"
-	#	progOptions <- "-version"
-	#	test_string <- "mni_autoreg"
-	#	result <- rminc.checkForExternalProgram(program, test_string, progOptions)
-	#	if ( !result ) { ... }
-	#
-	# Note: Nothing of note, really.
-	#
-	# =============================================================================
-	#
-
-	# create string to submit to shell and then run it
-	cmd <- paste(program, prog_options)
-	cmdOut <- system(cmd, intern=TRUE, wait=TRUE)
-	
-	# collapse all output into a single line for easy grepping
-	cmdOutLong <- paste(cmdOut, collapse="")
-	
-	# look for test string in output
-	if ( !grepl(test_string, cmdOutLong, fixed=TRUE) ) {
-		# test string not found??
-		cat(sprintf("Attempt to execute program \"%s\" within shell failed\n", program))
-		cat(sprintf("Shell responded with: \n%s\n", cmdOut))
-		warning("\nCheck your path ...")
-		return(FALSE)
-	}
-	
-	# return TRUE if we made this far
-	return(TRUE)
+  cmd <- paste(program, prog_options)
+  cmdOut <- system(cmd, intern=TRUE, wait=TRUE)
+  
+  # collapse all output into a single line for easy grepping
+  cmdOutLong <- paste(cmdOut, collapse="")
+  
+  # look for test string in output
+  if ( !grepl(test_string, cmdOutLong, fixed=TRUE) ) {
+    # test string not found??
+    cat(sprintf("Attempt to execute program \"%s\" within shell failed\n", program))
+    cat(sprintf("Shell responded with: \n%s\n", cmdOut))
+    warning("\nCheck your path ...")
+    return(FALSE)
+  } 
+  
+  # return TRUE if we made this far
+  return(TRUE)
 }
-
-
-
-rminc.readLinearXfmFile <- function(xfmFilename) {
-	# =============================================================================
-	# Purpose: Read the contents of a linear XFM file.
-	#
-	# Details:
-	#	This is done by spawning the xfm2param program from the  
-	#	mni_autoreg package.  As such, we need to make sure that this
-	#	MNI package is installed and xfm2param is on the user's PATH.
-	#
-	#
-	# Note: Nothing of note, really.
-	#
-	# =============================================================================
-	#
-
-	# check for the external program
-	program <- "xfm2param"
-	progOptions <- "-version"
-	test_string <- "mni_autoreg"
-	status <- rminc.checkForExternalProgram(program, test_string, progOptions)
-	if ( !status ) { stop("Program xfm2param of package mni_autoreg cannot be found on PATH") }
-
-	# OK, so we have xfm2pram -- now let's do the read
-	# ... first have xfm2param place tabular output in a temp file
-	tmpfile <- tempfile("rminc.readLinearXfmFile")
-	cmd <- paste("xfm2param", xfmFilename, "> ", tmpfile)
-	# ... now read the nicely formatted tabular file
-	system(cmd, intern=TRUE, wait=TRUE)
-	xfm.df <- read.table(tmpfile, skip=1, stringsAsFactors=FALSE)
-	
-	# make first column into row names
-	rowNames <- xfm.df[,1]
-	rowNames <- gsub("^-", "", rowNames)
-	row.names(xfm.df) <- rowNames
-	
-	# change col names and then remove col 1
-	names(xfm.df) <- c("dummy", "x", "y", "z")
-	xfm.df <- subset(xfm.df,select=-dummy) 
-	
-	# return the xfm data.frame
-	return(xfm.df)
-}
-
 
 
 
