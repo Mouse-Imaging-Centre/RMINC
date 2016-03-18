@@ -2,7 +2,6 @@ AC_INIT([RMINC], 1.3.0.0)
 AC_PREREQ([2.68])
 AC_CONFIG_SRCDIR([src/slice_loop_functions.c])
 
-
 dnl This adds a --with-build-path option, adding the directories'
 dnl include to CPPFLAGS -I, lib to LDFLAGS and the rpath
 AC_ARG_WITH([build-path],
@@ -14,6 +13,8 @@ AC_ARG_WITH([build-path],
        		    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include"
        		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib -Wl,-rpath=$d/lib"
    		done
+		
+		
 	])
 
 dnl The adds a special variable MINC_TOOLKIT_BUILD_DIR to the configure scrip
@@ -23,8 +24,21 @@ dnl This checks for the minc dependencies, called after minc2 is located or inst
 AC_DEFUN([CHECK_MINC_DEPENDS],
 [
 	AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib not found])])
-	AC_CHECK_LIB(hdf5, H5Fopen, , [AC_MSG_ERROR([hdf5 not found])])
-	AC_CHECK_LIB(minc2, mifree_name, , [AC_MSG_ERROR([minc2 not found])]) 
+	
+        AS_IF(test -z $with_build_path && test x$enable_build_minc != "xyes", [
+	     AC_CHECK_PROG(H5CC, h5cc, "yes", "no")
+	     AS_IF(test x$H5CC = "xyes", [
+	       AC_REQUIRE([AC_PROG_GREP])
+	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[[^ ]]*'") 
+	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[[^ ]]*'")
+	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+	    ])
+        ])
+	
+	echo "$LDFLAGS"
+	AC_CHECK_LIB(hdf5, H5open, , [AC_MSG_ERROR([hdf5 not found])])
+        AC_CHECK_LIB(minc2, mifree_name, , [AC_MSG_ERROR([minc2 not found])])
 ])
 
 
@@ -34,31 +48,31 @@ AC_DEFUN([INSTALL_MINC],
   [
 	#Install minc_toolkit
 	
-	if [[ -z $MINC_TOOLKIT_BUILD_DIR ]];
-	   then MINC_TOOLKIT_BUILD_DIR=$HOME/local/minc-itk4/
-	fi
+	AS_IF([test x$MINC_TOOLKIT_BUILD_DIR = "x"], [ 
+	   MINC_TOOLKIT_BUILD_DIR=$HOME/local/minc-itk4/
+	])
 	
-	if [[ -z $TMPDIR ]];
-	   then TMPDIR=/tmp
-	fi
+	AS_IF([test x$TMPDIR = "x"], [ 
+	   TMPDIR=/tmp
+	])
 
 	orig_dir=$(pwd)
 	cd $TMPDIR
 	
-	if [[ ! -d minc-toolkit-v2 ]]; then
+	AS_IF([test ! -d minc-toolkit-v2], [
 	   echo Downloading minc-toolkit-v2
 	   git clone --recursive https://github.com/BIC-MNI/minc-toolkit-v2
-	fi
+	])
 
-	echo Building minc-toolkit-v2 in $MINC_TOOLKIT_BUILD_DIR
+	AS_ECHO([Building minc-toolkit-v2 in $MINC_TOOLKIT_BUILD_DIR])
 
 	cd minc-toolkit-v2
 	
-	if [[ ! -d build ]]; then
+	AS_IF([test ! -d build], [
 	   mkdir build
-	else
+	], [
 	   rm -r build/*
-	fi
+	])
 	
 	cd build
 	cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$MINC_TOOLKIT_BUILD_DIR \
@@ -98,11 +112,14 @@ dnl otherwise check if minc2 is found, if so add it's dependencies
 dnl if not build minc toolkit and try to add the dependencies afterward
 AC_ARG_ENABLE(
 	[build-minc],
-	AS_HELP_STRING([--enable-build-minc], [enable RMINC to build minc-toolkit if it is missing]),
-	[AC_CHECK_LIB(minc2, mifree_names, 
-	              [CHECK_MINC_DEPENDS],
-	              [INSTALL_MINC])],
-	[CHECK_MINC_DEPENDS]
+	AS_HELP_STRING([--enable-build-minc], [enable RMINC to build minc-toolkit if it is missing])
+)
+
+AS_IF([test "x$enable_build_minc" = "xyes"], [
+	    AC_CHECK_LIB(minc2, mifree_names, 
+	         [CHECK_MINC_DEPENDS],
+	         [INSTALL_MINC])],
+	    [CHECK_MINC_DEPENDS]
 ) 
 
 # Checks for typedefs, structures, and compiler characteristics.

@@ -621,6 +621,7 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+H5CC
 EGREP
 GREP
 CPP
@@ -654,6 +655,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -730,6 +732,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -982,6 +985,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1119,7 +1131,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1272,6 +1284,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1302,6 +1315,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-build-minc     enable RMINC to build minc-toolkit if it is missing
+
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2130,7 +2144,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-
 # Check whether --with-build-path was given.
 if test "${with_build_path+set}" = set; then :
   withval=$with_build_path;
@@ -2140,6 +2153,8 @@ if test "${with_build_path+set}" = set; then :
        		    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include"
        		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib -Wl,-rpath=$d/lib"
    		done
+
+
 
 fi
 
@@ -3198,6 +3213,12 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+# Check whether --enable-build-minc was given.
+if test "${enable_build_minc+set}" = set; then :
+  enableval=$enable_build_minc;
+fi
+
+
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -3596,9 +3617,9 @@ fi
 done
 
 
-# Check whether --enable-build-minc was given.
-if test "${enable_build_minc+set}" = set; then :
-  enableval=$enable_build_minc; { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_names in -lminc2" >&5
+if test "x$enable_build_minc" = "xyes"; then :
+
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_names in -lminc2" >&5
 $as_echo_n "checking for mifree_names in -lminc2... " >&6; }
 if ${ac_cv_lib_minc2_mifree_names+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3644,9 +3665,63 @@ else
 fi
 
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5Fopen in -lhdf5" >&5
-$as_echo_n "checking for H5Fopen in -lhdf5... " >&6; }
-if ${ac_cv_lib_hdf5_H5Fopen+:} false; then :
+
+        if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
+
+	     # Extract the first word of "h5cc", so it can be a program name with args.
+set dummy h5cc; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_H5CC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$H5CC"; then
+  ac_cv_prog_H5CC="$H5CC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_H5CC=""yes""
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_H5CC" && ac_cv_prog_H5CC=""no""
+fi
+fi
+H5CC=$ac_cv_prog_H5CC
+if test -n "$H5CC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
+$as_echo "$H5CC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	     if test x$H5CC = "xyes"; then :
+
+
+	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'")
+	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'")
+	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+
+fi
+
+fi
+
+	echo "$LDFLAGS"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
+$as_echo_n "checking for H5open in -lhdf5... " >&6; }
+if ${ac_cv_lib_hdf5_H5open+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3660,27 +3735,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char H5Fopen ();
+char H5open ();
 int
 main ()
 {
-return H5Fopen ();
+return H5open ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_hdf5_H5Fopen=yes
+  ac_cv_lib_hdf5_H5open=yes
 else
-  ac_cv_lib_hdf5_H5Fopen=no
+  ac_cv_lib_hdf5_H5open=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5Fopen" >&5
-$as_echo "$ac_cv_lib_hdf5_H5Fopen" >&6; }
-if test "x$ac_cv_lib_hdf5_H5Fopen" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5open" >&5
+$as_echo "$ac_cv_lib_hdf5_H5open" >&6; }
+if test "x$ac_cv_lib_hdf5_H5open" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBHDF5 1
 _ACEOF
@@ -3691,7 +3766,7 @@ else
   as_fn_error $? "hdf5 not found" "$LINENO" 5
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
 $as_echo_n "checking for mifree_name in -lminc2... " >&6; }
 if ${ac_cv_lib_minc2_mifree_name+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3743,31 +3818,41 @@ else
 
 	#Install minc_toolkit
 
-	if [ -z $MINC_TOOLKIT_BUILD_DIR ];
-	   then MINC_TOOLKIT_BUILD_DIR=$HOME/local/minc-itk4/
-	fi
+	if test x$MINC_TOOLKIT_BUILD_DIR = "x"; then :
 
-	if [ -z $TMPDIR ];
-	   then TMPDIR=/tmp
-	fi
+	   MINC_TOOLKIT_BUILD_DIR=$HOME/local/minc-itk4/
+
+fi
+
+	if test x$TMPDIR = "x"; then :
+
+	   TMPDIR=/tmp
+
+fi
 
 	orig_dir=$(pwd)
 	cd $TMPDIR
 
-	if [ ! -d minc-toolkit-v2 ]; then
+	if test ! -d minc-toolkit-v2; then :
+
 	   echo Downloading minc-toolkit-v2
 	   git clone --recursive https://github.com/BIC-MNI/minc-toolkit-v2
-	fi
 
-	echo Building minc-toolkit-v2 in $MINC_TOOLKIT_BUILD_DIR
+fi
+
+	$as_echo Building minc-toolkit-v2 in $MINC_TOOLKIT_BUILD_DIR
 
 	cd minc-toolkit-v2
 
-	if [ ! -d build ]; then
+	if test ! -d build; then :
+
 	   mkdir build
-	else
+
+else
+
 	   rm -r build/*
-	fi
+
+fi
 
 	cd build
 	cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$MINC_TOOLKIT_BUILD_DIR \
@@ -3804,9 +3889,63 @@ else
 fi
 
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5Fopen in -lhdf5" >&5
-$as_echo_n "checking for H5Fopen in -lhdf5... " >&6; }
-if ${ac_cv_lib_hdf5_H5Fopen+:} false; then :
+
+        if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
+
+	     # Extract the first word of "h5cc", so it can be a program name with args.
+set dummy h5cc; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_H5CC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$H5CC"; then
+  ac_cv_prog_H5CC="$H5CC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_H5CC=""yes""
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_H5CC" && ac_cv_prog_H5CC=""no""
+fi
+fi
+H5CC=$ac_cv_prog_H5CC
+if test -n "$H5CC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
+$as_echo "$H5CC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	     if test x$H5CC = "xyes"; then :
+
+
+	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'")
+	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'")
+	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+
+fi
+
+fi
+
+	echo "$LDFLAGS"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
+$as_echo_n "checking for H5open in -lhdf5... " >&6; }
+if ${ac_cv_lib_hdf5_H5open+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3820,27 +3959,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char H5Fopen ();
+char H5open ();
 int
 main ()
 {
-return H5Fopen ();
+return H5open ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_hdf5_H5Fopen=yes
+  ac_cv_lib_hdf5_H5open=yes
 else
-  ac_cv_lib_hdf5_H5Fopen=no
+  ac_cv_lib_hdf5_H5open=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5Fopen" >&5
-$as_echo "$ac_cv_lib_hdf5_H5Fopen" >&6; }
-if test "x$ac_cv_lib_hdf5_H5Fopen" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5open" >&5
+$as_echo "$ac_cv_lib_hdf5_H5open" >&6; }
+if test "x$ac_cv_lib_hdf5_H5open" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBHDF5 1
 _ACEOF
@@ -3851,7 +3990,7 @@ else
   as_fn_error $? "hdf5 not found" "$LINENO" 5
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
 $as_echo_n "checking for mifree_name in -lminc2... " >&6; }
 if ${ac_cv_lib_minc2_mifree_name+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -3912,9 +4051,63 @@ else
 fi
 
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5Fopen in -lhdf5" >&5
-$as_echo_n "checking for H5Fopen in -lhdf5... " >&6; }
-if ${ac_cv_lib_hdf5_H5Fopen+:} false; then :
+
+        if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
+
+	     # Extract the first word of "h5cc", so it can be a program name with args.
+set dummy h5cc; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_H5CC+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$H5CC"; then
+  ac_cv_prog_H5CC="$H5CC" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_H5CC=""yes""
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_prog_H5CC" && ac_cv_prog_H5CC=""no""
+fi
+fi
+H5CC=$ac_cv_prog_H5CC
+if test -n "$H5CC"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
+$as_echo "$H5CC" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	     if test x$H5CC = "xyes"; then :
+
+
+	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'")
+	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'")
+	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+
+fi
+
+fi
+
+	echo "$LDFLAGS"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
+$as_echo_n "checking for H5open in -lhdf5... " >&6; }
+if ${ac_cv_lib_hdf5_H5open+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -3928,27 +4121,27 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char H5Fopen ();
+char H5open ();
 int
 main ()
 {
-return H5Fopen ();
+return H5open ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_hdf5_H5Fopen=yes
+  ac_cv_lib_hdf5_H5open=yes
 else
-  ac_cv_lib_hdf5_H5Fopen=no
+  ac_cv_lib_hdf5_H5open=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5Fopen" >&5
-$as_echo "$ac_cv_lib_hdf5_H5Fopen" >&6; }
-if test "x$ac_cv_lib_hdf5_H5Fopen" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5open" >&5
+$as_echo "$ac_cv_lib_hdf5_H5open" >&6; }
+if test "x$ac_cv_lib_hdf5_H5open" = xyes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBHDF5 1
 _ACEOF
@@ -3959,7 +4152,7 @@ else
   as_fn_error $? "hdf5 not found" "$LINENO" 5
 fi
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
 $as_echo_n "checking for mifree_name in -lminc2... " >&6; }
 if ${ac_cv_lib_minc2_mifree_name+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -4009,7 +4202,6 @@ fi
 
 
 fi
-
 
 # Checks for typedefs, structures, and compiler characteristics.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for stdbool.h that conforms to C99" >&5

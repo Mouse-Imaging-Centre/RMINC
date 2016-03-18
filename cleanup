@@ -1,11 +1,15 @@
-rm src/*.o /src/*.so src/Makevars
-rm config.status config.log 
-rm -rf autom4te*
+find src/ -name "*.o" -delete
+find src/ -name "*.so" -delete
+find src/ -name "Makevars" -delete
+find -maxdepth 1 -name "*~" -delete
+find -name "config.*" -delete
+find -type d -name "autom4te*" -prune -exec rm -rf '{}' \;
+find -type d -name "conf*" -prune -exec rm -rf '{}' \;
 
 if [ -v $TMPDIR ]; then
    TMPDIR=/TMP
 fi
 
-if [ -z $KEEP_MINC_TOOLKIT_FILES  || $KEEP_MINC_TOOLKIT_FILES ]; then
-   rm -rf $TMPDIR/minc-toolkit-v2/
+if [ -z $KEEP_MINC_TOOLKIT_FILES ] | [ $KEEP_MINC_TOOLKIT_FILES ]; then
+   find $TMPDIR -type d -name "minc-toolkit-v2" -prune -exec rm -rf '{}' \;
 fi
