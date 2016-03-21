@@ -15,19 +15,18 @@ Imports:
     rgl,
     lme4,
     shiny,
-    lmerTest,
     Rcpp
 Suggests:
+    lmerTest,
     qvalue,
     Rsge,
     doMC,
     snowfall,
     foreach,
     testthat
-LinkingTo: Rcpp,
+LinkingTo: 
+    Rcpp,
     lme4
-Suggests:
-    qvalue
 SystemRequirements:
     cmake,
     git

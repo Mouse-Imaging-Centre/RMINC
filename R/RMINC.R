@@ -9,7 +9,6 @@
 #' @import shiny
 #' @import Rcpp
 #' @import lme4
-#' @import lmerTest
 #' @useDynLib RMINC
 #' @docType package
 #' @name RMINC
