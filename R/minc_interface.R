@@ -2876,7 +2876,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
 
   # code ripped straight from lme4::lmer
   mc <- mcout <- match.call()
-  mc$control <- lmerControl()
+  #mc$control <- lmerControl() #overrides user input control
   mc[[1]] <- quote(lme4::lFormula)
 
   # remove mask and parallel, since lmer does not know about them and keeping them
@@ -3003,10 +3003,24 @@ mincLmerEstimateDF <- function(model) {
   nvoxels <- 50
   rvoxels <- mincSelectRandomVoxels(mask, nvoxels)
   dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
+  
   for (i in 1:nvoxels) {
     voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rvoxels[i,])
     
-    mmod <- mincLmerOptimize(voxelData)
+    ## It seems LmerTest cannot compute the deviance function for mincLmer's
+    ## in the current version, instead extract the model components from
+    ## the mincLmerList and re-fit the lmers directly at each voxel,
+    ## Slower but should yeild the correct result
+    lmod <- mincLmerList[[1]]
+    lmod$fr[,1] <- voxelData
+    environment(lmod$formula)$lmod <- lmod
+    
+    mmod <-
+      lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+                   start = mincLmerList[[4]], control = mincLmerList[[3]],
+                   verbose = mincLmerList[[5]])
+    
+    
     # code directly from lmerTest library
     rho <- lmerTest:::rhoInitJSS(mmod)
     dd <- lmerTest:::devfun5(mmod, getME(mmod, "is_REML"))
@@ -3018,6 +3032,7 @@ mincLmerEstimateDF <- function(model) {
                                             length(rho$fixEffs), "simple")[,"df"]
     
   }
+  
   df <- apply(dfs, 2, median)
   cat("Mean df: ", apply(dfs, 2, mean), "\n")
   cat("Median df: ", apply(dfs, 2, median), "\n")
@@ -3078,20 +3093,20 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
                                       n = nrow(lmod$X), list(X = lmod$X)))
   }
 
-  rho$resp <- mkRespMod(lmod$fr, REML = REMLpass)
-  devfun <- lme4:::mkdevfun(rho, 0L, verbose, control)
-  theta <- lme4:::getStart(lmod$start, lmod$reTrms$lower, rho$pp)
-  if (length(rho$resp$y) > 0) 
-    devfun(rho$pp$theta)
-  rho$lower <- lmod$reTrms$lower
+  # rho$resp <- mkRespMod(lmod$fr, REML = REMLpass)
+  # devfun <- lme4:::mkdevfun(rho, 0L, verbose = verbose, control = control)
+  # theta <- lme4:::getStart(lmod$start, lmod$reTrms$lower, rho$pp)
+  # if (length(rho$resp$y) > 0) 
+  #   devfun(rho$pp$theta)
+  # rho$lower <- lmod$reTrms$lower
 
   # kept the old full mkLmerDevFun call around here in case the divided call
   # ends up with unexpected side effects down the road.
-  #devfun <- do.call(mkLmerDevfun, c(lmod,
-  #                                  list(start = start, 
+  # devfun <- do.call(mkLmerDevfun, c(lmod,
+  #                                  list(start = start,
   #                                       verbose = verbose,
   #                                       control = control)))
-  #devfun <- mkLmerDevfun(lmod$fr, lmod$X, lmod$reTrms, lmod$REML, start, verbose, control)
+  devfun <- mkLmerDevfun(lmod$fr, lmod$X, lmod$reTrms, lmod$REML, start, verbose, control)
 
   # the optimization of the function - straight from lme4:::lmer
   opt <- optimizeLmer(devfun, optimizer = control$optimizer, 
