@@ -387,7 +387,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   else {
 	  for (nTerm in 2:length(formula[[2]])){
 		  rCommand = paste("term <- data$",formula[[2]][[nTerm]],sep="")
-		  if(!as.character(formula[[2]][[nTerm]]) %in% names(data)) {
+		  if(!all(as.character(formula[[2]][[nTerm]]) %in% names(data))) {
 		    next
 		  }
 		  eval(parse(text=rCommand))	
