@@ -89,6 +89,7 @@ List rcpp_minc_apply(CharacterVector filenames,
                      double mask_upper_val,
                      RObject value_for_mask,
                      bool filter_masked,
+                     NumericVector slab_sizes,
                      Function fun, 
                      List args) {
 
@@ -119,60 +120,89 @@ List rcpp_minc_apply(CharacterVector filenames,
                           3, dimensions);
   
   miget_dimension_sizes( dimensions, 3, sizes);
-
-  NumericVector voxel_values;
-  double voxel_from_file;
-  unsigned int nvols = volumes.size();
-  misize_t voxel_coords[3];
-  List output = List::create();
-  bool is_masked = false;
-  double mask_value;
   
-  for(misize_t i = 0; i < sizes[0]; ++i){
-    for(misize_t j= 0; j < sizes[1]; ++j){
-      for(misize_t k = 0; k < sizes[2]; ++k ){
-        
-        //For each voxel ijk, re-initialize voxel_values
-        voxel_values = NumericVector(nvols);
+  misize_t hyperslab_dims[3];
+  misize_t n_slabs[3];
+  
+  for(int i = 0; i < 3; ++i){
+    hyperslab_dims[i] = (misize_t) slab_sizes[i];
+    if(sizes[i] % hyperslab_dims[i] != 0){
+      throw range_error("Volume not an even multiple of hyperslab size");
+    }
+    n_slabs[i] = sizes[i] / hyperslab_dims[i];
+  }
+
+  int nvols = volumes.size();
+  NumericVector voxel_values(nvols);
+  misize_t voxel_offsets[3];
+  List output = List::create();
+  double mask_buffer[hyperslab_dims[0]][hyperslab_dims[1]][hyperslab_dims[2]];
+  double slab_buffer[nvols][hyperslab_dims[0]][hyperslab_dims[1]][hyperslab_dims[2]];
+  int n_voxels = sizes[0] * sizes[1] * sizes[2];
+  int order[n_voxels];
+  int order_pos = 0;
+  int voxel_pos = 0;
+  
+  for(misize_t i = 0; i < n_slabs[0]; ++i){
+    for(misize_t j= 0; j < n_slabs[1]; ++j){
+      for(misize_t k = 0; k < n_slabs[2]; ++k ){
         
         //Set voxel coords
-        voxel_coords[0] = i;
-        voxel_coords[1] = j;
-        voxel_coords[2] = k;
-        
-        is_masked = false;
+        voxel_offsets[0] = i * hyperslab_dims[0];
+        voxel_offsets[1] = j * hyperslab_dims[1];
+        voxel_offsets[2] = k * hyperslab_dims[2];
+  
         
         //Check if a mask was supplied, then check if the current voxel is masked
         if(use_mask){
-          miget_real_value(mask_handle, voxel_coords, 3, &mask_value);
-          
-          if((mask_value < mask_lower_val - .5) ||
-             (mask_value > mask_upper_val + .5)){
-            is_masked = true;
-          }
+          miget_real_value_hyperslab(mask_handle,    // read from handle
+                                     MI_TYPE_DOUBLE, // double data
+                                     voxel_offsets,  // starting from position
+                                     hyperslab_dims, // how many voxels
+                                     &mask_buffer);  // into
         }
         
-        //If the voxel isn't masked, gather the data, run the function, otherwise push 
-        if(!is_masked){
-          //Read the values into voxel_values, 
-          for(unsigned int vol = 0; vol < nvols; ++vol){
-            miget_real_value(volumes[vol],
-                             voxel_coords,
-                             3,
-                             &voxel_from_file);
-            
-            voxel_values[vol] = voxel_from_file;
-          }
-          //Run the user specified function
-          output.push_back(fun(voxel_values, args));
-        } else {
-          //If the user wants to hang on to the masked values
-          if(!filter_masked){
-            output.push_back(value_for_mask); 
+        for(int vol = 0; vol < nvols; ++vol){
+          miget_real_value_hyperslab(volumes[vol],
+                                     MI_TYPE_DOUBLE,
+                                     voxel_offsets,
+                                     hyperslab_dims,
+                                     &slab_buffer[vol][0][0][0]);
+        }
+        
+        for(misize_t x = 0; x < hyperslab_dims[0]; ++x){
+          for(misize_t y = 0; y < hyperslab_dims[1]; ++y){
+            for(misize_t z = 0; z < hyperslab_dims[2]; ++z){
+              for(int xvol = 0; xvol < nvols; ++xvol){
+                voxel_values[xvol] = slab_buffer[xvol][x][y][z];
+              }
+              
+              if((!use_mask) || 
+                 (mask_buffer[x][y][z] > (mask_lower_val - .5) &&
+                 mask_buffer[x][y][z] < (mask_upper_val + .5))){
+                RObject res = fun(voxel_values, args);
+                output.push_back(res);  
+              } else {
+                output.push_back(value_for_mask);
+              }
+              
+              voxel_pos = (int)(sizes[1] * sizes[2] * (voxel_offsets[0] + x) + 
+                                sizes[2] * (voxel_offsets[1] + y) + 
+                                (voxel_offsets[2] + z));
+              
+              order[order_pos] = voxel_pos;
+              ++order_pos;
+            }
           }
         }
       }
     }
+  }
+  
+  List dup_output = clone(output);
+  for(int voxel = 0; voxel < n_voxels; ++voxel){
+    int new_position = order[voxel];
+    output[new_position] = dup_output[voxel];
   }
   
   for(volume_iterator = volumes.begin(); volume_iterator != volumes.end(); ++volume_iterator){

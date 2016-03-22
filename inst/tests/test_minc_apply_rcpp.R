@@ -9,7 +9,7 @@ fuzzy_equal <-
 
 mm <- verboseRun("mincMean(gf$jacobians_fixed_2)",getOption("verbose"))
 ma <- verboseRun(
-    "mincApplyRCPP(gf$jacobians_fixed_2, mean, collate = unlist)", 
+    "mincApplyRCPP(gf$jacobians_fixed_2, mean, collate = unlist, slab_sizes = c(10,10,1))", 
     getOption("verbose"))
 
 #Coerce numeric vector produced by mincApplyRCPP to mincMultiDim
@@ -22,27 +22,28 @@ test_that("mincApplyRCPP matches MincMean",{
 })
 
 
-# # #Generate Demo Mask
-# # demo_mask <- rep(1, 15^3)
-# # demo_mask[sample(1:(15^3), 100)] <- 0
-# # mincWriteVolume(demo_mask, output.filename = "/tmp/rminctestdata/mask15.mnc", 
-# #                 like.filename = "/tmp/rminctestdata/absolute_jacobian_file_1.mnc")
-# # 
-# # test_files <-
-# #   list.files("/tmp/rminctestdata/", pattern = "testminc[0-9]+.*\\.mnc", full.names = TRUE)
-# # 
-# # test_mask <-
-# #   "/tmp/rminctestdata/testminc-mask.mnc"
-# #   
-# # 
-# # system.time({
-# #   rcpp_mean <-
-# #     mincApplyRCPP(test_files, 
-# #                   mean,
-# #                   mask = test_mask,
-# #                   filter_masked = TRUE,
-# #                   collate = unlist) 
-# # })
+# #Generate Demo Mask
+# demo_mask <- rep(1, 15^3)
+# demo_mask[sample(1:(15^3), 100)] <- 0
+# mincWriteVolume(demo_mask, output.filename = "/tmp/rminctestdata/mask15.mnc",
+#                 like.filename = "/tmp/rminctestdata/absolute_jacobian_file_1.mnc")
+# 
+# test_files <-
+#   list.files("/tmp/rminctestdata/", pattern = "testminc[0-9]+.*\\.mnc", full.names = TRUE)
+# 
+# test_mask <-
+#   "/tmp/rminctestdata/testminc-mask.mnc"
+# 
+# 
+# system.time({
+#   rcpp_mean <-
+#     mincApplyRCPP(test_files,
+#                   mean,
+#                   mask = test_mask,
+#                   filter_masked = TRUE,
+#                   slab_sizes = c(1,10,10),
+#                   collate = unlist)
+# })
 # 
 # system.time({
 #   r_mean <-
