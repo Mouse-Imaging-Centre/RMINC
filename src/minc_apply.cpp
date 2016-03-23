@@ -142,6 +142,8 @@ List rcpp_minc_apply(CharacterVector filenames,
   int order[n_voxels];
   int order_pos = 0;
   int voxel_pos = 0;
+  int masked_order[n_voxels];
+  int masked_order_pos = 0;
   
   for(misize_t i = 0; i < n_slabs[0]; ++i){
     for(misize_t j= 0; j < n_slabs[1]; ++j){
@@ -177,21 +179,28 @@ List rcpp_minc_apply(CharacterVector filenames,
                 voxel_values[xvol] = slab_buffer[xvol][x][y][z];
               }
               
+              voxel_pos = (int)(sizes[1] * sizes[2] * (voxel_offsets[0] + x) + 
+                sizes[2] * (voxel_offsets[1] + y) + 
+                (voxel_offsets[2] + z));
+              
+              order[order_pos] = voxel_pos;
+              ++order_pos;
+              
               if((!use_mask) || 
                  (mask_buffer[x][y][z] > (mask_lower_val - .5) &&
                  mask_buffer[x][y][z] < (mask_upper_val + .5))){
                 RObject res = fun(voxel_values, args);
-                output.push_back(res);  
+                output.push_back(res);
+                
+                if(filter_masked){
+                  masked_order[masked_order_pos] = voxel_pos;
+                  ++masked_order_pos;
+                }
+                
               } else {
                 output.push_back(value_for_mask);
               }
               
-              voxel_pos = (int)(sizes[1] * sizes[2] * (voxel_offsets[0] + x) + 
-                                sizes[2] * (voxel_offsets[1] + y) + 
-                                (voxel_offsets[2] + z));
-              
-              order[order_pos] = voxel_pos;
-              ++order_pos;
             }
           }
         }
@@ -199,10 +208,19 @@ List rcpp_minc_apply(CharacterVector filenames,
     }
   }
   
-  List dup_output = clone(output);
+  List ordered_output = clone(output);
   for(int voxel = 0; voxel < n_voxels; ++voxel){
     int new_position = order[voxel];
-    output[new_position] = dup_output[voxel];
+    ordered_output[new_position] = output[voxel];
+  }
+  
+  if(use_mask && filter_masked){
+    output = List::create();
+    for(int masked_voxel = 0; masked_voxel < masked_order_pos; ++masked_voxel){
+      output.push_back(ordered_output[masked_order[masked_voxel]]);
+    }
+  } else {
+    output = ordered_output;
   }
   
   for(volume_iterator = volumes.begin(); volume_iterator != volumes.end(); ++volume_iterator){

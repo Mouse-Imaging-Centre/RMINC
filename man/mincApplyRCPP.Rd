@@ -5,7 +5,7 @@
 \title{Perform Arbitrary calculations on a collection of mincVolumes}
 \usage{
 mincApplyRCPP(filenames, fun, ..., mask = NULL, maskval = NULL,
-  filter_masked = FALSE, collate = identity)
+  filter_masked = FALSE, slab_sizes = c(1, 1, 1), collate = identity)
 }
 \arguments{
 \item{filenames}{The name of the files to apply over}
@@ -23,6 +23,11 @@ only works for mincApply, not pMincApply.}
 
 \item{filter_masked}{Whether or not to remove the masked values
 from the resultant object}
+
+\item{slab_sizes}{a three element numeric vector indicating the size
+in voxels of the hyperslab to read for each file. Useful for managing
+memory use - larger slabs are faster but require more memory. Sizes
+must be an even factor of their respective volume dimensions.}
 
 \item{collate}{A function to (potentially) collapse the result list
 examples include link{unlist} and \link{simplify2array}, defaulting
