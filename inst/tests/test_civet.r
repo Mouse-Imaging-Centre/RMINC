@@ -1,4 +1,4 @@
-requireNamespace("testthat")
+library("testthat")
 context("civet.readAllCivetFiles")
 
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")

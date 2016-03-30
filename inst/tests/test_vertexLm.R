@@ -1,4 +1,4 @@
-requireNamespace("testthat")
+library("testthat")
 context("vertexLm")
 
 gftest <- read.csv('/tmp/rminctestdata/subject.csv')

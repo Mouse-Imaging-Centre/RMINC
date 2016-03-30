@@ -1,4 +1,4 @@
-requireNamespace("testthat")
+library("testthat")
 
 gf <- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf <- civet.getAllFilenames(gf,"ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")

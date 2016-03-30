@@ -1,4 +1,4 @@
-requireNamespace("testthat")
+library("testthat")
 #testthat test script for functions that call mincSummary
 # mincMean, mincSd, mincVar, mincSum 
 context("mincSummary (Mean, Sd, Var, Sum,t-test,correlation,wilcoxon)")

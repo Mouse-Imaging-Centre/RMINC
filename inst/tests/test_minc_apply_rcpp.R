@@ -1,11 +1,7 @@
-requireNamespace("testthat")
+library("testthat")
 context("mincApplyRCPP")
 
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-
-fuzzy_equal <-
-  function(x, y, tol = 10^-10)
-    (x - y) < tol
 
 mm <- verboseRun("mincMean(gf$jacobians_fixed_2)",getOption("verbose"))
 ma <- verboseRun(
@@ -21,8 +17,25 @@ test_that("mincApplyRCPP matches MincMean",{
   expect_equal(ma, mm)
 })
 
+setRMINCMaskedValue(val = 0)
+mm_masked <- verboseRun("mincMean(gf$jacobians_fixed_2, 
+                        mask = '/tmp/rminctestdata/testminc-mask.mnc')", 
+                        getOption("verbose"))
+ma_masked <- verboseRun("mincApplyRCPP(gf$jacobians_fixed_2, mean, 
+                        mask = '/tmp/rminctestdata/testminc-mask.mnc',
+                        slab_sizes = c(1,5,5))", 
+                        getOption("verbose"))
 
-# #Generate Demo Mask
+#Coerce numeric vector produced by mincApplyRCPP to mincMultiDim
+ma_masked <- unlist(ma_masked)
+mm_masked <- as.numeric(mm_masked)
+
+test_that("mincApplyRCPP masks like mincMean", {
+  expect_equal(mm_masked, ma_masked)
+})
+
+
+# # #Generate Demo Mask
 # demo_mask <- rep(1, 15^3)
 # demo_mask[sample(1:(15^3), 100)] <- 0
 # mincWriteVolume(demo_mask, output.filename = "/tmp/rminctestdata/mask15.mnc",
@@ -55,6 +68,6 @@ test_that("mincApplyRCPP matches MincMean",{
 #     mincMean(test_files,
 #              mask = test_mask)
 # })
-# 
+
 
 

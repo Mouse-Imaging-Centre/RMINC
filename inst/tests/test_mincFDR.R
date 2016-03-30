@@ -1,4 +1,4 @@
-requireNamespace("testthat")
+library("testthat")
 context("mincFDR")
 
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
