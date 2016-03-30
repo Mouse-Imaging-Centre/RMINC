@@ -9,13 +9,15 @@ Description: A package for reading and writing MINC2 files
     and running arbitrary R functions at every voxel of a set of files.
 Additional_Repositiories: http://bioconductor.org/packages/3.1/bioc
 Depends:
-    R (>= 3.0.1)
+    R (>= 3.0.1),
+    BatchJobs
 Imports:
     dplyr,
     rgl,
     lme4,
     shiny,
-    Rcpp
+    Rcpp,
+    BatchJobs
 Suggests:
     lmerTest,
     qvalue,
@@ -26,8 +28,8 @@ Suggests:
     testthat
 LinkingTo: 
     Rcpp,
-    lme4
 SystemRequirements:
+    libminc-dev,
     cmake,
     git
 License: BSD

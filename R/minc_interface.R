@@ -525,14 +525,18 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' Voxel-wise ANOVA
 #'  
 #' Compute a sequential ANOVA at each voxel
-#' @param formula The anova formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.
+#' @param formula The anova formula. The left-hand term consists of the 
+#' MINC filenames over which to compute the models at every voxel.
 #' @param data The dataframe which contains the model terms.
 #' @param subset Subset definition.
-#' @param mask Either a filename or a vector of values of the same length as the input files. ANOVA will only be computed
+#' @param mask Either a filename or a vector of values of the same 
+#' length as the input files. ANOVA will only be computed
 #' inside the mask.
 #' @details This function computes a sequential ANOVA over a set of files.
-#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
-#' 	minc file names input,dimensions,dimension names, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' @return Returns an array with the F-statistic for each model specified by 
+#' formula with the following attributes: model – design matrix, filenames – 
+#' minc file names input,dimensions,dimension names, stat-type: type of 
+#' statistic used, df – degrees of freedom of each statistic. 
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples
 #' \dontrun{ 
@@ -543,7 +547,7 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
+mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, ...) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -1881,6 +1885,148 @@ pMincApply <- function(filenames, function.string,
   }
   unlink(maskFilename)
   return(output)
+}
+
+#' @export
+qMincRegistry <- function(registry_name = "qMincApply_registry",
+                          queue = "sge",
+                          resources = list(vmem = 8,
+                                           walltime = "01:00:00"),
+                          packages = .packages(),
+                          registry_dir = file.path(tempdir(), registry_name),
+                          cores = max(getOption("mc.cores"), parallel::detectCores())){
+
+  config <- getConfig()
+  
+  if(queue == "multicore"){
+    config$cluster.functions <- makeClusterFunctionsMulticore(ncpus = cores,
+                                                              max.load = parallel::detectCores())
+  }
+  
+  if(queue == "sge"){
+    sge_script <- system.file("parallel_scripts/sge_script.tmpl", package = "RMINC")
+    config$cluster.functions <- makeClusterFunctionsSGE(sge_script)
+  }
+  
+  if(queue == "pbs"){
+    pbs_script <- system.file("parallel_scripts/pbs_script.tmpl", package = "RMINC")
+    config$cluster.functions <- makeClusterFunctionsTorque(pbs_script)
+  }
+  
+  if(queue == "interactive"){
+    config$cluster.functions <- makeClusterFunctionsInteractive()
+  }
+  
+  setConfig(config)
+  
+  qMinc_registry <-
+    makeRegistry(registry_name,
+                 registry_dir,
+                 packages = packages)
+  
+  return(qMinc_registry)
+}
+
+#' @export
+qMincMap <- 
+  function(registry, filenames, fun, ..., mask = NULL, 
+           batches = 4, tinyMask = FALSE, resources = list()){
+    
+    dot_args <- list(...)
+    dot_args$return_indices <- TRUE
+    
+    sample_file <- filenames[1]
+    sample_volume <- mincGetVolume(sample_file)
+    mask_file <- tempfile("pMincMask", fileext = ".mnc")
+    
+    if(is.null(mask)){
+      if(batches %% 1 != 0) stop("the number of batches must be an integer")
+      
+      mask_values <- as.integer(cut(seq_along(sample_volume), batches))
+    } else {
+      mask_values <- mincGetVolume(mask)
+      if(tinyMask) mask_values[mask_values > 1.5] <- 0
+      
+      nVoxels <- sum(mask_values > .5)
+      mask_values[mask_values > .5] <- as.integer(cut(seq_len(nVoxels), batches))
+    }
+    
+    mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
+    
+    mincApplyArguments <- 
+      c(list(filenames = filenames), #list wrapping ensures c() works
+        fun = match.fun(fun),
+        dot_args,
+        mask = mask_file,
+        filter_masked = TRUE)
+    
+    batchMap(registry,
+             mincApplyRCPP, 
+             maskval = 1:batches,
+             more.args = mincApplyArguments)
+    
+    submitJobs(registry, resources = resources)
+    
+    return(registry)
+  }
+
+#' @export
+qMincReduce <- 
+  function(registry, ignore_incompletes = FALSE, wait = FALSE, collate = identity){
+    
+    if(wait)
+      waitForJobs(registry)
+    
+    if((!ignore_incompletes) && length(findNotTerminated(registry) != 0))
+      stop("Some jobs have not terminated, use ignore_incompletes to reduce anyway, or wait")
+      
+    results <- loadResults(registry, use.names = FALSE)
+    result_attributes <- attributes(results[[1]])
+    results <- unlist(results, recursive = FALSE)
+    
+    result_order <- order(vapply(results, function(el) el[[2]], numeric(1)))
+    results <- lapply(results[result_order], function(el) el[[1]])
+    
+    collation_function <- match.fun(collate)
+    results <- collation_function(results)
+    attributes(results) <- result_attributes
+    
+    return(results)
+  }
+
+#' @export
+qMincApply <- 
+  function(filenames, fun, ..., 
+           mask=NULL, batches=4, tinyMask=FALSE,
+           queue = "sge",
+           resources = list(vmem = 8,
+                            walltime = "01:00:00"),
+           packages = .packages(),
+           registry_name = "qMincApply_registry", 
+           cores = max(getOption("mc.cores"), parallel::detectCores() - 1),
+           wait = TRUE,
+           cleanup = TRUE) {
+    
+    qMinc_registry <-
+      qMincRegistry(registry_name = registry_name,
+                  queue = queue,
+                  packages = packages,
+                  cores = cores)
+    
+    qMincMap(qMinc_registry,
+             filenames, 
+             fun = match.fun(fun), 
+             ..., 
+             mask = mask, tinyMask = tinyMask,
+             resources = resources)
+    
+    if(wait){
+      qMinc_results <- qMincReduce(qMinc_registry, wait = TRUE)
+      if(cleanup) removeRegistry(qMinc_registry, ask = "no")
+      return(qMinc_results)
+    }
+    
+    return(qMinc_registry)
 }
 
 
@@ -3433,6 +3579,12 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
 #' only works for mincApply, not pMincApply.
 #' @param filter_masked Whether or not to remove the masked values
 #' from the resultant object
+#' @param slab_sizes a three element numeric vector indicating the size
+#' in voxels of the hyperslab to read for each file. Useful for managing
+#' memory use - larger slabs are faster but require more memory. Sizes
+#' must be an even factor of their respective volume dimensions.
+#' @param return_indices Whether to return the voxel positions of the results
+#' generally for internal use only.
 #' @param collate A function to (potentially) collapse the result list
 #' examples include link{unlist} and \link{simplify2array}, defaulting
 #' to \link{identify} which returns the unaltered list.
@@ -3445,8 +3597,10 @@ mincApplyRCPP <-
            mask = NULL, 
            maskval = NULL,
            filter_masked = FALSE,
+           slab_sizes = c(1,1,1),
+           return_indices = FALSE,
            collate = identity){
-  
+    
   apply_fun <- 
     function(x, extra_arguments)
       do.call(match.fun(fun), c(list(x), extra_arguments))
@@ -3479,6 +3633,8 @@ mincApplyRCPP <-
         mask_upper_val = maxmask,
         value_for_mask = masked_value,
         filter_masked = filter_masked,
+        slab_sizes = slab_sizes,
+        return_indices = return_indices,
         fun = apply_fun,
         args = args,
         PACKAGE = "RMINC")
@@ -3487,11 +3643,10 @@ mincApplyRCPP <-
   gcout <- gc()
   
   collation_function <- match.fun(collate)
-  results <- collation_function(results)
-  attr(results, "likeVolume") <- filenames[1]
-  attr(results, "filenames") <- filenames
+  collated_results <- collation_function(results)
+  attributes(collated_results) <- attributes(results)
   
-  return(results)
+  return(collated_results)
 }
 
 #' Download Example Data
