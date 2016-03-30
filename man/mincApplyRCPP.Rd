@@ -5,7 +5,8 @@
 \title{Perform Arbitrary calculations on a collection of mincVolumes}
 \usage{
 mincApplyRCPP(filenames, fun, ..., mask = NULL, maskval = NULL,
-  filter_masked = FALSE, slab_sizes = c(1, 1, 1), collate = identity)
+  filter_masked = FALSE, slab_sizes = c(1, 1, 1), return_indices = FALSE,
+  collate = identity)
 }
 \arguments{
 \item{filenames}{The name of the files to apply over}
@@ -28,6 +29,9 @@ from the resultant object}
 in voxels of the hyperslab to read for each file. Useful for managing
 memory use - larger slabs are faster but require more memory. Sizes
 must be an even factor of their respective volume dimensions.}
+
+\item{return_indices}{Whether to return the voxel positions of the results
+generally for internal use only.}
 
 \item{collate}{A function to (potentially) collapse the result list
 examples include link{unlist} and \link{simplify2array}, defaulting

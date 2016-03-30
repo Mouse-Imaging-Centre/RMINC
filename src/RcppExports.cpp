@@ -6,8 +6,8 @@
 using namespace Rcpp;
 
 // rcpp_minc_apply
-List rcpp_minc_apply(CharacterVector filenames, bool use_mask, CharacterVector mask, double mask_lower_val, double mask_upper_val, RObject value_for_mask, bool filter_masked, NumericVector slab_sizes, Function fun, List args);
-RcppExport SEXP RMINC_rcpp_minc_apply(SEXP filenamesSEXP, SEXP use_maskSEXP, SEXP maskSEXP, SEXP mask_lower_valSEXP, SEXP mask_upper_valSEXP, SEXP value_for_maskSEXP, SEXP filter_maskedSEXP, SEXP slab_sizesSEXP, SEXP funSEXP, SEXP argsSEXP) {
+List rcpp_minc_apply(CharacterVector filenames, bool use_mask, CharacterVector mask, double mask_lower_val, double mask_upper_val, RObject value_for_mask, bool filter_masked, NumericVector slab_sizes, bool return_indices, Function fun, List args);
+RcppExport SEXP RMINC_rcpp_minc_apply(SEXP filenamesSEXP, SEXP use_maskSEXP, SEXP maskSEXP, SEXP mask_lower_valSEXP, SEXP mask_upper_valSEXP, SEXP value_for_maskSEXP, SEXP filter_maskedSEXP, SEXP slab_sizesSEXP, SEXP return_indicesSEXP, SEXP funSEXP, SEXP argsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -19,9 +19,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< RObject >::type value_for_mask(value_for_maskSEXP);
     Rcpp::traits::input_parameter< bool >::type filter_masked(filter_maskedSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type slab_sizes(slab_sizesSEXP);
+    Rcpp::traits::input_parameter< bool >::type return_indices(return_indicesSEXP);
     Rcpp::traits::input_parameter< Function >::type fun(funSEXP);
     Rcpp::traits::input_parameter< List >::type args(argsSEXP);
-    __result = Rcpp::wrap(rcpp_minc_apply(filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args));
+    __result = Rcpp::wrap(rcpp_minc_apply(filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, return_indices, fun, args));
     return __result;
 END_RCPP
 }

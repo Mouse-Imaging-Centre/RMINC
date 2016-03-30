@@ -4,6 +4,10 @@
 using namespace Rcpp;
 using namespace std;
 
+typedef pair<RObject, int> indexed_robj;
+bool comparator(const indexed_robj& l, const indexed_robj& r){
+  return l.second < r.second;
+}
 
 mihandle_t open_minc2_volume(CharacterVector filename){
   mihandle_t current_handle;
@@ -90,6 +94,7 @@ List rcpp_minc_apply(CharacterVector filenames,
                      RObject value_for_mask,
                      bool filter_masked,
                      NumericVector slab_sizes,
+                     bool return_indices,
                      Function fun, 
                      List args) {
 
@@ -138,12 +143,9 @@ List rcpp_minc_apply(CharacterVector filenames,
   List output = List::create();
   double mask_buffer[hyperslab_dims[0]][hyperslab_dims[1]][hyperslab_dims[2]];
   double slab_buffer[nvols][hyperslab_dims[0]][hyperslab_dims[1]][hyperslab_dims[2]];
-  int n_voxels = sizes[0] * sizes[1] * sizes[2];
-  int order[n_voxels];
-  int order_pos = 0;
   int voxel_pos = 0;
-  int masked_order[n_voxels];
-  int masked_order_pos = 0;
+  indexed_robj res;
+  vector<indexed_robj> results;
   
   for(misize_t i = 0; i < n_slabs[0]; ++i){
     for(misize_t j= 0; j < n_slabs[1]; ++j){
@@ -182,25 +184,18 @@ List rcpp_minc_apply(CharacterVector filenames,
               voxel_pos = (int)(sizes[1] * sizes[2] * (voxel_offsets[0] + x) + 
                 sizes[2] * (voxel_offsets[1] + y) + 
                 (voxel_offsets[2] + z));
-              
-              order[order_pos] = voxel_pos;
-              ++order_pos;
-              
+
               if((!use_mask) || 
                  (mask_buffer[x][y][z] > (mask_lower_val - .5) &&
                  mask_buffer[x][y][z] < (mask_upper_val + .5))){
-                RObject res = fun(voxel_values, args);
-                output.push_back(res);
                 
-                if(filter_masked){
-                  masked_order[masked_order_pos] = voxel_pos;
-                  ++masked_order_pos;
-                }
+                res = make_pair(fun(voxel_values, args), voxel_pos);
+                results.push_back(res);
                 
-              } else {
-                output.push_back(value_for_mask);
+              } else if(!filter_masked){
+                res = make_pair(value_for_mask, voxel_pos);
+                results.push_back(res);
               }
-              
             }
           }
         }
@@ -208,19 +203,18 @@ List rcpp_minc_apply(CharacterVector filenames,
     }
   }
   
-  List ordered_output = clone(output);
-  for(int voxel = 0; voxel < n_voxels; ++voxel){
-    int new_position = order[voxel];
-    ordered_output[new_position] = output[voxel];
-  }
+  sort(results.begin(), results.end(), comparator);
   
-  if(use_mask && filter_masked){
-    output = List::create();
-    for(int masked_voxel = 0; masked_voxel < masked_order_pos; ++masked_voxel){
-      output.push_back(ordered_output[masked_order[masked_voxel]]);
+  vector<indexed_robj>::iterator index_peeler;
+  for(index_peeler = results.begin(); index_peeler != results.end(); ++index_peeler){
+    indexed_robj current_res = *index_peeler;
+    
+    if(return_indices){
+      List indexed_res = List::create(current_res.first, current_res.second);
+      output.push_back(indexed_res);
+    } else {
+      output.push_back(current_res.first);
     }
-  } else {
-    output = ordered_output;
   }
   
   for(volume_iterator = volumes.begin(); volume_iterator != volumes.end(); ++volume_iterator){
@@ -230,6 +224,9 @@ List rcpp_minc_apply(CharacterVector filenames,
   if(use_mask){
     miclose_volume(mask_handle);
   }
+
+  output.attr("likeVolume") = as<CharacterVector>(filenames[0]);
+  output.attr("filenames") = filenames;
   
   return(output);
 }
