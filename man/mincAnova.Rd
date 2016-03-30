@@ -6,21 +6,25 @@
  
 Compute a sequential ANOVA at each voxel}
 \usage{
-mincAnova(formula, data = NULL, subset = NULL, mask = NULL)
+mincAnova(formula, data = NULL, subset = NULL, mask = NULL, ...)
 }
 \arguments{
-\item{formula}{The anova formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.}
+\item{formula}{The anova formula. The left-hand term consists of the 
+MINC filenames over which to compute the models at every voxel.}
 
 \item{data}{The dataframe which contains the model terms.}
 
 \item{subset}{Subset definition.}
 
-\item{mask}{Either a filename or a vector of values of the same length as the input files. ANOVA will only be computed
+\item{mask}{Either a filename or a vector of values of the same 
+length as the input files. ANOVA will only be computed
 inside the mask.}
 }
 \value{
-Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
-	minc file names input,dimensions,dimension names, stat-type: type of statistic used, df – degrees of freedom of each statistic.
+Returns an array with the F-statistic for each model specified by 
+formula with the following attributes: model – design matrix, filenames – 
+minc file names input,dimensions,dimension names, stat-type: type of 
+statistic used, df – degrees of freedom of each statistic.
 }
 \description{
 Voxel-wise ANOVA

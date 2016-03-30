@@ -1,7 +1,12 @@
 # compute a linear model over every structure
 
 
-anatGetFile <- function(filename, atlas, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), dropLabels=FALSE, side="both" ) {
+anatGetFile <- function(filename, 
+                        atlas, 
+                        method = "jacobians", 
+                        defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+                        dropLabels=FALSE, 
+                        side = "both" ) {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
