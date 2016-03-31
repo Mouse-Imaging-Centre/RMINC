@@ -15,7 +15,8 @@
 #' \dontrun{
 #' vs <- mincLm(reljacobians02 ~ sex*treatment, subset(gfs, treatment != "None"))
 #' anatVol <- mincArray(mincGetVolume("anatomyfile.mnc"))
-#' launch_shinyRMINC(vs, anatVol, volumes=gfs$vols, plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
+#' launch_shinyRMINC(vs, anatVol, volumes=gfs$vols, 
+#'                   plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
 #' }
 #' @export
 launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL) {
@@ -63,7 +64,7 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALS
       modelfunc <- function(x) { summary(lm(x ~ m -1)) }
     }
     else {
-      modelfunc <- function(x) { anoval(lm(x ~ m -1)) }
+      modelfunc <- function(x) { anova(lm(x ~ m -1)) }
     }
   }
   cat("Launching shiny\n")

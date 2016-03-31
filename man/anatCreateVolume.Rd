@@ -11,7 +11,7 @@ anatCreateVolume(anat, filename, column = 1)
 
 \item{filename}{the filename for the new minc volume}
 
-\item{which}{column of the \link{anatLm} results to use}
+\item{column}{which column of the \link{anatLm} results to use}
 }
 \value{
 Invisibly returns the created volume

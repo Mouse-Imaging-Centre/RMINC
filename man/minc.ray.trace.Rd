@@ -55,25 +55,4 @@ semi-transparently on top of the background.
 Note that cropping in ray_trace is on by default, so the output image size
 will not necessarily be the same as the size argument to minc.ray.trace.
 }
-\examples{
-
-\dontrun{
-# get a file that could be used by glim_image
-gf <- as.data.frame(read.table("filename.glim"))
-
-# get a t-test at every voxel
-t.stats <- minc.model(gf$V1, gf$V2, "t-test")
-
-# and write to file
-minc.write.volume("t-test.mnc", gf$V1[1], t.stats)
-
-# create a pretty picture to include in the next Nature or Science
-# article
-minc.ray.trace("t-test.mnc", output="pretty.rgb", threshold=c(2.5,6),
-               background="anatomy_image.mnc")
-}
-}
-\seealso{
-minc.apply, minc.write.volume, minc.model
-}
 

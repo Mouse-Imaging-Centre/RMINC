@@ -5,7 +5,7 @@
 \title{Combine left and right volumes}
 \usage{
 anatCombineStructures(vols, method = "jacobians",
-  defs = Sys.getenv("RMINC_LABEL_DEFINITIONS"))
+  defs = getOption("RMINC_LABEL_DEFINITIONS"))
 }
 \arguments{
 \item{vols}{Matrix output from call to anatGetAll}

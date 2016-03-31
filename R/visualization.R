@@ -1,14 +1,3 @@
-brainPlot <- function(anatomy, statistics, slice, limits=c(2,4)) {
-  d <- dim(anatomy)
-  as <- t(anatomy[,slice,d[3]:1])
-  Sm <- melt(t(statistics[,slice,]))
-  ggimage(as, fullpage=F) + 
-    geom_raster(aes(x=Var2, y=Var1, fill=value), data=Sm) +
-    stat_contour(aes(x=Var2, y=Var1, z=value), data=Sm) + 
-    scale_fill_gradient(limits=limits, low="blue", high="red", na.value="transparent")
-    #scale_fill_gradientn(colours = c(gray.colors(10), terrain.colors(10)), na.value="transparent")
-}
-
 #' A utility function to give a MINC object spatial dimensions
 #'
 #' Currently the plotting functions (mincPlotAnatAndStatsSlice) need an object 
@@ -156,6 +145,7 @@ sliceSeriesLayout <-
 #' if NULL
 #' @param anatHigh the maximum antomy intensity to plot, calculated from the histogram
 #' if NULL
+#' @param col colours for statistics or for the anatomy if statistics are not passed
 #' @param begin the first slice to plot, defaults to 1
 #' @param end the last slice to plot, defaults to the last slice
 #' @param symmetric whether the statistics are symmetric (such as for t-statistics)
@@ -362,11 +352,11 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
     # do nothing; user specified correct slices
   }
   else {
-    error("not sure what to do with slice specification")
+    stop("not sure what to do with slice specification")
   }
-  mincPlotAnatAndStatsSlice(anatomy, statistics, slice=slice[3], dim=3, ...)
-  mincPlotAnatAndStatsSlice(anatomy, statistics, slice=slice[2], dim=2, ...)
-  mincPlotAnatAndStatsSlice(anatomy, statistics, slice=slice[1], dim=1, ...)
+  mincPlotAnatAndStatsSlice(anatomy, statistics, slice = slice[3], dimension = 3, ...)
+  mincPlotAnatAndStatsSlice(anatomy, statistics, slice = slice[2], dimension = 2, ...)
+  mincPlotAnatAndStatsSlice(anatomy, statistics, slice = slice[1], dimension = 1, ...)
   par(opar)
 
 }
@@ -387,7 +377,7 @@ mincPlotAnatAndStatsSliceManipulator <- function(anatomy, statistics,
   d <- dim(anatomy)
   maxStats <- max(abs(statistics))
   maxAnat <- max(anatomy)
-  manipulate(
+  manipulate::manipulate(
     mincPlotAnatAndStatsSlice(anatomy, statistics,
                               slice=xSlice,
                               dimension=dimension,
@@ -452,29 +442,29 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
     # get the dimensions of the current plot
     plotdims <- par("usr")
     if (symmetric==TRUE) {
-      color.legend(0.97 * plotdims[2], 
-                   0.05 * plotdims[4], 
-                   0.99 * plotdims[2], 
-                   0.45 * plotdims[4], 
-                   c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
-      color.legend(0.97 * plotdims[2], 
-                   0.55 * plotdims[4], 
-                   0.99 * plotdims[2], 
-                   0.95 * plotdims[4], 
-                   c(low, high), col, gradient="y", align="rb")
+      plotrix::color.legend(0.97 * plotdims[2], 
+                             0.05 * plotdims[4], 
+                             0.99 * plotdims[2], 
+                             0.45 * plotdims[4], 
+                             c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
+      plotrix::color.legend(0.97 * plotdims[2], 
+                             0.55 * plotdims[4], 
+                             0.99 * plotdims[2], 
+                             0.95 * plotdims[4], 
+                             c(low, high), col, gradient="y", align="rb")
       text(1.10, 0.5, labels=legend, srt=90)
     }
     else {
-      color.legend(0.97 * plotdims[2], 
-                   0.25 * plotdims[4], 
-                   0.99 * plotdims[2], 
-                   0.75 * plotdims[4], 
-                   c(low, high), col, gradient="y", align="rb")
+      plotrix::color.legend(0.97 * plotdims[2], 
+                             0.25 * plotdims[4], 
+                             0.99 * plotdims[2], 
+                             0.75 * plotdims[4], 
+                             c(low, high), col, gradient="y", align="rb")
       text(1.05, 0.5, labels=legend, srt=90)
     }
     opar <- par(no.readonly = TRUE) #I think this gets lost anyway
     par(xpd=T)
-      }
+  }
 }
 
 #' Plot a slice from a MINC volume
@@ -654,7 +644,7 @@ brainLocator <- function() {
   l <- locator(n=1)
   abline(h=l$y)
   abline(v=l$x)
-  l$slice <- manipulatorGetState("slice")
+  l$slice <- manipulate::manipulatorGetState("slice")
   return(l)
 }
 

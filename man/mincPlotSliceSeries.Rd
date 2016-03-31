@@ -31,6 +31,8 @@ if NULL}
 \item{anatHigh}{the maximum antomy intensity to plot, calculated from the histogram
 if NULL}
 
+\item{col}{colours for statistics or for the anatomy if statistics are not passed}
+
 \item{begin}{the first slice to plot, defaults to 1}
 
 \item{end}{the last slice to plot, defaults to the last slice}

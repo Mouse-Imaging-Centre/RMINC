@@ -1,23 +1,21 @@
 
 
-# =============================================================================
-# Purpose: 
-#	Given a labelled MincVolumeIO object, split volume into separate volumes,
-#	one for each label type.  Return as a list of MincVolumeIO objects.
-#
-# Example:
-#	scanID <- "0548-F-NC"
-#	baseDir <- "~/tmp/ADNI/civet/pipeOut"
-#	labelVolname <- civet.getFilenameClassify(scanID, baseDir)
-#	label_vol <- mincIO.readVolume(labelVolname)
-#	components <- volume.explodeLabelVolume(label_vol)
-#
-# Note:
-#	This function returns a list of mincIO objects, with each object
-#	labelled either by its label number, or by the tissue type name
-#	(if civetLabels == TRUE).
-# =============================================================================
-#
+#' Explode a Label Volume into its Components
+#' 
+#' Given a label volume, this function splits the volume by label and then
+#' returns a list() containing a mask volume for each of the labels.
+#' 
+#' @param label_vol A string containing the fully-qualified path to the input
+#' label volume.
+#' @param labels Options vector of label names
+#' @param civetLabels A logical variable indicating whether the label volume is
+#' using the Civet convention with regards to naming tissue type (e.g.,
+#' 0=background, 1=csf, etc). If TRUE, the returned list components are named
+#' using Civet tissue types (bg, csf, gm. wm), else components are simply
+#' labelled by label number e.g. (``label_0'', ``label_2'', etc.).
+#' @return A list is returned with each list item holding a mask volume
+#' reflecting a particular label.
+#' @author Jim Nikelski \email{nikelski@@bic.mni.mcgill.ca}
 volume.explodeLabelVolume <- function(label_vol, labels=NULL, civetLabels=TRUE) {
 	
 	# list the tissue types in Civet order, to be used in naming the
@@ -47,16 +45,15 @@ volume.explodeLabelVolume <- function(label_vol, labels=NULL, civetLabels=TRUE) 
 		# determine the list component name
 		label_name <- paste("label", label, sep="_")
 		if ( civetLabels ) { label_name <- tissueTypes[label +1]}
-		if (R_DEBUG_mincIO) cat(sprintf("processing label %s\n", label_name))
 		
 		# compute the mask
 		#cat(sprintf("processing label %s\n", label_name))
 		mask_vol <- ifelse(label_vol == label, 1, 0)
 		
 		# adjust volume attributes to type of "mask"
-		mincIO.setProperty(mask_vol, "volumeType", "mask")
-		mincIO.setProperty(mask_vol, "colorMap", "gray")
-		mincIO.setProperty(mask_vol, "volumeIntensityRange", c(0,1))
+		# mincIO.setProperty(mask_vol, "volumeType", "mask")
+		# mincIO.setProperty(mask_vol, "colorMap", "gray")
+		# mincIO.setProperty(mask_vol, "volumeIntensityRange", c(0,1))
 
 		# save it to the return list
 		return_list[[label_name]] <- mask_vol
@@ -66,23 +63,15 @@ volume.explodeLabelVolume <- function(label_vol, labels=NULL, civetLabels=TRUE) 
 }
 
 
-# =============================================================================
-# Purpose: 
-#	Given a list binarized MincVolumeIO objects, combine them into one,
-#	returning the single, combined MincVolumeIO mask object.
-#
-# Example:
-#	labelVolname <- civet.getFilenameClassify(scanID, baseDir)
-#	label_vol <- mincIO.readVolume(labelVolname)
-#	vol_list <- volume.explodeLabelVolume(label_vol)
-#
-#	# ... remove background component -- combine the rest
-#	xl <- list(vol_list$gm, vol_list$wm, vol_list$csf)
-#	cVol <- volume.combineMaskVolumes(xl)
-#
-# Note: Ummmm ... nothing much.
-# =============================================================================
-#
+#' Combine Multiple Mask Volumes into a Single Mask Volume 
+#' 
+#' Given a list containing more than one label volume, combine those 
+#' volumes, creating an aggregate mask volume. 
+#' 
+#' @param vol_list A list containing more than one mask volume.  Note that all 
+#' volumes must reflect the same sampling. 
+#' @return A single aggregate MincVolumeIO volume is returned. 
+#' @author Jim Nikelski \email{nikelski@@bic.mni.mcgill.ca}
 volume.combineMaskVolumes <- function(vol_list) {
 
 	# first, get the number of volumes to combine
@@ -98,7 +87,7 @@ volume.combineMaskVolumes <- function(vol_list) {
 	vol_sum <- ifelse(round(vol_sum) < 1, 0, 1)
 	#
 	# make sure it's still a volume, then return
-	vol_sum <- mincIO.asVolume(vol_sum, vol_list[[1]])
+	#vol_sum <- mincIO.asVolume(vol_sum, vol_list[[1]])
 	return(vol_sum)
 }
 

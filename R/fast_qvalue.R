@@ -2,16 +2,12 @@
 # certain parts modified (see comments in code) for speed.
 # Should produce identical results.
 
-fast.qvalue <- function (p = NULL, lambda = seq(0, 0.9, 0.05),
+fast.qvalue <- function (p, lambda = seq(0, 0.9, 0.05),
                          pi0.method = "smoother", 
                          fdr.level = NULL, robust = FALSE,
                          gui = FALSE, smooth.df = 3, 
                          smooth.log.pi0 = FALSE) 
 {
-    if (is.null(p)) {
-        qvalue.gui()
-        return("Launching point-and-click...")
-    }
     if (gui & !interactive()) 
         gui = FALSE
     if (min(p) < 0 || max(p) > 1) {

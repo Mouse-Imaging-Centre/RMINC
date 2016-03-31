@@ -5,7 +5,7 @@
 \title{Get values given a set of files and an atlas}
 \usage{
 anatGetAll(filenames, atlas, method = "jacobians",
-  defs = Sys.getenv("RMINC_LABEL_DEFINITIONS"), dropLabels = TRUE,
+  defs = getOption("RMINC_LABEL_DEFINITIONS"), dropLabels = TRUE,
   side = "both")
 }
 \arguments{

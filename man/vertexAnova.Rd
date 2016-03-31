@@ -14,8 +14,15 @@ vertexAnova(formula, data, subset = NULL)
 \item{subset}{rows to be used, by default all are used}
 }
 \value{
-Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
-	vertex file names input, stat-type: type of statistic used,dimensions,dimension names, and df – degrees of freedom of each statistic.
+Returns an array with the F-statistic for each model specified by formula with the following attributes: 
+\itemize{
+\item{model}{ design matrix}
+\item{filenames}{ minc file names input}
+\item{dimensions}{ dimensions of the statistics matrix}
+\item{dimnames}{ names of the dimensions for the statistic matrix}
+\item{stat-type}{ types of statistic used}
+\item{df}{ degrees of freedom of each statistic}
+}
 }
 \description{
 Performs ANOVA on each vertex point specified

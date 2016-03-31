@@ -16,8 +16,13 @@ anatAnova(formula, data = NULL, anat = NULL, subset = NULL)
 \item{subset}{rows to be used, by default all are used}
 }
 \value{
-Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix
-	, stat-type: type of statistic used, df – degrees of freedom of each statistic.
+Returns an array with the F-statistic for each model specified 
+by formula with the following attributes
+\itemize{
+\item{model}{ design matrix}
+\item{stat-type}{ type of statistic used}
+\item{df}{ degrees of freedom of each statistic}
+}
 }
 \description{
 Performs ANOVA on each region specified
@@ -26,7 +31,8 @@ Performs ANOVA on each region specified
 \dontrun{
 getRMINCTestData() 
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET",
+                           TRUE,"1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
 } 

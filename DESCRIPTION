@@ -16,9 +16,10 @@ Imports:
     rgl,
     lme4,
     shiny,
-    Rcpp,
-    BatchJobs
+    Rcpp
 Suggests:
+    manipulate,
+    plotrix,
     lmerTest,
     qvalue,
     Rsge,

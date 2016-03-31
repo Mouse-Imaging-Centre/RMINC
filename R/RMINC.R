@@ -9,6 +9,7 @@
 #' @import shiny
 #' @import Rcpp
 #' @import lme4
+#' @import BatchJobs
 #' @useDynLib RMINC
 #' @docType package
 #' @name RMINC
@@ -47,3 +48,4 @@ NULL
 #' to zero for example with \link{setRMINCMaskedValue}.
 #' @name RMINC_MASKED_VALUE
 NULL
+

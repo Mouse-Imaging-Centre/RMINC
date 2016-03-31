@@ -6,7 +6,7 @@
  
 Compute a sequential ANOVA at each voxel}
 \usage{
-mincAnova(formula, data = NULL, subset = NULL, mask = NULL, ...)
+mincAnova(formula, data = NULL, subset = NULL, mask = NULL)
 }
 \arguments{
 \item{formula}{The anova formula. The left-hand term consists of the 
@@ -22,9 +22,15 @@ inside the mask.}
 }
 \value{
 Returns an array with the F-statistic for each model specified by 
-formula with the following attributes: model – design matrix, filenames – 
-minc file names input,dimensions,dimension names, stat-type: type of 
-statistic used, df – degrees of freedom of each statistic.
+formula with the following attributes: 
+\itemize{
+\item{model}{ design matrix}
+\item{filenames}{ minc file names input}
+\item{dimensions}{ dimensions of the statistics matrix}
+\item{dimnames}{ names of the dimensions for the statistic matrix}
+\item{stat-type}{ types of statistic used}
+\item{df}{ degrees of freedom of each statistic}
+}
 }
 \description{
 Voxel-wise ANOVA

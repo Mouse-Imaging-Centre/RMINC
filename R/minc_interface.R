@@ -11,6 +11,7 @@ setRMINCMaskedValue <-
   }
 
 #' @method print RMINC_MASKED_VALUE
+#' @export
 print.RMINC_MASKED_VALUE <-
   function(x, ...)
     print(as.symbol("masked"))
@@ -231,6 +232,7 @@ mincGetVolume <- function(filename) {
   return(output)
 }
 
+#' @method print mincMultiDim
 #' @export
 print.mincMultiDim <- function(x, ...) {
   cat("Multidimensional MINC volume\n")
@@ -238,6 +240,7 @@ print.mincMultiDim <- function(x, ...) {
   print(attr(x, "likeVolume"))
 }
 
+#' @method print mincLogLikRatio
 #' @export 
 print.mincLogLikRatio <- function(x, ...) {
   cat("mincLogLikRatio output\n\n")
@@ -251,6 +254,7 @@ print.mincLogLikRatio <- function(x, ...) {
   cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
 }
 
+#' @method print mincLmer
 #' @export 
 print.mincLmer <- function(x, ...) {
   cat("mincLmer output\n")
@@ -266,13 +270,14 @@ print.mincLmer <- function(x, ...) {
   cat("Columns:      ", colnames(x), "\n")
 }
       
-
+#' @method print vertexMultiDim
 #' @export
 print.vertexMultiDim <- function(x, ...) {
   cat("Multidimensional Vertstats file\n")
   cat("Columns:      ", colnames(x), "\n")
 }
-      
+
+#' @method print mincSingleDim     
 #' @export 
 print.mincSingleDim <- function(x, ...) {
   cat("MINC volume\n")
@@ -280,6 +285,7 @@ print.mincSingleDim <- function(x, ...) {
   print(attr(x, "filename"))
 }
 
+#' @method print mincQvals
 #' @export 
 print.mincQvals <- function(x, ...) {
   print.mincMultiDim(x)
@@ -400,10 +406,8 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
 #' 
 #' Returns the dimension sizes of a MINC2 volume
 #' 
-#' 
 #' @param filename The filename of the MINC2 volume whose dimension sizes are
 #' to be returned.
-#' @seealso minc.get.volume
 #' @export
 minc.dimensions.sizes <- function(filename) {
   sizes <- .C("get_volume_sizes",
@@ -423,19 +427,18 @@ minc.dimensions.sizes <- function(filename) {
 #' @name minc_history
 NULL
 
-#' describeIn minc_history retrieve
+#' @describeIn minc_history retrieve
 #' @export
 minc.get.history <- 
   function(filename){
     history <- 
       .Call("get_minc_history",
-            filename,
-            20000) #Hardcode 20,000 character history limit - up for debate/fix
+            filename)
     
     unlist(strsplit(history, "\n"))
   }
 
-#' describeIn minc_history append
+#' @describeIn minc_history append
 #' @export
 minc.append.history <-
   function(filename, 
@@ -491,18 +494,18 @@ minc.get.hyperslab <- function(filename, start, count) {
 }
 
 # some rather MICe specific code best ignored.
-wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
-  results <- matrix(nrow=n.permute, ncol=55)
-  mask.volume <- minc.get.volume(mask)
-  for (i in 1:n.permute) {
-    new.order <- sample(groupings)
-    cat("N: ", as.double(new.order), "\n")
-    w <- minc.wilcoxon.test(filenames, new.order, mask)
-    w2 <- w[mask.volume == 1]
-    results[i,] <- tabulate(round(w2),55)
-  }
-  return(results)
-}
+# wilcox.permutation.full <- function(filenames, groupings, mask, n.permute=10) {
+#   results <- matrix(nrow=n.permute, ncol=55)
+#   mask.volume <- mincGetVolume(mask)
+#   for (i in 1:n.permute) {
+#     new.order <- sample(groupings)
+#     cat("N: ", as.double(new.order), "\n")
+#     w <- minc.wilcoxon.test(filenames, new.order, mask)
+#     w2 <- w[mask.volume == 1]
+#     results[i,] <- tabulate(round(w2),55)
+#   }
+#   return(results)
+# }
 
 f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
@@ -534,9 +537,15 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' inside the mask.
 #' @details This function computes a sequential ANOVA over a set of files.
 #' @return Returns an array with the F-statistic for each model specified by 
-#' formula with the following attributes: model – design matrix, filenames – 
-#' minc file names input,dimensions,dimension names, stat-type: type of 
-#' statistic used, df – degrees of freedom of each statistic. 
+#' formula with the following attributes: 
+#' \itemize{
+#' \item{model}{ design matrix}
+#' \item{filenames}{ minc file names input}
+#' \item{dimensions}{ dimensions of the statistics matrix}
+#' \item{dimnames}{ names of the dimensions for the statistic matrix}
+#' \item{stat-type}{ types of statistic used}
+#' \item{df}{ degrees of freedom of each statistic}
+#' } 
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples
 #' \dontrun{ 
@@ -547,7 +556,7 @@ f <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, ...) {
+mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -744,7 +753,16 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
 
 }
 
-# two tailed version of pt
+#' Two tailed version of pt
+#' 
+#' Generate two tailed probabilities from
+#' the cummulative t distribution function with
+#' a given number of degrees of freedom.
+#' @param q a vector of quantiles
+#' @param df degrees of freedom
+#' @param log.p whether to return the natural logarithm of p
+#' @return A vector of probabilities
+#' @seealso pt
 #' @export
 pt2 <- function(q, df,log.p=FALSE) {
   2*pt(-abs(q), df, log.p=log.p)
@@ -1048,7 +1066,7 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
 #' @describeIn mincFDR mincMultiDim
 #' @export
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
-                                 method="FDR", statType=NULL) {
+                                 method="FDR", statType=NULL, ...) {
   
   if(method == "qvalue")  
     if(!requireNamespace("qvalue", quietly = TRUE))
@@ -1537,7 +1555,7 @@ minc.get.volumes <- function(filenames) {
   n.files <- length(filenames)
   output <- matrix(ncol=n.files, nrow=(sizes[1] * sizes[2] * sizes[3]))
   for (i in 1:n.files) {
-    output[,i] <- minc.get.volume(filenames[i])
+    output[,i] <- mincGetVolume(filenames[i])
   }
   return(output)
 }
@@ -2177,6 +2195,13 @@ mincApply <-
     return(results)
   }
 
+#' Create a table of vertex values
+#' 
+#' Read files containing vertex data into a matrix
+#' 
+#' @param filenames paths to the vertex data files
+#' @return a matrix where each `column` is a matrix of vertex
+#' data corresponding to a single file
 #' @export
 vertexTable <- function(filenames) {
   nSubjects <- length(filenames)
@@ -2193,8 +2218,15 @@ vertexTable <- function(filenames) {
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
-#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix, filenames – 
-#' 	vertex file names input, stat-type: type of statistic used,dimensions,dimension names, and df – degrees of freedom of each statistic. 
+#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: 
+#' \itemize{
+#' \item{model}{ design matrix}
+#' \item{filenames}{ minc file names input}
+#' \item{dimensions}{ dimensions of the statistics matrix}
+#' \item{dimnames}{ names of the dimensions for the statistic matrix}
+#' \item{stat-type}{ types of statistic used}
+#' \item{df}{ degrees of freedom of each statistic}
+#' } 
 #' @seealso mincAnova,anatAnova 
 #' @examples 
 #' \dontrun{
@@ -2510,24 +2542,6 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
 #' @param display Boolean argument which determines whether display (from
 #' ImageMagick) will be called on the output.
 #' @return \item{output}{The filename of the output image is returned.}
-#' @seealso minc.apply, minc.write.volume, minc.model
-#' @examples
-#' 
-#' \dontrun{
-#' # get a file that could be used by glim_image
-#' gf <- as.data.frame(read.table("filename.glim"))
-#' 
-#' # get a t-test at every voxel
-#' t.stats <- minc.model(gf$V1, gf$V2, "t-test")
-#' 
-#' # and write to file
-#' minc.write.volume("t-test.mnc", gf$V1[1], t.stats)
-#' 
-#' # create a pretty picture to include in the next Nature or Science
-#' # article
-#' minc.ray.trace("t-test.mnc", output="pretty.rgb", threshold=c(2.5,6),
-#'                background="anatomy_image.mnc")
-#' }
 #' @export
 minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
                            slice=list(pos=0, wv="w", axis="z"),
@@ -2544,14 +2558,14 @@ minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
 
   # get the threshold if necessary
   if (is.null(threshold)) {
-    vol <- minc.get.volume(volume)
+    vol <- mincGetVolume(volume)
     threshold <- range(vol)
     rm(vol)
   }
 
   # get the background threshold if necessary
   if (!is.null(background) && is.null(background.threshold)) {
-    vol <- minc.get.volume(background)
+    vol <- mincGetVolume(background)
     background.threshold <- range(vol)
     rm(vol)
   }
@@ -2886,13 +2900,12 @@ parseLmFormula <- function(formula,data,mf)
       # else block was the standard way to retrieve the right hand side
       # of the formula, this if block fixes the case where there is no dataframe
       # provided.
-      rCommand = paste("term <-",formula[[3]],sep="")
+      term <- as.character(formula[[3]])
     }
     else {
-      rCommand = paste("term <- data$",formula[[3]],sep="")
+      term <- data[[as.character(formula[[3]])]]
     }
-    
-    eval(parse(text=rCommand))
+
     fileinfo = file.info(as.character(term[1]))
     if (!is.na(fileinfo$size)) {
       # Save term name for later
@@ -3063,11 +3076,11 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
       }
       out <- pMincApply(lmod$fr[,1],
                         quote(mincLmerOptimizeAndExtract(x)),
-                        mask=mask,
-                        method=parallel[1],
-                        worker=as.numeric(parallel[2]),
-                        global=c("mincLmerList", "tmpDiag"),# "mincLmerOptimize", "mincLmerExtractVariables"),
-                        packages=c("lme4", "RMINC"))
+                        mask = mask,
+                        method = parallel[1],
+                        workers = as.numeric(parallel[2]),
+                        global = c("mincLmerList", "tmpDiag"),# "mincLmerOptimize", "mincLmerExtractVariables"),
+                        packages = c("lme4", "RMINC"))
     }
     else {
       stop("Error: unknown parallelization method")
@@ -3224,8 +3237,7 @@ mincLmerOptimize <- function(x) {
 }
 
 # the core code that does the optimization. Only reason it is not part of mincLmerOptimize
-# is to allow for the reinitializtion in case of convergence error
-#' @export
+# is to allow for the reinitializtion in case of convergence error  
 mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, start, reinit=F) {
     # finish building the dev function by adding the response term
   # code from lme4:::mkLmerDevFun
@@ -3272,7 +3284,6 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector
-#' @export
 mincLmerExtractVariables <- function(mmod) {
   se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
     sqrt(tmpDiag(vcov(mmod, T)))
@@ -3289,7 +3300,6 @@ mincLmerExtractVariables <- function(mmod) {
   return(c(fe,t, ll, converged))
 }
 
-#' @export 
 mincLmerOptimizeAndExtract <- function(x) {
   mmod <- mincLmerOptimize(x)
   return(mincLmerExtractVariables(mmod))
@@ -3434,7 +3444,8 @@ mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
         simLogLik[j,2] <- logLik(mincLmerOptimize(voxelMatrix[j,]))
       }
       # compute the normally estimated chisq p value
-      out[i,1] <- pchisq(logLikOutput[voxels[i]], attr(logLikOutput, "df"), lower=F)
+      out[i,1] <- pchisq(logLikOutput[voxels[i]], attr(logLikOutput, "df"), 
+                         lower.tail = FALSE)
       # compute the parametric log likelihood ratio
       simLogLikRatio <- 2 * abs(simLogLik[,1] - simLogLik[,2])
       # compute the parametric bootstrap p value
@@ -3667,7 +3678,13 @@ getRMINCTestData <- function() {
   
 }
 
-# Run function with/without output silenced; used in test bed
+#' Run function with/without output silenced
+#' 
+#' used in test bed
+#' @param expr an expression to run
+#' @param verbose whether to permit output, or capture it
+#' @param env the environment in which to run the expression, defaults
+#' to the calling environment
 #' @export
 verboseRun <- function(expr,verbose,env = parent.frame()) {
 	

@@ -1103,7 +1103,7 @@ civet.computeStxTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.9")
 
 	# get classify volume name
 	filename <- civet.getFilenameClassify(scanID, baseDir)
-	cls_vol <- mincIO.readVolume(filename)
+	cls_vol <- mincGetVolume(filename)
 
 	# explode classify into components
 	clsX <- volume.explodeLabelVolume(cls_vol, civetLabels=TRUE)

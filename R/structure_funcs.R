@@ -68,7 +68,7 @@ anatGetFile <- function(filename,
   return(out)
 }
 
-anatRenameRows <- function(anat, defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
+anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
@@ -176,8 +176,9 @@ print.anatMatrix <- function(x, ...) {
 #'}
 #'@export
 anatGetAll <- function(filenames, atlas, method="jacobians", 
-                       defs=Sys.getenv("RMINC_LABEL_DEFINITIONS"), 
-                       dropLabels=TRUE, side="both") {
+                       defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+                       dropLabels = TRUE, 
+                       side="both") {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
@@ -265,7 +266,8 @@ anatGetAll <- function(filenames, atlas, method="jacobians",
 #'                            defs="/tmp/rminctestdata/test_defs.csv")
 #' }
 #' @export
-anatCombineStructures <- function(vols, method="jacobians", defs=Sys.getenv("RMINC_LABEL_DEFINITIONS")) {
+anatCombineStructures <- function(vols, method = "jacobians", 
+                                  defs = getOption("RMINC_LABEL_DEFINITIONS")) {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
   }
@@ -374,60 +376,58 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   # in parseLmFormula; should reconcile.
   # Only 1 Term on the RHS
   if(length(formula[[2]]) == 1) {
-	  rCommand = paste("term <- data$",formula[[2]],sep="")
-
-	  eval(parse(text=rCommand))
-
-	  if (is.matrix(term)) {
-		# Save term name for later
-		rows = c('Intercept',formula[[2]])
-		matrixName = formula[[2]]
-                matrixFound = TRUE
-		data.matrix.left <- t(anat[mf[,"(rowcount)"],])
-		#data.matrix.left <- vertexTable(filenames)
-		data.matrix.right <- t(term)
-	        }  
-          }
+    
+    term <- data[[as.character(formula[[2]])]]
+    
+    if (is.matrix(term)) {
+      # Save term name for later
+      rows = c('Intercept',formula[[2]])
+      matrixName = formula[[2]]
+      matrixFound = TRUE
+      data.matrix.left <- t(anat[mf[,"(rowcount)"],])
+      #data.matrix.left <- vertexTable(filenames)
+      data.matrix.right <- t(term)
+    }  
+  }
   # Multiple Terms on RHS
   else {
-	  for (nTerm in 2:length(formula[[2]])){
-		  rCommand = paste("term <- data$",formula[[2]][[nTerm]],sep="")
-		  if(!all(as.character(formula[[2]][[nTerm]]) %in% names(data))) {
-		    next
-		  }
-		  eval(parse(text=rCommand))	
-		  if (is.matrix(term)) {
-                        matrixName = formula[[2]][[nTerm]]
-			matrixFound = TRUE
-			#data.matrix.left <- vertexTable(filenames)
-			data.matrix.left <- t(anat[mf[,"(rowcount)"],])
-			data.matrix.right <- t(term)
-
-			}
-		  else  {
-   			tmpFormula = formula
-			rCommand = paste("formula <-",formula[[1]],"~",formula[[2]][[nTerm]],sep="")
-		        eval(parse(text=rCommand))	
-			mmatrix <- model.matrix(formula, mf)	
-			formula = tmpFormula	
-			}
-		}
-	   rows = colnames(mmatrix)
-	   rows = append(rows,matrixName)
-	}	
-
-
-
+    for (nTerm in 2:length(formula[[2]])){
+      rCommand = paste("term <- data$",formula[[2]][[nTerm]],sep="")
+      if(!all(as.character(formula[[2]][[nTerm]]) %in% names(data))) {
+        next
+      }
+      eval(parse(text=rCommand))	
+      if (is.matrix(term)) {
+        matrixName = formula[[2]][[nTerm]]
+        matrixFound = TRUE
+        #data.matrix.left <- vertexTable(filenames)
+        data.matrix.left <- t(anat[mf[,"(rowcount)"],])
+        data.matrix.right <- t(term)
+        
+      }  else  {
+        tmpFormula = formula
+        rCommand = paste("formula <-",formula[[1]],"~",formula[[2]][[nTerm]],sep="")
+        eval(parse(text=rCommand))	
+        mmatrix <- model.matrix(formula, mf)	
+        formula = tmpFormula	
+      }
+    }
+    rows = colnames(mmatrix)
+    rows = append(rows,matrixName)
+  }	
+  
+  
+  
   # Call subroutine based on whether matrix was found
   if(!matrixFound) {    	
-	mmatrix <- model.matrix(formula, mf)	
-	data.matrix.left <- t(anat[mf[,"(rowcount)"],])
-	rows = colnames(mmatrix) 
-        data.matrix.right = matrix()
-        }
+    mmatrix <- model.matrix(formula, mf)	
+    data.matrix.left <- t(anat[mf[,"(rowcount)"],])
+    rows = colnames(mmatrix) 
+    data.matrix.right = matrix()
+  }
   result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
   rownames(result) <- colnames(anat)
-
+  
   # the order of return values is:
   #
   # f-statistic
@@ -464,14 +464,20 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat  an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
-#' @return Returns an array with the F-statistic for each model specified by formula with the following attributes: model – design matrix
-#' 	, stat-type: type of statistic used, df – degrees of freedom of each statistic. 
+#' @return Returns an array with the F-statistic for each model specified 
+#' by formula with the following attributes
+#' \itemize{
+#' \item{model}{ design matrix}
+#' \item{stat-type}{ type of statistic used}
+#' \item{df}{ degrees of freedom of each statistic}
+#' } 
 #' @seealso mincAnova,vertexAnova 
 #' @examples
 #' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET",
+#'                            TRUE,"1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
 #' } 
@@ -528,7 +534,7 @@ anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
 #' 
 #' @param anat A minc volume object with a \code{labels} attribute
 #' @param filename the filename for the new minc volume
-#' @param which column of the \link{anatLm} results to use
+#' @param column which column of the \link{anatLm} results to use
 #' @return Invisibly returns the created volume
 #' @export
 anatCreateVolume <- function(anat, filename, column=1) {

@@ -206,10 +206,10 @@ SEXP minc_history_size(SEXP filename){
   return(output);
 }
 
-SEXP get_minc_history(SEXP filename, SEXP size) {
+SEXP get_minc_history(SEXP filename) {
   int                result;
   mihandle_t         hvol;
-  int int_size   =   asInteger(size);
+  int int_size   =   asInteger(minc_history_size(filename));
   char  *history = malloc(int_size);  
   const char *filepath = CHAR(asChar(filename));
 

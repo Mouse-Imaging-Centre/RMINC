@@ -20,7 +20,7 @@ mincFDR(buffer, ...)
 \method{mincFDR}{mincLmer}(buffer, mask = NULL, ...)
 
 \method{mincFDR}{mincMultiDim}(buffer, columns = NULL, mask = NULL,
-  df = NULL, method = "FDR", statType = NULL)
+  df = NULL, method = "FDR", statType = NULL, ...)
 }
 \arguments{
 \item{buffer}{The results of a mincLm type run.}
