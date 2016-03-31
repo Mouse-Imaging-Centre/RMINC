@@ -49,3 +49,28 @@ NULL
 #' @name RMINC_MASKED_VALUE
 NULL
 
+
+### Package initialization function, syncs environment vars and defines defaults
+.onLoad <-
+  function(libname, pkgname){
+    
+    #Taken from Hadley's r-packages book
+    op <- options()
+    
+    op.RMINC <- list(
+      RMINC_MASKED_VALUE = 
+        structure(NA, class = "RMINC_MASKED_VALUE"),
+      RMINC_QUEUE = 
+        `if`(Sys.getenv("RMINC_QUEUE") == "",
+             Sys.getenv("RMINC_QUEUE"),
+             "multicore"),
+      RMINC_LABEL_DEFINITIONS =
+        Sys.getenv("RMINC_LABEL_DEFINITIONS")
+    )
+    
+    toset <- !(names(op.RMINC) %in% names(op))
+    if(any(toset)) options(op.RMINC[toset])
+    
+    invisible()
+  }
+
