@@ -85,6 +85,34 @@ bool check_same_dimensions(vector<mihandle_t> volumes){
   return(all_same_size);
 }
 
+
+
+vector<misize_t> get_volume_dimensions(mihandle_t volume){
+  midimhandle_t dimensions[3];
+  misize_t sizes[3];
+  vector<misize_t> volume_dimensions;
+  
+  int success = miget_volume_dimensions(volume, MI_DIMCLASS_SPATIAL,
+                                        MI_DIMATTR_ALL, MI_DIMORDER_FILE,
+                                        3, dimensions);
+  
+  if(success != MI_NOERROR){
+    stop("Couldn't read volume dimensions");
+  }
+  
+  success = miget_dimension_sizes(dimensions, 3, sizes);
+  
+  if(success != MI_NOERROR){
+    stop("Couldn't read dimension sizes");
+  }
+  
+  for(int i = 0; i < 3; ++i){
+    volume_dimensions.push_back(sizes[i]);
+  }
+  
+  return(volume_dimensions);
+}
+
 // [[Rcpp::export]]
 List rcpp_minc_apply(CharacterVector filenames,
                      bool use_mask,
@@ -230,6 +258,96 @@ List rcpp_minc_apply(CharacterVector filenames,
   
   return(output);
 }
+
+
+map<double, int> tally_matrix(double ***slab,
+                              misize_t sizes[3]){
+  map<double, int> counts_table;
+  for(misize_t i = 0; i < sizes[0]; ++i){
+    for(misize_t j = 0; j < sizes[1]; ++j){
+      for(misize_t k = 0; k < sizes[2]; ++k){
+        double slab_val = slab[i][j][k];
+        int is_present = counts_table.count(slab_val);
+        if(is_present == 0){
+          counts_table[slab_val] = 1;
+        } else {
+          ++counts_table[slab_val];
+        }
+      }
+    }
+  }
+  
+  return(counts_table);
+} 
+
+// NumericMatrix tabulate_labels(CharacterVector filenames,
+//                               bool use_mask,
+//                               CharacterVector mask,
+//                               double mask_lower_val,
+//                               double mask_upper_val){
+//   
+//   mihandle_t mask_handle;
+//   vector<mihandle_t> volumes = open_minc2_volumes(filenames);
+//   
+//   if(!check_same_dimensions(volumes)){
+//     throw range_error("At least one file is a different size");
+//   }
+//   
+//   if(use_mask){
+//     mask_handle = open_minc2_volumes(mask)[0];
+//     
+//     vector<mihandle_t> mask_and_vol;
+//     mask_and_vol.push_back(mask_handle);
+//     mask_and_vol.push_back(volumes[0]);
+//     
+//     if(!check_same_dimensions(mask_and_vol)){
+//       throw range_error("The mask and files differ in size");
+//     }  
+//   }
+//   
+//   vector<misize_t> vol_sizes = get_volume_dimensions(volumes[0]);
+//   misize_t volume_sizes[3];
+//   for(int i = 0; i < 3; i++){
+//     volume_sizes[i] = vol_sizes[i];
+//   }
+//   misize_t offsets[3];
+//   for(int i = 0; i < 3; i ++){
+//     offsets[i] = 0;
+//   }
+//   
+//   double volume[volume_sizes[0]][volume_sizes[1]][volume_sizes[2]];
+//   int read_result;
+//   //First Read
+//   read_result = miget_real_value_hyperslab(volumes[0],
+//                                            MI_TYPE_DOUBLE,
+//                                            offsets,
+//                                            volume_sizes,
+//                                            &volume);
+//   
+//   if(read_result != MI_NOERROR){
+//     stop("Couldn't read volume");
+//   }
+//   
+//   map<double, int> label_counts = tally_matrix(volume, volume_sizes);
+//   
+//   
+//   NumericMatrix output_matrix(Dimension(volumes.size(), counts_table.size()));
+//   vector<mihandle_t>::iterator vol_it;
+//   for(vol_it = ++volumes.begin(); vol_it != volumes.end(); ++vol_it){
+//     read_result = miget_real_value_hyperslab(*vol_it,
+//                                              MI_TYPE_DOUBLE,
+//                                              offsets,
+//                                              volume_sizes,
+//                                              &volume);
+//     
+//     if(read_result != MI_NOERROR){
+//       stop("Couldn't read volume");
+//     }
+//     
+//     
+//   }
+//   
+// }
 
 /**
  * RMINC::minc_apply(c("/tmp/rminctestdata/absolute_jacobian_file_1.mnc", 
