@@ -1,6 +1,8 @@
 AC_INIT([RMINC], 1.3.0.0)
 AC_PREREQ([2.68])
 AC_CONFIG_SRCDIR([src/slice_loop_functions.c])
+AC_PROG_CC
+AC_PROG_CXX
 
 dnl This adds a --with-build-path option, adding the directories'
 dnl include to CPPFLAGS -I, lib to LDFLAGS and the rpath
@@ -10,14 +12,14 @@ AC_ARG_WITH([build-path],
 		#Build-path code taken from Steve Robbins m4 macro
     		for d in `echo $withval | tr : ' '`; do
        		    test -d $d || AC_MSG_ERROR([build path $d not found.])
-       		    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include"
-       		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib -Wl,-rpath=$d/lib"
+       		    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include/"
+       		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib/ -Wl,-rpath,$d/lib/"
    		done
 		
 		
 	])
 
-dnl The adds a special variable MINC_TOOLKIT_BUILD_DIR to the configure scrip
+dnl The adds a special variable MINC_TOOLKIT_BUILD_DIR to the configure script
 AC_ARG_VAR([MINC_TOOLKIT_BUILD_DIR],[where to build minctoolkit, default /opt/minc-itk4/])
 
 dnl This checks for the minc dependencies, called after minc2 is located or installed
@@ -75,7 +77,7 @@ AC_DEFUN([INSTALL_MINC],
 	])
 	
 	cd build
-	cmake .. -DCMAKE_INSTALL_PREFIX:PATH=$MINC_TOOLKIT_BUILD_DIR \
+	cmake ..  -DCMAKE_INSTALL_PREFIX:PATH=$MINC_TOOLKIT_BUILD_DIR \
                   -DCMAKE_BUILD_TYPE:STRING=Release \
              	  -DMT_BUILD_LITE:BOOL=ON \
                   -DMT_BUILD_SHARED_LIBS:BOOL=ON \
@@ -91,20 +93,18 @@ AC_DEFUN([INSTALL_MINC],
                	  -DCPACK_SOURCE_TGZ:BOOL=OFF \
                	  -DCPACK_SOURCE_TZ:BOOL=OFF \
                	  -DCPACK_SOURCE_ZIP:BOOL=OFF \
-               	  -DCPACK_SOURCE_TXZ:BOOL=OFF 
+               	  -DCPACK_SOURCE_TXZ:BOOL=OFF
 	make all
 	make install
 	
 	cd $orig_dir
 
         CPPFLAGS="$CPPFLAGS -I$MINC_TOOLKIT_BUILD_DIR/include"
-       	LDFLAGS="$LDFLAGS -L$MINC_TOOLKIT_BUILD_DIR/lib -Wl,-rpath=$MINC_TOOLKIT_BUILD_DIR/lib"
+       	LDFLAGS="$LDFLAGS -L$MINC_TOOLKIT_BUILD_DIR/lib -Wl,-rpath,$MINC_TOOLKIT_BUILD_DIR/lib"
 		
 	CHECK_MINC_DEPENDS	
   ])
 
-AC_PROG_CXX
-AC_PROG_CC
 
 dnl Adds a --enable-build-minc toggle to the configure script
 dnl if the switch is not toggled check for minc's dependencies
@@ -140,5 +140,6 @@ fi
 dnl substitute CPPFLAGS and LIBS
 AC_SUBST(CPPFLAGS)
 AC_SUBST(LIBS)
+AC_SUBST(LDFLAGS)
 dnl and do subsitution in the src/Makevars.in
 AC_OUTPUT(src/Makevars)
