@@ -1910,7 +1910,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
                           queue = "sge",
                           resources = list(vmem = 8,
                                            walltime = "01:00:00"),
-                          packages = .packages(),
+                          packages = c("RMINC"),
                           registry_dir = file.path(tempdir(), registry_name),
                           cores = max(getOption("mc.cores"), parallel::detectCores())){
 
@@ -1937,6 +1937,9 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
   
   setConfig(config)
   
+  if(! "RMINC" %in% packages)
+    packages <- c("RMINC", packages)
+  
   qMinc_registry <-
     makeRegistry(registry_name,
                  registry_dir,
@@ -1948,14 +1951,18 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
 #' @export
 qMincMap <- 
   function(registry, filenames, fun, ..., mask = NULL, 
-           batches = 4, tinyMask = FALSE, resources = list()){
+           batches = 4, tinyMask = FALSE, temp_dir = tempdir(), resources = list()){
     
     dot_args <- list(...)
     dot_args$return_indices <- TRUE
     
     sample_file <- filenames[1]
+    
+    temp_dir <- normalizePath(temp_dir)
+    if(!dir.exists(temp_dir)) dir.create(temp_dir)
+    
     sample_volume <- mincGetVolume(sample_file)
-    mask_file <- tempfile("pMincMask", fileext = ".mnc")
+    mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
     
     if(is.null(mask)){
       if(batches %% 1 != 0) stop("the number of batches must be an integer")
@@ -2019,23 +2026,28 @@ qMincApply <-
            queue = "sge",
            resources = list(vmem = 8,
                             walltime = "01:00:00"),
-           packages = .packages(),
-           registry_name = "qMincApply_registry", 
+           packages = c("RMINC"),
+           temp_dir = tempdir(),
+           registry_name = "qMincApply_registry",
+           registry_dir = file.path(temp_dir, registry_name),
            cores = max(getOption("mc.cores"), parallel::detectCores() - 1),
            wait = TRUE,
            cleanup = TRUE) {
     
     qMinc_registry <-
       qMincRegistry(registry_name = registry_name,
-                  queue = queue,
-                  packages = packages,
-                  cores = cores)
+                    registry_dir = registry_dir,
+                    queue = queue,
+                    packages = packages,
+                    cores = cores)
     
     qMincMap(qMinc_registry,
              filenames, 
              fun = match.fun(fun), 
              ..., 
-             mask = mask, tinyMask = tinyMask,
+             mask = mask, 
+             tinyMask = tinyMask,
+             temp_dir = temp_dir,
              resources = resources)
     
     if(wait){
@@ -2045,7 +2057,65 @@ qMincApply <-
     }
     
     return(qMinc_registry)
-}
+  }
+
+#' @export
+pMincApply2 <-
+  function(filenames, fun, ...,
+           mask = NULL, 
+           batches = 4, 
+           tinyMask = FALSE, 
+           temp_dir = tempdir()){
+    
+    dot_args <- list(...)
+    dot_args$return_indices <- TRUE
+    
+    sample_file <- filenames[1]
+    
+    temp_dir <- normalizePath(temp_dir)
+    if(!dir.exists(temp_dir)) dir.create(temp_dir)
+    
+    sample_volume <- mincGetVolume(sample_file)
+    mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
+    
+    if(is.null(mask)){
+      if(batches %% 1 != 0) stop("the number of batches must be an integer")
+      
+      mask_values <- as.integer(cut(seq_along(sample_volume), batches))
+    } else {
+      mask_values <- mincGetVolume(mask)
+      if(tinyMask) mask_values[mask_values > 1.5] <- 0
+      
+      nVoxels <- sum(mask_values > .5)
+      mask_values[mask_values > .5] <- as.integer(cut(seq_len(nVoxels), batches))
+    }
+    
+    mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
+    
+    mincApplyArguments <- 
+      c(list(filenames = filenames), #list wrapping ensures c() works
+        fun = match.fun(fun),
+        dot_args,
+        mask = mask_file,
+        filter_masked = TRUE)
+    
+    results <- 
+      mcmapply(mincApplyRCPP,
+               maskval = 1:batches,
+               MoreArgs = mincApplyArguments)
+             
+    result_attributes <- attributes(results[[1]])
+    results <- unlist(results, recursive = FALSE)
+    
+    result_order <- order(vapply(results, function(el) el[[2]], numeric(1)))
+    results <- lapply(results[result_order], function(el) el[[1]])
+    
+    collation_function <- match.fun(collate)
+    results <- collation_function(results)
+    attributes(results) <- result_attributes
+    
+    return(results)
+  }
 
 
 #' @description Can execute any R function at every voxel for a set of MINC files
