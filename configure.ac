@@ -14,32 +14,69 @@ AC_ARG_WITH([build-path],
        		    test -d $d || AC_MSG_ERROR([build path $d not found.])
        		    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include/"
        		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib/ -Wl,-rpath,$d/lib/"
-   		done
-		
-		
+   		done	
 	])
 
 dnl The adds a special variable MINC_TOOLKIT_BUILD_DIR to the configure script
 AC_ARG_VAR([MINC_TOOLKIT_BUILD_DIR],[where to build minctoolkit, default /opt/minc-itk4/])
 
+AC_DEFUN([TOOLKIT_SEARCH], [
+        AC_MSG_NOTICE([Searching for minc toolkit])
+	AC_MSG_CHECKING([Can we find a minc tool (mincinfo) on the search path]) 
+        MINC_INFO_PATH=$(which mincinfo)
+	AS_IF([test x$MINC_INFO_PATH == "x"], [
+               AC_MSG_RESULT(no)], [
+               TOOLKIT_FOUND="yes"
+               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
+               AC_MSG_RESULT(yes)
+             ])
+
+        AS_IF([test x$TOOLKIT_FOUND != "xyes"], [
+               AC_MSG_CHECKING([Can we find minc toolkit in common locations])
+               AS_IF([test -d /opt/minc/], [TOOLKIT_PATH="/opt/minc"])
+               AS_IF([test -d /opt/minc-itk4/], [TOOLKIT_PATH="/opt/minc-itk4/"])
+               AS_IF([test x$HOME != "x" -a -d $HOME/local/minc-itk4/], 
+                     [TOOLKIT_PATH="$HOME/local/minc-itk4/"])
+               AS_IF([test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH], 
+                     [TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"])
+               AS_IF([test x$TOOLKIT_PATH != "x"], [
+                      TOOLKIT_FOUND="yes"
+                      AC_MSG_RESULT(yes)
+                      AC_MSG_NOTICE([found toolkit in $TOOLKIT_PATH])
+                      AC_MSG_NOTICE([override by setting the environment variable MINC_TOOLKIT_BUILD_PATH])
+                      AC_MSG_NOTICE([or by setting --with-build-path as a configure argument])
+                      ], [ 
+                      AC_MSG_RESULT(no) 
+                     ])
+              ])
+
+	  AS_IF([test x$TOOLKIT_FOUND == "xyes"], [
+                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
+                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
+                ])
+         ])
+
 dnl This checks for the minc dependencies, called after minc2 is located or installed
 AC_DEFUN([CHECK_MINC_DEPENDS],
 [
-	AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib not found])])
-	
-        AS_IF(test -z $with_build_path && test x$enable_build_minc != "xyes", [
-	     AC_CHECK_PROG(H5CC, h5cc, "yes", "no")
-	     AS_IF(test x$H5CC = "xyes", [
-	       AC_REQUIRE([AC_PROG_GREP])
-	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[[^ ]]*'") 
-	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[[^ ]]*'")
-	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
-	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
-	    ])
-        ])
-	
-	echo "$LDFLAGS"
-	AC_CHECK_LIB(hdf5, H5open, , [AC_MSG_ERROR([hdf5 not found])])
+	AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib not found])])	
+     
+	AS_IF([test -z $with_build_path && test x$enable_build_minc != "xyes"],
+              [
+                 TOOLKIT_SEARCH
+                 AC_CHECK_HEADER(hdf5.h, , [
+                     AC_CHECK_PROG(H5CC, h5cc, "yes", "no")
+	             AS_IF(test x$H5CC = "xyes", [
+	                AC_REQUIRE([AC_PROG_GREP])
+	                H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[[^ ]]*'" | tr "\n" " ") 
+	                H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[[^ ]]*'" | tr "\n" " ")
+	                LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	                CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+	              ])
+                  ])	  
+              ])
+               
+	AC_CHECK_LIB(hdf5, H5open, , [AC_MSG_ERROR([HDF5 not found])])
         AC_CHECK_LIB(minc2, mifree_name, , [AC_MSG_ERROR([minc2 not found])])
 ])
 

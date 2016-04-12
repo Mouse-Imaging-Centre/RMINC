@@ -3188,9 +3188,9 @@ if test "${with_build_path+set}" = set; then :
        		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib/ -Wl,-rpath,$d/lib/"
    		done
 
-
-
 fi
+
+
 
 
 
@@ -3654,9 +3654,77 @@ fi
 
 
 
-        if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
+	if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
 
-	     # Extract the first word of "h5cc", so it can be a program name with args.
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for minc toolkit" >&5
+$as_echo "$as_me: Searching for minc toolkit" >&6;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
+$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
+        MINC_INFO_PATH=$(which mincinfo)
+	if test x$MINC_INFO_PATH == "x"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+else
+
+               TOOLKIT_FOUND="yes"
+               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+        if test x$TOOLKIT_FOUND != "xyes"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find minc toolkit in common locations" >&5
+$as_echo_n "checking Can we find minc toolkit in common locations... " >&6; }
+               if test -d /opt/minc/; then :
+  TOOLKIT_PATH="/opt/minc"
+fi
+               if test -d /opt/minc-itk4/; then :
+  TOOLKIT_PATH="/opt/minc-itk4/"
+fi
+               if test x$HOME != "x" -a -d $HOME/local/minc-itk4/; then :
+  TOOLKIT_PATH="$HOME/local/minc-itk4/"
+fi
+               if test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH; then :
+  TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
+fi
+               if test x$TOOLKIT_PATH != "x"; then :
+
+                      TOOLKIT_FOUND="yes"
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: found toolkit in $TOOLKIT_PATH" >&5
+$as_echo "$as_me: found toolkit in $TOOLKIT_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&5
+$as_echo "$as_me: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
+$as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
+
+else
+
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+
+fi
+
+	  if test x$TOOLKIT_FOUND == "xyes"; then :
+
+                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
+                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
+
+fi
+
+                 ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
+if test "x$ac_cv_header_hdf5_h" = xyes; then :
+
+else
+
+                     # Extract the first word of "h5cc", so it can be a program name with args.
 set dummy h5cc; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -3694,19 +3762,22 @@ $as_echo "no" >&6; }
 fi
 
 
-	     if test x$H5CC = "xyes"; then :
+	             if test x$H5CC = "xyes"; then :
 
 
-	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'")
-	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'")
-	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
-	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
-
-fi
+	                H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'" | tr "\n" " ")
+	                H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'" | tr "\n" " ")
+	                LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	                CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
 
 fi
 
-	echo "$LDFLAGS"
+fi
+
+
+
+fi
+
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
 $as_echo_n "checking for H5open in -lhdf5... " >&6; }
 if ${ac_cv_lib_hdf5_H5open+:} false; then :
@@ -3751,7 +3822,7 @@ _ACEOF
   LIBS="-lhdf5 $LIBS"
 
 else
-  as_fn_error $? "hdf5 not found" "$LINENO" 5
+  as_fn_error $? "HDF5 not found" "$LINENO" 5
 fi
 
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
@@ -3878,9 +3949,77 @@ fi
 
 
 
-        if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
+	if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
 
-	     # Extract the first word of "h5cc", so it can be a program name with args.
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for minc toolkit" >&5
+$as_echo "$as_me: Searching for minc toolkit" >&6;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
+$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
+        MINC_INFO_PATH=$(which mincinfo)
+	if test x$MINC_INFO_PATH == "x"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+else
+
+               TOOLKIT_FOUND="yes"
+               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+        if test x$TOOLKIT_FOUND != "xyes"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find minc toolkit in common locations" >&5
+$as_echo_n "checking Can we find minc toolkit in common locations... " >&6; }
+               if test -d /opt/minc/; then :
+  TOOLKIT_PATH="/opt/minc"
+fi
+               if test -d /opt/minc-itk4/; then :
+  TOOLKIT_PATH="/opt/minc-itk4/"
+fi
+               if test x$HOME != "x" -a -d $HOME/local/minc-itk4/; then :
+  TOOLKIT_PATH="$HOME/local/minc-itk4/"
+fi
+               if test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH; then :
+  TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
+fi
+               if test x$TOOLKIT_PATH != "x"; then :
+
+                      TOOLKIT_FOUND="yes"
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: found toolkit in $TOOLKIT_PATH" >&5
+$as_echo "$as_me: found toolkit in $TOOLKIT_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&5
+$as_echo "$as_me: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
+$as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
+
+else
+
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+
+fi
+
+	  if test x$TOOLKIT_FOUND == "xyes"; then :
+
+                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
+                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
+
+fi
+
+                 ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
+if test "x$ac_cv_header_hdf5_h" = xyes; then :
+
+else
+
+                     # Extract the first word of "h5cc", so it can be a program name with args.
 set dummy h5cc; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -3918,19 +4057,22 @@ $as_echo "no" >&6; }
 fi
 
 
-	     if test x$H5CC = "xyes"; then :
+	             if test x$H5CC = "xyes"; then :
 
 
-	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'")
-	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'")
-	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
-	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
-
-fi
+	                H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'" | tr "\n" " ")
+	                H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'" | tr "\n" " ")
+	                LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	                CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
 
 fi
 
-	echo "$LDFLAGS"
+fi
+
+
+
+fi
+
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
 $as_echo_n "checking for H5open in -lhdf5... " >&6; }
 if ${ac_cv_lib_hdf5_H5open+:} false; then :
@@ -3975,7 +4117,7 @@ _ACEOF
   LIBS="-lhdf5 $LIBS"
 
 else
-  as_fn_error $? "hdf5 not found" "$LINENO" 5
+  as_fn_error $? "HDF5 not found" "$LINENO" 5
 fi
 
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
@@ -4040,9 +4182,77 @@ fi
 
 
 
-        if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
+	if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
 
-	     # Extract the first word of "h5cc", so it can be a program name with args.
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for minc toolkit" >&5
+$as_echo "$as_me: Searching for minc toolkit" >&6;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
+$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
+        MINC_INFO_PATH=$(which mincinfo)
+	if test x$MINC_INFO_PATH == "x"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+else
+
+               TOOLKIT_FOUND="yes"
+               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+        if test x$TOOLKIT_FOUND != "xyes"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find minc toolkit in common locations" >&5
+$as_echo_n "checking Can we find minc toolkit in common locations... " >&6; }
+               if test -d /opt/minc/; then :
+  TOOLKIT_PATH="/opt/minc"
+fi
+               if test -d /opt/minc-itk4/; then :
+  TOOLKIT_PATH="/opt/minc-itk4/"
+fi
+               if test x$HOME != "x" -a -d $HOME/local/minc-itk4/; then :
+  TOOLKIT_PATH="$HOME/local/minc-itk4/"
+fi
+               if test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH; then :
+  TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
+fi
+               if test x$TOOLKIT_PATH != "x"; then :
+
+                      TOOLKIT_FOUND="yes"
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: found toolkit in $TOOLKIT_PATH" >&5
+$as_echo "$as_me: found toolkit in $TOOLKIT_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&5
+$as_echo "$as_me: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
+$as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
+
+else
+
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+
+fi
+
+	  if test x$TOOLKIT_FOUND == "xyes"; then :
+
+                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
+                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
+
+fi
+
+                 ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
+if test "x$ac_cv_header_hdf5_h" = xyes; then :
+
+else
+
+                     # Extract the first word of "h5cc", so it can be a program name with args.
 set dummy h5cc; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -4080,19 +4290,22 @@ $as_echo "no" >&6; }
 fi
 
 
-	     if test x$H5CC = "xyes"; then :
+	             if test x$H5CC = "xyes"; then :
 
 
-	       H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'")
-	       H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'")
-	       LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
-	       CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
-
-fi
+	                H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'" | tr "\n" " ")
+	                H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'" | tr "\n" " ")
+	                LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
+	                CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
 
 fi
 
-	echo "$LDFLAGS"
+fi
+
+
+
+fi
+
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
 $as_echo_n "checking for H5open in -lhdf5... " >&6; }
 if ${ac_cv_lib_hdf5_H5open+:} false; then :
@@ -4137,7 +4350,7 @@ _ACEOF
   LIBS="-lhdf5 $LIBS"
 
 else
-  as_fn_error $? "hdf5 not found" "$LINENO" 5
+  as_fn_error $? "HDF5 not found" "$LINENO" 5
 fi
 
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_name in -lminc2" >&5
