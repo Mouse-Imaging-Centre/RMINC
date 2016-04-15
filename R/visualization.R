@@ -302,11 +302,14 @@ mincPlotStatsSliceSeries <-
       if (symmetric==TRUE) {
         col <- colorRampPalette(c("red", "yellow"))(255)
         rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
-        color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), rev(rcol), gradient="y", align="rb", col="white")
-        color.legend(0.3, 0.55, 0.5, 0.95, c(low, high), col, gradient="y", align="rb", col="white")
+        plotrix::color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), 
+                              rev(rcol), gradient="y", align="rb", col="white")
+        plotrix::color.legend(0.3, 0.55, 0.5, 0.95, c(low, high), 
+                              col, gradient="y", align="rb", col="white")
       }
       else {
-        color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), col, gradient="y", align="rb", col="white")
+        plotrix::color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), 
+                               col, gradient="y", align="rb", col="white")
       }
       
       text(0.85, 0.5, labels=legend, srt=90, col="white", cex=2)
@@ -364,37 +367,37 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
 # note - works, but is extremely slow. In profiling it appears to spend almost all
 # its time in "save", so I think the function has to be rewritten in such a way as to avoid
 # constant saving of large data to disk. Somehow.
-mincPlotAnatAndStatsSliceManipulator <- function(anatomy, statistics,
-                                                 slice=NULL,
-                                                 dimension=2,
-                                                 low=NULL,
-                                                 high=NULL,
-                                                 anatLow=NULL,
-                                                 anatHigh=NULL,
-                                                 legend=NULL,
-                                                 symmetric= FALSE,
-                                                 discreteStats = FALSE) {
-  d <- dim(anatomy)
-  maxStats <- max(abs(statistics))
-  maxAnat <- max(anatomy)
-  manipulate::manipulate(
-    mincPlotAnatAndStatsSlice(anatomy, statistics,
-                              slice=xSlice,
-                              dimension=dimension,
-                              low=xLow,
-                              high=xHigh,
-                              anatLow=xanatLow,
-                              anatHigh=xanatHigh,
-                              legend=legend,
-                              symmetric=xSymmetric),
-    xSlice = slider(1, d[dimension], initial=slice, label="Slice"),
-    xLow =slider(0, maxStats, initial=low, label="lower(statistics)"),
-    xHigh = slider(0, maxStats, initial=high, label="upper(statistics)"),
-    xanatLow = slider(0, maxAnat, initial=anatLow, label="lower(anatomy)"),
-    xanatHigh = slider(0, maxAnat, initial=anatHigh, label="upper(anatomy)"),
-    xSymmetric = checkbox(initial=symmetric, label="symmetrix")
-  )
-}
+# mincPlotAnatAndStatsSliceManipulator <- function(anatomy, statistics,
+#                                                  slice=NULL,
+#                                                  dimension=2,
+#                                                  low=NULL,
+#                                                  high=NULL,
+#                                                  anatLow=NULL,
+#                                                  anatHigh=NULL,
+#                                                  legend=NULL,
+#                                                  symmetric= FALSE,
+#                                                  discreteStats = FALSE) {
+#   d <- dim(anatomy)
+#   maxStats <- max(abs(statistics))
+#   maxAnat <- max(anatomy)
+#   manipulate::manipulate(
+#     mincPlotAnatAndStatsSlice(anatomy, statistics,
+#                               slice=xSlice,
+#                               dimension=dimension,
+#                               low=xLow,
+#                               high=xHigh,
+#                               anatLow=xanatLow,
+#                               anatHigh=xanatHigh,
+#                               legend=legend,
+#                               symmetric=xSymmetric),
+#     xSlice = slider(1, d[dimension], initial=slice, label="Slice"),
+#     xLow =slider(0, maxStats, initial=low, label="lower(statistics)"),
+#     xHigh = slider(0, maxStats, initial=high, label="upper(statistics)"),
+#     xanatLow = slider(0, maxAnat, initial=anatLow, label="lower(anatomy)"),
+#     xanatHigh = slider(0, maxAnat, initial=anatHigh, label="upper(anatomy)"),
+#     xSymmetric = checkbox(initial=symmetric, label="symmetrix")
+#   )
+# }
 
 mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           dimension=2, 

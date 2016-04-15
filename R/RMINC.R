@@ -5,7 +5,6 @@
 #' statistics, perform FDR correction, rapidly visualize 
 #' results, and much more.
 #' @import dplyr
-#' @import rgl
 #' @import shiny
 #' @import Rcpp
 #' @import lme4
@@ -54,7 +53,7 @@ NULL
 .onLoad <-
   function(libname, pkgname){
     
-    #Taken from Hadley's r-packages book
+    #Set default options taken from Hadley's r-packages book
     op <- options()
     
     op.RMINC <- list(
@@ -73,4 +72,8 @@ NULL
     
     invisible()
   }
+
+# Silence warning about magrittr/dplyr dot
+# a la https://github.com/smbache/magrittr/issues/29
+utils::globalVariables(".")
 

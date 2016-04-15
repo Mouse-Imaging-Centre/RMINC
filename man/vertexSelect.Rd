@@ -4,12 +4,12 @@
 \alias{vertexSelect}
 \title{Select Vertices From a Surface}
 \usage{
-vertexSelect(object = first(rgl.ids()$id), tolerance = 0.01,
+vertexSelect(object = first(rgl::rgl.ids()$id), tolerance = 0.01,
   multiples = FALSE, indicate = TRUE)
 }
 \arguments{
 \item{object}{An rgl id for the object from which to choose vertices. Defaults to
-the first id. To check the ids available for selection call \code{\link{rgl.ids}()}
+the first id. To check the ids available for selection call \link[rgl]{rgl.ids}()
 unfortunately there is no elegant way at the present for determining which object is which.}
 
 \item{tolerance}{The tolerance, in fractions of the visible window, for finding points.
@@ -48,6 +48,6 @@ This algorithm is not perfect, and can yeild spurious coordinates for irregular 
 For more accurate vertex selection, use a high magnification (controlled with the scroll wheel), 
 the higher the magnification the more accurate the vertex selection becomes. Additionally, keep
 indicate = TRUE, this will place indicator points on the identified vertices, they will allow you
-to ensure your coordinates are accurate, and can always be removed with \code{rgl::\link{pop3d}()}
+to ensure your coordinates are accurate, and can always be removed with \link[rgl]{pop3d}()
 }
 

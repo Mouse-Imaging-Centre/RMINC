@@ -1,4 +1,4 @@
-library("testthat")
+library(testthat)
 context("anatLm")
 
 gf <- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")

@@ -17,11 +17,11 @@ on the object, "black" prevents the objects from looking shiny}
 
 \item{add_normals}{logical whether to add normals to the mesh to make the surface less jagged}
 
-\item{...}{extra parameters passed to the material argument list of \link{tmesh3d} can include
-additional \link{rgl.material} parameters to give to your mesh}
+\item{...}{extra parameters passed to the material argument list of \link[rgl]{tmesh3d} can include
+additional \link[rgl]{rgl.material} parameters to give to your mesh}
 }
 \value{
-a \code{obj_mesh} descended from \link{mesh3d} object to be
+a \code{obj_mesh} descended from \link[rgl]{mesh3d} object to be
 plotted alone or subsequently colourized with \link{colour_mesh}
 }
 \description{

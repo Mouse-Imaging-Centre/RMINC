@@ -1,4 +1,4 @@
-rm src/*.o src/*.so Makevars *~ config.* 2>/dev/null
+rm src/*.o src/*.so src/Makevars *~ config.* 2>/dev/null
 rm -r autom4te*/ 2>/dev/null
 rm -r conf*/ 2>/dev/null
 

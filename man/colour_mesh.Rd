@@ -8,7 +8,7 @@ colour_mesh(mesh, colour_map, colour_range = NULL, colour_default = "grey",
   reverse = NULL, palette = heat.colors(255))
 }
 \arguments{
-\item{mesh}{\link{mesh3d} object ideally produced by \link{create_mesh}}
+\item{mesh}{\link[rgl]{mesh3d} object ideally produced by \link{create_mesh}}
 
 \item{colour_map}{either a vector with a label/measure/statistic for every vertex
 or a character file path pointing to a file with such a vector in a rowwise format.}
@@ -24,7 +24,7 @@ allowable labels/measures/statistics to be includedon the surface}
 \code{colour_map}}
 }
 \value{
-an \code{obj_mesh} object descended from \link{mesh3d}, with added colour information
+an \code{obj_mesh} object descended from \link[rgl]{mesh3d}, with added colour information
 and an additional \code{legend} element to be used in building a colour bar
 }
 \description{

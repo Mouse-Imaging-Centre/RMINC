@@ -1,11 +1,11 @@
-library("testthat")
+library(testthat)
 context("mincApplyRCPP")
 
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 
 mm <- verboseRun("mincMean(gf$jacobians_fixed_2)",getOption("verbose"))
 ma <- verboseRun(
-    "mincApplyRCPP(gf$jacobians_fixed_2, mean, collate = unlist, slab_sizes = c(10,10,1))", 
+    "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(10,10,1))", 
     getOption("verbose"))
 
 #Coerce numeric vector produced by mincApplyRCPP to mincMultiDim
@@ -14,7 +14,7 @@ class(ma) <- c("mincMultiDim", "matrix")
 
 
 test_that("mincApplyRCPP matches MincMean",{
-  expect_equal(ma, mm)
+  expect_equivalent(ma, mm)
 })
 
 setRMINCMaskedValue(val = 0)
@@ -26,12 +26,13 @@ ma_masked <- verboseRun("mincApplyRCPP(gf$jacobians_fixed_2, mean,
                         slab_sizes = c(1,5,5))", 
                         getOption("verbose"))
 
-#Coerce numeric vector produced by mincApplyRCPP to mincMultiDim
-ma_masked <- unlist(ma_masked)
-mm_masked <- as.numeric(mm_masked)
+dim(ma_masked) <- c(length(ma_masked), 1)
+class(ma_masked) <- c("mincMultiDim", "matrix")
+
 
 test_that("mincApplyRCPP masks like mincMean", {
-  expect_equal(mm_masked, ma_masked)
+  expect_equivalent(mm_masked, ma_masked)
+  expect_equal(attr(mm_masked, "filenames"), attr(ma_masked, "filenames"))
 })
 
 

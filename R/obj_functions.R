@@ -68,21 +68,21 @@ read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
 #' @param specular a character indicating the colour of the specular the lighting produces
 #' on the object, "black" prevents the objects from looking shiny
 #' @param add_normals logical whether to add normals to the mesh to make the surface less jagged
-#' @param ... extra parameters passed to the material argument list of \link{tmesh3d} can include
-#' additional \link{rgl.material} parameters to give to your mesh
+#' @param ... extra parameters passed to the material argument list of \link[rgl]{tmesh3d} can include
+#' additional \link[rgl]{rgl.material} parameters to give to your mesh
 #' 
-#' @return a \code{obj_mesh} descended from \link{mesh3d} object to be
+#' @return a \code{obj_mesh} descended from \link[rgl]{mesh3d} object to be
 #' plotted alone or subsequently colourized with \link{colour_mesh}
 #' @export
 create_mesh <- 
   function(bic_obj, color = "grey", specular = "black", add_normals = TRUE, ...){
-    mesh <- with(bic_obj, tmesh3d(vertex_matrix, triangle_matrix, 
-                                  material  = list(specular = specular,
-                                                   color = color,
-                                                   ...),
-                                  homogeneous = FALSE))
+    mesh <- with(bic_obj, rgl::tmesh3d(vertex_matrix, triangle_matrix, 
+                                       material  = list(specular = specular,
+                                                        color = color,
+                                                        ...),
+                                       homogeneous = FALSE))
     
-    if(add_normals) mesh <- mesh %>% addNormals()
+    if(add_normals) mesh <- mesh %>% rgl::addNormals()
     
     class(mesh) <- c("obj_mesh", class(mesh))
     
@@ -94,7 +94,7 @@ create_mesh <-
 #' Add colour information to your mesh, either from a vertex atlas like AAL
 #' or from a statistic/measurement map like those produced by CIVET
 #' 
-#' @param mesh \link{mesh3d} object ideally produced by \link{create_mesh}
+#' @param mesh \link[rgl]{mesh3d} object ideally produced by \link{create_mesh}
 #' @param colour_map either a vector with a label/measure/statistic for every vertex
 #' or a character file path pointing to a file with such a vector in a rowwise format.
 #' @param colour_range a two element numeric vector indicating the min and max values of 
@@ -103,7 +103,7 @@ create_mesh <-
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
-#' @return an \code{obj_mesh} object descended from \link{mesh3d}, with added colour information
+#' @return an \code{obj_mesh} object descended from \link[rgl]{mesh3d}, with added colour information
 #' and an additional \code{legend} element to be used in building a colour bar
 #' @export  
 colour_mesh <- function(mesh, 
@@ -170,6 +170,7 @@ colour_mesh <- function(mesh,
 #' @param ... additional arguments to \link{create_mesh} including but not limited
 #' to colour, specular, and add_normals
 #' @return invisibly returns the mesh object
+#' @method plot bic_obj
 #' @export
 plot.bic_obj <- 
   function(x, 
@@ -182,19 +183,19 @@ plot.bic_obj <-
            add = FALSE,
            ...){
     
-    if(!add) open3d()
+    if(!add) rgl::open3d()
     
-    .check3d()
-    window_dimensions <- par3d("windowRect")
+    rgl::.check3d()
+    window_dimensions <- rgl::par3d("windowRect")
     
     #Small windows prevent legend plotting
     if(diff(window_dimensions[c(1,3)]) < 400 && 
        diff(window_dimensions[c(2,4)]) < 400 ){
-      par3d(windowRect = c(100,100, 900, 900))
+      rgl::par3d(windowRect = c(100,100, 900, 900))
       #This isn't my fault I swear, see the ?bgplot3d examples, weird bugs happen
       #without waiting, e.g. brains will only draw when there is an inactive rgl device
       Sys.sleep(.25)
-      par3d(viewport = c(0,0,800,800)) 
+      rgl::par3d(viewport = c(0,0,800,800)) 
     }
     
     mesh <-
@@ -202,9 +203,13 @@ plot.bic_obj <-
       create_mesh(...)
     
     if(!is.null(colour_map))
-     mesh <- mesh %>% colour_mesh(colour_map, colour_range, colour_default, reverse, palette)
+      mesh <- mesh %>% colour_mesh(colour_map, 
+                                   colour_range, 
+                                   colour_default, 
+                                   reverse, 
+                                   palette)
     
-    mesh %>% shade3d(override = FALSE)
+    mesh %>% rgl::shade3d(override = FALSE)
     if(colour_bar && !is.null(colour_map)) mesh %>% add_colour_bar
     
     invisible(mesh)
@@ -219,10 +224,11 @@ plot.bic_obj <-
 #' @param colour_bar whether or not to add a colour bar
 #' @param ... additional parameters to pass to add_colour_bar
 #' @return returns x invisibly
+#' @method plot obj_mesh
 #' @export
 plot.obj_mesh <-
   function(x, colour_bar = TRUE, ...){
-    x %>% shade3d
+    x %>% rgl::shade3d
     if(colour_bar) x %>% add_colour_bar(...)
     
     invisible(x)
@@ -252,7 +258,7 @@ add_colour_bar <- function(mesh,
                            which_col = length(column_widths)){
   if(is.null(mesh$legend)) stop("Your mesh has no colour information")
   with(mesh$legend, {
-    bgplot3d({
+    rgl::bgplot3d({
       par(mar = c(4,8,4,2))
       
       stat_range <- seq(colour_range[1], colour_range[2], 
@@ -317,34 +323,38 @@ obj_montage <- function(left_obj,
     create_mesh(right_obj, add_normals = TRUE, ...) %>% 
     colour_mesh(right_map)
   
-  open3d(windowRect = c(100,100, 900, 900))
+  rgl::open3d(windowRect = c(100,100, 900, 900))
   #This isn't my fault I swear, see the ?bgplot3d examples, weird bugs happen
   #without waiting, e.g. brains will only draw when there is an inactive rgl device
   Sys.sleep(.25)
-  par3d(viewport = c(0,0,800,800))
+  rgl::par3d(viewport = c(0,0,800,800))
 
-  parent_scene <- currentSubscene3d()
+  parent_scene <- rgl::currentSubscene3d()
   
-  subscenes <- mfrow3d(3,2)
+  subscenes <- rgl::mfrow3d(3,2)
   left_or_right <- rep(c("left", "right"), 3)
   
   mapply(function(subscene, view_matrix, hemisphere){
-    useSubscene3d(subscene)
+    rgl::useSubscene3d(subscene)
     if(hemisphere == "left"){
-      left_mesh %>% shade3d(override = FALSE)
+      left_mesh %>% rgl::shade3d(override = FALSE)
     } else {
-      right_mesh %>% shade3d(override = FALSE)
+      right_mesh %>% rgl::shade3d(override = FALSE)
     }
     
-    par3d(userMatrix = view_matrix)
+    rgl::par3d(userMatrix = view_matrix)
   }, subscenes, hemisphere_viewpoints, left_or_right)
 
-  useSubscene3d(parent_scene)
+  rgl::useSubscene3d(parent_scene)
   
-  left_mesh %>% add_colour_bar(title = colour_title, column_widths = c(6,2,6), which_col = 2, cex.axis = 2, cex.lab = 2)
+  left_mesh %>% add_colour_bar(title = colour_title, 
+                               column_widths = c(6,2,6), 
+                               which_col = 2, 
+                               cex.axis = 2, 
+                               cex.lab = 2)
   
-  if(!is.null(output)) snapshot3d(output)
-  if(!is.null(output) && close_on_output) rgl.close()
+  if(!is.null(output)) rgl::snapshot3d(output)
+  if(!is.null(output) && close_on_output) rgl::rgl.close()
   
   invisible(NULL)
 }
@@ -399,7 +409,7 @@ single_closest_vertex <-
 #' Interactively select one or more vertices from an \code{rgl} surface.
 #' 
 #' @param object An rgl id for the object from which to choose vertices. Defaults to
-#' the first id. To check the ids available for selection call \code{\link{rgl.ids}()}
+#' the first id. To check the ids available for selection call \link[rgl]{rgl.ids}()
 #' unfortunately there is no elegant way at the present for determining which object is which.
 #' @param tolerance The tolerance, in fractions of the visible window, for finding points.
 #' See details for more.
@@ -432,10 +442,10 @@ single_closest_vertex <-
 #' For more accurate vertex selection, use a high magnification (controlled with the scroll wheel), 
 #' the higher the magnification the more accurate the vertex selection becomes. Additionally, keep
 #' indicate = TRUE, this will place indicator points on the identified vertices, they will allow you
-#' to ensure your coordinates are accurate, and can always be removed with \code{rgl::\link{pop3d}()}
+#' to ensure your coordinates are accurate, and can always be removed with \link[rgl]{pop3d}()
 #' @export
 vertexSelect <-
-  function(object = first(rgl.ids()$id),
+  function(object = first(rgl::rgl.ids()$id),
            tolerance = 0.01,
            multiples = FALSE,
            indicate = TRUE){
@@ -454,10 +464,10 @@ vertexSelect <-
     colnames(selected_vertices) <- c("x", "y", "z")
     
     if(indicate){
-      bbox <- par3d("bbox")
+      bbox <- rgl::par3d("bbox")
       bbox_smallest_dimension <- min(abs(bbox[4:6] - bbox[1:3]))
       
-      spheres3d(selected_vertices[,1], 
+      rgl::spheres3d(selected_vertices[,1], 
                 selected_vertices[,2], 
                 selected_vertices[,3], 
                 alpha = .2,
@@ -488,8 +498,8 @@ select_one_vertex <-
     
     inflated_bounds <- rep(click_location, 2) - c(1,1,-1,-1) * tolerance
     
-    object_vertices <- rgl.attrib(object, "vertices")
-    window_coords <- rgl.user2window(object_vertices, projection = selection$proj)
+    object_vertices <- rgl::rgl.attrib(object, "vertices")
+    window_coords <- rgl::rgl.user2window(object_vertices, projection = selection$proj)
     
     selected_vertices <-
       which(window_coords[,1] > inflated_bounds[1] &
@@ -505,7 +515,7 @@ select_one_vertex <-
     unique_coords <-
       selected_coords[!duplicated(selected_coords, MARGIN = 1),]
     
-    target_location <- rgl.window2user(click_location[1], click_location[2], 0, 
+    target_location <- rgl::rgl.window2user(click_location[1], click_location[2], 0, 
                                        projection = selection$proj)
     
     closest_vertex <- closestVertex(unique_coords, target_location, returns = "coordinates")
@@ -518,7 +528,7 @@ select_one_vertex <-
 #' Find the vertices closest one or more targets, potentially returning the values
 #' for the vertices from a data map.
 #' 
-#' @param vertices A descendent of \link{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns, 
+#' @param vertices A descendent of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns, 
 #' and n rows representing vertices.
 #' @param target either a 3-element numeric vector representing x-y-z coordinates for
 #' a single target, or a matrix-like object as described above containing multiple targets.

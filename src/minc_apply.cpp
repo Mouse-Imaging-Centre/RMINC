@@ -252,9 +252,6 @@ List rcpp_minc_apply(CharacterVector filenames,
   if(use_mask){
     miclose_volume(mask_handle);
   }
-
-  output.attr("likeVolume") = as<CharacterVector>(filenames[0]);
-  output.attr("filenames") = filenames;
   
   return(output);
 }

@@ -15,6 +15,100 @@ setRMINCMaskedValue <-
 print.RMINC_MASKED_VALUE <-
   function(x, ...)
     print(as.symbol("masked"))
+
+# Attributes for minc result objects
+known_minc_attributes <-
+  c("filenames", "likeVolume", "mask", "mincLmerList", "mincLmerLists")
+
+#' Get and Set Minc Specific Attributes
+#' 
+#' Manage auxillary information contained in RMINC objects. Currently recognizes:
+#' \itemize{
+#' \item{filenames: filenames of minc files used to create an object}
+#' \item{likeVolume: a minc file to use a structural template when writing out
+#' data}
+#' \item{mask: a mask file associated with the object}
+#' \item{mincLmerList: extra information used in fitting \link{mincLmer}s}
+#' \item{mincLmerLists: collections of mincLmerLists used to compare \link{mincLmer} fits}
+#' }
+#' @param minc_object the RMINC object of interest typically a \code{mincMultiDim} or
+#' a related class
+#' @param updated_attrs A named list containing the new attributes to be replaced
+#' @return \code{mincAttributes} returns an attribute list, \code{setMincAttributes} returns 
+#' the updated object
+#' @export
+mincAttributes <-
+  function(minc_object){
+    minc_attributes <- attributes(minc_object)
+    minc_attributes <- 
+      minc_attributes[names(minc_attributes) %in% known_minc_attributes]
+    
+    return(minc_attributes)
+  }
+
+#' @describeIn mincAttributes setter
+#' @export
+setMincAttributes <-
+  function(minc_object, updated_attrs){
+    if(any(! names(updated_attrs) %in% known_minc_attributes)) 
+      stop(sprintf("New attributes must be a known minc object attribute (%s)",
+                   paste0(known_minc_attributes, collapse = ", ")))
+    
+    all_attrs <- attributes(minc_object)
+    all_attrs <- `if`(is.null(all_attrs), list(), all_attrs)
+    all_attrs <- as.environment(all_attrs)
+    list2env(updated_attrs, all_attrs)
+    attributes(minc_object) <- as.list(all_attrs)
+    
+    return(minc_object)
+  }
+
+#' Collate Minc
+#' 
+#' Helper function to collate the results of a \link{mincApplyRCPP} family 
+#' (\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function
+#' @param result_list The mincApply results to collate.
+#' @return a matrix like object of class \code{mincSingleDim}, code{mincMultiDim},
+#' or code{mincList} depending on the dimensions of the input object
+#'@export
+simplify2minc <- function(result_list){
+  
+  ## Deal with masking, find the first non-masked value, NA it out
+  ## insert it back in to standardize element length as much as possible
+  lgl_masked <- vapply(result_list, inherits, logical(1), "RMINC_MASKED_VALUE")
+  first_element <- result_list[[min(which(!lgl_masked))]]      
+  na_value <- first_element                                
+  na_value[] <- getOption("RMINC_MASKED_VALUE")            #set all its elements to masked
+  result_list[lgl_masked] <- list(na_value)                #replace in result list
+  
+  ## Determine the correct reduction technique and apply it
+  if(first_element %>% is.atomic && length(first_element) == 1){
+    simplified_results <- unlist(result_list)
+  } else if(first_element %>% is.atomic && length(first_element) > 1){
+    simplified_results <- t(simplify2array(result_list))
+  } else if(first_element %>% is.data.frame) {
+    simplified_results <- bind_rows(result_list)
+  } else {
+    simplified_results <- results_list
+  }
+  
+  ## If any known_minc_attributes were already defined for the object
+  ## ensure they carry over to the simplified object
+  result_attributes <- mincAttributes(result_list)
+  if(!is.null(result_attributes))
+    simplified_results <- setMincAttributes(simplified_results, results_list)
+  
+  ## Reclass the object to the appropriate RMINC class
+  if(is.null(ncol(simplified_results)) && is.list(simplified_results)){
+    class(simplified_results) <- "mincList"
+  } else if(is.null(ncol(simplified_results))){
+    class(simplified_results) <- "mincSingleDim"
+  } else {
+    class(simplified_results) <- "mincMultiDim"
+  }
+
+  return(simplified_results)
+}
     
 mincGetTagFile <- function(filename) {
   tags <- scan(filename, what="character")
@@ -244,11 +338,11 @@ print.mincMultiDim <- function(x, ...) {
 #' @export 
 print.mincLogLikRatio <- function(x, ...) {
   cat("mincLogLikRatio output\n\n")
-  mincLmerLists <- attr(x, "mincLmerLists")
-  for (i in 1:length(mincLmerLists)) {
+  mincLmerList <- attr(x, "mincLmerList")
+  for (i in 1:length(mincLmerList)) {
     cat("Model", i, ":\n")
     cat("  Formula:  ")
-    print(mincLmerLists[[i]][[1]]$formula)
+    print(mincLmerList[[i]][[1]]$formula)
   }
   cat("\nMask used:", attr(x, "mask"), "\n")
   cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
@@ -1560,562 +1654,6 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
-#' @describeIn mincApply parallel
-#' @export
-pMincApply <- function(filenames, function.string,
-                       mask=NULL, workers=4, tinyMask=FALSE, 
-                       method="snowfall",global="",packages="", 
-                       modules="",vmem="8",walltime="01:00:00") {
-  
-  REDUCE = TRUE; # For now this option is not exposed
-
-  # if no mask exists use the entire volume
-  if (is.null(mask)) {
-    maskV = mincGetVolume(filenames[1])
-    nVoxels = length(maskV)
-    maskV[maskV >= min(maskV)] <- as.integer(cut(seq_len(nVoxels), workers)) 
-  }
-  else {
-    maskV <- mincGetVolume(mask)
-    # optionally make the mask a fraction of the original size - for testing
-    if (tinyMask!=FALSE) {
-      maskV[maskV>1.5] <- 0
-    }
-    nVoxels <- sum(maskV>0.5)
-    maskV[maskV>0.5] <- as.integer(cut(seq_len(nVoxels), workers)) 
-  }
-  
-  # Saving to /tmp does not always work...
-  maskFilename <- paste("pmincApplyTmpMask-", Sys.getpid(), ".mnc", sep="")
-  
-  #If the current working directory isn't writeable, 
-  #write to a tempdir instead
-  if(file.access(getwd(), 2) != 0) maskFilename <- file.path(tempdir(), maskFilename)
-  
-  mincWriteVolume(maskV, 
-                  maskFilename, 
-                  clobber=TRUE) 
-  
-  
-  # create the packageList that will be used for the snowfall and sge options
-  # if packages contains multiple libraries, the test (packages == "") 
-  # will return as many TRUE/FALSE as the length of the vector. So to test
-  # for "", first test that the length of the packages vector is 1
-  if(length(packages) < 2) {
-    if(packages == "") {
-      packageList = c("RMINC")
-    }
-    else {
-      packageList = c(packages,"RMINC")
-    }
-  }
-  else {
-    packageList = c(packages,"RMINC")
-  }
-  
-  pout <- list()
-  
-  if (method == "local") {
-    stop("Lovely code ... that generates inconsistent results because something somewhere is not thread safe ...")
-    
-    if(!(requireNamespace("doMC", quietly = TRUE) & requireNamespace("foreach", quietly = TRUE))) 
-      stop("One or both of doMC and foreach is missing, please install these packages")
-    
-    registerDoMC(workers)
-    
-    # run the job spread across each core
-    pout <- foreach(i=1:workers) %dopar% { mincApply(filenames, function.string,
-                                                   mask=maskFilename, maskval=i) }
-    #cat("length: ", length(pout), "\n")
-  }
-
-  # The pbs options use mpirun and snow to parallelize mincApply over multiple cores.
-  # It is currently configured to send all the jobs to one node, and parallelize over the
-  # cores at that node. Also note the amount of virtual memory requested is set at 8g.
- 
-  # It operates as follows:
-  # 1) Save global variables to disk
-  # 2) Write out a .R file that will execute mpi operations once submitted to the cluster
-  # 3) Write out a .sh file that will be submitted to the cluster
-  # 4) Submit the .sh file to the cluster
-  # 5) Wait for the jobs to finish
-  # 6) Read the output from disk
-
-  else if (method == "pbs") {
- 
-   if(is.null(getOption("MAX_NODES"))) {
-		 ppn = 8
-                 #maximize node usage
-	 	 nodes = ceiling(workers/ppn)
-		 workers = nodes*ppn-1
-   }
-   else {
-		 ppn = getOption("MAX_NODES")
-		 nodes = ceiling(workers/ppn)
-    }
-
-    # 1) Save variables which will be referenced on the cluster to disk (including user specified global variables)
-    rCommand = 'save(\'maskV\',\'filenames\',\'workers\',\'REDUCE\',\'function.string\',\'maskFilename\','
-    for (nVar in 1:length(global)) {
-	if(global[nVar] != "") {
-		rCommand = paste(rCommand,'\'',global[nVar],'\',',sep="")
-        }
-    }
-    rCommand = paste(rCommand,'file=\'mpi-rminc-var\')',sep="")
-    
-    eval(parse(text=rCommand))
-
-    # 2) Write out an R file to disk. This file will be executed via mpirun on the cluster
-    fileConn <- file("mpi-rminc.R",open='w')
-
-    # Load R Packages
-    
-
-    # snow is used to coordinate operations, but Rmpi could be used for greater control
-    packageList = c(packageList,"snow")
-
-    for (nPackage in 1:length(packageList)) {     
-    	writeLines(paste("library( ",packageList[nPackage],")",sep = ""),fileConn)
-    }
-
-    # Load the variables we saved in step 1
-    writeLines("load(\"mpi-rminc-var\")",fileConn)
-
-    # Create the snow cluster
-    writeLines("cl <- makeCluster(workers, type = \"MPI\")",fileConn) 
-
-    # Create a wrapper function that we can easily run with clusterApply
-    writeLines("wrapper <- function(i) { return(mincApply(filenames, function.string, mask = maskFilename, maskval = i, reduce = REDUCE))}",fileConn)
-
-    # Export all neccessary variables to each slave
-    writeLines("clusterExport(cl,c('filenames','REDUCE','function.string','maskFilename','maskV'))",fileConn)
-
-    # Main mpi exection
-    writeLines("clusterOut <- clusterApply(cl,1:workers,wrapper)",fileConn)
-
-    # At this point we are done.
-    writeLines("stopCluster(cl)",fileConn)
-
-    # Test data at one voxel to determine how many ouytputs
-    writeLines(" x <- mincGetVoxel(filenames, 0,0,0)",fileConn)
-    writeLines("test <- eval(function.string)",fileConn)
-    writeLines("if (length(test) > 1) {",fileConn)
-    writeLines("output <- matrix(0, nrow=length(maskV), ncol=length(test))",fileConn)
-    writeLines("class(output) <- class(clusterOut[[1]])",fileConn)
-    writeLines("attr(output, \"likeVolume\") <- attr(clusterOut[[1]], \"likeVolume\")",fileConn)
-    writeLines("} else {",fileConn)
-    writeLines("output <- maskV",fileConn)
-    writeLines("}",fileConn)
-    writeLines("for(i in 1:workers) {",fileConn)
-    writeLines("if (length(test)>1) {",fileConn)
-    writeLines("if(REDUCE == TRUE)",fileConn)	
-    writeLines("output[maskV == i,] <- clusterOut[[i]]",fileConn)
-    writeLines("else",fileConn)
-    writeLines("output[maskV == i,] <- clusterOut[[i]][maskV == i, ]",fileConn)
-    writeLines("}",fileConn)
-    writeLines("else {",fileConn)
-    writeLines("output[maskV==i] <- clusterOut[[i]]",fileConn)
-    writeLines("}",fileConn)
-    writeLines("}",fileConn)
-
-    # Write the output (R data) to disk, so the initiating R session can access the data
-    writeLines("save('output',file='mpi-rminc-out')",fileConn)
-
-    close(fileConn)
-
-    # 3) Write out a .sh file which will be what is submitted to the cluster
-    qfileConn <- file("q-mpi-rminc.sh",open='w')
-    writeLines("#!/bin/bash -x",qfileConn)
-   
-    # Errors and Output are written to the current directory, but this could be set to a user defined spot.
-    writeLines("#PBS -e ./",qfileConn)
-    writeLines("#PBS -o ./",qfileConn)
-    writeLines("#PBS -N pMincApply",qfileConn) 
-
-    # Allocate nodes and ppn
-    writeLines(paste("#PBS -l nodes=",as.character(nodes),":ppn=",as.character(ppn),sep=""),qfileConn)
-
-    # Allocate walltime and vmem
-    writeLines(paste("#PBS -l vmem=",vmem,"g,walltime=",walltime,sep=""),qfileConn)
-
-    # Load modules
-    for (nModule in 1:length(modules)) {     
-        if(modules[nModule] != "") {
-    		writeLines(paste("module load ",modules[nModule],sep = ""),qfileConn)
-       }
-    }
-
-    # Define temp directory
-    writeLines(paste("export TMPDIR=",getOption("TMPDIR"),sep=""),qfileConn)
-
-   # For Testing
-    writeLines(paste("cp -R ~/Software/RMINC/rminctestdata /tmp/",sep=""),qfileConn)
-
-    # Move to working directory
-    writeLines(paste("cd ",getOption("WORKDIR"),sep=""),qfileConn)
-
-    # Neccessary to initiate mpi operations.
-    writeLines("mpirun -np 1 R CMD BATCH mpi-rminc.R",qfileConn)
-
-    close(qfileConn)
-
-    # 4) Submit the job
-    result <- system("qsub q-mpi-rminc.sh",intern=TRUE)
-    ptm = proc.time()
-    
-    # 5) Wait for Job to finish
-    status <- system(paste("qstat ",result," | grep C"),intern=TRUE) 
-    # 1 Indicates not completed
-    while(length(status) == 0) {
-       flush.console()
-       status <- system(paste("qstat ",result," | grep R"),intern=TRUE)
-       runTime = proc.time()-ptm
-       if(length(status) == 0) {
-	  cat(paste("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bQueued:  ",sprintf("%3.3f seconds",(runTime[3]))))
-       } else {
-	  cat(paste("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\bRunning: ",sprintf("%3.3f seconds",(runTime[3]))))
-       }
-       Sys.sleep(2)
-       status <- system(paste("qstat ",result," | grep C"),intern=TRUE)
-      
-    }
-    print(paste("Completed: ",as.character(runTime[3])," Seconds"))
-    # 6) Read output from disk
-    load("mpi-rminc-out")
-    
-    # Clean up intermediate files
-    system(paste("rm",maskFilename))
-    system("rm q-mpi-rminc.sh")
-    system("rm mpi-rminc.R")
-    system("rm mpi-rminc-var")
-    system("rm mpi-rminc-out")
-
-    return(output)
-
-}
-
-  else if (method == "sge") {
-    
-    if(!requireNamespace("Rsge", quietly = TRUE)) 
-      stop("The Rsge package is require to run code with SGE parallelism")
-
-    options(sge.use.cluster = TRUE)
-    options(sge.block.size = 100)
-    options(sge.user.options= "-S /bin/bash")
-    options(sge.ret.ext= "sge.ret")
-    options(sge.use.qacct= FALSE)
-    options(sge.trace = TRUE) 
-    options(sge.save.global = FALSE)
-    options(sge.qsub.options = "-cwd")
-    options(sge.qsub.blocking = "-sync y -t 1-")
-    options(sge.monitor.script = "MonitorJob.sh")
-    options(sge.script="RunSgeJob")
-    options(sge.file.prefix="Rsge_data")
-    options(sge.debug=TRUE)
-    options(sge.remove.files=FALSE)
-    options(sge.qacct= "qacct")
-    options(sge.qstat= "qstat")
-    options(sge.qsub= "qsub")
-
-    # Need to use double quotes, because both sge.submit and mincApply try to evalute the function
-    function.string = enquote(function.string)
-    
-    l1 <- list(length=workers)
-
-    if(global == "")  {
-      globallist = c(sub("\\(([A-Z]|[a-z])\\)","",function.string))
-    }
-    else {
-      globallist = c(global,sub("\\(([A-Z]|[a-z])\\)","",function.string))
-    }
-
-    # Submit one job to the queue for each segmented brain region
-    for(i in 1:workers) {
-      l1[[i]]<- sge.submit(mincApply,filenames,function.string, mask=maskFilename,reduce=TRUE,
-                           maskval=i, packages=packageList,global.savelist= globallist) 
-    }
-    
-    # Wait for all jobs to complete
-    r1 = lapply(l1,sge.job.status)
-    
-    while(! all (r1 == 0)) {
-      Sys.sleep(4)
-      r1 = lapply(l1,sge.job.status) }
-      pout <- lapply(l1, sge.list.get.result)
-      function.string = eval(function.string)
-  }
-  else if (method == "snowfall") {
-    
-    if(!requireNamespace("snowfall", quietly = TRUE))
-      stop("The snowfall package is required to run code with snowfall parallelism")
-    
-    sfInit(parallel=TRUE, cpus=workers)
-
-    for (nPackage in 1:length(packageList)) {
-      sfLibrary(packageList[nPackage],character.only=TRUE) 
-    }
-		
-    sfExport(list = global) 
-
-    wrapper <- function(i) {
-      cat( "Current index: ", i, "\n" ) 
-      return(mincApply(filenames, function.string, mask=maskFilename,
-                      maskval=i, reduce=REDUCE))
-    }
-    # use all workers in the current cluster if # of workers not specified
-    if (is.null(workers)) {
-      workers <- length(sfSocketHosts())
-    }
-    
-    #sink("/dev/null");
-    pout <- sfLapply(1:workers, wrapper)
-    
-    sfStop();
-  }
-  else {
-    stop("unknown execution method")
-  }
-  
-  # Need to get one voxel, x, to test number of values returned from function.string
-  x <- mincGetVoxel(filenames, 0,0,0)
-  test <- eval(function.string) 
-  
-  # recombine the output into a single volume
-  if (length(test) > 1) {
-    output <- matrix(0, nrow=length(maskV), ncol=length(test))
-    class(output) <- class(pout[[1]])
-    attr(output, "likeVolume") <- attr(pout[[1]], "likeVolume")
-  }
-  else {
-    output <- maskV
-  }
-  
-  for(i in 1:workers) {
-    if (length(test)>1) {
-      if(REDUCE == TRUE)	
-      	output[maskV == i,] <- pout[[i]]
-      else
-      	output[maskV == i,] <- pout[[i]][maskV == i, ] 
-    }
-    else {
-      output[maskV==i] <- pout[[i]]
-    }
-  }
-  unlink(maskFilename)
-  return(output)
-}
-
-#' @export
-qMincRegistry <- function(registry_name = "qMincApply_registry",
-                          queue = "sge",
-                          resources = list(vmem = 8,
-                                           walltime = "01:00:00"),
-                          packages = c("RMINC"),
-                          registry_dir = file.path(tempdir(), registry_name),
-                          cores = max(getOption("mc.cores"), parallel::detectCores())){
-
-  config <- getConfig()
-  
-  if(queue == "multicore"){
-    config$cluster.functions <- makeClusterFunctionsMulticore(ncpus = cores,
-                                                              max.load = parallel::detectCores())
-  }
-  
-  if(queue == "sge"){
-    sge_script <- system.file("parallel_scripts/sge_script.tmpl", package = "RMINC")
-    config$cluster.functions <- makeClusterFunctionsSGE(sge_script)
-  }
-  
-  if(queue == "pbs"){
-    pbs_script <- system.file("parallel_scripts/pbs_script.tmpl", package = "RMINC")
-    config$cluster.functions <- makeClusterFunctionsTorque(pbs_script)
-  }
-  
-  if(queue == "interactive"){
-    config$cluster.functions <- makeClusterFunctionsInteractive()
-  }
-  
-  setConfig(config)
-  
-  if(! "RMINC" %in% packages)
-    packages <- c("RMINC", packages)
-  
-  qMinc_registry <-
-    makeRegistry(registry_name,
-                 registry_dir,
-                 packages = packages)
-  
-  return(qMinc_registry)
-}
-
-#' @export
-qMincMap <- 
-  function(registry, filenames, fun, ..., mask = NULL, 
-           batches = 4, tinyMask = FALSE, temp_dir = tempdir(), resources = list()){
-    
-    dot_args <- list(...)
-    dot_args$return_indices <- TRUE
-    
-    sample_file <- filenames[1]
-    
-    temp_dir <- normalizePath(temp_dir)
-    if(!dir.exists(temp_dir)) dir.create(temp_dir)
-    
-    sample_volume <- mincGetVolume(sample_file)
-    mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
-    
-    if(is.null(mask)){
-      if(batches %% 1 != 0) stop("the number of batches must be an integer")
-      
-      mask_values <- as.integer(cut(seq_along(sample_volume), batches))
-    } else {
-      mask_values <- mincGetVolume(mask)
-      if(tinyMask) mask_values[mask_values > 1.5] <- 0
-      
-      nVoxels <- sum(mask_values > .5)
-      mask_values[mask_values > .5] <- as.integer(cut(seq_len(nVoxels), batches))
-    }
-    
-    mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
-    
-    mincApplyArguments <- 
-      c(list(filenames = filenames), #list wrapping ensures c() works
-        fun = match.fun(fun),
-        dot_args,
-        mask = mask_file,
-        filter_masked = TRUE)
-    
-    batchMap(registry,
-             mincApplyRCPP, 
-             maskval = 1:batches,
-             more.args = mincApplyArguments)
-    
-    submitJobs(registry, resources = resources)
-    
-    return(registry)
-  }
-
-#' @export
-qMincReduce <- 
-  function(registry, ignore_incompletes = FALSE, wait = FALSE, collate = identity){
-    
-    if(wait)
-      waitForJobs(registry)
-    
-    if((!ignore_incompletes) && length(findNotTerminated(registry) != 0))
-      stop("Some jobs have not terminated, use ignore_incompletes to reduce anyway, or wait")
-      
-    results <- loadResults(registry, use.names = FALSE)
-    result_attributes <- attributes(results[[1]])
-    results <- unlist(results, recursive = FALSE)
-    
-    result_order <- order(vapply(results, function(el) el[[2]], numeric(1)))
-    results <- lapply(results[result_order], function(el) el[[1]])
-    
-    collation_function <- match.fun(collate)
-    results <- collation_function(results)
-    attributes(results) <- result_attributes
-    
-    return(results)
-  }
-
-#' @export
-qMincApply <- 
-  function(filenames, fun, ..., 
-           mask=NULL, batches=4, tinyMask=FALSE,
-           queue = "sge",
-           resources = list(vmem = 8,
-                            walltime = "01:00:00"),
-           packages = c("RMINC"),
-           temp_dir = tempdir(),
-           registry_name = "qMincApply_registry",
-           registry_dir = file.path(temp_dir, registry_name),
-           cores = max(getOption("mc.cores"), parallel::detectCores() - 1),
-           wait = TRUE,
-           cleanup = TRUE) {
-    
-    qMinc_registry <-
-      qMincRegistry(registry_name = registry_name,
-                    registry_dir = registry_dir,
-                    queue = queue,
-                    packages = packages,
-                    cores = cores)
-    
-    qMincMap(qMinc_registry,
-             filenames, 
-             fun = match.fun(fun), 
-             ..., 
-             mask = mask, 
-             tinyMask = tinyMask,
-             temp_dir = temp_dir,
-             resources = resources)
-    
-    if(wait){
-      qMinc_results <- qMincReduce(qMinc_registry, wait = TRUE)
-      if(cleanup) removeRegistry(qMinc_registry, ask = "no")
-      return(qMinc_results)
-    }
-    
-    return(qMinc_registry)
-  }
-
-#' @export
-pMincApply2 <-
-  function(filenames, fun, ...,
-           mask = NULL, 
-           batches = 4, 
-           tinyMask = FALSE, 
-           temp_dir = tempdir()){
-    
-    dot_args <- list(...)
-    dot_args$return_indices <- TRUE
-    
-    sample_file <- filenames[1]
-    
-    temp_dir <- normalizePath(temp_dir)
-    if(!dir.exists(temp_dir)) dir.create(temp_dir)
-    
-    sample_volume <- mincGetVolume(sample_file)
-    mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
-    
-    if(is.null(mask)){
-      if(batches %% 1 != 0) stop("the number of batches must be an integer")
-      
-      mask_values <- as.integer(cut(seq_along(sample_volume), batches))
-    } else {
-      mask_values <- mincGetVolume(mask)
-      if(tinyMask) mask_values[mask_values > 1.5] <- 0
-      
-      nVoxels <- sum(mask_values > .5)
-      mask_values[mask_values > .5] <- as.integer(cut(seq_len(nVoxels), batches))
-    }
-    
-    mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
-    
-    mincApplyArguments <- 
-      c(list(filenames = filenames), #list wrapping ensures c() works
-        fun = match.fun(fun),
-        dot_args,
-        mask = mask_file,
-        filter_masked = TRUE)
-    
-    results <- 
-      mcmapply(mincApplyRCPP,
-               maskval = 1:batches,
-               MoreArgs = mincApplyArguments)
-             
-    result_attributes <- attributes(results[[1]])
-    results <- unlist(results, recursive = FALSE)
-    
-    result_order <- order(vapply(results, function(el) el[[2]], numeric(1)))
-    results <- lapply(results[result_order], function(el) el[[1]])
-    
-    collation_function <- match.fun(collate)
-    results <- collation_function(results)
-    attributes(results) <- result_attributes
-    
-    return(results)
-  }
 
 
 #' @description Can execute any R function at every voxel for a set of MINC files
@@ -2131,29 +1669,10 @@ pMincApply2 <-
 #' apply the function. If left blank (the default) then anything
 #' above 0.5 will be considered inside the mask. This argument
 #' only works for mincApply, not pMincApply.
-#' @param workers The number of processes to split the function into. Only
-#' works for pMincApply, not for mincApply.
-#' @param method The method to be used for parallization ("snowfall" ,"sge","scinet","hpf")
-#' "hpf" : The SickKids Cluster --> Currently 8g of virtual memory is requested. Additionally
-#' only one node (32 workers) can be requested
-#' "scinet" : scinet cluster --> scinet allows mutliple nodes to be requested but currently the limit is only one node
-#' (max 8 workers). The walltime is also set to 1:00:00 and virtual memory is also 8g
-#' @param tinyMask Only for pMincApply; if set to some numeric value it computes
-#' the function over that fraction of the mask. Useful for
-#' debugging purposes only (i.e. if you want to test out whether
-#' a new function works across the cluster.)
-#' @param modules modules to be loaded on the cluster nodes
-#' @param vmem Amount of virtual memory to request
-#' @param walltime Amount of walltime to request
-#' @param reduce Whether or not to collapse the results into a \code{mincMultiDim} object
-#' @param global Global variables to be exported
-#' @param packages R Packages to be exported
+#' @param reduce Whether to filter masked voxels from the resulting object
 #' @details mincApply allows one to execute any R function at every voxel of a
 #' set of files. There are two variants: mincApply, which works
-#' inside the current R session, and pMincApply, which uses the
-#' snowfall and Rsge packages to split the execution of
-#' the function across multiple cores/processors on the same machine
-#' or across a cluster.
+#' inside the current R session.
 #' Unless the function to be applied takes a single argument a
 #' wrapper function has to be written. This is illustrated in the
 #' examples; briefly, the wrapper function takes a single argument,
@@ -2171,7 +1690,6 @@ pMincApply2 <-
 #' file sizes and the same number of columns as output by the
 #' function that was applied. Cast into one of the MINC classes
 #' to make writing it out with mincWriteVolume easier.
-
 #' @seealso mincWriteVolume,mincMean,mincSd,mincLm,mincAnova
 #' @examples 
 #' \dontrun{
@@ -3093,13 +2611,6 @@ parseLmFormula <- function(formula,data,mf)
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
 
-  #Try and load lme4
-#   result = tryCatch({
-# 	library(lme4)
-#   }, error = function(e) {
-# 	stop("Could not find lme4. Please install this package.")
-#   })
-
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
 
@@ -3130,13 +2641,18 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   else 0L
 
 
-  mincLmerList <<- list(lmod, mcout, control, start, verbose, rho, REMLpass)
+  mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
 
   # for some reason there is a namespace issue if I call diag directly, but only if inside
   # a function that is part of RMINC (i.e. if I source the code it works fine). So here's a
   # workaround to get the method first, give it a new name, and assign to global namespace.
-  tmpDiag <<- getMethod("diag", "dsyMatrix")
+  ###tmpDiag <<- getMethod("diag", "dsyMatrix")
   #fmincLmerOptimizeAndExtract <<- mincLmerOptimizeAndExtract
+  
+  #Set the slab dimensions such that it reads one slice at a time along dim 1
+
+  slab_dims <- minc.dimensions.sizes(lmod$fr[1,1])
+  slab_dims[1] <- 1
 
   if (!is.null(parallel)) {
     # a vector with two elements: the methods followed by the # of workers
@@ -3144,26 +2660,28 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
       if (parallel[1] == "local") {
         parallel[1] <- "snowfall" #local and snowfall are synonymous
       }
-      out <- pMincApply(lmod$fr[,1],
-                        quote(mincLmerOptimizeAndExtract(x)),
-                        mask = mask,
-                        method = parallel[1],
-                        workers = as.numeric(parallel[2]),
-                        global = c("mincLmerList", "tmpDiag"),# "mincLmerOptimize", "mincLmerExtractVariables"),
-                        packages = c("lme4", "RMINC"))
+      out <- mcMincApply(lmod$fr[,1],
+                         mincLmerOptimizeAndExtract,
+                         mincLmerList = mincLmerList,
+                         filter_masked = TRUE,
+                         mask = mask,
+                         batches = as.numeric(parallel[2]),
+                         slab_sizes = slab_dims)
     }
     else {
       stop("Error: unknown parallelization method")
     }
   }
   else {
-    out <- mincApply(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
-                     quote(mincLmerOptimizeAndExtract(x)),
-                     mask=mask)
+    out <- mincApplyRCPP(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
+                         mincLmerOptimizeAndExtract,
+                         mincLmerList = mincLmerList,
+                         mask = mask,
+                         slab_sizes = slab_dims)
   }
-
-  # set Inf to 0 (Inf's are generated when vcov can't compute)
-  out[is.infinite(out)] <- 0
+  
+  ## Result post processing
+  out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
   
   termnames <- colnames(lmod$X)
   betaNames <- paste("beta-", termnames, sep="")
@@ -3171,7 +2689,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   colnames(out) <- c(betaNames, tnames, "logLik", "converged")
 
   # generate some random numbers for a single fit in order to extract some extra info
-  mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])))
+  mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
   
   attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
                               "logLik", "converged")
@@ -3223,7 +2741,7 @@ mincLmerEstimateDF <- function(model) {
 
   # put the lmod variable back in the global environment
   #lmod <<- attr(model, "mincLmerList")[[1]]
-  mincLmerList <<- attr(model, "mincLmerList")
+  mincLmerList <- attr(model, "mincLmerList")
   mask <- attr(model, "mask")
   
   # estimated DF depends on the input data. Rather than estimate separately at every voxel,
@@ -3242,7 +2760,11 @@ mincLmerEstimateDF <- function(model) {
     ## Slower but should yeild the correct result
     lmod <- mincLmerList[[1]]
     lmod$fr[,1] <- voxelData
+    
+    # Rebuild the environment of the formula, otherwise updating does not
+    # work in the lmerTest code
     environment(lmod$formula)$lmod <- lmod
+    environment(lmod$formula)$mincLmerList <- mincLmerList
     
     mmod <-
       lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
@@ -3280,8 +2802,7 @@ mincLmerEstimateDF <- function(model) {
 # assumes that all the other info is in a variable called mincLmerList in the global
 # environment. This last part is a hack to get around the lack of multiple function arguments
 # for mincApply and friends.
-#' @export
-mincLmerOptimize <- function(x) {
+mincLmerOptimize <- function(x, mincLmerList) {
   # code ripped straight from lme4::lmer
   # assignments from global variable set in mincLmer
   lmod <- mincLmerList[[1]]
@@ -3356,7 +2877,7 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 # returns them as a vector
 mincLmerExtractVariables <- function(mmod) {
   se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
-    sqrt(tmpDiag(vcov(mmod, T)))
+    sqrt(diag(vcov(mmod, T)))
   }, warning=function(w) {
     return(0)
   }, error=function(e) {
@@ -3370,8 +2891,8 @@ mincLmerExtractVariables <- function(mmod) {
   return(c(fe,t, ll, converged))
 }
 
-mincLmerOptimizeAndExtract <- function(x) {
-  mmod <- mincLmerOptimize(x)
+mincLmerOptimizeAndExtract <- function(x, mincLmerList) {
+  mmod <- mincLmerOptimize(x, mincLmerList)
   return(mincLmerExtractVariables(mmod))
 }
 
@@ -3498,20 +3019,20 @@ mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
     #cat(voxels)
     for (i in 1:nvoxels) {
       # refit the null model first since we'll need the merMod object for simulations
-      mincLmerList <<- mincLmerLists[[1]]
+      mincLmerList <- mincLmerLists[[1]]
       voxel <- mincGetVoxel(mincLmerList[[1]]$fr[,1], mincVectorToVoxelCoordinates(mask, voxels[i]))
-      mmod <- mincLmerOptimize(voxel)
+      mmod <- mincLmerOptimize(voxel, mincLmerList)
       for (j in 1:nsims) {
         # create the simulated data from the null model
         voxelMatrix[j,] <- unlist(simulate(mmod))
         # compute the log likelihood for the null model
-        simLogLik[j,1] <- logLik(mincLmerOptimize(voxelMatrix[j,]))
+        simLogLik[j,1] <- logLik(mincLmerOptimize(voxelMatrix[j,], mincLmerList))
       }
       # do it all again for the alternate model (happens in separate loop since
       # mincLmerOptimize relies on the global variable mincLmerList)
-      mincLmerList <<- mincLmerLists[[2]]
+      mincLmerList <- mincLmerLists[[2]]
       for (j in 1:nsims) {
-        simLogLik[j,2] <- logLik(mincLmerOptimize(voxelMatrix[j,]))
+        simLogLik[j,2] <- logLik(mincLmerOptimize(voxelMatrix[j,], mincLmerList))
       }
       # compute the normally estimated chisq p value
       out[i,1] <- pchisq(logLikOutput[voxels[i]], attr(logLikOutput, "df"), 
@@ -3613,8 +3134,11 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
 	# if(!require(testthat)){
 	#   stop("Sorry, you need to install testthat to run the testbed")
 	# }
-
+  original_opts <- options()
+  on.exit(options(original_opts))
+  
   options(verbose = verboseTest)
+  setRMINCMaskedValue(0)
   # Make sure environment is clear
   #rm(list=ls())
   
@@ -3668,7 +3192,8 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
 #' generally for internal use only.
 #' @param collate A function to (potentially) collapse the result list
 #' examples include link{unlist} and \link{simplify2array}, defaulting
-#' to \link{identify} which returns the unaltered list.
+#' to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
+#' \code{mincSingleDim}, or \code{mincList} depending on the result structure.
 #' @return a list of results subject the the collate function
 #' @export
 mincApplyRCPP <- 
@@ -3680,7 +3205,7 @@ mincApplyRCPP <-
            filter_masked = FALSE,
            slab_sizes = c(1,1,1),
            return_indices = FALSE,
-           collate = identity){
+           collate = simplify2minc){
     
   apply_fun <- 
     function(x, extra_arguments)
@@ -3725,7 +3250,9 @@ mincApplyRCPP <-
   
   collation_function <- match.fun(collate)
   collated_results <- collation_function(results)
-  attributes(collated_results) <- attributes(results)
+  attr(collated_results, "filenames") <- filenames
+  attr(collated_results, "likeVolume") <- filenames[1]
+  if(use_mask) attr(collated_results, "mask") <- mask
   
   return(collated_results)
 }

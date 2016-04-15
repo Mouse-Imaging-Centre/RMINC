@@ -13,11 +13,12 @@ Depends:
     BatchJobs
 Imports:
     dplyr,
-    rgl,
     lme4,
     shiny,
-    Rcpp
+    Rcpp,
+    parallel
 Suggests:
+    rgl,
     manipulate,
     plotrix,
     lmerTest,

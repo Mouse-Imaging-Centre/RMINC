@@ -1,22 +1,10 @@
-library("testthat")
+library(testthat)
+library(lme4)
+
 context("mincLmer - basic test")
 
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 maskfile <- "/tmp/rminctestdata/testminc-mask.mnc"
-
-# Add a test to check if lme4 is installed.
-# Do this through a tryCatch block
-result = tryCatch({
-	library(lme4)
-	result = TRUE
-}, error = function(e) {
-	result = FALSE
-})
-
-
-test_that("lme4 is installed",{
-	expect_true(result)
-})
 
 # pick a voxel inside the mask
 voxelIndex <- 453 # for later comparisons

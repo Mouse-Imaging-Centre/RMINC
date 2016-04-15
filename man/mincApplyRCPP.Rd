@@ -6,7 +6,7 @@
 \usage{
 mincApplyRCPP(filenames, fun, ..., mask = NULL, maskval = NULL,
   filter_masked = FALSE, slab_sizes = c(1, 1, 1), return_indices = FALSE,
-  collate = identity)
+  collate = simplify2minc)
 }
 \arguments{
 \item{filenames}{The name of the files to apply over}
@@ -35,7 +35,8 @@ generally for internal use only.}
 
 \item{collate}{A function to (potentially) collapse the result list
 examples include link{unlist} and \link{simplify2array}, defaulting
-to \link{identify} which returns the unaltered list.}
+to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
+\code{mincSingleDim}, or \code{mincList} depending on the result structure.}
 }
 \value{
 a list of results subject the the collate function
