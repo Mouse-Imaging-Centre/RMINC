@@ -622,69 +622,69 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
   return(slice)
 }
 
-simpleBrainPlot <- function(anatomy, statistics, slice, dimension=2, 
-                            low=NULL, high=NULL) {
-  #manipulatorSetState("slice", slice)
-  d <- dim(anatomy)
-  aslice <- anatomy[,slice,]
-  qslice <- quantile(aslice, c(0.3, 0.95))
-  aslice <- aslice-qslice[1]
-  aslice[aslice < 0] <- NA
-  aslice[aslice>qslice[2]] <- qslice[2]
-  
-  sslice <- statistics[,slice,]
-  sslice <- sslice-low
-  sslice[sslice<=0] <- NA
-  sslice[sslice>=high] <- high
-  
-  image(aslice, useRaster=T, col=gray.colors(100), asp=d[3]/d[1])
-  image(sslice,  useRaster=T, col=rev(rainbow(100, alpha=0.7)), 
-        asp=d[3]/d[1], add=T)
-  #filled.contour(sslice, add=T)
-}
-
-brainLocator <- function() {
-  l <- locator(n=1)
-  abline(h=l$y)
-  abline(v=l$x)
-  l$slice <- manipulate::manipulatorGetState("slice")
-  return(l)
-}
-
-my.get.coord <- function() {
-  par(mfg = c(1,1)) #locator() shall be relative to the first plot out
-  # of the eight plots totally
-  my.loc <-locator(1) #location, not in inches
-  my.plot.region <- par("usr") #extremes of plotting region
-  #(in plot units, not inches)
-  my.plot.region.x <- my.plot.region[2] - my.plot.region[1]
-  my.plot.region.y <- my.plot.region[4] - my.plot.region[3]
-  my.loc.inch.x <- (my.loc$x + 0.5)/my.plot.region.x * (par("pin")[1]) 
-  #par("pin") #current plot dimension in inches
-  #relative to the plotting-region bottom left corner, not the axis c(0,0) point
-  my.loc.inch.y <- (my.loc$y + 0.5)/my.plot.region.y * (par("pin")[2])
-  
-  ## search the plot we are in with locator(1)
-  my.plot.inch.x <- par("pin")[1] + par("mai")[2] + par("mai")[4] #plot.x + left & right margin
-  par("fin")[1]
-  my.plot.inch.y <- par("pin")[2] + par("mai")[1] + par("mai")[3] #plot.y + bottom & top margin
-  par("fin")[2]
-  
-  pos.rel.x <- (my.loc.inch.x / par("fin")[1] - floor(my.loc.inch.x / 
-                                                        par("fin")[1])) *
-    par("fin")[1] / par("pin")[1] * (par("usr")[2] - par("usr")[1]) - 0.5
-  #inches from left bottom corner in target plot region (c(0,0)
-  # is plot-region bottom-left corner, not the axis c(0,0) point
-  pos.rel.y <- (my.loc.inch.y / par("fin")[2] - floor(my.loc.inch.y / 
-                                                        par("fin")[2])) *
-    par("fin")[2] / par("pin")[2] * (par("usr")[4] - par("usr")[3]) - 0.5
-  #inches from left bottom corner in target plot
-  
-  fig.coord.x <- ceiling(my.loc.inch.x / par("fin")[1])
-  fig.coord.y <- 1 +(-1) *ceiling(my.loc.inch.y / par("fin")[2])
-  # cat("figure-coord x: ", fig.coord.x,"\n")
-  # cat("figure-coord y: ", fig.coord.y,"\n")
-  cat("we are in figure: ", fig.coord.y * nc + fig.coord.x, "\n")
-  cat("coordinates of the identified point x: ", pos.rel.x,"\n")
-  cat("coordinates of the identified point y: ", pos.rel.y,"\n")
-}
+# simpleBrainPlot <- function(anatomy, statistics, slice, dimension=2, 
+#                             low=NULL, high=NULL) {
+#   #manipulatorSetState("slice", slice)
+#   d <- dim(anatomy)
+#   aslice <- anatomy[,slice,]
+#   qslice <- quantile(aslice, c(0.3, 0.95))
+#   aslice <- aslice-qslice[1]
+#   aslice[aslice < 0] <- NA
+#   aslice[aslice>qslice[2]] <- qslice[2]
+#   
+#   sslice <- statistics[,slice,]
+#   sslice <- sslice-low
+#   sslice[sslice<=0] <- NA
+#   sslice[sslice>=high] <- high
+#   
+#   image(aslice, useRaster=T, col=gray.colors(100), asp=d[3]/d[1])
+#   image(sslice,  useRaster=T, col=rev(rainbow(100, alpha=0.7)), 
+#         asp=d[3]/d[1], add=T)
+#   #filled.contour(sslice, add=T)
+# }
+# 
+# brainLocator <- function() {
+#   l <- locator(n=1)
+#   abline(h=l$y)
+#   abline(v=l$x)
+#   l$slice <- manipulate::manipulatorGetState("slice")
+#   return(l)
+# }
+# 
+# my.get.coord <- function() {
+#   par(mfg = c(1,1)) #locator() shall be relative to the first plot out
+#   # of the eight plots totally
+#   my.loc <-locator(1) #location, not in inches
+#   my.plot.region <- par("usr") #extremes of plotting region
+#   #(in plot units, not inches)
+#   my.plot.region.x <- my.plot.region[2] - my.plot.region[1]
+#   my.plot.region.y <- my.plot.region[4] - my.plot.region[3]
+#   my.loc.inch.x <- (my.loc$x + 0.5)/my.plot.region.x * (par("pin")[1]) 
+#   #par("pin") #current plot dimension in inches
+#   #relative to the plotting-region bottom left corner, not the axis c(0,0) point
+#   my.loc.inch.y <- (my.loc$y + 0.5)/my.plot.region.y * (par("pin")[2])
+#   
+#   ## search the plot we are in with locator(1)
+#   my.plot.inch.x <- par("pin")[1] + par("mai")[2] + par("mai")[4] #plot.x + left & right margin
+#   par("fin")[1]
+#   my.plot.inch.y <- par("pin")[2] + par("mai")[1] + par("mai")[3] #plot.y + bottom & top margin
+#   par("fin")[2]
+#   
+#   pos.rel.x <- (my.loc.inch.x / par("fin")[1] - floor(my.loc.inch.x / 
+#                                                         par("fin")[1])) *
+#     par("fin")[1] / par("pin")[1] * (par("usr")[2] - par("usr")[1]) - 0.5
+#   #inches from left bottom corner in target plot region (c(0,0)
+#   # is plot-region bottom-left corner, not the axis c(0,0) point
+#   pos.rel.y <- (my.loc.inch.y / par("fin")[2] - floor(my.loc.inch.y / 
+#                                                         par("fin")[2])) *
+#     par("fin")[2] / par("pin")[2] * (par("usr")[4] - par("usr")[3]) - 0.5
+#   #inches from left bottom corner in target plot
+#   
+#   fig.coord.x <- ceiling(my.loc.inch.x / par("fin")[1])
+#   fig.coord.y <- 1 +(-1) *ceiling(my.loc.inch.y / par("fin")[2])
+#   # cat("figure-coord x: ", fig.coord.x,"\n")
+#   # cat("figure-coord y: ", fig.coord.y,"\n")
+#   cat("we are in figure: ", fig.coord.y * nc + fig.coord.x, "\n")
+#   cat("coordinates of the identified point x: ", pos.rel.x,"\n")
+#   cat("coordinates of the identified point y: ", pos.rel.y,"\n")
+# }

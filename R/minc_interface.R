@@ -89,14 +89,14 @@ simplify2minc <- function(result_list){
   } else if(first_element %>% is.data.frame) {
     simplified_results <- bind_rows(result_list)
   } else {
-    simplified_results <- results_list
+    simplified_results <- result_list
   }
   
   ## If any known_minc_attributes were already defined for the object
   ## ensure they carry over to the simplified object
   result_attributes <- mincAttributes(result_list)
   if(!is.null(result_attributes))
-    simplified_results <- setMincAttributes(simplified_results, results_list)
+    simplified_results <- setMincAttributes(simplified_results, result_list)
   
   ## Reclass the object to the appropriate RMINC class
   if(is.null(ncol(simplified_results)) && is.list(simplified_results)){

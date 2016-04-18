@@ -3,3 +3,4 @@
 ^releases/$
 ^.Rdata$
 ^.Rhistory$
+^.travis.yml$

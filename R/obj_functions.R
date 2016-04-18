@@ -486,7 +486,7 @@ vertexSelect <-
 select_one_vertex <- 
   function(object, tolerance, indicate, ...){
     
-    selection <- as.list(environment(select3d(...)))
+    selection <- as.list(environment(rgl::select3d(...)))
     if(is.null(selection$rect)) return(invisible(NULL))
     
     rect_bounds <- selection$rect
