@@ -117,6 +117,7 @@ mcMincApply <-
            return_indices = FALSE,
            collate = simplify2minc){
     
+    filenames <- as.character(filenames)
     sample_file <- filenames[1]
     
     temp_dir <- path.expand(temp_dir)

@@ -21,6 +21,8 @@ test_that("mincApply two output",{
 })
 
 ma <- verboseRun("pMincApply(gf$jacobians_fixed_2, mean)",getOption("verbose"))
+dim(ma) <- c(length(ma), 1)
+class(ma) <- "mincMultiDim"
 
 test_that("pmincapply local",{
   expect_equivalent(ma, mm)
