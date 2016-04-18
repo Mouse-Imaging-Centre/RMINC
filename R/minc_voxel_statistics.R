@@ -8,13 +8,15 @@
 #' descriptive statistic.
 #' @param grouping Optional grouping - contains same number of elements as
 #' filenames; the results will then have the descriptive
-#' statistic computed separately for each group.
+#' statistic computed separately for each group, or in the case of method = "correlation"
+#' this is the variable to correlate against.
 #' @param mask A mask specifying which voxels are to be included in the
 #' summary.
 #' @param maskval the value in the mask used to select unmasked voxels, 
 #' defaults to any positive intensity from 1-99999999 internally expanded to
 #' .5 - 99999999.5. If a number is specified voxels with intensities 
-#' within 0.5 of the chosen value are considered selected. 
+#' within 0.5 of the chosen value are considered selected.
+#' @param method the type of summarys statistic to calculate for each voxel 
 #' @return  The output will be a single vector containing as many
 #'          elements as there are voxels in the input files. If a
 #'          grouping factor was specified then the output will be a
