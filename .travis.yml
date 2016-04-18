@@ -1,0 +1,21 @@
+language: r
+sudo: require
+cran: http://cran.rstudio.com/
+
+# System dependencies
+before_install:
+ - sudo bash travis_install_scripts/install_apt_dependencies.sh
+
+#Git Binary installs
+r_binary_install:
+  - lme4
+
+r_github_packages:
+  - hadley/dplyr
+  - hadley/ggplot2
+
+# Source/R installs
+install:
+  - sudo bash travis_install_scripts/install_minc_related.sh
+  - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+  - Rscript travis_install_scripts/r_package_install.Rscript
