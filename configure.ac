@@ -35,10 +35,12 @@ AC_DEFUN([TOOLKIT_SEARCH], [
                AC_MSG_CHECKING([Can we find minc toolkit in common locations])
                AS_IF([test -d /opt/minc/], [TOOLKIT_PATH="/opt/minc"])
                AS_IF([test -d /opt/minc-itk4/], [TOOLKIT_PATH="/opt/minc-itk4/"])
-               AS_IF([test x$HOME != "x" -a -d $HOME/local/minc-itk4/], 
-                     [TOOLKIT_PATH="$HOME/local/minc-itk4/"])
-               AS_IF([test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH], 
-                     [TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"])
+               AS_IF([test x$HOME != "x"],
+                     AS_IF([test -d $HOME/local/minc-itk4/], 
+                           [TOOLKIT_PATH="$HOME/local/minc-itk4/"]))
+               AS_IF([test x$MINC_TOOLKIT_BUILD_PATH != "x"],
+                     AS_IF([test -d $MINC_TOOLKIT_BUILD_PATH],  
+                           [TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"]))
                AS_IF([test x$TOOLKIT_PATH != "x"], [
                       TOOLKIT_FOUND="yes"
                       AC_MSG_RESULT(yes)

@@ -3685,11 +3685,15 @@ fi
                if test -d /opt/minc-itk4/; then :
   TOOLKIT_PATH="/opt/minc-itk4/"
 fi
-               if test x$HOME != "x" -a -d $HOME/local/minc-itk4/; then :
+               if test x$HOME != "x"; then :
+  if test -d $HOME/local/minc-itk4/; then :
   TOOLKIT_PATH="$HOME/local/minc-itk4/"
 fi
-               if test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH; then :
+fi
+               if test x$MINC_TOOLKIT_BUILD_PATH != "x"; then :
+  if test -d $MINC_TOOLKIT_BUILD_PATH; then :
   TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
+fi
 fi
                if test x$TOOLKIT_PATH != "x"; then :
 
@@ -3980,11 +3984,15 @@ fi
                if test -d /opt/minc-itk4/; then :
   TOOLKIT_PATH="/opt/minc-itk4/"
 fi
-               if test x$HOME != "x" -a -d $HOME/local/minc-itk4/; then :
+               if test x$HOME != "x"; then :
+  if test -d $HOME/local/minc-itk4/; then :
   TOOLKIT_PATH="$HOME/local/minc-itk4/"
 fi
-               if test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH; then :
+fi
+               if test x$MINC_TOOLKIT_BUILD_PATH != "x"; then :
+  if test -d $MINC_TOOLKIT_BUILD_PATH; then :
   TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
+fi
 fi
                if test x$TOOLKIT_PATH != "x"; then :
 
@@ -4213,11 +4221,15 @@ fi
                if test -d /opt/minc-itk4/; then :
   TOOLKIT_PATH="/opt/minc-itk4/"
 fi
-               if test x$HOME != "x" -a -d $HOME/local/minc-itk4/; then :
+               if test x$HOME != "x"; then :
+  if test -d $HOME/local/minc-itk4/; then :
   TOOLKIT_PATH="$HOME/local/minc-itk4/"
 fi
-               if test x$MINC_TOOLKIT_BUILD_PATH != "x" -a -d $MINC_TOOLKIT_BUILD_PATH; then :
+fi
+               if test x$MINC_TOOLKIT_BUILD_PATH != "x"; then :
+  if test -d $MINC_TOOLKIT_BUILD_PATH; then :
   TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
+fi
 fi
                if test x$TOOLKIT_PATH != "x"; then :
 
