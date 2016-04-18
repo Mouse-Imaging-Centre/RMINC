@@ -19,14 +19,9 @@ Imports:
     parallel
 Suggests:
     rgl,
-    manipulate,
     plotrix,
     lmerTest,
     qvalue,
-    Rsge,
-    doMC,
-    snowfall,
-    foreach,
     testthat
 LinkingTo: 
     Rcpp,
