@@ -621,7 +621,19 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+HDF5_FLIBS
+HDF5_FFLAGS
+HDF5_FC
+HDF5_LIBS
+HDF5_LDFLAGS
+HDF5_CPPFLAGS
+HDF5_CFLAGS
+HDF5_CC
+HDF5_VERSION
+H5FC
 H5CC
+AWK
+SED
 EGREP
 GREP
 CPP
@@ -679,6 +691,7 @@ ac_user_opts='
 enable_option_checking
 with_build_path
 enable_build_minc
+with_hdf5
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1309,6 +1322,7 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-build-path=DIR   build using DIR/include and DIR/lib
+  --with-hdf5=yes/no/PATH location of h5cc or h5pcc for HDF5 configuration
 
 Some influential environment variables:
   CC          C compiler command
@@ -3176,6 +3190,106 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
+# ===========================================================================
+#        http://www.gnu.org/software/autoconf-archive/ax_lib_hdf5.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_LIB_HDF5([serial/parallel])
+#
+# DESCRIPTION
+#
+#   This macro provides tests of the availability of HDF5 library.
+#
+#   The optional macro argument should be either 'serial' or 'parallel'. The
+#   former only looks for serial HDF5 installations via h5cc. The latter
+#   only looks for parallel HDF5 installations via h5pcc. If the optional
+#   argument is omitted, serial installations will be preferred over
+#   parallel ones.
+#
+#   The macro adds a --with-hdf5 option accepting one of three values:
+#
+#     no   - do not check for the HDF5 library.
+#     yes  - do check for HDF5 library in standard locations.
+#     path - complete path to the HDF5 helper script h5cc or h5pcc.
+#
+#   If HDF5 is successfully found, this macro calls
+#
+#     AC_SUBST(HDF5_VERSION)
+#     AC_SUBST(HDF5_CC)
+#     AC_SUBST(HDF5_CFLAGS)
+#     AC_SUBST(HDF5_CPPFLAGS)
+#     AC_SUBST(HDF5_LDFLAGS)
+#     AC_SUBST(HDF5_LIBS)
+#     AC_SUBST(HDF5_FC)
+#     AC_SUBST(HDF5_FFLAGS)
+#     AC_SUBST(HDF5_FLIBS)
+#     AC_DEFINE(HAVE_HDF5)
+#
+#   and sets with_hdf5="yes".  Additionally, the macro sets
+#   with_hdf5_fortran="yes" if a matching Fortran wrapper script is found.
+#   Note that Autconf's Fortran support is not used to perform this check.
+#   H5CC and H5FC will contain the appropriate serial or parallel HDF5
+#   wrapper script locations.
+#
+#   If HDF5 is disabled or not found, this macros sets with_hdf5="no" and
+#   with_hdf5_fortran="no".
+#
+#   Your configuration script can test $with_hdf to take any further
+#   actions. HDF5_{C,CPP,LD}FLAGS may be used when building with C or C++.
+#   HDF5_F{FLAGS,LIBS} should be used when building Fortran applications.
+#
+#   To use the macro, one would code one of the following in "configure.ac"
+#   before AC_OUTPUT:
+#
+#     1) dnl Check for HDF5 support
+#        AX_LIB_HDF5()
+#
+#     2) dnl Check for serial HDF5 support
+#        AX_LIB_HDF5([serial])
+#
+#     3) dnl Check for parallel HDF5 support
+#        AX_LIB_HDF5([parallel])
+#
+#   One could test $with_hdf5 for the outcome or display it as follows
+#
+#     echo "HDF5 support:  $with_hdf5"
+#
+#   You could also for example, override the default CC in "configure.ac" to
+#   enforce compilation with the compiler that HDF5 uses:
+#
+#     AX_LIB_HDF5([parallel])
+#     if test "$with_hdf5" = "yes"; then
+#             CC="$HDF5_CC"
+#     else
+#             AC_MSG_ERROR([Unable to find HDF5, we need parallel HDF5.])
+#     fi
+#
+# LICENSE
+#
+#   Copyright (c) 2009 Timothy Brown <tbrown@freeshell.org>
+#   Copyright (c) 2010 Rhys Ulerich <rhys.ulerich@gmail.com>
+#
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved. This file is offered as-is, without any
+#   warranty.
+
+#serial 12
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # Check whether --with-build-path was given.
@@ -3194,16 +3308,77 @@ fi
 
 
 
-
-
-
-
-
-
-
 # Check whether --enable-build-minc was given.
 if test "${enable_build_minc+set}" = set; then :
   enableval=$enable_build_minc;
+fi
+
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for minc toolkit" >&5
+$as_echo "$as_me: Searching for minc toolkit" >&6;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
+$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
+        MINC_INFO_PATH=$(which mincinfo)
+	if test x$MINC_INFO_PATH == "x"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+else
+
+               TOOLKIT_FOUND="yes"
+               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
+               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi
+
+        if test x$TOOLKIT_FOUND != "xyes"; then :
+
+               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find minc toolkit in common locations" >&5
+$as_echo_n "checking Can we find minc toolkit in common locations... " >&6; }
+               if test -d /opt/minc/; then :
+  TOOLKIT_PATH="/opt/minc"
+fi
+               if test -d /opt/minc-itk4/; then :
+  TOOLKIT_PATH="/opt/minc-itk4/"
+fi
+               if test x$HOME != "x"; then :
+  if test -d $HOME/local/minc-itk4/; then :
+  TOOLKIT_PATH="$HOME/local/minc-itk4/"
+fi
+fi
+               if test x$MINC_TOOLKIT_BUILD_PATH != "x"; then :
+  if test -d $MINC_TOOLKIT_BUILD_PATH; then :
+  TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
+fi
+fi
+               if test x$TOOLKIT_PATH != "x"; then :
+
+                      TOOLKIT_FOUND="yes"
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: found toolkit in $TOOLKIT_PATH" >&5
+$as_echo "$as_me: found toolkit in $TOOLKIT_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&5
+$as_echo "$as_me: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&6;}
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
+$as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
+
+else
+
+                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+
+fi
+
+	  if test x$TOOLKIT_FOUND == "xyes"; then :
+
+                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
+                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
+
 fi
 
 
@@ -3605,6 +3780,117 @@ fi
 done
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a sed that does not truncate output" >&5
+$as_echo_n "checking for a sed that does not truncate output... " >&6; }
+if ${ac_cv_path_SED+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+            ac_script=s/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/
+     for ac_i in 1 2 3 4 5 6 7; do
+       ac_script="$ac_script$as_nl$ac_script"
+     done
+     echo "$ac_script" 2>/dev/null | sed 99q >conftest.sed
+     { ac_script=; unset ac_script;}
+     if test -z "$SED"; then
+  ac_path_SED_found=false
+  # Loop through the user's path and test for each of PROGNAME-LIST
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_prog in sed gsed; do
+    for ac_exec_ext in '' $ac_executable_extensions; do
+      ac_path_SED="$as_dir/$ac_prog$ac_exec_ext"
+      as_fn_executable_p "$ac_path_SED" || continue
+# Check for GNU ac_path_SED and select it if it is found.
+  # Check for GNU $ac_path_SED
+case `"$ac_path_SED" --version 2>&1` in
+*GNU*)
+  ac_cv_path_SED="$ac_path_SED" ac_path_SED_found=:;;
+*)
+  ac_count=0
+  $as_echo_n 0123456789 >"conftest.in"
+  while :
+  do
+    cat "conftest.in" "conftest.in" >"conftest.tmp"
+    mv "conftest.tmp" "conftest.in"
+    cp "conftest.in" "conftest.nl"
+    $as_echo '' >> "conftest.nl"
+    "$ac_path_SED" -f conftest.sed < "conftest.nl" >"conftest.out" 2>/dev/null || break
+    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
+    as_fn_arith $ac_count + 1 && ac_count=$as_val
+    if test $ac_count -gt ${ac_path_SED_max-0}; then
+      # Best one so far, save it but keep looking for a better one
+      ac_cv_path_SED="$ac_path_SED"
+      ac_path_SED_max=$ac_count
+    fi
+    # 10*(2^10) chars as input seems more than enough
+    test $ac_count -gt 10 && break
+  done
+  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
+esac
+
+      $ac_path_SED_found && break 3
+    done
+  done
+  done
+IFS=$as_save_IFS
+  if test -z "$ac_cv_path_SED"; then
+    as_fn_error $? "no acceptable sed could be found in \$PATH" "$LINENO" 5
+  fi
+else
+  ac_cv_path_SED=$SED
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_SED" >&5
+$as_echo "$ac_cv_path_SED" >&6; }
+ SED="$ac_cv_path_SED"
+  rm -f conftest.sed
+
+for ac_prog in gawk mawk nawk awk
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_AWK+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$AWK"; then
+  ac_cv_prog_AWK="$AWK" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_prog_AWK="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+AWK=$ac_cv_prog_AWK
+if test -n "$AWK"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $AWK" >&5
+$as_echo "$AWK" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$AWK" && break
+done
+
 if test "x$enable_build_minc" = "xyes"; then :
 
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_names in -lminc2" >&5
@@ -3654,98 +3940,75 @@ fi
 
 
 
-	if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
 
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for minc toolkit" >&5
-$as_echo "$as_me: Searching for minc toolkit" >&6;}
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
-$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
-        MINC_INFO_PATH=$(which mincinfo)
-	if test x$MINC_INFO_PATH == "x"; then :
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+
+
+if   test "" = ""        ; then
+    : # Recognized value
+elif test "" = "serial"  ; then
+    : # Recognized value
+elif test "" = "parallel"; then
+    : # Recognized value
 else
-
-               TOOLKIT_FOUND="yes"
-               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
+    as_fn_error $? "
+Unrecognized value for AX_LIB_HDF5 within configure.ac.
+If supplied, argument 1 must be either 'serial' or 'parallel'.
+" "$LINENO" 5
 fi
 
-        if test x$TOOLKIT_FOUND != "xyes"; then :
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find minc toolkit in common locations" >&5
-$as_echo_n "checking Can we find minc toolkit in common locations... " >&6; }
-               if test -d /opt/minc/; then :
-  TOOLKIT_PATH="/opt/minc"
-fi
-               if test -d /opt/minc-itk4/; then :
-  TOOLKIT_PATH="/opt/minc-itk4/"
-fi
-               if test x$HOME != "x"; then :
-  if test -d $HOME/local/minc-itk4/; then :
-  TOOLKIT_PATH="$HOME/local/minc-itk4/"
-fi
-fi
-               if test x$MINC_TOOLKIT_BUILD_PATH != "x"; then :
-  if test -d $MINC_TOOLKIT_BUILD_PATH; then :
-  TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
-fi
-fi
-               if test x$TOOLKIT_PATH != "x"; then :
-
-                      TOOLKIT_FOUND="yes"
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: found toolkit in $TOOLKIT_PATH" >&5
-$as_echo "$as_me: found toolkit in $TOOLKIT_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&5
-$as_echo "$as_me: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
-$as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
-
+# Check whether --with-hdf5 was given.
+if test "${with_hdf5+set}" = set; then :
+  withval=$with_hdf5; if test "$withval" = "no"; then
+     with_hdf5="no"
+   elif test "$withval" = "yes"; then
+     with_hdf5="yes"
+   else
+     with_hdf5="yes"
+     H5CC="$withval"
+   fi
 else
-
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+  with_hdf5="yes"
 
 fi
 
-fi
 
-	  if test x$TOOLKIT_FOUND == "xyes"; then :
+HDF5_CC=""
+HDF5_VERSION=""
+HDF5_CFLAGS=""
+HDF5_CPPFLAGS=""
+HDF5_LDFLAGS=""
+HDF5_LIBS=""
+HDF5_FC=""
+HDF5_FFLAGS=""
+HDF5_FLIBS=""
 
-                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
-                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
-
-fi
-
-                 ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
-if test "x$ac_cv_header_hdf5_h" = xyes; then :
-
-else
-
-                     # Extract the first word of "h5cc", so it can be a program name with args.
-set dummy h5cc; ac_word=$2
+if test "$with_hdf5" = "yes"; then
+    if test -z "$H5CC"; then
+                for ac_prog in h5cc h5pcc
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_H5CC+:} false; then :
+if ${ac_cv_path_H5CC+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$H5CC"; then
-  ac_cv_prog_H5CC="$H5CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+  case $H5CC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_H5CC="$H5CC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_H5CC=""yes""
+    ac_cv_path_H5CC="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -3753,10 +4016,10 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_prog_H5CC" && ac_cv_prog_H5CC=""no""
+  ;;
+esac
 fi
-fi
-H5CC=$ac_cv_prog_H5CC
+H5CC=$ac_cv_path_H5CC
 if test -n "$H5CC"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
 $as_echo "$H5CC" >&6; }
@@ -3766,20 +4029,240 @@ $as_echo "no" >&6; }
 fi
 
 
-	             if test x$H5CC = "xyes"; then :
+  test -n "$H5CC" && break
+done
+
+    else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking Using provided HDF5 C wrapper" >&5
+$as_echo_n "checking Using provided HDF5 C wrapper... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
+$as_echo "$H5CC" >&6; }
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 libraries" >&5
+$as_echo_n "checking for HDF5 libraries... " >&6; }
+    if test ! -f "$H5CC" || test ! -x "$H5CC"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+Unable to locate HDF5 compilation helper scripts 'h5cc' or 'h5pcc'.
+Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
+HDF5 support is being disabled (equivalent to --with-hdf5=no).
+" >&5
+$as_echo "$as_me: WARNING:
+Unable to locate HDF5 compilation helper scripts 'h5cc' or 'h5pcc'.
+Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
+HDF5 support is being disabled (equivalent to --with-hdf5=no).
+" >&2;}
+        with_hdf5="no"
+        with_hdf5_fortran="no"
+    else
+                HDF5_SHOW=$(eval $H5CC -show)
+
+                HDF5_CC=$(eval $H5CC -show | $AWK '{print $1}')
+        if test "$HDF5_CC" = "ccache"; then
+            HDF5_CC=$(eval $H5CC -show | $AWK '{print $2}')
+        fi
 
 
-	                H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'" | tr "\n" " ")
-	                H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'" | tr "\n" " ")
-	                LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
-	                CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+                HDF5_VERSION=$(eval $H5CC -showconfig | $GREP 'HDF5 Version:' \
+            | $AWK '{print $3}')
 
+                                                                                HDF5_tmp_flags=$(eval $H5CC -showconfig \
+            | $GREP 'FLAGS\|Extra libraries:' \
+            | $AWK -F: '{printf("%s "), $2}' )
+
+                HDF5_tmp_inst=$(eval $H5CC -showconfig \
+            | $GREP 'Installation point:' \
+            | $AWK '{print $NF}' )
+
+                HDF5_CPPFLAGS="-I${HDF5_tmp_inst}/include"
+
+                for arg in $HDF5_SHOW $HDF5_tmp_flags ; do
+          case "$arg" in
+            -I*) echo $HDF5_CPPFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_CPPFLAGS="$arg $HDF5_CPPFLAGS"
+              ;;
+            -L*) echo $HDF5_LDFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_LDFLAGS="$arg $HDF5_LDFLAGS"
+              ;;
+            -l*) echo $HDF5_LIBS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_LIBS="$arg $HDF5_LIBS"
+              ;;
+          esac
+        done
+
+        HDF5_LIBS="$HDF5_LIBS -lhdf5"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes (version $HDF5_VERSION)" >&5
+$as_echo "yes (version $HDF5_VERSION)" >&6; }
+
+                ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        ax_lib_hdf5_save_CC=$CC
+        ax_lib_hdf5_save_CPPFLAGS=$CPPFLAGS
+        ax_lib_hdf5_save_LIBS=$LIBS
+        ax_lib_hdf5_save_LDFLAGS=$LDFLAGS
+        CC=$HDF5_CC
+        CPPFLAGS=$HDF5_CPPFLAGS
+        LIBS=$HDF5_LIBS
+        LDFLAGS=$HDF5_LDFLAGS
+        ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
+if test "x$ac_cv_header_hdf5_h" = xyes; then :
+  ac_cv_hadf5_h=yes
+else
+  ac_cv_hadf5_h=no
 fi
 
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5Fcreate in -lhdf5" >&5
+$as_echo_n "checking for H5Fcreate in -lhdf5... " >&6; }
+if ${ac_cv_lib_hdf5_H5Fcreate+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhdf5  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char H5Fcreate ();
+int
+main ()
+{
+return H5Fcreate ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_hdf5_H5Fcreate=yes
+else
+  ac_cv_lib_hdf5_H5Fcreate=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5Fcreate" >&5
+$as_echo "$ac_cv_lib_hdf5_H5Fcreate" >&6; }
+if test "x$ac_cv_lib_hdf5_H5Fcreate" = xyes; then :
+  ac_cv_libhdf5=yes
+else
+  ac_cv_libhdf5=no
 fi
 
+        if test "$ac_cv_hadf5_h" = "no" && test "$ac_cv_libhdf5" = "no" ; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unable to compile HDF5 test program" >&5
+$as_echo "$as_me: WARNING: Unable to compile HDF5 test program" >&2;}
+        fi
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lhdf5_hl" >&5
+$as_echo_n "checking for main in -lhdf5_hl... " >&6; }
+if ${ac_cv_lib_hdf5_hl_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhdf5_hl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
 
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_hdf5_hl_main=yes
+else
+  ac_cv_lib_hdf5_hl_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_hl_main" >&5
+$as_echo "$ac_cv_lib_hdf5_hl_main" >&6; }
+if test "x$ac_cv_lib_hdf5_hl_main" = xyes; then :
+  HDF5_LIBS="$HDF5_LIBS -lhdf5_hl"
+fi
+ac_cv_lib_hdf5_hl=ac_cv_lib_hdf5_hl_main
+
+
+        CC=$ax_lib_hdf5_save_CC
+        CPPFLAGS=$ax_lib_hdf5_save_CPPFLAGS
+        LIBS=$ax_lib_hdf5_save_LIBS
+        LDFLAGS=$ax_lib_hdf5_save_LDFLAGS
+        ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for matching HDF5 Fortran wrapper" >&5
+$as_echo_n "checking for matching HDF5 Fortran wrapper... " >&6; }
+                H5FC=$(eval echo -n $H5CC | $SED -n 's/cc$/fc/p')
+        if test -x "$H5FC"; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5FC" >&5
+$as_echo "$H5FC" >&6; }
+            with_hdf5_fortran="yes"
+
+
+                        for arg in `$H5FC -show`
+            do
+              case "$arg" in #(
+                -I*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                  ;;#(
+                -L*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                                                               echo $HDF5_FFLAGS | $GREP -e "-I${arg#-L}" >/dev/null \
+                      || HDF5_FFLAGS="-I${arg#-L} $HDF5_FFLAGS"
+                  ;;
+              esac
+            done
+
+                        for arg in $HDF5_LIBS
+            do
+              case "$arg" in #(
+                -lhdf5_hl) HDF5_FLIBS="$HDF5_FLIBS -lhdf5hl_fortran $arg"
+                  ;; #(
+                -lhdf5)    HDF5_FLIBS="$HDF5_FLIBS -lhdf5_fortran $arg"
+                  ;; #(
+                *) HDF5_FLIBS="$HDF5_FLIBS $arg"
+                  ;;
+              esac
+            done
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            with_hdf5_fortran="no"
+        fi
+
+
+
+
+
+
+
+
+
+
+
+$as_echo "#define HAVE_HDF5 1" >>confdefs.h
+
+    fi
 fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
@@ -3953,98 +4436,75 @@ fi
 
 
 
-	if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
 
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for minc toolkit" >&5
-$as_echo "$as_me: Searching for minc toolkit" >&6;}
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
-$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
-        MINC_INFO_PATH=$(which mincinfo)
-	if test x$MINC_INFO_PATH == "x"; then :
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+
+
+if   test "" = ""        ; then
+    : # Recognized value
+elif test "" = "serial"  ; then
+    : # Recognized value
+elif test "" = "parallel"; then
+    : # Recognized value
 else
-
-               TOOLKIT_FOUND="yes"
-               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
+    as_fn_error $? "
+Unrecognized value for AX_LIB_HDF5 within configure.ac.
+If supplied, argument 1 must be either 'serial' or 'parallel'.
+" "$LINENO" 5
 fi
 
-        if test x$TOOLKIT_FOUND != "xyes"; then :
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find minc toolkit in common locations" >&5
-$as_echo_n "checking Can we find minc toolkit in common locations... " >&6; }
-               if test -d /opt/minc/; then :
-  TOOLKIT_PATH="/opt/minc"
-fi
-               if test -d /opt/minc-itk4/; then :
-  TOOLKIT_PATH="/opt/minc-itk4/"
-fi
-               if test x$HOME != "x"; then :
-  if test -d $HOME/local/minc-itk4/; then :
-  TOOLKIT_PATH="$HOME/local/minc-itk4/"
-fi
-fi
-               if test x$MINC_TOOLKIT_BUILD_PATH != "x"; then :
-  if test -d $MINC_TOOLKIT_BUILD_PATH; then :
-  TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
-fi
-fi
-               if test x$TOOLKIT_PATH != "x"; then :
-
-                      TOOLKIT_FOUND="yes"
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: found toolkit in $TOOLKIT_PATH" >&5
-$as_echo "$as_me: found toolkit in $TOOLKIT_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&5
-$as_echo "$as_me: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
-$as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
-
+# Check whether --with-hdf5 was given.
+if test "${with_hdf5+set}" = set; then :
+  withval=$with_hdf5; if test "$withval" = "no"; then
+     with_hdf5="no"
+   elif test "$withval" = "yes"; then
+     with_hdf5="yes"
+   else
+     with_hdf5="yes"
+     H5CC="$withval"
+   fi
 else
-
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+  with_hdf5="yes"
 
 fi
 
-fi
 
-	  if test x$TOOLKIT_FOUND == "xyes"; then :
+HDF5_CC=""
+HDF5_VERSION=""
+HDF5_CFLAGS=""
+HDF5_CPPFLAGS=""
+HDF5_LDFLAGS=""
+HDF5_LIBS=""
+HDF5_FC=""
+HDF5_FFLAGS=""
+HDF5_FLIBS=""
 
-                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
-                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
-
-fi
-
-                 ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
-if test "x$ac_cv_header_hdf5_h" = xyes; then :
-
-else
-
-                     # Extract the first word of "h5cc", so it can be a program name with args.
-set dummy h5cc; ac_word=$2
+if test "$with_hdf5" = "yes"; then
+    if test -z "$H5CC"; then
+                for ac_prog in h5cc h5pcc
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_H5CC+:} false; then :
+if ${ac_cv_path_H5CC+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$H5CC"; then
-  ac_cv_prog_H5CC="$H5CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+  case $H5CC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_H5CC="$H5CC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_H5CC=""yes""
+    ac_cv_path_H5CC="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4052,10 +4512,10 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_prog_H5CC" && ac_cv_prog_H5CC=""no""
+  ;;
+esac
 fi
-fi
-H5CC=$ac_cv_prog_H5CC
+H5CC=$ac_cv_path_H5CC
 if test -n "$H5CC"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
 $as_echo "$H5CC" >&6; }
@@ -4065,20 +4525,240 @@ $as_echo "no" >&6; }
 fi
 
 
-	             if test x$H5CC = "xyes"; then :
+  test -n "$H5CC" && break
+done
+
+    else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking Using provided HDF5 C wrapper" >&5
+$as_echo_n "checking Using provided HDF5 C wrapper... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
+$as_echo "$H5CC" >&6; }
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 libraries" >&5
+$as_echo_n "checking for HDF5 libraries... " >&6; }
+    if test ! -f "$H5CC" || test ! -x "$H5CC"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+Unable to locate HDF5 compilation helper scripts 'h5cc' or 'h5pcc'.
+Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
+HDF5 support is being disabled (equivalent to --with-hdf5=no).
+" >&5
+$as_echo "$as_me: WARNING:
+Unable to locate HDF5 compilation helper scripts 'h5cc' or 'h5pcc'.
+Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
+HDF5 support is being disabled (equivalent to --with-hdf5=no).
+" >&2;}
+        with_hdf5="no"
+        with_hdf5_fortran="no"
+    else
+                HDF5_SHOW=$(eval $H5CC -show)
+
+                HDF5_CC=$(eval $H5CC -show | $AWK '{print $1}')
+        if test "$HDF5_CC" = "ccache"; then
+            HDF5_CC=$(eval $H5CC -show | $AWK '{print $2}')
+        fi
 
 
-	                H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'" | tr "\n" " ")
-	                H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'" | tr "\n" " ")
-	                LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
-	                CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+                HDF5_VERSION=$(eval $H5CC -showconfig | $GREP 'HDF5 Version:' \
+            | $AWK '{print $3}')
 
+                                                                                HDF5_tmp_flags=$(eval $H5CC -showconfig \
+            | $GREP 'FLAGS\|Extra libraries:' \
+            | $AWK -F: '{printf("%s "), $2}' )
+
+                HDF5_tmp_inst=$(eval $H5CC -showconfig \
+            | $GREP 'Installation point:' \
+            | $AWK '{print $NF}' )
+
+                HDF5_CPPFLAGS="-I${HDF5_tmp_inst}/include"
+
+                for arg in $HDF5_SHOW $HDF5_tmp_flags ; do
+          case "$arg" in
+            -I*) echo $HDF5_CPPFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_CPPFLAGS="$arg $HDF5_CPPFLAGS"
+              ;;
+            -L*) echo $HDF5_LDFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_LDFLAGS="$arg $HDF5_LDFLAGS"
+              ;;
+            -l*) echo $HDF5_LIBS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_LIBS="$arg $HDF5_LIBS"
+              ;;
+          esac
+        done
+
+        HDF5_LIBS="$HDF5_LIBS -lhdf5"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes (version $HDF5_VERSION)" >&5
+$as_echo "yes (version $HDF5_VERSION)" >&6; }
+
+                ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        ax_lib_hdf5_save_CC=$CC
+        ax_lib_hdf5_save_CPPFLAGS=$CPPFLAGS
+        ax_lib_hdf5_save_LIBS=$LIBS
+        ax_lib_hdf5_save_LDFLAGS=$LDFLAGS
+        CC=$HDF5_CC
+        CPPFLAGS=$HDF5_CPPFLAGS
+        LIBS=$HDF5_LIBS
+        LDFLAGS=$HDF5_LDFLAGS
+        ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
+if test "x$ac_cv_header_hdf5_h" = xyes; then :
+  ac_cv_hadf5_h=yes
+else
+  ac_cv_hadf5_h=no
 fi
 
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5Fcreate in -lhdf5" >&5
+$as_echo_n "checking for H5Fcreate in -lhdf5... " >&6; }
+if ${ac_cv_lib_hdf5_H5Fcreate+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhdf5  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char H5Fcreate ();
+int
+main ()
+{
+return H5Fcreate ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_hdf5_H5Fcreate=yes
+else
+  ac_cv_lib_hdf5_H5Fcreate=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5Fcreate" >&5
+$as_echo "$ac_cv_lib_hdf5_H5Fcreate" >&6; }
+if test "x$ac_cv_lib_hdf5_H5Fcreate" = xyes; then :
+  ac_cv_libhdf5=yes
+else
+  ac_cv_libhdf5=no
 fi
 
+        if test "$ac_cv_hadf5_h" = "no" && test "$ac_cv_libhdf5" = "no" ; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unable to compile HDF5 test program" >&5
+$as_echo "$as_me: WARNING: Unable to compile HDF5 test program" >&2;}
+        fi
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lhdf5_hl" >&5
+$as_echo_n "checking for main in -lhdf5_hl... " >&6; }
+if ${ac_cv_lib_hdf5_hl_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhdf5_hl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
 
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_hdf5_hl_main=yes
+else
+  ac_cv_lib_hdf5_hl_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_hl_main" >&5
+$as_echo "$ac_cv_lib_hdf5_hl_main" >&6; }
+if test "x$ac_cv_lib_hdf5_hl_main" = xyes; then :
+  HDF5_LIBS="$HDF5_LIBS -lhdf5_hl"
+fi
+ac_cv_lib_hdf5_hl=ac_cv_lib_hdf5_hl_main
+
+
+        CC=$ax_lib_hdf5_save_CC
+        CPPFLAGS=$ax_lib_hdf5_save_CPPFLAGS
+        LIBS=$ax_lib_hdf5_save_LIBS
+        LDFLAGS=$ax_lib_hdf5_save_LDFLAGS
+        ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for matching HDF5 Fortran wrapper" >&5
+$as_echo_n "checking for matching HDF5 Fortran wrapper... " >&6; }
+                H5FC=$(eval echo -n $H5CC | $SED -n 's/cc$/fc/p')
+        if test -x "$H5FC"; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5FC" >&5
+$as_echo "$H5FC" >&6; }
+            with_hdf5_fortran="yes"
+
+
+                        for arg in `$H5FC -show`
+            do
+              case "$arg" in #(
+                -I*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                  ;;#(
+                -L*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                                                               echo $HDF5_FFLAGS | $GREP -e "-I${arg#-L}" >/dev/null \
+                      || HDF5_FFLAGS="-I${arg#-L} $HDF5_FFLAGS"
+                  ;;
+              esac
+            done
+
+                        for arg in $HDF5_LIBS
+            do
+              case "$arg" in #(
+                -lhdf5_hl) HDF5_FLIBS="$HDF5_FLIBS -lhdf5hl_fortran $arg"
+                  ;; #(
+                -lhdf5)    HDF5_FLIBS="$HDF5_FLIBS -lhdf5_fortran $arg"
+                  ;; #(
+                *) HDF5_FLIBS="$HDF5_FLIBS $arg"
+                  ;;
+              esac
+            done
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            with_hdf5_fortran="no"
+        fi
+
+
+
+
+
+
+
+
+
+
+
+$as_echo "#define HAVE_HDF5 1" >>confdefs.h
+
+    fi
 fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
@@ -4190,98 +4870,75 @@ fi
 
 
 
-	if test -z $with_build_path && test x$enable_build_minc != "xyes"; then :
 
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for minc toolkit" >&5
-$as_echo "$as_me: Searching for minc toolkit" >&6;}
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
-$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
-        MINC_INFO_PATH=$(which mincinfo)
-	if test x$MINC_INFO_PATH == "x"; then :
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+
+
+if   test "" = ""        ; then
+    : # Recognized value
+elif test "" = "serial"  ; then
+    : # Recognized value
+elif test "" = "parallel"; then
+    : # Recognized value
 else
-
-               TOOLKIT_FOUND="yes"
-               TOOLKIT_PATH=${MINC_INFO_PATH%/bin*}
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
+    as_fn_error $? "
+Unrecognized value for AX_LIB_HDF5 within configure.ac.
+If supplied, argument 1 must be either 'serial' or 'parallel'.
+" "$LINENO" 5
 fi
 
-        if test x$TOOLKIT_FOUND != "xyes"; then :
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find minc toolkit in common locations" >&5
-$as_echo_n "checking Can we find minc toolkit in common locations... " >&6; }
-               if test -d /opt/minc/; then :
-  TOOLKIT_PATH="/opt/minc"
-fi
-               if test -d /opt/minc-itk4/; then :
-  TOOLKIT_PATH="/opt/minc-itk4/"
-fi
-               if test x$HOME != "x"; then :
-  if test -d $HOME/local/minc-itk4/; then :
-  TOOLKIT_PATH="$HOME/local/minc-itk4/"
-fi
-fi
-               if test x$MINC_TOOLKIT_BUILD_PATH != "x"; then :
-  if test -d $MINC_TOOLKIT_BUILD_PATH; then :
-  TOOLKIT_PATH="$MINC_TOOLKIT_BUILD_PATH"
-fi
-fi
-               if test x$TOOLKIT_PATH != "x"; then :
-
-                      TOOLKIT_FOUND="yes"
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: found toolkit in $TOOLKIT_PATH" >&5
-$as_echo "$as_me: found toolkit in $TOOLKIT_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&5
-$as_echo "$as_me: override by setting the environment variable MINC_TOOLKIT_BUILD_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
-$as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
-
+# Check whether --with-hdf5 was given.
+if test "${with_hdf5+set}" = set; then :
+  withval=$with_hdf5; if test "$withval" = "no"; then
+     with_hdf5="no"
+   elif test "$withval" = "yes"; then
+     with_hdf5="yes"
+   else
+     with_hdf5="yes"
+     H5CC="$withval"
+   fi
 else
-
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+  with_hdf5="yes"
 
 fi
 
-fi
 
-	  if test x$TOOLKIT_FOUND == "xyes"; then :
+HDF5_CC=""
+HDF5_VERSION=""
+HDF5_CFLAGS=""
+HDF5_CPPFLAGS=""
+HDF5_LDFLAGS=""
+HDF5_LIBS=""
+HDF5_FC=""
+HDF5_FFLAGS=""
+HDF5_FLIBS=""
 
-                  LDFLAGS="$LDFLAGS -L${TOOLKIT_PATH}/lib -Wl,-rpath,${TOOLKIT_PATH}/lib"
-                  CPPFLAGS="$CPPFLAGS -I${TOOLKIT_PATH}/include"
-
-fi
-
-                 ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
-if test "x$ac_cv_header_hdf5_h" = xyes; then :
-
-else
-
-                     # Extract the first word of "h5cc", so it can be a program name with args.
-set dummy h5cc; ac_word=$2
+if test "$with_hdf5" = "yes"; then
+    if test -z "$H5CC"; then
+                for ac_prog in h5cc h5pcc
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_H5CC+:} false; then :
+if ${ac_cv_path_H5CC+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$H5CC"; then
-  ac_cv_prog_H5CC="$H5CC" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+  case $H5CC in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_H5CC="$H5CC" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_H5CC=""yes""
+    ac_cv_path_H5CC="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -4289,10 +4946,10 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_prog_H5CC" && ac_cv_prog_H5CC=""no""
+  ;;
+esac
 fi
-fi
-H5CC=$ac_cv_prog_H5CC
+H5CC=$ac_cv_path_H5CC
 if test -n "$H5CC"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
 $as_echo "$H5CC" >&6; }
@@ -4302,20 +4959,240 @@ $as_echo "no" >&6; }
 fi
 
 
-	             if test x$H5CC = "xyes"; then :
+  test -n "$H5CC" && break
+done
+
+    else
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking Using provided HDF5 C wrapper" >&5
+$as_echo_n "checking Using provided HDF5 C wrapper... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5CC" >&5
+$as_echo "$H5CC" >&6; }
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for HDF5 libraries" >&5
+$as_echo_n "checking for HDF5 libraries... " >&6; }
+    if test ! -f "$H5CC" || test ! -x "$H5CC"; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
+Unable to locate HDF5 compilation helper scripts 'h5cc' or 'h5pcc'.
+Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
+HDF5 support is being disabled (equivalent to --with-hdf5=no).
+" >&5
+$as_echo "$as_me: WARNING:
+Unable to locate HDF5 compilation helper scripts 'h5cc' or 'h5pcc'.
+Please specify --with-hdf5=<LOCATION> as the full path to h5cc or h5pcc.
+HDF5 support is being disabled (equivalent to --with-hdf5=no).
+" >&2;}
+        with_hdf5="no"
+        with_hdf5_fortran="no"
+    else
+                HDF5_SHOW=$(eval $H5CC -show)
+
+                HDF5_CC=$(eval $H5CC -show | $AWK '{print $1}')
+        if test "$HDF5_CC" = "ccache"; then
+            HDF5_CC=$(eval $H5CC -show | $AWK '{print $2}')
+        fi
 
 
-	                H5CC_LDFLAGS=$(h5cc -show | eval "$GREP -o '\-L[^ ]*'" | tr "\n" " ")
-	                H5CC_CPPFLAGS=$(h5cc -show | eval "$GREP -o '\-I[^ ]*'" | tr "\n" " ")
-	                LDFLAGS="$LDFLAGS $H5CC_LDFLAGS"
-	                CPPFLAGS="$CPPFLAGS $H5CC_CPPFLAGS"
+                HDF5_VERSION=$(eval $H5CC -showconfig | $GREP 'HDF5 Version:' \
+            | $AWK '{print $3}')
 
+                                                                                HDF5_tmp_flags=$(eval $H5CC -showconfig \
+            | $GREP 'FLAGS\|Extra libraries:' \
+            | $AWK -F: '{printf("%s "), $2}' )
+
+                HDF5_tmp_inst=$(eval $H5CC -showconfig \
+            | $GREP 'Installation point:' \
+            | $AWK '{print $NF}' )
+
+                HDF5_CPPFLAGS="-I${HDF5_tmp_inst}/include"
+
+                for arg in $HDF5_SHOW $HDF5_tmp_flags ; do
+          case "$arg" in
+            -I*) echo $HDF5_CPPFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_CPPFLAGS="$arg $HDF5_CPPFLAGS"
+              ;;
+            -L*) echo $HDF5_LDFLAGS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_LDFLAGS="$arg $HDF5_LDFLAGS"
+              ;;
+            -l*) echo $HDF5_LIBS | $GREP -e "$arg" 2>&1 >/dev/null \
+                  || HDF5_LIBS="$arg $HDF5_LIBS"
+              ;;
+          esac
+        done
+
+        HDF5_LIBS="$HDF5_LIBS -lhdf5"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes (version $HDF5_VERSION)" >&5
+$as_echo "yes (version $HDF5_VERSION)" >&6; }
+
+                ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        ax_lib_hdf5_save_CC=$CC
+        ax_lib_hdf5_save_CPPFLAGS=$CPPFLAGS
+        ax_lib_hdf5_save_LIBS=$LIBS
+        ax_lib_hdf5_save_LDFLAGS=$LDFLAGS
+        CC=$HDF5_CC
+        CPPFLAGS=$HDF5_CPPFLAGS
+        LIBS=$HDF5_LIBS
+        LDFLAGS=$HDF5_LDFLAGS
+        ac_fn_c_check_header_mongrel "$LINENO" "hdf5.h" "ac_cv_header_hdf5_h" "$ac_includes_default"
+if test "x$ac_cv_header_hdf5_h" = xyes; then :
+  ac_cv_hadf5_h=yes
+else
+  ac_cv_hadf5_h=no
 fi
 
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5Fcreate in -lhdf5" >&5
+$as_echo_n "checking for H5Fcreate in -lhdf5... " >&6; }
+if ${ac_cv_lib_hdf5_H5Fcreate+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhdf5  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char H5Fcreate ();
+int
+main ()
+{
+return H5Fcreate ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_hdf5_H5Fcreate=yes
+else
+  ac_cv_lib_hdf5_H5Fcreate=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_H5Fcreate" >&5
+$as_echo "$ac_cv_lib_hdf5_H5Fcreate" >&6; }
+if test "x$ac_cv_lib_hdf5_H5Fcreate" = xyes; then :
+  ac_cv_libhdf5=yes
+else
+  ac_cv_libhdf5=no
 fi
 
+        if test "$ac_cv_hadf5_h" = "no" && test "$ac_cv_libhdf5" = "no" ; then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Unable to compile HDF5 test program" >&5
+$as_echo "$as_me: WARNING: Unable to compile HDF5 test program" >&2;}
+        fi
+                { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lhdf5_hl" >&5
+$as_echo_n "checking for main in -lhdf5_hl... " >&6; }
+if ${ac_cv_lib_hdf5_hl_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhdf5_hl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
 
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_hdf5_hl_main=yes
+else
+  ac_cv_lib_hdf5_hl_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hdf5_hl_main" >&5
+$as_echo "$ac_cv_lib_hdf5_hl_main" >&6; }
+if test "x$ac_cv_lib_hdf5_hl_main" = xyes; then :
+  HDF5_LIBS="$HDF5_LIBS -lhdf5_hl"
+fi
+ac_cv_lib_hdf5_hl=ac_cv_lib_hdf5_hl_main
+
+
+        CC=$ax_lib_hdf5_save_CC
+        CPPFLAGS=$ax_lib_hdf5_save_CPPFLAGS
+        LIBS=$ax_lib_hdf5_save_LIBS
+        LDFLAGS=$ax_lib_hdf5_save_LDFLAGS
+        ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for matching HDF5 Fortran wrapper" >&5
+$as_echo_n "checking for matching HDF5 Fortran wrapper... " >&6; }
+                H5FC=$(eval echo -n $H5CC | $SED -n 's/cc$/fc/p')
+        if test -x "$H5FC"; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $H5FC" >&5
+$as_echo "$H5FC" >&6; }
+            with_hdf5_fortran="yes"
+
+
+                        for arg in `$H5FC -show`
+            do
+              case "$arg" in #(
+                -I*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                  ;;#(
+                -L*) echo $HDF5_FFLAGS | $GREP -e "$arg" >/dev/null \
+                      || HDF5_FFLAGS="$arg $HDF5_FFLAGS"
+                                                               echo $HDF5_FFLAGS | $GREP -e "-I${arg#-L}" >/dev/null \
+                      || HDF5_FFLAGS="-I${arg#-L} $HDF5_FFLAGS"
+                  ;;
+              esac
+            done
+
+                        for arg in $HDF5_LIBS
+            do
+              case "$arg" in #(
+                -lhdf5_hl) HDF5_FLIBS="$HDF5_FLIBS -lhdf5hl_fortran $arg"
+                  ;; #(
+                -lhdf5)    HDF5_FLIBS="$HDF5_FLIBS -lhdf5_fortran $arg"
+                  ;; #(
+                *) HDF5_FLIBS="$HDF5_FLIBS $arg"
+                  ;;
+              esac
+            done
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            with_hdf5_fortran="no"
+        fi
+
+
+
+
+
+
+
+
+
+
+
+$as_echo "#define HAVE_HDF5 1" >>confdefs.h
+
+    fi
 fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for H5open in -lhdf5" >&5
@@ -5242,6 +6119,7 @@ gives unlimited permission to copy, distribute and modify it."
 
 ac_pwd='$ac_pwd'
 srcdir='$srcdir'
+AWK='$AWK'
 test -n "\$AWK" || AWK=awk
 _ACEOF
 
