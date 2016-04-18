@@ -688,3 +688,366 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
 #   cat("coordinates of the identified point x: ", pos.rel.x,"\n")
 #   cat("coordinates of the identified point y: ", pos.rel.y,"\n")
 # }
+
+#' Call ray_trace to get an image of a rendered slice
+#' 
+#' This function provides an interface to the ray_trace command written by
+#' David MacDonald. As such it needs both ray_trace and make_slice to be on the
+#' path upon startup of R, and the bicpl library has to be compiled with image
+#' output enabled.
+#' 
+#' Behaviour of minc.ray.trace varies depending on whether a background image
+#' is specified. If background=NULL, then the specified slice is rendered using
+#' the supplied (or automatically determined) threshold argument. If there is a
+#' background image, then the slice from the input volume is rendered
+#' semi-transparently on top of the background.
+#' 
+#' Note that cropping in ray_trace is on by default, so the output image size
+#' will not necessarily be the same as the size argument to minc.ray.trace.
+#' 
+#' @param volume The filename of a volume to render.
+#' @param output The output filename.
+#' @param size A vector of two elements specifying the output size
+#' @param slice A list of three elements, pos being the slice number, wv
+#' whether the specification is in voxel or world space, and the axis.
+#' @param threshold A vector of two elements containing the threshold. If NULL,
+#' the full range of the volume will be used.
+#' @param colourmap The colourmap to be used by ray_trace.
+#' @param background An optional filename of a background volume. Used, for
+#' example, to render statistical results on top of background anatomy.
+#' @param background.threshold Threshold to use for the background volume. If
+#' NULL the whole range will be used.
+#' @param background.colourmap The colourmap argument to be passed to ray_trace
+#' for the background image.
+#' @param display Boolean argument which determines whether display (from
+#' ImageMagick) will be called on the output.
+#' @return \item{output}{The filename of the output image is returned.}
+#' @export
+minc.ray.trace <- function(volume, output="slice.rgb", size=c(400,400),
+                           slice=list(pos=0, wv="w", axis="z"),
+                           threshold=NULL,
+                           colourmap="-spectral",
+                           background=NULL,
+                           background.threshold=NULL,
+                           background.colourmap="-gray",
+                           display=TRUE) {
+  # create the slice obj
+  slice.obj.name <- "/tmp/slice.obj"
+  system(paste("make_slice", volume, slice.obj.name, slice$axis,
+               slice$wv, slice$pos, sep=" "))
+  
+  # get the threshold if necessary
+  if (is.null(threshold)) {
+    vol <- mincGetVolume(volume)
+    threshold <- range(vol)
+    rm(vol)
+  }
+  
+  # get the background threshold if necessary
+  if (!is.null(background) && is.null(background.threshold)) {
+    vol <- mincGetVolume(background)
+    background.threshold <- range(vol)
+    rm(vol)
+  }
+  
+  # call ray_trace
+  position <- ""
+  if (slice$axis == "y") {
+    position <- "-back"
+  }
+  
+  if (is.null(background)) {
+    system(paste("ray_trace -output", output, colourmap, threshold[1],
+                 threshold[2], volume, "0 1", slice.obj.name,
+                 "-bg black -crop -size", size[1], size[2], position))
+  } else {
+    system(paste("ray_trace -output", output, background.colourmap,
+                 background.threshold[1], background.threshold[2],
+                 background, "0 1 -under transparent", colourmap,
+                 threshold[1], threshold[2], volume, "0 0.5", slice.obj.name,
+                 "-bg black -crop -size", size[1], size[2], position))
+  }
+  if (display) {
+    system(paste("display", output))
+  }
+  return(output)
+}
+
+#' Create an image of a statistical peak.
+#' 
+#' Takes a voxel, an anatomical file, and a statistics file to create an image
+#' of the statistical peak.
+#' 
+#' This function will call the ray_trace program to create an image of a
+#' statistical peak. The anatomical slice of the brain will be overlayed with
+#' the statistical slice and a crosshair indicates the chosen peak.
+#' 
+#' @param v A mincVoxel indicating the voxel of interest.
+#' @param anatomy.volume The path to the file containing the anatomical data.
+#' @param statsbuffer Either the path to the stats file, a mincSingleDim, or a
+#' mincMultiDim.
+#' @param column If a mincMultiDim is specified, column will indicate which
+#' column of the data to use.
+#' @param like.filename If a column of a mincMultiDim is explicity passed
+#' through, a like file is needed to determine the dimensions of the stats
+#' buffer.
+#' @param mask If a mask is specified, the stats outside the mask will not be
+#' displayed in output image.
+#' @param image.min Specify the minimum image intensity.
+#' @param image.max Specify the maximum image intensity.
+#' @param output.width Specify the width of the output image.
+#' @param output.height Specify the height of the output image.
+#' @param place.inset Boolean indicating whether or not to place a 3D brain
+#' inset.
+#' @param inset Path to the object file (.obj) containing the surface of the
+#' brain.
+#' @param stats.largest.pos Specify the maximum stats value.
+#' @param stats.largest.neg Specify the minimum stats value.
+#' @param caption Specify the caption for the colourbar. If spaces occur in the
+#' caption use sometime along the line caption="\"Captoin with spaces\"".
+#' @param fdr Specify the statistical significance threshold.
+#' @param slice.direction The slice direction of the output image. This can be
+#' transverse, coronal or sagittal.
+#' @param outputfile The name (and path) of the outputfile.
+#' @param show.pos.and.neg In the case of t-statistics, when this flag is set
+#' to TRUE, the image will contain both the positive as well as the negative
+#' t-statistics.
+#' @param display Display the created image.
+#' @param clobber Overwrite existing output file when set to TRUE, will not
+#' overwrite when set to FALSE and will prompt when NULL.
+#' @param tmpdir Specify a directory for temporary files.
+#' @seealso mincLm, mincFDR, mincMean, mincSd
+#' @examples
+#' 
+#' \dontrun{
+#' # read the text file describing the dataset
+#' gf <- read.csv("control-file.csv")
+#' # run a linear model relating the data in all voxels to Genotype
+#' vs <- mincLm(filenames ~ Genotype, gf)
+#' # get the voxel at world coordinates (1,0.5,-0.5)
+#' v <- mincGetWorldVoxel(filenames, 1, 0.5, -0.5)
+#' # create an image of this coordinate, using the third column
+#' # of the mincLm output.
+#' mincRayTraceStats(v,"/some/path/anatomical.mnc", vs[,3], like.filename = "like-this-file.mnc")
+#' # in this particular case, a like file is stored with the vs object and
+#' # can be retrieved using:
+#' mincRayTraceStats(v,"/some/path/anatomical.mnc", vs[,3], like.filename = attr(vs, "likeVolume"))
+#' # or
+#' mincRayTraceStats(v,"/some/path/anatomical.mnc", vs, column = 3)
+#' }
+#' @export
+mincRayTraceStats <- function(v, anatomy.volume, 
+                              statsbuffer, column=1, like.filename=NULL, 
+                              mask=NULL, image.min=-1000, image.max=4000,
+                              output.width=800, output.height=800, 
+                              place.inset=FALSE, inset=NULL,
+                              stats.largest.pos=NULL, stats.largest.neg=NULL,
+                              caption="t-statistic",
+                              fdr=NULL, slice.direction="transverse",
+                              outputfile="ray_trace_crosshair.png", 
+                              show.pos.and.neg=FALSE, display=TRUE,
+                              clobber=NULL, tmpdir="/tmp"){
+  #check whether ray_trace_crosshair is installed
+  lasterr <- try(system("ray_trace_crosshair", ignore.stderr = TRUE), 
+                 silent=TRUE)
+  if(lasterr == 32512){
+    stop("ray_trace_crosshair must be installed for mincRayTraceStats to work.")
+  }
+  
+  if(file.exists(outputfile) && is.null(clobber)){
+    answer <- readline("Warning: the outputfile already exists, continue? (y/n) ")
+    if(substr(answer, 1, 1) == "n")
+      stop("Output file exists, specify clobber, or change the output file name.")
+  }
+  else if(file.exists(outputfile) && !clobber){
+    stop("Output file exists, specify clobber, or change the output file name.")
+  }
+  
+  ### VOXEL
+  #check whether the first argument is a mincVoxel:
+  if(class(v)[1] != "mincVoxel"){
+    stop("Please specify a mincVoxel")
+  }
+  
+  #create a system call for ray_trace_crosshair.pl
+  systemcall <- array()	
+  systemcall[1] <- "ray_trace_crosshair"
+  systemcall[2] <- "-x"
+  systemcall[3] <- attr(v,"worldCoord")[1]
+  systemcall[4] <- "-y"
+  systemcall[5] <- attr(v,"worldCoord")[2]
+  systemcall[6] <- "-z"
+  systemcall[7] <- attr(v,"worldCoord")[3]
+  systemcall[8] <- "-caption"
+  systemcall[9] <- caption
+  
+  ### ANATOMY VOLUME
+  i <- 10;
+  systemcall[i] <- "-final-nlin"
+  i <- i + 1
+  if(class(anatomy.volume)[1] == "character"){
+    systemcall[i] <- anatomy.volume
+    i <- i + 1
+  }
+  else if(class(anatomy.volume)[1] == "mincSingleDim"){
+    systemcall[i] <- attr(anatomy.volume, "filename")
+    i <- i + 1
+  }
+  else{
+    stop("Please specify the path to the anatomy volume, or a mincSingleDim containing the anatomy volume.")
+  }
+  
+  ### STATS VOLUME
+  systemcall[i] <- "-jacobian"
+  i <- i + 1
+  if(class(statsbuffer)[1] == "character"){
+    systemcall[i] <- statsbuffer
+    i <- i + 1
+  }
+  
+  if(class(statsbuffer)[1] == "numeric"){
+    if (is.na(file.info(as.character(like.filename))$size)){
+      stop(c("File ", like.filename, " cannot be found.\n"))
+    }
+    #write buffer to file
+    mincWriteVolume.default(statsbuffer, 
+                            paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""), 
+                            like.filename)
+    
+    systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
+    i <- i + 1
+  }
+  
+  if(class(statsbuffer)[1] == "mincMultiDim"){
+    if (is.null(like.filename)){
+      like.filename <- attr(statsbuffer, "likeVolume")
+    }
+    if (is.na(file.info(like.filename)$size)){
+      stop(c("File ", like.filename, " cannot be found.\n"))
+    }
+    
+    #write buffer to file
+    mincWriteVolume.default(statsbuffer[,column], 
+                            paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""),
+                            like.filename)
+    
+    systemcall[i] <- paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")
+    i <- i + 1
+  }
+  
+  if(class(mask) != "NULL"){
+    path.to.mask = "init"
+    if(class(mask)[1] == "character"){
+      path.to.mask = mask
+    }
+    else if(class(mask)[1] == "mincSingleDim"){
+      path.to.mask <- attr(mask, "filename")
+    }
+    system(paste("mv", 
+                 paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep=""),
+                 paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep="")))
+    system(paste("mincmask", 
+                 paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep=""),
+                 path.to.mask,
+                 paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
+    system(paste("rm -f",
+                 paste(tmpdir, "/R-wrapper-ray-trace-stats-full.mnc", sep="")))
+  }
+  
+  ### IMAGE INTENSITY EXTREMA
+  systemcall[i] <- "-image-min"
+  i <- i + 1
+  systemcall[i] <- image.min
+  i <- i + 1
+  systemcall[i] <- "-image-max"
+  i <- i + 1
+  systemcall[i] <- image.max
+  i <- i + 1
+  
+  ### OUTPUT IMAGE DIMENSIONS
+  systemcall[i] <- "-image-width"
+  i <- i + 1
+  systemcall[i] <- output.width
+  i <- i + 1
+  systemcall[i] <- "-image-height"
+  i <- i + 1
+  systemcall[i] <- output.height
+  i <- i + 1
+  
+  ### INSET
+  if(place.inset == FALSE){
+    systemcall[i] <- "-no-place-inset"
+    i <- i + 1
+  }
+  else{
+    systemcall[i] <- "-place-inset"
+    i <- i + 1
+  }
+  
+  if(! is.null(inset)){
+    systemcall[i] <- "-brainsurface"
+    i <- i + 1
+    systemcall[i] <- inset
+    i <- i + 1
+  }
+  
+  ### STATS EXTREMA
+  if(! is.null(stats.largest.pos)){
+    systemcall[i] <- "-positive-max"
+    i <- i + 1
+    systemcall[i] <- stats.largest.pos
+    i <- i + 1
+  }
+  
+  if(! is.null(stats.largest.neg)){
+    systemcall[i] <- "-negative-min"
+    i <- i + 1
+    systemcall[i] <- stats.largest.neg
+    i <- i + 1
+  }
+  
+  
+  ### FDR
+  if(class(fdr)[1] == "numeric"){
+    systemcall[i] <- "-fdr"
+    i <- i + 1
+    systemcall[i] <- fdr
+    i <- i + 1
+  }
+  
+  ### OUTPUTFILE
+  systemcall[i] <- "-outputfile"
+  i <- i + 1
+  systemcall[i] <- outputfile
+  i <- i + 1
+  
+  ### SLICE DIRECTION
+  systemcall[i] <- "-slicedirection"
+  i <- i + 1
+  systemcall[i] <- slice.direction
+  i <- i + 1
+  
+  ### SHOW POSITIVE AND NEGATIVE
+  if(show.pos.and.neg == FALSE){
+    systemcall[i] <- "-no-show-pos-and-neg"
+    i <- i + 1
+  }
+  else{
+    systemcall[i] <- "-show-pos-and-neg"
+    i <- i + 1
+  }
+  
+  ### #### ###
+  systemcall[i] <- "-remove-temp"
+  i <- i + 1
+  system(paste(systemcall, collapse = " " ))
+  
+  if(display){
+    system(paste("display", outputfile, "&"))
+  }
+  
+  #remove the file written to disk
+  system(paste("rm -f",
+               paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
+  
+}
