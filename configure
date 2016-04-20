@@ -621,6 +621,7 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+OPENMP_CFLAGS
 HDF5_FLIBS
 HDF5_FFLAGS
 HDF5_FC
@@ -692,6 +693,7 @@ enable_option_checking
 with_build_path
 enable_build_minc
 with_hdf5
+enable_openmp
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1317,6 +1319,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-build-minc     enable RMINC to build minc-toolkit if it is missing
 
+  --disable-openmp        do not use OpenMP
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4364,6 +4367,80 @@ else
 
 	#Install minc_toolkit
 
+        #Check for openmp, set USE_OMP if it is
+
+  OPENMP_CFLAGS=
+  # Check whether --enable-openmp was given.
+if test "${enable_openmp+set}" = set; then :
+  enableval=$enable_openmp;
+fi
+
+  if test "$enable_openmp" != no; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $CC option to support OpenMP" >&5
+$as_echo_n "checking for $CC option to support OpenMP... " >&6; }
+if ${ac_cv_prog_c_openmp+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _OPENMP
+ choke me
+#endif
+#include <omp.h>
+int main () { return omp_get_num_threads (); }
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_prog_c_openmp='none needed'
+else
+  ac_cv_prog_c_openmp='unsupported'
+	  	  	  	  	  	  	                                	  	  	  	  	  	  for ac_option in -fopenmp -xopenmp -openmp -mp -omp -qsmp=omp -homp \
+                           -Popenmp --openmp; do
+	    ac_save_CFLAGS=$CFLAGS
+	    CFLAGS="$CFLAGS $ac_option"
+	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifndef _OPENMP
+ choke me
+#endif
+#include <omp.h>
+int main () { return omp_get_num_threads (); }
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_prog_c_openmp=$ac_option
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	    CFLAGS=$ac_save_CFLAGS
+	    if test "$ac_cv_prog_c_openmp" != unsupported; then
+	      break
+	    fi
+	  done
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_c_openmp" >&5
+$as_echo "$ac_cv_prog_c_openmp" >&6; }
+    case $ac_cv_prog_c_openmp in #(
+      "none needed" | unsupported)
+	;; #(
+      *)
+	OPENMP_CFLAGS=$ac_cv_prog_c_openmp ;;
+    esac
+  fi
+
+
+        if test x$OPENMP_CFLAGS == "x"; then :
+  USE_OMP="off"
+else
+  USE_OMP="on"
+fi
+
+
 	if test x$MINC_TOOLKIT_BUILD_DIR = "x"; then :
 
 	   MINC_TOOLKIT_BUILD_DIR=$HOME/local/minc-itk4/
@@ -4405,7 +4482,7 @@ fi
                   -DCMAKE_BUILD_TYPE:STRING=Release \
              	  -DMT_BUILD_LITE:BOOL=ON \
                   -DMT_BUILD_SHARED_LIBS:BOOL=ON \
-               	  -DMT_USE_OPENMP:BOOL=ON \
+               	  -DMT_USE_OPENMP:BOOL=$USE_OMP \
       		  -DCPACK_BINARY_DEB:BOOL=ON \
                   -DCPACK_BINARY_NSIS:BOOL=OFF \
                	  -DCPACK_BINARY_RPM:BOOL=OFF \

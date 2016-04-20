@@ -52,6 +52,11 @@ AC_DEFUN([INSTALL_MINC],
   [
 	#Install minc_toolkit
 	
+        #Check for openmp, set USE_OMP if it is
+	AC_OPENMP
+        AS_IF([test x$OPENMP_CFLAGS == "x"], USE_OMP="off", USE_OMP="on")
+          
+
 	AS_IF([test x$MINC_TOOLKIT_BUILD_DIR = "x"], [ 
 	   MINC_TOOLKIT_BUILD_DIR=$HOME/local/minc-itk4/
 	])
@@ -83,7 +88,7 @@ AC_DEFUN([INSTALL_MINC],
                   -DCMAKE_BUILD_TYPE:STRING=Release \
              	  -DMT_BUILD_LITE:BOOL=ON \
                   -DMT_BUILD_SHARED_LIBS:BOOL=ON \
-               	  -DMT_USE_OPENMP:BOOL=ON \
+               	  -DMT_USE_OPENMP:BOOL=$USE_OMP \
       		  -DCPACK_BINARY_DEB:BOOL=ON \
                   -DCPACK_BINARY_NSIS:BOOL=OFF \
                	  -DCPACK_BINARY_RPM:BOOL=OFF \
