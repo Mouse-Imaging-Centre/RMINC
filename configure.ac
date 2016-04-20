@@ -29,12 +29,12 @@ dnl otherwise check if minc2 is found, if so add it's dependencies
 dnl if not build minc toolkit and try to add the dependencies afterward
 AC_ARG_ENABLE(
 	[build-minc],
-	AS_HELP_STRING([--enable-build-minc], [enable RMINC to build minc-toolkit if it is missing])
+	AS_HELP_STRING([--disable-build-minc], [enable RMINC to build minc-toolkit if it is missing])
 )
 
 TOOLKIT_SEARCH
 
-AS_IF([test "x$enable_build_minc" = "xyes"], [
+AS_IF([test "x$enable_build_minc" != "xno"], [
 	    AC_CHECK_LIB(minc2, mifree_names, 
 	         [CHECK_MINC_DEPENDS],
 	         [INSTALL_MINC])],

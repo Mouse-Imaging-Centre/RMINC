@@ -1317,7 +1317,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-build-minc     enable RMINC to build minc-toolkit if it is missing
+  --disable-build-minc    enable RMINC to build minc-toolkit if it is missing
 
   --disable-openmp        do not use OpenMP
 
@@ -3894,7 +3894,7 @@ fi
   test -n "$AWK" && break
 done
 
-if test "x$enable_build_minc" = "xyes"; then :
+if test "x$enable_build_minc" != "xno"; then :
 
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mifree_names in -lminc2" >&5
 $as_echo_n "checking for mifree_names in -lminc2... " >&6; }
