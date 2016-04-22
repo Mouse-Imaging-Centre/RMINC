@@ -6,6 +6,8 @@ AC_PROG_CXX
 m4_include([inst/tools/ax_lib_hdf5.m4])
 m4_include([inst/tools/ch_minc_depends.m4])
 
+TOOLKIT_FOUND=""
+
 dnl This adds a --with-build-path option, adding the directories'
 dnl include to CPPFLAGS -I, lib to LDFLAGS and the rpath
 AC_ARG_WITH([build-path],
@@ -21,7 +23,7 @@ AC_ARG_WITH([build-path],
 
 
 dnl The adds a special variable MINC_TOOLKIT_BUILD_DIR to the configure script
-AC_ARG_VAR([MINC_TOOLKIT_BUILD_DIR],[where to build minctoolkit, default /opt/minc-itk4/])
+AC_ARG_VAR([MINC_TOOLKIT_BUILD_DIR],[where to build minctoolkit, default $HOME/local/minc-itk4/])
 
 dnl Adds a --enable-build-minc toggle to the configure script
 dnl if the switch is not toggled check for minc's dependencies

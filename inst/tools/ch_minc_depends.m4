@@ -41,7 +41,16 @@ dnl This checks for the minc dependencies, called after minc2 is located or inst
 AC_DEFUN([CHECK_MINC_DEPENDS],
 [
 	AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib not found])])
-        AX_LIB_HDF5
+
+        AS_IF([test x$TOOLKIT_FOUND != "xyes"], [
+	      AX_LIB_HDF5
+	
+	      CFLAGS="$CFLAGS $HDF5_CFLAGS"
+              CPPFLAGS="$CPPFLAGS $HDF5_CPPFLAGS"
+              LIBS="$LIBS $HDF5_LIBS"
+	      LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
+	])
+
 	AC_CHECK_LIB(hdf5, H5open, , [AC_MSG_ERROR([HDF5 not found])])
         AC_CHECK_LIB(minc2, mifree_name, , [AC_MSG_ERROR([minc2 not found])])
 ])
