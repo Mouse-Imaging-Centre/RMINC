@@ -147,6 +147,8 @@ mincApplyRCPP <-
            return_indices = FALSE,
            collate = simplify2minc){
     
+    stopifnot(!is.null(filenames), !is.null(fun))
+    
     apply_fun <- 
       function(x, extra_arguments)
         do.call(match.fun(fun), c(list(x), extra_arguments))

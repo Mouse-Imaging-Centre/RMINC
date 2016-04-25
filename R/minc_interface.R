@@ -176,6 +176,8 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
 #' of the values.
 #' @export
 mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
+  stopifnot(!is.null(filenames), !is.null(v1))
+  
   num.files <- length(filenames)
   if (length(v1) == 3){
     v2 <- v1[2]
@@ -227,6 +229,8 @@ mincFileCheck <- function(filenames) {
 #' @param v3 Third world coordinate
 #' @return a vector of values 
 mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
+  stopifnot(!is.null(filenames), !is.null(v1))
+  
   num.files <- length(filenames)
   if (length(v1) == 3){
     v2 <- v1[2]
@@ -273,6 +277,8 @@ print.mincVoxel <- function(x, ..., filenames=FALSE, digits=NULL) {
 #' @param v3 Third voxel coordinate
 #' @param v.length The number of values to return
 mincGetVector <- function(filenames, v1, v2, v3, v.length = NULL) {
+  stopifnot(!is.null(filenames), !is.null(v1), !is.null(v2), !is.null(v3))
+  
   num.files <- length(filenames)
   if(is.null(v.length)) v.length <- num.files
   
@@ -301,6 +307,8 @@ mincGetVector <- function(filenames, v1, v2, v3, v.length = NULL) {
 #' @return a 3-component numeric vector of world coordinates
 #' @export
 mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
+  stopifnot(!is.null(filename), !is.null(v1), !is.null(v2), !is.null(v3))
+  
   output <- .C("convert_voxel_to_world",
                as.character(filename),
                as.double(v1),
@@ -321,6 +329,8 @@ mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
 #' @return a 3-component numeric vector of voxel coordinates
 #' @export
 mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
+  stopifnot(!is.null(filename), !is.null(v1), !is.null(v2), !is.null(v3))
+  
   output <- .C("convert_world_to_voxel",
                as.character(filename),
                as.double(v1),
@@ -539,6 +549,8 @@ mincWriteVolume.default <- function(buffer, output.filename, like.filename,
 #' to be returned.
 #' @export
 minc.dimensions.sizes <- function(filename) {
+  stopifnot(!is.null(filename))
+  
   sizes <- .C("get_volume_sizes",
               as.character(filename),
               sizes = integer(3), PACKAGE="RMINC")$sizes
@@ -560,6 +572,8 @@ NULL
 #' @export
 minc.get.history <- 
   function(filename){
+    stopifnot(!is.null(filename))
+    
     history <- 
       .Call("get_minc_history",
             filename)
@@ -572,6 +586,8 @@ minc.get.history <-
 minc.append.history <-
   function(filename, 
            new_history = NULL){
+    
+    stopifnot(!is.null(filename))
     
     old_history <- minc.get.history(filename)
     
@@ -610,6 +626,8 @@ minc.append.history <-
 minc.get.hyperslab <- function(filename, start, count) {
 #  total.size <- (count[1] - start[1]) * (count[2] - start[2]) *
 #                (count[3] - start[3])
+  stopifnot(!is.null(filename), !is.null(start), !is.null(count))
+  
   total.size <- (count[1] * count[2] * count[3])
   buffer <- double(total.size)
   
@@ -868,6 +886,8 @@ parseLmFormula <- function(formula,data,mf)
 #' voxel <- mincGetVoxel(gf$filenames, index)
 #' }
 mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
+  stopifnot(!is.null(volumeFileName), !is.null(vectorCoord))
+  
   sizes <- minc.dimensions.sizes(volumeFileName)
   # the fun off by one bit
   index <- vectorCoord-1
