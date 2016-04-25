@@ -4,7 +4,11 @@
 \alias{getRMINCTestData}
 \title{Download Example Data}
 \usage{
-getRMINCTestData()
+getRMINCTestData(dataPath = tempdir())
+}
+\arguments{
+\item{dataPath}{The directory to download and unpack the test data 
+(unpacks in dataPath/rminctestdata)}
 }
 \description{
 Download the example data needed to run our examples in your /tmp directory

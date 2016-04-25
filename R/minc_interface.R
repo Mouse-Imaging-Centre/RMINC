@@ -18,7 +18,8 @@ print.RMINC_MASKED_VALUE <-
 
 # Attributes for minc result objects
 known_minc_attributes <-
-  c("filenames", "likeVolume", "mask", "mincLmerList", "mincLmerLists")
+  c("filename", "filenames", "likeVolume", "mask", "mincLmerList", "mincLmerLists", "sizes",
+    "model", "stat-type", "df", "dimnames")
 
 #' Get and Set Minc Specific Attributes
 #' 
@@ -102,13 +103,47 @@ simplify2minc <- function(result_list){
   if(is.null(ncol(simplified_results)) && is.list(simplified_results)){
     class(simplified_results) <- "mincList"
   } else if(is.null(ncol(simplified_results))){
-    class(simplified_results) <- "mincSingleDim"
+    class(simplified_results) <- c("mincSingleDim", class(simplified_results))
   } else {
-    class(simplified_results) <- "mincMultiDim"
+    class(simplified_results) <- c("mincMultiDim", class(simplified_results))
   }
 
   return(simplified_results)
 }
+
+#' Check for RMINC objects
+#' 
+#' Checks if the current object is one produced by RMINC
+#' (currently \code{mincList}, \code{mincSingleDim}, \code{mincMultiDim})
+#' @param x the object of interest
+#' @return logical whether or not the object is an RMINC object
+#' @export
+is.minc <- function(x){
+  inherits(x, c("mincList", "mincSingleDim", "mincMultiDim"))
+}
+
+#' Coerce to RMINC object
+#' 
+#' Coerce a relatively simple object to an RMINC known object
+#' (currently \code{mincList}, \code{mincSingleDim}, \code{mincMultiDim})
+#' @param x the object to coerce
+#' @return if x is a known minc type return it, if it is a list, attempt
+#' to reduce it toa minc object via \link{simplify2minc}, otherwise check
+#' if the object has columns, if so reclass it as \code{mincMultiDim} otherwise
+#' reclass it as a \code{mincSingleDim}
+#' @export
+as.minc <- function(x){
+  if(is.minc(x)) return(x)
+  if(is.list(x)) return(simplify2minc(x))
+  
+  if(!is.null(ncol(x))){
+    class(x) <- c("mincMultiDim", class(x))
+    return(x)
+  }
+  
+  class(x) <- c("mincSingleDim", class(x))
+  return(x)
+} 
     
 mincGetTagFile <- function(filename) {
   tags <- scan(filename, what="character")
