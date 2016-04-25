@@ -960,7 +960,8 @@ getRMINCTestData <- function(dataPath = tempdir()) {
   if(!file.exists(downloadPath)){
     dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
     download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz",
-                  destfile = downloadPath) 
+                  destfile = downloadPath,
+                  method = "wget") 
   }
   
   untar(downloadPath, exdir = dataPath, compressed = "gzip")
