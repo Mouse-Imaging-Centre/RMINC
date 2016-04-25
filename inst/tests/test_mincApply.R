@@ -1,7 +1,10 @@
 library(testthat)
 context("mincApply")
 
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 
 mm <- verboseRun("mincMean(gf$jacobians_fixed_2)",getOption("verbose"))
 ma <- verboseRun("mincApply(gf$jacobians_fixed_2,quote(mean(x)))",getOption("verbose"))

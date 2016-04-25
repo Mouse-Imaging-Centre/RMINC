@@ -1,20 +1,23 @@
 library(testthat)
 context("vertexFDR")
 
-gftest <- read.csv('/tmp/rminctestdata/subject.csv')
-subjectFile = matrix(data=NA,nrow=10,1)
-subjectFile[1,1] = '/tmp/rminctestdata/vertex2.txt'
-subjectFile[2,1] = '/tmp/rminctestdata/vertex3.txt'
-subjectFile[3,1] = '/tmp/rminctestdata/vertex4.txt'
-subjectFile[4,1] = '/tmp/rminctestdata/vertex3.txt'
-subjectFile[5,1] = '/tmp/rminctestdata/vertex1.txt'
-subjectFile[6,1] = '/tmp/rminctestdata/vertex2.txt'
-subjectFile[7,1] = '/tmp/rminctestdata/vertex4.txt'
-subjectFile[8,1] = '/tmp/rminctestdata/vertex2.txt'
-subjectFile[9,1] = '/tmp/rminctestdata/vertex3.txt'
-subjectFile[10,1] = '/tmp/rminctestdata/vertex1.txt'
-gftest$testFilesLeft <- (subjectFile)
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
 
+gftest <- read.csv(file.path(dataPath, "subject.csv"))
+
+subjectFile = matrix(data=NA,nrow=10,1)
+subjectFile[1,1] = file.path(dataPath, "vertex2.txt")
+subjectFile[2,1] = file.path(dataPath, "vertex3.txt")
+subjectFile[3,1] = file.path(dataPath, "vertex4.txt")
+subjectFile[4,1] = file.path(dataPath, "vertex3.txt")
+subjectFile[5,1] = file.path(dataPath, "vertex1.txt")
+subjectFile[6,1] = file.path(dataPath, "vertex2.txt")
+subjectFile[7,1] = file.path(dataPath, "vertex4.txt")
+subjectFile[8,1] = file.path(dataPath, "vertex2.txt")
+subjectFile[9,1] = file.path(dataPath, "vertex3.txt")
+subjectFile[10,1] = file.path(dataPath, "vertex1.txt")
+gftest$testFilesLeft <- (subjectFile)
 rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Sex,gftest) ",getOption("verbose"))
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))

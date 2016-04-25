@@ -1,7 +1,11 @@
 library(testthat)
 context("mincAnova")
 
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+
 voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
 voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
 Sex <- gf$Sex[1:10]

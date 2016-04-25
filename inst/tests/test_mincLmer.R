@@ -3,8 +3,11 @@ library(lme4)
 
 context("mincLmer - basic test")
 
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-maskfile <- "/tmp/rminctestdata/testminc-mask.mnc"
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+maskfile <- file.path(dataPath, "testminc-mask.mnc")
 
 # pick a voxel inside the mask
 voxelIndex <- 453 # for later comparisons

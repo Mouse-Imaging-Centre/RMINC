@@ -1,8 +1,11 @@
 library(testthat)
 
-gf <- read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf <- civet.getAllFilenames(gf,"ID","POND","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf <- civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+
+gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"))
+gf <- civet.getAllFilenames(gf,"ID","POND",file.path(dataPath, "CIVET"),"TRUE","1.1.12")
+gf <- civet.readAllCivetFiles(file.path(dataPath, "AAL.csv"),gf)
 
 
 context("anatMean")

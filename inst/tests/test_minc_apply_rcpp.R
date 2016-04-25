@@ -1,7 +1,10 @@
 library(testthat)
 context("mincApplyRCPP")
 
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 
 mm <- verboseRun("mincMean(gf$jacobians_fixed_2)",getOption("verbose"))
 ma <- verboseRun(
@@ -19,10 +22,10 @@ test_that("mincApplyRCPP matches MincMean",{
 
 setRMINCMaskedValue(val = 0)
 mm_masked <- verboseRun("mincMean(gf$jacobians_fixed_2, 
-                        mask = '/tmp/rminctestdata/testminc-mask.mnc')", 
+                        mask = file.path(dataPath, 'testminc-mask.mnc'))", 
                         getOption("verbose"))
 ma_masked <- verboseRun("mincApplyRCPP(gf$jacobians_fixed_2, mean, 
-                        mask = '/tmp/rminctestdata/testminc-mask.mnc',
+                        mask = file.path(dataPath, 'testminc-mask.mnc'),
                         slab_sizes = c(1,5,5))", 
                         getOption("verbose"))
 

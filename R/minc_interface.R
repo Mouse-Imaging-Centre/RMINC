@@ -879,12 +879,12 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
 #' @param verboseTest
 #' Whether or not to verbosely print test output, default is
 #' to print simplified results
-#' @param purgeData whether to remove downloaded test files
-#' in /tmp/rminctestdata
+#' @param dataPath The directory to download and unpack the test data 
+#' (unpacks in dataPath/rminctestdata)
 #' @param ... additional parameter for \link[testthat]{test_dir}
 #' @return invisibly return the test results
 #' @export
-runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
+runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
   
 	# if(!require(testthat)){
 	#   stop("Sorry, you need to install testthat to run the testbed")
@@ -894,18 +894,8 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
   
   options(verbose = verboseTest)
   setRMINCMaskedValue(0)
-  # Make sure environment is clear
-  #rm(list=ls())
-  
-  if(!file.exists("/tmp/rminctestdata/")){
-    system('mkdir /tmp/rminctestdata')
-  }
-  # Download Tarball from Wiki
-  if(!file.exists("/tmp/rminctestdata/rminctestdata.tar.gz")){
-    system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz")
-  }
-  # Untar
-  system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
+ 
+  #getRMINCTestData(dataPath)
 
   # Run Tests
   rmincPath = find.package("RMINC")
@@ -915,11 +905,6 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")
   cat("*********************************************\n\n\n")
-  
-  if(purgeData){
-    cat("Removing temporary directory /tmp/rminctestdata\n")
-    system('rm -fr /tmp/rminctestdata')
-  }
 
   return(invisible(testReport))
 }
@@ -929,17 +914,40 @@ runRMINCTestbed <- function(..., verboseTest = FALSE, purgeData = TRUE) {
 #' Download the example data needed to run our examples in your /tmp directory
 #' The data can be downloaded manually from 
 #' \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
+#' @param dataPath The directory to download and unpack the test data 
+#' (unpacks in dataPath/rminctestdata)
 #' @export
-getRMINCTestData <- function() {
+getRMINCTestData <- function(dataPath = tempdir()) {
 
-  system('mkdir /tmp/rminctestdata')
-
-  # Download Tarball from Wiki
-  system("wget -O /tmp/rminctestdata/rminctestdata.tar.gz --no-check-certificate https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz")
-
-  # Untar
-  system('tar -xf /tmp/rminctestdata/rminctestdata.tar.gz -C /tmp/')
+  downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
+  extractedPath <- file.path(dataPath, "rminctestdata/")
   
+  if(!file.exists(downloadPath)){
+    dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
+    download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz",
+                  destfile = downloadPath) 
+  }
+  
+  untar(downloadPath, exdir = dataPath, compressed = "gzip")
+  
+  rectifyPaths <-
+    function(file){
+      readLines(file) %>%
+        gsub("/tmp/rminctestdata/", extractedPath, .) %>%
+        writeLines(file)
+      
+      invisible(NULL)
+    }
+  
+  filesToFix <- 
+    c("filenames.csv",  
+      "minc_summary_test_data.csv",  
+      "test_data_set.csv") %>%
+    file.path(extractedPath, .)
+  
+  lapply(filesToFix, rectifyPaths)
+  
+  invisible(NULL)
 }
 
 #' Run function with/without output silenced

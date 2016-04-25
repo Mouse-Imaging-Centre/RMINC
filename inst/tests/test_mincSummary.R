@@ -3,7 +3,10 @@ library(testthat)
 # mincMean, mincSd, mincVar, mincSum 
 context("mincSummary (Mean, Sd, Var, Sum,t-test,correlation,wilcoxon)")
 
-gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+
+gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"))
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0)
 
 #Calculate mean, sd, variance, and sum 

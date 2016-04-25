@@ -1,10 +1,13 @@
 library(testthat)
 context("test_qminc_apply")
 
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+ 
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 
 ms <- verboseRun(
-  "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10))", 
+  "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10))",
   getOption("verbose"))
 
 mq <- verboseRun(
