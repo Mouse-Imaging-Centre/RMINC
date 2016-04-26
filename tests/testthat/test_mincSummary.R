@@ -116,6 +116,6 @@ test_that("mincWilcoxon works with mincFDR",{
 
 ithreshold = which(mw[,1] == attr(rmincWilcoxFDR,"thresholds")[[1]])
 test_that("mincWilcoxon is thresholded properly by mincFDR",{
-	expect_less_than(rWilcoxFDR[ithreshold[1]], 0.1,tolerance = 0.0001) 
+	expect_lt(rWilcoxFDR[ithreshold[1]], 0.1) 
 })
 

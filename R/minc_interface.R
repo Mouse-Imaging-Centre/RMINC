@@ -928,6 +928,12 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
   }
 }
 
+checkFileLimits <-
+  function(){
+    current_ulimit <- system("ulimit -Sn", intern = TRUE) %>% as.numeric
+    n_open_files <- system
+  }
+
 #' @title Run Testbed
 #' @description Run the test bed to ensure all RMINC functions
 #' work on your system
@@ -952,7 +958,7 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
   Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
 
   # Run Tests
-  rmincPath = find.package("RMINC")
+  rmincPath <- find.package("RMINC")
   cat("\n\nRunning tests in: ", paste(rmincPath,"/","user_tests/",sep=""), "\n\n\n")
   testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), ...)
   
