@@ -1,0 +1,1 @@
+../../tests/testthat/test_vertexSummary.R

@@ -941,21 +941,20 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
 #' @export
 runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
   
-	# if(!require(testthat)){
-	#   stop("Sorry, you need to install testthat to run the testbed")
-	# }
   original_opts <- options()
-  on.exit(options(original_opts))
+  old_env_vars <- Sys.getenv(c("TEST_Q_MINC", "NOT_CRAN", "TRAVIS"))
+  on.exit({
+    options(original_opts)
+    do.call(Sys.setenv, as.list(old_env_vars))
+  })
   
-  options(verbose = verboseTest)
   setRMINCMaskedValue(0)
- 
-  #getRMINCTestData(dataPath)
+  Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
 
   # Run Tests
   rmincPath = find.package("RMINC")
-  cat("\n\nRunning tests in: ", paste(rmincPath,"/","tests/",sep=""), "\n\n\n")
-  testReport <- testthat::test_dir(paste(rmincPath,"/","tests/",sep=""), ...)
+  cat("\n\nRunning tests in: ", paste(rmincPath,"/","user_tests/",sep=""), "\n\n\n")
+  testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), ...)
   
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")

@@ -6,31 +6,34 @@ dataPath <- file.path(tempdir(), "rminctestdata/")
  
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 
-ms <- verboseRun(
-  "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10))",
-  getOption("verbose"))
-
-mq <- verboseRun(
-  "qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore', slab_sizes = c(5,1,10))",
-  getOption("verbose")
-)
-
-mp <- verboseRun(
-  "mcMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(10,10,10))",
-  getOption("verbose")
-)
-
-test_that("Sequential mincApplyRCPP matches qMincApply",
-          expect_equivalent(ms, mq))
-
-test_that("Sequential mincApplyRCPP matches mcMincApply",
-          expect_equivalent(ms, mp))
-
-test_that("Attributes are set correctly", {
-  expect_equal(attr(ms, "filenames"), attr(mq, "filenames"))
-  expect_equal(attr(ms, "filenames"), attr(mp, "filenames"))
-  expect_equal(attr(ms, "likeVolume"), attr(mq, "likeVolume"))
-  expect_equal(attr(ms, "likeVolume"), attr(mp, "likeVolume"))
+test_that("Test sequential, multicore, and queue applies work", {
+  
+  skip_on_cran()
+  skip_on_travis()
+  
+  if(Sys.getenv("TEST_Q_MINC") != "yes") 
+    skip("qMinc tests disabled")
+  
+  m_sequential <- verboseRun(
+    "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10))",
+    getOption("verbose"))
+  
+  m_queue <- verboseRun(
+    "qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore', slab_sizes = c(5,1,10))",
+    getOption("verbose")
+  )
+  
+  m_multicore <- verboseRun(
+    "mcMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(10,10,10))",
+    getOption("verbose")
+  )
+  
+  expect_equivalent(m_sequential, m_queue)
+  expect_equivalent(m_sequential, m_multicore)
+  expect_equal(attr(m_sequential, "filenames"), attr(m_queue, "filenames"))
+  expect_equal(attr(m_sequential, "filenames"), attr(m_multicore, "filenames"))
+  expect_equal(attr(m_sequential, "likeVolume"), attr(m_queue, "likeVolume"))
+  expect_equal(attr(m_sequential, "likeVolume"), attr(m_multicore, "likeVolume"))
 })
 
 # if(getOption("RMINC_QUEUE") == "sge"){
