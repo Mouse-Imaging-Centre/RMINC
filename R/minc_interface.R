@@ -177,6 +177,7 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
 #' @export
 mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   stopifnot(!is.null(filenames), !is.null(v1))
+  enoughAvailableFileDescriptors(length(filenames))
   
   num.files <- length(filenames)
   if (length(v1) == 3){
@@ -230,6 +231,7 @@ mincFileCheck <- function(filenames) {
 #' @return a vector of values 
 mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   stopifnot(!is.null(filenames), !is.null(v1))
+  enoughAvailableFileDescriptors(length(filenames))
   
   num.files <- length(filenames)
   if (length(v1) == 3){
@@ -278,6 +280,7 @@ print.mincVoxel <- function(x, ..., filenames=FALSE, digits=NULL) {
 #' @param v.length The number of values to return
 mincGetVector <- function(filenames, v1, v2, v3, v.length = NULL) {
   stopifnot(!is.null(filenames), !is.null(v1), !is.null(v2), !is.null(v3))
+  enoughAvailableFileDescriptors(length(filenames))
   
   num.files <- length(filenames)
   if(is.null(v.length)) v.length <- num.files
@@ -928,10 +931,33 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
   }
 }
 
-checkFileLimits <-
-  function(){
-    current_ulimit <- system("ulimit -Sn", intern = TRUE) %>% as.numeric
-    n_open_files <- system
+checkCurrentUlimit <- function(){
+    
+    current_ulimit <- system("ulimit -Sn", intern = TRUE)
+    if(current_ulimit == "unlimited") current_ulimit <- Inf
+    current_ulimit <- as.numeric(current_ulimit)
+    
+    return(current_ulimit)
+}
+
+tableOpenFiles <- function(){
+  lsof_results <- 
+    paste("lsof -Ft -p ", Sys.getpid()) %>%
+    system(intern = TRUE)
+    
+  table(lsof_results)  
+}
+
+enoughAvailableFileDescriptors <- 
+  function(n, error = TRUE){
+    available_fds <- checkCurrentUlimit() - sum(tableOpenFiles())
+    enough_avail <- (n <= available_fds)
+    
+    if(error & !enough_avail)
+      stop("Not enough available file descriptors to open ",
+           n, " files, maybe try setting ulimit -Sn <some-larger-number>")
+    
+    return(enough_avail)
   }
 
 #' @title Run Testbed

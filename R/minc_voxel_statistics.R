@@ -34,6 +34,8 @@
 #' @export
 mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", maskval=NULL) {
   mincFileCheck(filenames)
+  enoughAvailableFileDescriptors(length(filenames))
+  
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }
@@ -148,6 +150,7 @@ mincApplyRCPP <-
            collate = simplify2minc){
     
     stopifnot(!is.null(filenames), !is.null(fun))
+    enoughAvailableFileDescriptors(length(filenames))
     
     apply_fun <- 
       function(x, extra_arguments)
@@ -279,6 +282,9 @@ mincApplyRCPP <-
 #' @export
 mincApply <- 
   function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
+    
+    enoughAvailableFileDescriptors(length(filenames))
+    
     if (is.null(maskval)) {
       minmask = 1
       maxmask = 99999999
@@ -483,11 +489,14 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
   if(parseLmOutput$matrixFound) {
     mincFileCheck(parseLmOutput$data.matrix.left)
     mincFileCheck(parseLmOutput$data.matrix.right)
+    enoughAvailableFileDescriptors(length(c(parseLmOutput$data.matrix.left,
+                                            parseLmOutput$data.matrix.right)))
   }
   else  {
     parseLmOutput$mmatrix <- model.matrix(formula, mf)	
     parseLmOutput$data.matrix.left <- as.character(mf[,1])
     mincFileCheck(parseLmOutput$data.matrix.left)
+    enoughAvailableFileDescriptors(length(parseLmOutput$data.matrix.left))
     parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
   }
   

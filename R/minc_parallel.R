@@ -62,6 +62,7 @@ pMincApply <-
            collate = simplify2minc
   ){
     
+    enoughAvailableFileDescriptors(length(filenames))
     method <- match.arg(method)
     
     if(method == "local" || method == "snowfall")
@@ -118,6 +119,8 @@ mcMincApply <-
            collate = simplify2minc){
     
     filenames <- as.character(filenames)
+    enoughAvailableFileDescriptors(length(filenames))
+    
     sample_file <- filenames[1]
     
     temp_dir <- path.expand(temp_dir)
