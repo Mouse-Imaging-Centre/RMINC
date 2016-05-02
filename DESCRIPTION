@@ -1,12 +1,15 @@
 Package: RMINC
-Version: 1.3.0.0
-Date: 2016-02-24
-Title: Package for reading and analyzing MINC2 files
-Author: Jason Lerch <jason@mouseimaging.ca>, Jim Nikelski
-    <nikelski@bic.mni.mcgill.ca>
-Maintainer: Jason lerch <jason@mouseimaging.ca>
-Description: A package for reading and writing MINC2 files
-    and running arbitrary R functions at every voxel of a set of files.
+Version: 1.4.0.0
+Date: 2016-05-02
+Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
+Authors@R: c(person("Jason", "Lerch", role = c("aut", "cre"), email = "jason.lerch@sickkids.ca"), 
+             person("Jim",  "Nikelski", role = "aut", email = "nikelski@bic.mni.mcgill.ca"),
+             person("Chris", "Hammill", role = "aut", email = "cfhammill@gmail.com"),
+             person("Matthijs", "van Eede", role = "aut", email = "matthijs.vaneede@sickkids.ca"),
+             person("Daniel", "Cassel", role = "aut"))
+Maintainer: Chris Hammill <cfhammill@gmail.com>
+Description: Tools for reading, writing, analyzing, and visualizing Medical Imaging NetCDF (MINC) files
+             with R. 
 Additional_Repositiories: http://bioconductor.org/packages/3.1/bioc
 Depends:
     R (>= 3.0.1),
@@ -22,15 +25,17 @@ Suggests:
     plotrix,
     lmerTest,
     qvalue,
-    pbkrtest,
     testthat
 LinkingTo: 
     Rcpp,
 SystemRequirements:
-    minc-toolkit-v2,
-    cmake,
-    git
-License: BSD
+    lsof AND EITHER
+    minc-toolkit-v2 (https://github.com/BIC-MNI/minc-toolkit-v2) OR
+    cmake (> 2.6),
+    git,
+    linux_apt: libhdf5-dev
+    mac_brew: homebrew/science/hdf5
+License: BSD_3_clause
 LazyLoad: yes
 OS_type: unix
 SystemRequirements: 
