@@ -47,6 +47,13 @@ Install the package (example is for the tarball version 0.5):
 
 > R CMD INSTALL RMINC_0.5.tar.gz --configure-args='--with-build-path=/install/directory/minc2'
 
+Tutorials
+---------
+RMINC Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/doc/visualizationTutorial.html
+
+Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/doc/RMINC_rgl.html
+
+
 Some notes on getting RMINC installed on a Mac
 ----------------------------------------------
 
