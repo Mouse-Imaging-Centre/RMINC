@@ -121,7 +121,7 @@ calculateTtestJSS <-
     resultTtest <- matrix(0, nrow = nrow.res, ncol = 4)
     colnames(resultTtest) <- c("df", "t value", "p-value", "sqrt.varcor")
     if (ddf == "Kenward-Roger") {
-      if (!requireNamespace("pbkrtest", quitly = TRUE)) 
+      if (!requireNamespace("pbkrtest", quietly = TRUE)) 
         stop("pbkrtest package required for Kenward-Roger's approximations")
       Va <- pbkrtest::vcovAdj(rho$model)
     }

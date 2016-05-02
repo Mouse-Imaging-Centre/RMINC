@@ -22,6 +22,7 @@ Suggests:
     plotrix,
     lmerTest,
     qvalue,
+    pbkrtest,
     testthat
 LinkingTo: 
     Rcpp,
