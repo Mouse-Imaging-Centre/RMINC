@@ -228,14 +228,14 @@ mincLmerEstimateDF <- function(model) {
     
     
     # code directly from lmerTest library
-    rho <- rhoInitJSS(mmod)
-    dd <- devfun5(mmod, getME(mmod, "is_REML"))
-    h <- myhess(dd, c(rho$thopt, sigma = rho$sigma)) 
+    rho <- lmerTest:::rhoInitJSS(mmod)
+    dd <- lmerTest:::devfun5(mmod, getME(mmod, "is_REML"))
+    h <- lmerTest:::myhess(dd, c(rho$thopt, sigma = rho$sigma)) 
     
     ch <- try(chol(h), silent=TRUE)
     rho$A <- 2*chol2inv(ch)
-    dfs[i,] <- calculateTtestJSS(rho, diag(rep(1, length(rho$fixEffs))),
-                                 length(rho$fixEffs), "simple")[,"df"]
+    dfs[i,] <- lmerTest:::calculateTtestJSS(rho, diag(rep(1, length(rho$fixEffs))),
+                                            length(rho$fixEffs), "simple")[,"df"]
     
   }
   
@@ -291,7 +291,7 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
   # time it can stay outside the loop, but occasionally gives weird errors
   # if inside. So wrapped inside that reinit bit:
   if (reinit) {
-    lmod$reTrms <- mkReTrms(findbars(RHSForm(mcout[[2]])), lmod$fr)
+    lmod$reTrms <- mkReTrms(findbars(lme4:::RHSForm(mcout[[2]])), lmod$fr)
     rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
                                                     "Lambdat", "Lind")],
                                       n = nrow(lmod$X), list(X = lmod$X)))
@@ -320,9 +320,9 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
                       start = start, 
                       calc.derivs = control$calc.derivs,
                       use.last.params = control$use.last.params)
-  cc <- checkConv(attr(opt, "derivs"), opt$par,
-                  ctrl = control$checkConv, 
-                  lbound = environment(devfun)$lower)
+  cc <- lme4:::checkConv(attr(opt, "derivs"), opt$par,
+                         ctrl = control$checkConv, 
+                         lbound = environment(devfun)$lower)
   mmod <- mkMerMod(environment(devfun), opt, lmod$reTrms,
                    fr = lmod$fr, mcout, lme4conv = cc)
   return(mmod)
