@@ -61,14 +61,14 @@ mincFDR <- function(buffer, ...) {
 
 
 #' @export
-vertexFDR <- function(buffer, method="FDR", mask = mask) {
-  mincFDR.mincMultiDim(buffer, columns=NULL, mask=NULL, df=NULL,
-                       method=method)
+vertexFDR <- function(buffer, method = "FDR", mask = NULL) {
+  mincFDR.mincMultiDim(buffer, columns = NULL, mask = mask, df = NULL,
+                       method = method)
 }
 
 #' @describeIn mincFDR mincSingleDim
 #' @export
-mincFDR.mincSingleDim <- function(buffer, df, mask=NULL, method="qvalue", ...) {
+mincFDR.mincSingleDim <- function(buffer, df, mask = NULL, method = "qvalue", ...) {
   if (is.null(df)) {
     stop("Error: need to specify the degrees of freedom")
   }
