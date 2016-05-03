@@ -35,7 +35,7 @@ SystemRequirements:
     git,
     linux_apt: libhdf5-dev
     mac_brew: homebrew/science/hdf5
-License: BSD_3_clause
+License: BSD_3_clause + file LICENSE
 LazyLoad: yes
 OS_type: unix
 SystemRequirements: 
