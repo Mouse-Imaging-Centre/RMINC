@@ -76,11 +76,13 @@ simplify2minc <- function(result_list){
   
   ## Deal with masking, find the first non-masked value, NA it out
   ## insert it back in to standardize element length as much as possible
-  lgl_masked <- vapply(result_list, inherits, logical(1), "RMINC_MASKED_VALUE")
-  first_element <- result_list[[min(which(!lgl_masked))]]      
+  lgl_missing <- vapply(result_list, 
+                        function(res){ inherits(res, "RMINC_MASKED_VALUE") | all(is.na(res)) }, 
+                        logical(1))
+  first_element <- result_list[[min(which(!lgl_missing))]]      
   na_value <- first_element                                
   na_value[] <- getOption("RMINC_MASKED_VALUE")            #set all its elements to masked
-  result_list[lgl_masked] <- list(na_value)                #replace in result list
+  result_list[lgl_missing] <- list(na_value)                #replace in result list
   
   ## Determine the correct reduction technique and apply it
   if(first_element %>% is.atomic && length(first_element) == 1){
@@ -229,6 +231,7 @@ mincFileCheck <- function(filenames) {
 #' @param v2 Second world coordinate
 #' @param v3 Third world coordinate
 #' @return a vector of values 
+#' @export
 mincGetWorldVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
   stopifnot(!is.null(filenames), !is.null(v1))
   enoughAvailableFileDescriptors(length(filenames))
@@ -485,9 +488,11 @@ mincWriteVolume.mincMultiDim <- function(buffer, output.filename, column=1,
   cat("Writing column", column, "to file", output.filename, "\n")
   if (is.null(like.filename)) {
     like.filename <- attr(buffer, "likeVolume")
-  }
-  if (is.na(file.info(as.character(like.filename))$size)) {
-    stop(c("File ", like.filename, " cannot be found.\n"))
+  } else {
+    file_size <- file.info(as.character(like.filename))$size
+    if (is.na(file_size) | length(file_size) == 0 ) {
+      stop(c("File ", like.filename, " cannot be found.\n"))
+    } 
   }
 
   mincWriteVolume.default(buffer[,column], output.filename, like.filename, clobber)
