@@ -9,7 +9,7 @@ UseSpacesForTab: Yes
 NumSpacesForTab: 2
 Encoding: UTF-8
 
-RnwWeave: Sweave
+RnwWeave: knitr
 LaTeX: pdfLaTeX
 
 BuildType: Package
@@ -17,3 +17,4 @@ PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source --configure-args="--with-build-path=$RMINC_BUILD_PATH" --no-lock --no-test-load
 PackageBuildBinaryArgs: --no-multiarch --with-keep.source
 PackageCheckArgs: --install-args="--configure-args=\"--with-build-path=$RMINC_BUILD_PATH\""
+PackageRoxygenize: rd,collate,namespace
