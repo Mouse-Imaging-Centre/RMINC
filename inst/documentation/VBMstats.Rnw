@@ -2,7 +2,6 @@
 %%\VignetteIndexEntry{An introduction to voxel-based morphometry (VBM)}
 
 
-\usepackage{Sweave}
 \usepackage{url}
 \usepackage{makeidx}
 \usepackage{subfigure}
@@ -28,7 +27,7 @@
  
 % Title
 \HRule \\[0.4cm]
-{ \huge \bfseries Structural MRI statistics using RMINC v0.5}\\[0.4cm]
+{ \huge \bfseries Structural MRI statistics using RMINC v1.4}\\[0.4cm]
  
 \HRule \\[1.5cm]
  
@@ -108,36 +107,52 @@ at brain shape, tissue classification, or signal intensities.
 All the analyses will be performed using RMINC, which is a library
 designed to handle MINC\index{MINC} volumes inside the R\index{R}
 statistical environment. All the tools needed are freely available,
-and should run on just about any computer/operating
-system. Installation and setup is described in some more detail below.
+and are designed to run on Debian/Ubuntu Linux and Mac OSX. 
+Installation and setup is described in some more detail below.
 
 
 \subsection{R}
-Quick background about R.
+R is a statistical programming languange that originated in the late 90's
+as an open source alternative to the S language of Bell Labs. Since then
+R has attracted a large community of open source developers and statisticians
+who continually work to improve R either by improving R itself or extending
+it with packages that provide extra functionality. R can be installed on
+almost all platforms, detailed instructions can be found on the R project's
+web page \url{https://www.r-project.org/}
 
-Installing R.
-
-Where to find further reading.
+To learn more about R there are many resources available on the internet.
+In print one could try Intoductory Statistics with R by Peter Dalgaard.
 
 
 \subsection{MINC}
-Quick background about MINC.
 
-In order for RMINC to work, the MINC libraries have to be compiled as
-shared libraries. When configuring, make sure the following flag is added on:
+The Medical Imaging NetCDF file format is an effort to provide a unified 
+imaging format for a variety of medical imaging needs at the Montreal
+Neurological Institute. Since, it has grown a robust suite of tools
+for nearly all computing tasks performed with medical imaging data.
 
-\begin{verbatim}
-./configure --enable-shared=yes
-\end{verbatim}
+The most ideal approach to begin working with MINC files is to acquire
+the minc toolkit (v2). This provides all the necessary infrastructure
+to manipulate minc files both for R and from the command line.
 
-Where to find more information.
+The toolkit can be installed according to the instructions 
+\url{http://bic-mni.github.io/}  in the section V2. Or built from 
+source with code from \url{https://github.com/BIC-MNI/minc-toolkit-v2}.
 
 
 \subsection{RMINC}
-Quick background about RMINC.
 
-Installing RMINC.
+RMINC was created as an attempt to make performing statistical modelling
+with medical imaging data easy, specifically for Voxel-Based Morphometry
+discussed in more detail below. It was created by Jason Lerch, it merged
+with Jim Nikelski's MincIO package, and has been refined ever since by
+members of Montreal Neurological Institute and the Mouse Imaging Centre.
 
+Installation of RMINC has been streamlined, in most cases it should suffice
+to run \texttt{install.packages("RMINC")}. If the minc-toolkit has been
+installed as recommended above RMINC should be able to find it automatically.
+If not RMINC will attempt to acquire the bare-bones C library libminc for 
+you. More details can be found in the package's INSTALL file.
 
 \section{Overview of the analysis process}
 The data analysis process usually proceeds in the following way. First
@@ -241,9 +256,16 @@ given below:
 <<echo=FALSE>>=
 options(width=60)
 
-# get path to volumeData subdir within package
-volDir <- system.file("packageData/volumes", package="RMINC")
-dataDir <- system.file("packageData", package="RMINC")
+downloadDir <- tempdir()
+downloadFile <- file.path(downloadDir, "RMINC_doc_data.tar.gz")
+dataDir <- file.path(downloadDir, "RMINC_doc_data")
+volDir <- file.path(dataDir, "volumes")
+
+download.file("http://repo.mouseimaging.ca/repo/RMINC/RMINC_doc_data.tar.gz",
+              destfile = downloadFile,
+              method = "wget")
+
+untar(downloadFile, exdir = dataDir)
 
 library(xtable)
 @
@@ -266,11 +288,18 @@ a comma separated value) with any arguments (in this case the
 filename) in parentheses. Strings - such as the filename in this case
 - are placed inside quotes.
 
-<<table,results=tex>>=
+<<table,results='asis'>>=
 xtable(gf, caption="GLIM File")
-@ 
 
-The little code fragment and table above just shows what the gf variable looks like after being read into R\footnote{xtable is only necessary for display purposes in this manual (which, by the way, is being written using Sweave, a tool for combining R with latex).} 
+#Make filenames absolute with the data-dir (generally unnecessary)
+gf$Filename <- file.path(dataDir, gf$Filename)
+@
+
+The little code fragment and table above just shows what the gf variable looks like 
+after being read into R\footnote{xtable is only necessary for display 
+purposes in this manual (which, by the way, is being written using knitr, 
+a tool for combining R with latex).}. The last line adjusts the filenames so they can be 
+found reproducibly on your system.
 
 
 
@@ -319,7 +348,7 @@ Once the means at every voxel have been computed, they can be written
 to file. This is done with command below:
 
 <<>>=
-outDir <- "/tmp"
+outDir <- tempdir()
 outFilename <- "overall-mean.mnc"
 outFullFilename <- file.path(outDir, outFilename)
 mincWriteVolume(overall.mean, outFullFilename)
@@ -337,7 +366,7 @@ Most often we are more interested in how the means break down by the
 grouping in this dataset. This can be done by adding another variable
 to the mincMean call:
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE,  eval=TRUE>>=
 setwd(dataDir)
 group.means <- mincMean(gf$Filename, gf$Gender)
 group.means
@@ -347,23 +376,23 @@ The {\em Gender} variable has two levels in it: {\em Male} and {\em
   Female}. So it will take the mean for all subjects in each group. These
 can then be written to file by specifiying the column.
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
-fileOut <- file.path("/tmp", "male-mean.mnc")
+<<echo=TRUE,  eval=TRUE>>=
+fileOut <- file.path(tempdir(), "male-mean.mnc")
 mincWriteVolume(group.means, fileOut, "Male")
 #
-fileOut <- file.path("/tmp", "female-mean.mnc")
+fileOut <- file.path(tempdir(), "female-mean.mnc")
 mincWriteVolume(group.means, fileOut, "Female")
 @
 
 If the difference between the two columns is of interest, one can just
 subtract the two data columns and then write out the result as a new minc volume.
 
-<<echo=TRUE, keep.source=TRUE, eval=FALSE>>=
+<<echo=TRUE,  eval=FALSE>>=
 setwd(dataDir)
 difference <- group.means[,"Male"] - group.means[,"Female"]
 mean(difference)
 #
-fileOut <- file.path("/tmp", "diff.mnc")
+fileOut <- file.path(tempdir(), "diff.mnc")
 likeFile <- gf$Filename[1]
 mincWriteVolume(difference, fileOut, likeFile)
 @
@@ -380,7 +409,7 @@ are the standard-deviations, variances, and sums, as illustrated
 below. Just like {\em mincMean} a column of filenames is required and
 a grouping variable is optional.
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE,  eval=TRUE>>=
 setwd(dataDir)
 volVariance <- mincVar(gf$Filename, gf$Gender)
 volStdDev <- mincSd(gf$Filename)
@@ -412,13 +441,13 @@ Let's start with a simple linear model - lets see where the Jacobian
 determinants contained in the files used in the male-female dataset
 are best modelled by the gender of the mouse.
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE,  eval=TRUE>>=
 setwd(dataDir)
 vs <- mincLm(Filename ~ Gender, gf)
 print(vs)
 #
-fileOut <- file.path("/tmp", "simple-lm.mnc")
-mincWriteVolume(vs, fileOut, "GenderMale")
+fileOut <- file.path(tempdir(), "simple-lm.mnc")
+mincWriteVolume(vs, fileOut, "tvalue-GenderMale")
 @ 
 
 mincLm is the command to run linear models in RMINC. Its basic use is
@@ -436,7 +465,7 @@ gender, will thus have three columns:
   interesting, as it tests for whether the intercept is 0. There's no
   reason to believe it should be in most cases, so this value will be
   highly significant but meaningless.
-\item[GenderMale] the term testing whether the ``Male'' level of the
+\item[GenderMale] the term testing whether the "Male" level of the
   Gender factor is significant. In this case this term is the most
   interesting and therefore the one written to file.
 \end{description}
@@ -447,7 +476,7 @@ the same way as described in the descriptive statistics section.
 
 \section{Plotting voxels}
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE,  eval=TRUE>>=
 setwd(dataDir)
 options(show.signif.stars=FALSE)
 voxel <- mincGetVoxel(gf$Filename, 44, 20, 52)
@@ -473,7 +502,7 @@ functions.
 the same order as stored in the file. Just printing the voxel will
 show the corresponding world coordinates:
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE,  eval=TRUE>>=
 print(voxel)
 @ 
 
@@ -481,7 +510,7 @@ If the coordinates are specified in world coordinates then
 \texttt{mincGetWorldVoxel} is what you want - it also takes three
 coordinates, this time in world space in xspace,yspace,zspace order:
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE,  eval=TRUE>>=
 world.voxel <- mincGetWorldVoxel(gf$Filename, -3.6, -3.9, -1.5)
 world.voxel
 @ 
@@ -496,11 +525,11 @@ MICe-minc-tools\footnote{\url{http://wiki.phenogenomics.ca:8080/display/MICePub/
 
 An example is given below - this will create an image of the slice
 corresponding to the voxel location along with a cross-hair over that
-voxel. The output can be seen in figure \emph{ref{ray-trace-img}}, along
+voxel. The output can be seen in figure \emph{ray-trace-img}, along
 with a box-and-whiskers plot of the data at that voxel.
 
-<<echo=TRUE, keep.source=TRUE, eval=FALSE>>=
-mincRayTraceStats(voxel, "volumes/anatomy.mnc",
+<<echo=TRUE,  eval=FALSE>>=
+mincRayTraceStats(voxel, file.path(volDir, "anatomy.mnc"),
                   vs, "GenderMale", image.min=350000, image.max=1.0e+06,
                   display=F)
 @ 
@@ -533,7 +562,7 @@ It is quite common to want to run a linear model on only a subset of
 the data. This can be quite easily accomplished in \texttt{mincLm}
 using an extra subsetting specification:
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE,  eval=TRUE>>=
 setwd(dataDir)
 vs <- mincLm(Filename ~ Gender, gf, coil==1)
 vs
@@ -550,16 +579,16 @@ The example below illustrates the entire process involved in
 running a linear model and correcting for multiple comparisons using
 the False Discovery Rate.
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE, eval=TRUE>>=
 setwd(dataDir)
 vs <- mincLm(Filename ~ Gender, gf)
 print(vs)
 #
-qvals <- mincFDR(vs, mask="volumes/mask.mnc", method="pFDR")
+qvals <- mincFDR(vs, mask = file.path(volDir, "mask.mnc"), method="pFDR")
 print(qvals)
 #
-fileOut <- file.path("/tmp", "Gender-FDR.mnc")
-mincWriteVolume(qvals, fileOut, "GenderMale")
+fileOut <- file.path(tempdir(), "Gender-FDR.mnc")
+mincWriteVolume(qvals, fileOut, "tvalue-GenderMale")
 @ 
 
 The first command computes a linear model using \texttt{mincLm}. The
@@ -580,9 +609,9 @@ argument is specified for \texttt{mincFDR}).
 You can also compute the FDR from a volume that has already been
 written to file: 
 
-<<echo=TRUE, keep.source=TRUE, eval=TRUE>>=
+<<echo=TRUE, eval=TRUE>>=
 setwd(dataDir)
-volname <-file.path("/tmp", "simple-lm.mnc")
+volname <-file.path(tempdir(), "simple-lm.mnc")
 volume <- mincGetVolume(volname)
 #
 qvals <- mincFDR(volume, df=21, statType="t")
@@ -618,7 +647,7 @@ module you would like to try out. Some words of caution are in order,
 however:
 
 \begin{itemize}
-\item Running arbitrary functions involves writing your own small R
+\item Running arbitrary functions may involve writing your own small R
   function to wrap the code you want to use, which is a bit ugly.
 \item It is slow. Slower than molasses on a cold Georgia winter
   morning.
@@ -626,7 +655,7 @@ however:
 
 Here's an example of how it works:
 
-<<echo=TRUE, keep.source=TRUE, eval=FALSE>>=
+<<echo=TRUE, eval=FALSE>>=
 f <- function() {
   return(tapply(x, gf$Genotype, mean))
 }
@@ -644,7 +673,27 @@ which has the following properties:
 \item It returns a vector.
 \end{itemize}
 
+An updated alternative that does not require that you wrap your function
+as a single argument function is mincApplyRCPP
 
+<<echo=TRUE, eval=FALSE>>==
+vs <- mincApplyRCPP(gf$jacobians, tapply, INDEX = gf$Genotype, FUN = mean)
+@
+
+\texttt{mincApplyRCPP} allows you to pass additional arguments to your function of 
+interest, in this case INDEX and FUN, via the \texttt{...} interface. For
+safety it is highly recommended you supply arguments by name.
+It is worth reading \texttt{?mincApplyRCPP} for additional warnings 
+regarding the destructive binding of \texttt{...} arguments. 
+
+An additional convenience provided by \texttt{mincApplyRCPP} is the type conversion
+argument. To provide added flexibility, \texttt{mincApplyRCPP} gives you the option
+to caste your results into a format useful to you. By default the argument \texttt{collate} 
+is set to \texttt{simplify2minc} which attempts to intelligently caste your results as
+a known RMINC object. This argument can take any function, it is applied to the list of
+voxel results produced internally. Example casting functions are \texttt{identity} which
+returns the result list unaltered, and \texttt{dplyr::bind\_rows} which will try to
+collapse the results into a data.frame.
 
 \printindex
 
