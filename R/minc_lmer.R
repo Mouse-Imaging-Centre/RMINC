@@ -16,6 +16,9 @@
 #' @param control lmer control function
 #' @param start lmer start function
 #' @param verbose lmer verbosity control
+#' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
+#' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
+#' NA for the result.
 #'
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
 #' the number of terms in the formula, with both the beta coefficient and the t-statistic
@@ -64,7 +67,8 @@
 #' }
 #' @export
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
-                     REML=TRUE, control=lmerControl(), start=NULL, verbose=0L) {
+                     REML=TRUE, control=lmerControl(), start=NULL, 
+                     verbose=0L, safely = FALSE) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -109,6 +113,15 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   slab_dims <- minc.dimensions.sizes(lmod$fr[1,1])
   slab_dims[1] <- 1
   
+  mincLmerOptimizeAndExtractSafely <-
+    function(x, mincLmerList){
+      tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+               error = function(e){warning(e); return(NA)})
+    }
+  
+  optimizer_fun <- 
+    `if`(safely, mincLmerOptimizeAndExtractSafely, mincLmerOptimizeAndExtract)
+  
   if (!is.null(parallel)) {
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall", "sge")) {
@@ -116,7 +129,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
         parallel[1] <- "snowfall" #local and snowfall are synonymous
       }
       out <- mcMincApply(lmod$fr[,1],
-                         mincLmerOptimizeAndExtract,
+                         optimizer_fun,
                          mincLmerList = mincLmerList,
                          filter_masked = TRUE,
                          mask = mask,
@@ -129,7 +142,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   }
   else {
     out <- mincApplyRCPP(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
-                         mincLmerOptimizeAndExtract,
+                         optimizer_fun,
                          mincLmerList = mincLmerList,
                          mask = mask,
                          slab_sizes = slab_dims)

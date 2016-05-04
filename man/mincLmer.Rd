@@ -5,7 +5,7 @@
 \title{mincified version of lmer from lme4}
 \usage{
 mincLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
-  control = lmerControl(), start = NULL, verbose = 0L)
+  control = lmerControl(), start = NULL, verbose = 0L, safely = FALSE)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -26,6 +26,10 @@ of processors to use.}
 \item{start}{lmer start function}
 
 \item{verbose}{lmer verbosity control}
+
+\item{safely}{whether or not to wrap the per-voxel lmer code in an exception catching
+block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
+NA for the result.}
 }
 \value{
 a matrix where rows correspond to number of voxels in the file and columns to
