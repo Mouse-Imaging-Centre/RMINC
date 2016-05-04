@@ -72,9 +72,11 @@ mincFDR.mincSingleDim <- function(buffer, df, mask = NULL, method = "qvalue", ..
   if (is.null(df)) {
     stop("Error: need to specify the degrees of freedom")
   }
-  if (length(df) == 1) {
-    df <- c(1,df)
-  }
+  # if (length(df) == 1) {
+  #   df <- c(1,df)
+  # }
+  
+  dim(buffer) <- c(length(buffer), 1)
   mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method, ...)
 }
 
@@ -281,28 +283,31 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
                                  method="FDR", statType=NULL, ...) {
   
-  if(method == "qvalue")  
-    if(!requireNamespace("qvalue", quietly = TRUE))
-      stop("The qvalue package must be installed for mincFDR to work")
-  
+  if(is.null(attr(buffer, "df"))) attr(buffer, "df") <- df
+  originalMincAttrs <- mincAttributes(buffer)
+  stattype <- originalMincAttrs$`stat-type`
   
   # Remove coefficients from buffer
-  stattype = attr(buffer, "stat-type")
-  df  = attr(buffer,"df")
-  for (nStat in 1:length(stattype)) {
-    if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared' || stattype[nStat] == "logLik") {
-      if(!exists('indicesToRemove')) {
-        indicesToRemove = nStat 
-      }
-      else {
-        indicesToRemove = c(indicesToRemove,nStat) 
+  if(!is.null(stattype)){
+    for (nStat in 1:length(stattype)) {
+      if(stattype[nStat] == 'beta' || stattype[nStat] == 'R-squared' || stattype[nStat] == "logLik") {
+        if(!exists('indicesToRemove')) {
+          indicesToRemove = nStat 
+        }
+        else {
+          indicesToRemove = c(indicesToRemove,nStat) 
+        }
       }
     }
-  }
-  if(exists('indicesToRemove')) {
-    buffer = buffer[,-indicesToRemove]
-    attr(buffer, "stat-type") <- stattype[-indicesToRemove]
-    attr(buffer, "df") <- df
+    if(exists('indicesToRemove')) {
+      
+      updatedAttrs <- originalMincAttrs
+      updatedAttrs$`stat-type` <- updatedAttrs$`stat-type`[-indicesToRemove]
+      updatedAttrs$dimnames[[2]] <- updatedAttrs$dimnames[[2]][-indicesToRemove]
+      
+      buffer <- buffer[,-indicesToRemove]
+      buffer <- setMincAttributes(buffer, updatedAttrs)
+    }
   }
   
   
