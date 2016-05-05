@@ -3,10 +3,12 @@ Version: 1.4.0.0
 Date: 2016-05-02
 Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
 Authors@R: c(person("Jason", "Lerch", role = c("aut", "cre"), email = "jason.lerch@sickkids.ca"), 
-             person("Jim",  "Nikelski", role = "aut", email = "nikelski@bic.mni.mcgill.ca"),
              person("Chris", "Hammill", role = "aut", email = "cfhammill@gmail.com"),
              person("Matthijs", "van Eede", role = "aut", email = "matthijs.vaneede@sickkids.ca"),
-             person("Daniel", "Cassel", role = "aut"))
+             person("Daniel", "Cassel", role = "aut"),
+             person("Jim",  "Nikelski", role = "ctb", email = "nikelski@bic.mni.mcgill.ca"),
+             person("Yohan", "Yee", role = "ctb", email = "yohan.yee@sickkids.ca"),
+             person("Miriam", "Friedel", role = "ctb"))
 Maintainer: Chris Hammill <cfhammill@gmail.com>
 Description: Tools for reading, writing, analyzing, and visualizing Medical Imaging NetCDF (MINC) files
              with R. 
@@ -18,6 +20,11 @@ Imports:
     dplyr,
     lme4,
     shiny,
+    methods,
+    grDevices,
+    graphics,
+    utils,
+    stats,
     Rcpp,
     parallel
 Suggests:

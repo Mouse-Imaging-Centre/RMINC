@@ -9,6 +9,17 @@
 #' @import Rcpp
 #' @import lme4
 #' @import BatchJobs
+#' @import methods
+#' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
+#' @importFrom graphics abline contour hist layout mtext par plot.default
+#'                      plot.new rasterImage
+#' @importFrom stats anova df.residual formula lm lm.fit
+#'                   logLik median model.matrix p.adjust pchisq
+#'                   pf predict pt pwilcox qchisq qf qt
+#'                   quantile qwilcox rnorm runif sd setNames
+#'                   simulate smooth.spline t.test terms var
+#'                   vcov
+#' @importFrom utils download.file glob2rx read.csv read.table untar write.table
 #' @useDynLib RMINC
 #' @docType package
 #' @name RMINC
