@@ -835,8 +835,9 @@ parseLmFormula <- function(formula,data,mf)
       term <- data[[as.character(formula[[3]])]]
     }
 
-    fileinfo = file.info(as.character(term[1]))
-    if (!is.na(fileinfo$size)) {
+    file_covariate <- grepl("\\.mnc$", as.character(term[1]))
+
+    if (file_covariate) {
       # Save term name for later
       rows = c('Intercept',formula[[3]])
       matrixName = formula[[3]]
