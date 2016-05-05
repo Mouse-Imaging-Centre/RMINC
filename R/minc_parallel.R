@@ -297,6 +297,7 @@ qMincApply <-
              filenames, 
              fun = match.fun(fun), 
              ..., 
+             batches = batches,
              mask = mask, 
              tinyMask = tinyMask,
              temp_dir = temp_dir,

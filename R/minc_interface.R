@@ -51,13 +51,22 @@ mincAttributes <-
 #' @export
 setMincAttributes <-
   function(minc_object, updated_attrs){
+    
+    if(is.null(updated_attrs) || length(updated_attrs) == 0)
+      return(minc_object)
+    
     if(any(! names(updated_attrs) %in% known_minc_attributes)) 
       stop(sprintf("New attributes must be a known minc object attribute (%s)",
                    paste0(known_minc_attributes, collapse = ", ")))
     
     all_attrs <- attributes(minc_object)
-    all_attrs <- `if`(is.null(all_attrs), list(), all_attrs)
-    all_attrs <- as.environment(all_attrs)
+    
+    if(is.null(all_attrs)){
+      all_attrs <- environment()
+    } else  {
+      all_attrs <- as.environment(all_attrs)
+    }
+    
     list2env(updated_attrs, all_attrs)
     attributes(minc_object) <- as.list(all_attrs)
     
