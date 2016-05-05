@@ -1,7 +1,10 @@
-Statistics for MINC volumes: A library to integrate voxel-based statistics for MINC volumes into the R environment. 
-Supports getting and writing of MINC volumes, running voxel-wise linear models, correlations, etc.; correcting for 
-multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Chris Hammill, 
-Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some additional information can be found here:
+Statistics for MINC volumes: A library to integrate voxel-based
+statistics for MINC volumes into the R environment.  Supports getting
+and writing of MINC volumes, running voxel-wise linear models,
+correlations, etc.; correcting for multiple comparisons using the
+False Discovery Rate, and more. With contributions from Jason Lerch,
+Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some
+additional information can be found here:
 
 https://wiki.phenogenomics.ca/display/MICePub/RMINC
 
@@ -9,12 +12,16 @@ https://wiki.phenogenomics.ca/display/MICePub/RMINC
 Installation:
 -------------
 
-RMINC provides functionality for working with Medical Imaging NetCDF files, and relies on C libraries specifically
-designed for working with these files. For the richest experience please install the minc-toolkit (v2), either from
-the binary installer: http://bic-mni.github.io/ or from source: https://github.com/BIC-MNI/minc-toolkit-v2. If
-the toolkit is not found on your system, RMINC will attempt to install libminc from source. This requires a
-version of CMake greater than 2.6 and git, as well as the HDF5 development headers. For more details read
-the INSTALL file 
+RMINC provides functionality for working with Medical Imaging NetCDF
+files, and relies on C libraries specifically designed for working
+with these files. For the richest experience please install the
+minc-toolkit (v2), either from the binary installer:
+http://bic-mni.github.io/ or from source:
+https://github.com/BIC-MNI/minc-toolkit-v2. If the toolkit is not
+found on your system, RMINC will attempt to install libminc from
+source. This requires a version of CMake greater than 2.6 and git, as
+well as the HDF5 development headers. For more details read the
+INSTALL file
 
 **Currently there is no support for RMINC on windows**
 
@@ -23,11 +30,11 @@ Tutorials
 
 RMINC provides learning material:
 
-Voxel-wise Statistics: https://rawgit.com/cfhammill/RMINC/develop/inst/documentation/VBMStats.pdf
+Voxel-wise Statistics: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMStats.pdf
  
-RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/develop/inst/doc/visualizationTutorial.html
+RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
 
-Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/develop/inst/doc/RMINC_rgl.html
+Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/doc/RMINC_rgl.html
 
 Development Version:
 ---------------------
