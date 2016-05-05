@@ -124,7 +124,7 @@ mcMincApply <-
     sample_file <- filenames[1]
     
     temp_dir <- path.expand(temp_dir)
-    if(!dir.exists(temp_dir)) dir.create(temp_dir)
+    if(!file.exists(temp_dir)) dir.create(temp_dir)
     
     sample_volume <- mincGetVolume(sample_file)
     mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
@@ -366,7 +366,7 @@ qMincMap <-
     sample_file <- filenames[1]
     
     temp_dir <- normalizePath(temp_dir)
-    if(!dir.exists(temp_dir)) dir.create(temp_dir)
+    if(!file.exists(temp_dir)) dir.create(temp_dir)
     
     sample_volume <- mincGetVolume(sample_file)
     mask_files <- replicate(batches, tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc"))
