@@ -1,16 +1,13 @@
-citHeader("To cite package 'RMINC' in publications use:")
+year <- sub("-.*", "", meta$Date)
+note <- sprintf("R package version %s", meta$Version)
 
-desc <- packageDescription("RMINC")
-vers <- paste("R package version", desc$Version)
+bibentry(bibtype = "Manual",
+         title = "{RMINC}: Statistical Tools for Medical Imaging NetCDF (MINC) Files",
+		     author = c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
+                    person("Chris", "Hammill", role = c("aut", "cre"), email = "cfhammill@gmail.com"),
+                    person("Matthijs", "van Eede", role = "aut", email = "matthijs.vaneede@sickkids.ca"),
+                    person("Daniel", "Cassel", role = "aut")),
+		     year = year,
+		     note = note,
+		     url = "https://CRAN.R-project.org/package=RMINC")
 
-citEntry(entry="Manual",
-		title = "Package RMINC: Voxel-Wise Morphometry using RMINC",
-		author = personList(as.person("Jason Lerch"), as.person("Jim Nikelski"), as.person("the RMINC team")),
-		year = 2010,
-		note = vers,
-		organization = "McGill University",
-		address = "Montreal, Quebec, Canada",
-		textVersion = paste("Jason Lerch, Jim Nikelski, and the RMINC team (2016). RMINC: Statistical Analysis of Medical Imaging NetCDF (MINC) Files.",
-		                     vers, ". ",
-		                    "McGill University, Montreal, Quebec, Canada.", sep="")
-)

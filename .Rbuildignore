@@ -4,3 +4,4 @@
 ^.Rdata$
 ^.Rhistory$
 ^.travis.yml$
+^.git$
