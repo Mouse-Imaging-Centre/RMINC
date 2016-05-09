@@ -1,6 +1,6 @@
 # compute a linear model over every structure
 
-
+#' @export 
 anatGetFile <- function(filename, 
                         atlas, 
                         method = "jacobians", 
@@ -68,6 +68,15 @@ anatGetFile <- function(filename,
   return(out)
 }
 
+#' Rename anatomy results
+#' 
+#' Change the rownames of an anatMatrix type object to match new label 
+#' definitions
+#' 
+#' @param anat An anatMatrix object produced by \link{anatGetAll} or \link{anatGetFile}
+#' @param defs new structure definitions in the format specified in \link{voxel_atlas_defs}
+#' @return an \code{anatUnilateral} object with the adjust structure names
+#' @export
 anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
@@ -118,9 +127,12 @@ print.anatMatrix <- function(x, ...) {
 #' @description Computes volumes, means, sums, and similar values across a
 #' segmented atlas
 #' @name anatGetAll
+#' @aliases anatGetFile
 #' @title Get values given a set of files and an atlas
 #' @param filenames A vector of filenames (strings) which contain the
 #' information to be extracted at every structure in the atlas.
+#' @param filename A single file which contains information to be extracted
+#' for every structure in an atlas.
 #' @param atlas A single filename containing the atlas definitions. This MINC
 #' volume has to be of the same sampling (sizes and dimension
 #' order) as the filenames specified in the first argument and
