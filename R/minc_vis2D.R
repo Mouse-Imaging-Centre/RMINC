@@ -419,8 +419,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
   if (is.null(col)) {
     if (symmetric==TRUE) {
       col <- colorRampPalette(c("red", "yellow"))(255)
-    }
-    else {
+    } else {
       col <- rainbow(255)
     }
   }
@@ -546,7 +545,7 @@ mincImage <- function(volume, dimension=2, slice=NULL,
     #necessary for floor(n) + 1 below to avoid IOB
     scaledSlice <- 
       s$slice / 
-      (abs(high) + .Machine$double.eps) * 
+      (abs(high - low) + .Machine$double.eps) * 
       colourDepth
     
     scaledSlice <- floor(scaledSlice) + 1
@@ -608,9 +607,9 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
     low <- low*-1
   }
   
+  slice[slice >= high] <- high
   slice <- slice - low
   
-  slice[slice >= high] <- high
   if (underTransparent) {
     under <- NA
   }
