@@ -1,133 +1,13 @@
 #include <Rcpp.h>
 #include "minc2.h"
-#include "minc_apply.h"
+#include "minc_cpp.h"
+#include <sstream>
 using namespace Rcpp;
 using namespace std;
 
 typedef pair<RObject, int> indexed_robj;
 bool comparator(const indexed_robj& l, const indexed_robj& r){
   return l.second < r.second;
-}
-
-void cautious_get_hyperslab(mihandle_t volume,
-                            mitype_t buffer_data_type,
-                            misize_t *voxel_offsets,
-                            misize_t *sizes,
-                            void *buffer,
-                            String error_message){
- int res = miget_real_value_hyperslab(volume, buffer_data_type, voxel_offsets, sizes, buffer);
- if(res != MI_NOERROR){
-   stop(error_message);
- }
-}
-
-void cautious_open_volume(char *filename, int mode, mihandle_t *volume, String error_message){
-  int res = miopen_volume(filename, mode, volume);
-  if(res != MI_NOERROR){
-    stop(error_message);
-  }
-}
-  
-mihandle_t open_minc2_volume(CharacterVector filename){
-  mihandle_t current_handle;
-  int read_result;
-  
-  cautious_open_volume(filename[0],
-                       MI2_OPEN_READ, 
-                       &current_handle,
-                       "Trouble reading file: " + filename[0]); 
-  
-  return(current_handle);
-}
-
-vector<mihandle_t> open_minc2_volumes(CharacterVector filenames){
-  
-  vector<mihandle_t> volumes;
-  mihandle_t current_handle;
-  CharacterVector::iterator file_iterator;
-  vector<mihandle_t>::iterator volume_iterator;
-  
-  for(file_iterator = filenames.begin();
-      file_iterator != filenames.end();
-      ++file_iterator){
-    try {
-      current_handle = open_minc2_volume(wrap(*file_iterator));
-    } catch(...){
-      for(volume_iterator = volumes.begin(); volume_iterator != volumes.end(); ++volume_iterator){
-        miclose_volume(*volume_iterator);
-      }
-      throw;
-    }
-    
-    volumes.push_back(current_handle);
-  }
-  
-  return(volumes);
-}
-
-
-
-bool check_same_dimensions(vector<mihandle_t> volumes){
-  vector<mihandle_t>::iterator volume_iterator;
-  
-  midimhandle_t first_dims[3];
-  misize_t first_sizes[3];  
-  midimhandle_t dimensions[3];
-  misize_t sizes[3];
-  
-  miget_volume_dimensions(volumes[0], MI_DIMCLASS_SPATIAL,
-                          MI_DIMATTR_ALL, MI_DIMORDER_FILE,
-                          3, first_dims);
-  
-  miget_dimension_sizes( first_dims, 3, first_sizes);
-  
-  bool all_same_size = true;
-  for(volume_iterator = volumes.begin() + 1; 
-      volume_iterator != volumes.end() && all_same_size; 
-      ++volume_iterator){
-    
-    miget_volume_dimensions(*volume_iterator, MI_DIMCLASS_SPATIAL,
-                            MI_DIMATTR_ALL, MI_DIMORDER_FILE,
-                            3, dimensions);
-    
-    miget_dimension_sizes(dimensions, 3, sizes);
-    
-    all_same_size = 
-      all_same_size && 
-      sizes[0] == first_sizes[0] &&
-      sizes[1] == first_sizes[1] &&
-      sizes[2] == first_sizes[2];
-  }
-  
-  return(all_same_size);
-}
-
-
-
-vector<misize_t> get_volume_dimensions(mihandle_t volume){
-  midimhandle_t dimensions[3];
-  misize_t sizes[3];
-  vector<misize_t> volume_dimensions;
-  
-  int success = miget_volume_dimensions(volume, MI_DIMCLASS_SPATIAL,
-                                        MI_DIMATTR_ALL, MI_DIMORDER_FILE,
-                                        3, dimensions);
-  
-  if(success != MI_NOERROR){
-    stop("Couldn't read volume dimensions");
-  }
-  
-  success = miget_dimension_sizes(dimensions, 3, sizes);
-  
-  if(success != MI_NOERROR){
-    stop("Couldn't read dimension sizes");
-  }
-  
-  for(int i = 0; i < 3; ++i){
-    volume_dimensions.push_back(sizes[i]);
-  }
-  
-  return(volume_dimensions);
 }
 
 // [[Rcpp::export]]
@@ -204,19 +84,25 @@ List rcpp_minc_apply(CharacterVector filenames,
         
         //Check if a mask was supplied, then check if the current voxel is masked
         if(use_mask){
-          miget_real_value_hyperslab(mask_handle,    // read from handle
-                                     MI_TYPE_DOUBLE, // double data
-                                     voxel_offsets,  // starting from position
-                                     hyperslab_dims, // how many voxels
-                                     &mask_buffer);  // into
+          cautious_get_hyperslab(mask_handle,    // read from handle
+                                 MI_TYPE_DOUBLE, // double data
+                                 voxel_offsets,  // starting from position
+                                 hyperslab_dims, // how many voxels
+                                 &mask_buffer,   // into
+                                 "Error Reading Mask");  
         }
         
         for(int vol = 0; vol < nvols; ++vol){
-          miget_real_value_hyperslab(volumes[vol],
-                                     MI_TYPE_DOUBLE,
-                                     voxel_offsets,
-                                     hyperslab_dims,
-                                     &slab_buffer[vol][0][0][0]);
+          stringstream error_message;
+          error_message.str("Error Reading Volume ");
+          error_message << (vol + 1);
+          
+          cautious_get_hyperslab(volumes[vol],
+                                 MI_TYPE_DOUBLE,
+                                 voxel_offsets,
+                                 hyperslab_dims,
+                                 &slab_buffer[vol][0][0][0],
+                                 error_message.str());
         }
         
         for(misize_t x = 0; x < hyperslab_dims[0]; ++x){

@@ -25,11 +25,11 @@ extern void cautious_get_hyperslab(mihandle_t volume,
                                    misize_t *voxel_offsets,
                                    misize_t *sizes,
                                    void *buffer,
-                                   String error_message);
+                                   string error_message);
 
 extern void cautious_open_volume(char *filename, 
                                  int mode, 
                                  mihandle_t *volume, 
-                                 String error_message)
+                                 string error_message);
 
 #endif
