@@ -12,7 +12,7 @@
 #' @import methods
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
 #' @importFrom graphics abline contour hist layout mtext par plot.default
-#'                      plot.new rasterImage
+#'                      plot.new rasterImage text
 #' @importFrom stats anova df.residual formula lm lm.fit
 #'                   logLik median model.matrix p.adjust pchisq
 #'                   pf predict pt pwilcox qchisq qf qt
