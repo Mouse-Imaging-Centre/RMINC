@@ -1,6 +1,3 @@
-# compute a linear model over every structure
-
-#' @export 
 anatGetFile <- function(filename, 
                         atlas, 
                         method = "jacobians", 
@@ -68,15 +65,6 @@ anatGetFile <- function(filename,
   return(out)
 }
 
-#' Rename anatomy results
-#' 
-#' Change the rownames of an anatMatrix type object to match new label 
-#' definitions
-#' 
-#' @param anat An anatMatrix object produced by \link{anatGetAll} or \link{anatGetFile}
-#' @param defs new structure definitions in the format specified in \link{voxel_atlas_defs}
-#' @return an \code{anatUnilateral} object with the adjust structure names
-#' @export
 anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   if(defs == ""){
     stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
