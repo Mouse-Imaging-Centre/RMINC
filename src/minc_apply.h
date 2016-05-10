@@ -20,4 +20,16 @@ extern List rcpp_minc_apply(CharacterVector filenames,
                             Function fun, 
                             List args);
 
+extern void cautious_get_hyperslab(mihandle_t volume,
+                                   mitype_t buffer_data_type,
+                                   misize_t *voxel_offsets,
+                                   misize_t *sizes,
+                                   void *buffer,
+                                   String error_message);
+
+extern void cautious_open_volume(char *filename, 
+                                 int mode, 
+                                 mihandle_t *volume, 
+                                 String error_message)
+
 #endif
