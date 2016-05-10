@@ -32,4 +32,6 @@ extern void cautious_open_volume(char *filename,
                                  mihandle_t *volume, 
                                  string error_message);
 
+extern vector<misize_t> get_volume_dimensions(mihandle_t volume);
+
 #endif

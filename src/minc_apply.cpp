@@ -28,7 +28,7 @@ List rcpp_minc_apply(CharacterVector filenames,
   vector<mihandle_t>::iterator volume_iterator;
   
   if(!check_same_dimensions(volumes)){
-    throw range_error("At least one file is a different size");
+    stop("At least one file is a different size");
   }
   
   if(use_mask){
@@ -39,25 +39,18 @@ List rcpp_minc_apply(CharacterVector filenames,
     mask_and_vol.push_back(volumes[0]);
     
     if(!check_same_dimensions(mask_and_vol)){
-      throw range_error("The mask and files differ in size");
+      stop("The mask and files differ in size");
     }  
   }
   
-  midimhandle_t dimensions[3];
-  misize_t sizes[3];  
-  miget_volume_dimensions(volumes[0], MI_DIMCLASS_SPATIAL,
-                          MI_DIMATTR_ALL, MI_DIMORDER_FILE,
-                          3, dimensions);
-  
-  miget_dimension_sizes( dimensions, 3, sizes);
-  
+  vector<misize_t> sizes = get_volume_dimensions(volumes[0]);
   misize_t hyperslab_dims[3];
   misize_t n_slabs[3];
   
   for(int i = 0; i < 3; ++i){
     hyperslab_dims[i] = (misize_t) slab_sizes[i];
     if(sizes[i] % hyperslab_dims[i] != 0){
-      throw range_error("Volume not an even multiple of hyperslab size");
+      stop("Volume not an even multiple of hyperslab size");
     }
     n_slabs[i] = sizes[i] / hyperslab_dims[i];
   }
