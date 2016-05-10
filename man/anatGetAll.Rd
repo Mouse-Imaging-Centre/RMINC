@@ -2,6 +2,7 @@
 % Please edit documentation in R/minc_anatomy.R
 \name{anatGetAll}
 \alias{anatGetAll}
+\alias{anatGetFile}
 \title{Get values given a set of files and an atlas}
 \usage{
 anatGetAll(filenames, atlas, method = "jacobians",
@@ -32,6 +33,9 @@ or just for the ones actually contained in each file.}
 
 \item{side}{Three choices, "right", "left", and "both" (the default)
 which specify what labels to obtain.}
+
+\item{filename}{A single file which contains information to be extracted
+for every structure in an atlas.}
 }
 \value{
 A matrix with ncols equal to the number of labels in the atlas and
