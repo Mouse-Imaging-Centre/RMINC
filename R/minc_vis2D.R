@@ -539,23 +539,14 @@ mincImage <- function(volume, dimension=2, slice=NULL,
   
   if(!all(is.na(s$slice))){
     colourDepth <- length(col)
+
+    paletteScaledSlice <- scaleSliceToPalette(s$slice, low, high, col)
     
-    #Scale the slice to span the colour depth
-    #Adding double epsilon keeps scale [0, colourDepth)
-    #necessary for floor(n) + 1 below to avoid IOB
-    scaledSlice <- 
-      s$slice / 
-      (abs(high - low) + .Machine$double.eps) * 
-      colourDepth
+    colourizedSlice <- col[paletteScaledSlice]
+    dim(colourizedSlice) <- sliceDims
     
-    scaledSlice <- floor(scaledSlice) + 1
-    
-    colourizedSlice <- col[scaledSlice]
-      
-    dim(colourizedSlice) <- dim(scaledSlice)
-    
-    flip_option <- options()$RMINC_flip_image
-    if(!is.null(flip_option) && flip_option)
+    flip_option <- getOption("RMINC_flip_image", FALSE)
+    if(flip_option)
       colourizedSlice <- colourizedSlice[,sliceDims[2]:1]
       
     colourizedSlice <- t(colourizedSlice) #transpose for raster plotting
@@ -566,30 +557,6 @@ mincImage <- function(volume, dimension=2, slice=NULL,
   }
   
   return(invisible(NULL))
-}
-
-#' Draw contour lines from a MINC volume
-#'
-#' @param volume the output of mincArray
-#' @param dimension the dimension (from 1 to 3)
-#' @param slice the slice number
-#' @param ... other parameters to pass on to \code{\link{contour}}
-#'
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' mincImage(mincArray(anatVol), slice=100, col=gray.colors(255))
-#' mincContour(mincArray(anatVol), slice=100, add=T, col=rainbow(2), levels=c(1000, 1400))
-#' }
-mincContour <- function(volume, dimension=2, slice=NULL, ...) {
-  
-  if(length(dim(volume)) != 3) 
-    stop("volume must be 3 dimensional, you may be missing a call to mincArray")
-  
-  s <- getSlice(volume, slice, dimension)
-  sliceDims <- dim(s$slice)
-  contour(1:sliceDims[1], 1:sliceDims[2], s$slice, asp=1, ...)
 }
 
 scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
@@ -619,6 +586,45 @@ scaleSlice <- function(slice, low=NULL, high=NULL, underTransparent=TRUE) {
   
   slice[slice <= 0] <- under
   return(slice)
+}
+
+scaleSliceToPalette <- 
+  function(slice, low, high, palette){
+    dims <- dim(slice)
+    slice <- #Scale to 0-1
+      slice / abs(high - low)
+    
+    maxima <- which(slice == 1)
+    slice[maxima] <- slice[maxima] - .Machine$double.eps
+    slice <- slice * length(palette)
+    slice <- floor(slice) + 1
+    dim(slice) <- dims
+    
+    return(slice)
+  }
+
+#' Draw contour lines from a MINC volume
+#'
+#' @param volume the output of mincArray
+#' @param dimension the dimension (from 1 to 3)
+#' @param slice the slice number
+#' @param ... other parameters to pass on to \code{\link{contour}}
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' mincImage(mincArray(anatVol), slice=100, col=gray.colors(255))
+#' mincContour(mincArray(anatVol), slice=100, add=T, col=rainbow(2), levels=c(1000, 1400))
+#' }
+mincContour <- function(volume, dimension=2, slice=NULL, ...) {
+  
+  if(length(dim(volume)) != 3) 
+    stop("volume must be 3 dimensional, you may be missing a call to mincArray")
+  
+  s <- getSlice(volume, slice, dimension)
+  sliceDims <- dim(s$slice)
+  contour(1:sliceDims[1], 1:sliceDims[2], s$slice, asp=1, ...)
 }
 
 # simpleBrainPlot <- function(anatomy, statistics, slice, dimension=2, 
