@@ -104,7 +104,7 @@ vector<misize_t> get_volume_dimensions(mihandle_t volume){
                                         MI_DIMATTR_ALL, MI_DIMORDER_FILE,
                                         3, dimensions);
   
-  if(success != MI_NOERROR){
+  if(success == MI_ERROR){
     stop("Couldn't read volume dimensions");
   }
   
