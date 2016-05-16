@@ -567,3 +567,126 @@ vertexLookup <-
     coersion_function(map_value)
   }
 
+#' Read a BIC-obj line file
+#' 
+#' Parse the BIC obj format for when the object contains
+#' lines instead of a mesh. 
+#' 
+#' @param lines_obj Path to the object file of interest
+#' @return \code{bic_lines} object, which is a list of matrices, each 
+#' matrix coresponds to one line in the object. The matrices are 3xN matrices 
+#' of world coordinates.
+#' @export
+read_line_obj <-
+  function(line_obj){
+    lines <- readLines(line_obj)
+    
+    general_info <- lines[1]
+    
+    ## Hacky parsing BIC .obj format see https://github.com/BIC-MNI/bicpl/Documentation
+    ## This probably only works with output from CIVET 1.1.12
+    section_ends <- 
+      lines %>%
+      `==`("") %>%
+      which %>%
+      as.list %>%
+      setNames(c("vertices", "colours", "line_ends"))
+    
+    parse_numbers <- 
+      function(lines){
+        lines %>%
+          strsplit(" ") %>%
+          unlist %>%
+          Filter(f = function(chr) chr != "" ) %>%
+          as.numeric
+      }
+    
+    vertices <- 
+      lines[2:section_ends$vertices] %>%
+      parse_numbers %>%
+      matrix(nrow = 3)
+    
+    line_ends <-
+      lines[(section_ends$colours + 1):(section_ends$line_ends - 1)] %>%
+      parse_numbers
+    
+    line_frame <-
+      data_frame(end = line_ends, start = lag(line_ends, default = 0))
+    
+    lines_list <- 
+      mapply(
+        function(start, end){
+          vertices[,(start+1):end]
+        }, 
+        start = line_frame$start, end = line_frame$end,
+        SIMPLIFY = FALSE
+      )
+    
+    class(lines_list) <- c("bic_lines", "list")
+    attr(lines_list, "coord_system") <- "world" 
+    
+    return(lines_list)
+  }
+
+#' Convert Lines to Voxel Coordinates
+#' 
+#' Convert a \code{bic_lines} object to world coordinates for plotting
+#' 
+#' @param line_obj The \code{bic_lines} object of interest
+#' @param minc_file The reference file for computing voxel coordinates
+#' @return A \code{bic_lines} object in voxel coordinates
+#' @export
+line_obj_to_voxel <-
+  function(line_obj,
+           minc_file){
+    
+    stopifnot(inherits(line_obj, "bic_lines"), attr(line_obj, "coord_system") == "world")
+    
+    lines_list <-
+      lapply(line_obj, function(line){
+        mincConvertWorldMatrix(minc_file, line, nearest_voxel = FALSE)
+      })
+    
+    class(lines_list) <- c("bic_lines", "list")
+    attr(lines_list, "coord_system") <- "voxel" 
+  }
+
+#' Plot A bic_lines object
+#' 
+#' Add lines corresponding to the coordinates in a bic_lines
+#' object to a figure
+#' 
+#' @param x an \code{bic_lines} object
+#' @param dimension which axis to display the lines on
+#' @param ... additional parameters to pass to \link{segments}
+#' @return NULL invisibly
+#' @export
+plot.bic_lines <-
+  function(x, dimension = 2, ...){
+    stopifnot(inherits(line_obj, "bic_lines"))
+    
+    lapply(x,
+           function(line){
+             line <- line[-dimension,]
+             line_frame <- 
+               line %>%
+               t %>%
+               as.data.frame %>%
+               setNames("x0", "y0") %>%
+               mutate(
+                 x1 = lag(x0),
+                 y1 = lag(y1)
+               ) %>%
+               with(segments(x0, y0, x1, y1, ...))
+             
+             NULL
+           })
+    
+    return(invisible(NULL))
+  }
+
+
+
+
+
+
