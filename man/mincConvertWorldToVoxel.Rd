@@ -4,7 +4,7 @@
 \alias{mincConvertWorldToVoxel}
 \title{World to Voxel}
 \usage{
-mincConvertWorldToVoxel(filename, v1, v2, v3)
+mincConvertWorldToVoxel(filename, v1, v2, v3, nearest_voxel = TRUE)
 }
 \arguments{
 \item{filename}{A path to a minc file}
@@ -14,6 +14,8 @@ mincConvertWorldToVoxel(filename, v1, v2, v3)
 \item{v2}{Second world coordinate}
 
 \item{v3}{Third world coordinate}
+
+\item{nearest_voxel}{Logical whether to round the result to the nearest voxel}
 }
 \value{
 a 3-component numeric vector of voxel coordinates
