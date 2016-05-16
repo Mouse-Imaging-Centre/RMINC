@@ -333,6 +333,23 @@ mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
   return(output)
 }
 
+#' Convert Voxel to World Coordinates
+#' 
+#' Convert a 3xN matrix of voxel coordinates to world coordinates
+#' with respect to a given minc file.
+#' 
+#' @param filename The minc file indicating a coordinate grid
+#' @param voxel_matrix a 3xN matrix of voxel coordinates
+#' @return a 3xN matrix of world coordinates
+#' @export
+mincConvertVoxelMatrix <-
+  function(filename, voxel_matrix){
+    stopifnot(is.matrix(voxel_matrix), nrow(voxel_matrix) != 3)
+    apply(world_matrix, 2, function(row){
+      mincConvertWorldToVoxel(filename, row[1], row[2], row[3])
+    })
+  }
+
 #' World to Voxel
 #' 
 #' Convert coordinates in the volumes world space (a continuous coordinate space)
@@ -341,9 +358,10 @@ mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
 #' @param v1 First world coordinate
 #' @param v2 Second world coordinate
 #' @param v3 Third world coordinate
+#' @param nearest_voxel Logical whether to round the result to the nearest voxel
 #' @return a 3-component numeric vector of voxel coordinates
 #' @export
-mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
+mincConvertWorldToVoxel <- function(filename, v1, v2, v3, nearest_voxel = TRUE) {
   stopifnot(!is.null(filename), !is.null(v1), !is.null(v2), !is.null(v3))
   
   output <- .C("convert_world_to_voxel",
@@ -352,8 +370,31 @@ mincConvertWorldToVoxel <- function(filename, v1, v2, v3) {
                as.double(v2),
                as.double(v3),
                o=double(length=3), PACKAGE="RMINC")$o
-  return(round(output))
+  
+  if(nearest_voxel)
+    output <- round(output)
+  
+  return(output)
 }
+
+#' Convert World to Voxel Coordinates
+#' 
+#' Convert a 3xN matrix of world coordinates to voxel coordinates
+#' with respect to a given minc file.
+#' 
+#' @param filename The minc file indicating a coordinate grid
+#' @param world_matrix a 3xN matrix of world coordinates
+#' @param nearest_voxel logical whether to round the results to the nearest voxel
+#' @return a 3xN matrix of voxel coordinates
+#' @export
+mincConvertWorldMatrix <- 
+  function(filename, world_matrix, nearest_voxel = TRUE){
+    stopifnot(is.matrix(world_matrix), nrow(world_matrix) != 3)
+    apply(world_matrix, 2, function(row){
+      mincConvertVoxelToWorld(filename, row[1], row[2], row[3], 
+                              nearest_voxel = nearest_voxel)
+    })
+  }
 
 #' @title Read a MINC file
 #' @description Load a 3-dimensional MINC2 volume and returns it as a 1D array
