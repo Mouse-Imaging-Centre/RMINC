@@ -130,8 +130,8 @@ sliceSeriesLayout <-
 
 #' MINC Slice Series
 #' 
-#' Plot a simple series of slices through a minc volume
-#' on a given dimension. Optionally include a locator
+#' Plot a series of slices through a minc volume
+#' on a given dimension. Optionally superimpose statistics, and or include a locator
 #' contour to show where slices are.
 #' 
 #' @param anatomy A minc array of the anatomy volume to plot
@@ -139,12 +139,10 @@ sliceSeriesLayout <-
 #' @param dimension integer denoting which dimension to slice across
 #' @param mfrow A 2 element vector of the form c(rows, columns) indicating
 #' the number and position of slices to draw - slices are added by rows
-#' @param low the minimum statistic to plot, calculated from the histogram if NULL
-#' @param high the maximum statistic to plot, calculated from the histogram if NULL
-#' @param anatLow the minimum anatomy intensity to plot, calculated from the histogram
-#' if NULL
-#' @param anatHigh the maximum antomy intensity to plot, calculated from the histogram
-#' if NULL
+#' @param low the minimum statistic to plot
+#' @param high the maximum statistic to plot
+#' @param anatLow the minimum anatomy intensity to plot
+#' @param anatHigh the maximum antomy intensity to plot
 #' @param col colours for statistics or for the anatomy if statistics are not passed
 #' @param begin the first slice to plot, defaults to 1
 #' @param end the last slice to plot, defaults to the last slice
@@ -156,8 +154,6 @@ sliceSeriesLayout <-
 #' you requested a legend
 #' @param indicatorLevels numeric vector indicating where to draw slice lines on the 
 #' locator, defaults to every slice
-#' @param discreteStats should the statistics be treated as discrete or continuous
-#' values, useful if plotting labels
 #' @details 
 #' You can get a fuller tutorial on how to use the visualization tools by executing
 #' the following command:
@@ -260,8 +256,7 @@ mincPlotStatsSliceSeries <-
            legend = NULL,
            locator = !is.null(legend),
            plottitle = NULL, 
-           indicatorLevels = c(900, 1200),
-           discreteStats = FALSE) {
+           indicatorLevels = c(900, 1200)) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
@@ -289,7 +284,7 @@ mincPlotStatsSliceSeries <-
       mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                                 low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
                                 anatHigh=anatRange[2], col=col, legend=NULL, 
-                                symmetric=symmetric, discreteStats = discreteStats)
+                                symmetric=symmetric)
     }
     
     #Add the plot locator if desired
@@ -399,6 +394,26 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
 #   )
 # }
 
+#' Anatomy and Statistics Slice
+#' 
+#' Plot a given slice through a MINC volume and superimpose statistics
+#' on the slice.
+#' 
+#' @param anatomy A minc array of the anatomy volume to plot
+#' @param statistics optional statistics or label file to overlay on anatomy slices
+#' @param slice the voxel index of the slice of interest
+#' @param dimension integer denoting which dimension to slice across
+#' @param low the minimum statistic to plot
+#' @param high the maximum statistic to plot
+#' @param anatLow the minimum anatomy intensity to plot
+#' @param anatHigh the maximum antomy intensity to plot
+#' @param symmetric whether the statistics are symmetric (such as for t-statistics)
+#' @param col colours for statistics
+#' @param rcol colours for negative statistics if using a symmetric statistic
+#' @param legend an optional string to name the legend, indicating desire for a legend
+#' (or not)
+#' @return invisible NULL
+#' @export
 mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           dimension=2, 
                           low=min(statistics, na.rm = TRUE), 
@@ -406,8 +421,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           anatLow=min(anatomy, na.rm = TRUE), 
                           anatHigh=max(anatomy, na.rm = TRUE), 
                           symmetric=FALSE,
-                          col=NULL, rcol=NULL, legend=NULL,
-                          discreteStats = FALSE) {
+                          col=NULL, rcol=NULL, legend=NULL) {
   
   if(length(dim(anatomy)) != 3) 
     stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -467,6 +481,8 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
     opar <- par(no.readonly = TRUE) #I think this gets lost anyway
     par(xpd=T)
   }
+  
+  invisible(NULL)
 }
 
 #' Plot a slice from a MINC volume
