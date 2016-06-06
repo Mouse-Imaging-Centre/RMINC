@@ -114,7 +114,7 @@ mcMincApply <-
            tinyMask = FALSE, 
            batches = 4, 
            temp_dir = tempdir(),
-           cores = getOption("mc.cores", 2L),
+           cores = getOption("mc.cores", parallel::detectCores() - 1),
            return_indices = FALSE,
            collate = simplify2minc){
     
@@ -153,10 +153,10 @@ mcMincApply <-
         fun = match.fun(fun),
         dot_args,
         mask = mask_file,
-        return_indices = TRUE,
         collate = identity)
     #override important argument
     mincApplyArguments$filter_masked <- TRUE
+    mincApplyArguments$return_indices <- TRUE
     
     results <- 
       parallel::mcmapply(mincApplyRCPP,
@@ -165,14 +165,17 @@ mcMincApply <-
                          SIMPLIFY = FALSE,
                          mc.cores = cores)
     
-    results <- unlist(results, recursive = FALSE)
+    inds <- unlist(lapply(results, function(el) el$inds))
+    vals <- unlist(lapply(results, function(el) el$vals), recursive = FALSE)
     
-    result_indices <- vapply(results, function(el) el[[2]], numeric(1))
-    result_order <- order(result_indices)
-    results <- lapply(results[result_order], function(el) el[[1]])
+    result_order <-
+      order(inds)
     
-    if(return_indices) #IF return indices, zip up results with their indices
-      results <- mapply(list, results, result_indices[result_order], SIMPLIFY = FALSE)
+    results <- vals[result_order]
+    
+    if(return_indices)
+      results <- list(vals = results, 
+                      inds = inds[result_order])
     
     collation_function <- match.fun(collate)
     results <- collation_function(results)
@@ -428,10 +431,10 @@ qMincReduce <-
     
     results <- loadResults(registry, use.names = FALSE)
     result_attributes <- mincAttributes(results[[1]])
-    results <- unlist(results, recursive = FALSE)
     
-    result_order <- order(vapply(results, function(el) el[[2]], numeric(1)))
-    results <- lapply(results[result_order], function(el) el[[1]])
+    result_indices <- unlist(lapply(results, function(el) el$inds))
+    result_order <- order(result_indices)
+    results <- unlist(lapply(results, function(el) el$vals), recursive = FALSE)[result_order]
     
     collation_function <- match.fun(collate)
     results <- collation_function(results)

@@ -173,9 +173,9 @@ mincApplyRCPP <-
       use_mask <- TRUE
     }
     
-    masked_value <- options()$RMINC_MASKED_VALUE
+    masked_value <- getOption("RMINC_MASKED_VALUE")
     
-    results <-
+    results_indexed <-
       .Call("RMINC_rcpp_minc_apply",
             filenames,
             use_mask = use_mask,
@@ -185,13 +185,21 @@ mincApplyRCPP <-
             value_for_mask = masked_value,
             filter_masked = filter_masked,
             slab_sizes = slab_sizes,
-            return_indices = return_indices,
             fun = apply_fun,
             args = args,
             PACKAGE = "RMINC")
     
     # run the garbage collector...
     gcout <- gc()
+    
+    result_order <-
+      order(results_indexed$inds)
+    
+    results <- results_indexed$vals[result_order]
+    
+    if(return_indices)
+      results <- list(vals = results, 
+                      inds = results_indexed$inds[result_order])
     
     collation_function <- match.fun(collate)
     collated_results <- collation_function(results)

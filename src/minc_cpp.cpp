@@ -98,7 +98,7 @@ bool check_same_dimensions(vector<mihandle_t> volumes){
 vector<misize_t> get_volume_dimensions(mihandle_t volume){
   midimhandle_t dimensions[3];
   misize_t sizes[3];
-  vector<misize_t> volume_dimensions;
+  vector<misize_t> volume_dimensions(3, 0);
   
   int success = miget_volume_dimensions(volume, MI_DIMCLASS_SPATIAL,
                                         MI_DIMATTR_ALL, MI_DIMORDER_FILE,
@@ -115,7 +115,7 @@ vector<misize_t> get_volume_dimensions(mihandle_t volume){
   }
   
   for(int i = 0; i < 3; ++i){
-    volume_dimensions.push_back(sizes[i]);
+    volume_dimensions[i] = sizes[i];
   }
   
   return(volume_dimensions);

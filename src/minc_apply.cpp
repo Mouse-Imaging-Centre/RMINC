@@ -2,13 +2,9 @@
 #include "minc2.h"
 #include "minc_cpp.h"
 #include <sstream>
+#include <stdlib.h>
 using namespace Rcpp;
 using namespace std;
-
-typedef pair<RObject, int> indexed_robj;
-bool comparator(const indexed_robj& l, const indexed_robj& r){
-  return l.second < r.second;
-}
 
 // [[Rcpp::export]]
 List rcpp_minc_apply(CharacterVector filenames,
@@ -19,7 +15,6 @@ List rcpp_minc_apply(CharacterVector filenames,
                      RObject value_for_mask,
                      bool filter_masked,
                      NumericVector slab_sizes,
-                     bool return_indices,
                      Function fun, 
                      List args) {
 
@@ -50,104 +45,172 @@ List rcpp_minc_apply(CharacterVector filenames,
   for(int i = 0; i < 3; ++i){
     hyperslab_dims[i] = (misize_t) slab_sizes[i];
     if(sizes[i] % hyperslab_dims[i] != 0){
-      stop("Volume not an even multiple of hyperslab size");
+      n_slabs[i] = 1;
+    } else {
+      n_slabs[i] = 0;
     }
-    n_slabs[i] = sizes[i] / hyperslab_dims[i];
+    
+    n_slabs[i] += (sizes[i] / hyperslab_dims[i]);
   }
+  misize_t old_hyperslab_dims[3] = {hyperslab_dims[0], hyperslab_dims[1], hyperslab_dims[2]};
 
   int nvols = volumes.size();
+  int nvoxels = (int) sizes[0] * sizes[1] * sizes[2];
+
   NumericVector voxel_values(nvols);
   misize_t voxel_offsets[3];
-  List output = List::create();
-  double mask_buffer[hyperslab_dims[0]][hyperslab_dims[1]][hyperslab_dims[2]];
-  double slab_buffer[nvols][hyperslab_dims[0]][hyperslab_dims[1]][hyperslab_dims[2]];
-  int voxel_pos = 0;
-  indexed_robj res;
-  vector<indexed_robj> results;
+
+  //Setup buffers
+  double *mask_buffer =
+    (double *) malloc(hyperslab_dims[0] * hyperslab_dims[1] * hyperslab_dims[2] * sizeof(double));
   
+  double **slab_buffer =
+    (double **) malloc(nvols * sizeof(double *));
+  
+  for(int i; i < nvols; ++i){
+    slab_buffer[i] = 
+      (double *) malloc(hyperslab_dims[0] * hyperslab_dims[1] * hyperslab_dims[2] * sizeof(double));
+  }
+
+  // Setup looping constructs
+  int voxel_pos = 0;
+  int added_results = 0;
+  List results(nvoxels);
+  NumericVector result_inds(nvoxels);
+  
+  Rprintf("Number of Volumes: %d\n", nvols);
+  Rprintf("Number of slabs: %d\n", n_slabs[0] * n_slabs[1] * n_slabs[2]);
+  Rprintf("In slab: ");
+ 
   for(misize_t i = 0; i < n_slabs[0]; ++i){
     for(misize_t j= 0; j < n_slabs[1]; ++j){
       for(misize_t k = 0; k < n_slabs[2]; ++k ){
         
+        Rprintf("%d ", (i * n_slabs[1] * n_slabs[2]) + 
+                       (j * n_slabs[2]) + 
+                       k);
+
         //Set voxel coords
         voxel_offsets[0] = i * hyperslab_dims[0];
         voxel_offsets[1] = j * hyperslab_dims[1];
         voxel_offsets[2] = k * hyperslab_dims[2];
-  
         
+        //Check for uneven final hyperslab
+        for(int i = 0; i < 3; ++i){
+          if((signed int)(sizes[i] - voxel_offsets[i] - hyperslab_dims[i]) < 0){
+            hyperslab_dims[i] = sizes[i] - voxel_offsets[i];
+          }
+        }
+          
+        //Check for user breaking the loop
+        checkUserInterrupt();
+
         //Check if a mask was supplied, then check if the current voxel is masked
         if(use_mask){
           cautious_get_hyperslab(mask_handle,    // read from handle
                                  MI_TYPE_DOUBLE, // double data
                                  voxel_offsets,  // starting from position
                                  hyperslab_dims, // how many voxels
-                                 &mask_buffer,   // into
-                                 "Error Reading Mask");  
+                                 mask_buffer,   // into
+                                 "Error Reading Mask");
         }
-        
+
         for(int vol = 0; vol < nvols; ++vol){
           stringstream error_message;
           error_message.str("Error Reading Volume ");
           error_message << (vol + 1);
-          
+
           cautious_get_hyperslab(volumes[vol],
                                  MI_TYPE_DOUBLE,
                                  voxel_offsets,
                                  hyperslab_dims,
-                                 &slab_buffer[vol][0][0][0],
+                                 slab_buffer[vol],
                                  error_message.str());
+          
+          // Rprintf("Just read in a slab: ");
+          // for(int i = 0; i < (hyperslab_dims[0] * hyperslab_dims[1] * hyperslab_dims[2]); ++i){
+          //   Rprintf("%d, ", *(mask_buffer + i));
+          // }
+          // Rprintf("\n");
         }
-        
+
         for(misize_t x = 0; x < hyperslab_dims[0]; ++x){
           for(misize_t y = 0; y < hyperslab_dims[1]; ++y){
             for(misize_t z = 0; z < hyperslab_dims[2]; ++z){
-              for(int xvol = 0; xvol < nvols; ++xvol){
-                voxel_values[xvol] = slab_buffer[xvol][x][y][z];
-              }
               
-              voxel_pos = (int)(sizes[1] * sizes[2] * (voxel_offsets[0] + x) + 
-                sizes[2] * (voxel_offsets[1] + y) + 
+              voxel_pos = (int)(sizes[1] * sizes[2] * (voxel_offsets[0] + x) +
+                sizes[2] * (voxel_offsets[1] + y) +
                 (voxel_offsets[2] + z));
+                   
+              for(int xvol = 0; xvol < nvols; ++xvol){
+                //ugly indexing into 2nd-D of slab buffer
+                voxel_values[xvol] = slab_buffer[xvol][x * hyperslab_dims[1] * hyperslab_dims[2] +
+                                                       y * hyperslab_dims[2] +
+                                                       z];
+              }
 
-              if((!use_mask) || 
-                 (mask_buffer[x][y][z] > (mask_lower_val - .5) &&
-                 mask_buffer[x][y][z] < (mask_upper_val + .5))){
-                
-                res = make_pair(fun(voxel_values, args), voxel_pos);
-                results.push_back(res);
-                
+              double mask_val =
+                mask_buffer[x * hyperslab_dims[1] * hyperslab_dims[2] +
+                            y * hyperslab_dims[2] +
+                            z];
+
+              if((!use_mask) ||
+                 (mask_val > (mask_lower_val - .5) &&
+                 mask_val < (mask_upper_val + .5))){
+
+                //Rprintf("A few voxel values %d %d %d", voxel_values[0], voxel_values[1], voxel_values[2]);
+                results[added_results] = fun(voxel_values, args);
+                result_inds[added_results] = voxel_pos;
+                ++added_results;
+
               } else if(!filter_masked){
-                res = make_pair(value_for_mask, voxel_pos);
-                results.push_back(res);
+                results[added_results] = value_for_mask;
+                result_inds[added_results] = voxel_pos;
+                ++added_results;
               }
             }
-          }
+         }
+        }
+        
+        //reset old hyperslab dims if they changed
+        for(int i = 0; i < 3; ++i){
+          hyperslab_dims[i] = old_hyperslab_dims[i];
         }
       }
     }
   }
   
-  sort(results.begin(), results.end(), comparator);
-  
-  vector<indexed_robj>::iterator index_peeler;
-  for(index_peeler = results.begin(); index_peeler != results.end(); ++index_peeler){
-    indexed_robj current_res = *index_peeler;
-    
-    if(return_indices){
-      List indexed_res = List::create(current_res.first, current_res.second);
-      output.push_back(indexed_res);
-    } else {
-      output.push_back(current_res.first);
-    }
+  Rprintf("\n");
+
+  for(int i = 0; i < nvols; ++i){
+    free(slab_buffer[i]);
   }
-  
+  free(slab_buffer);
+  free(mask_buffer);
+
   for(volume_iterator = volumes.begin(); volume_iterator != volumes.end(); ++volume_iterator){
     miclose_volume(*volume_iterator);
   }
-  
+
   if(use_mask){
     miclose_volume(mask_handle);
   }
   
-  return(output);
+  results.erase(results.begin() + added_results, results.end());
+  result_inds.erase(result_inds.begin() + added_results, result_inds.end());
+  
+  return List::create(_["vals"] = results,
+                      _["inds"] = result_inds);
+}
+
+NumericVector size_vec(CharacterVector filenames){
+  vector<mihandle_t> volumes = open_minc2_volumes(filenames);
+  vector<misize_t> sizes = get_volume_dimensions(volumes[0]);
+  NumericVector output(3);
+  
+  output[0] = (int) sizes[0];
+  output[1] = (int) sizes[1];
+  output[2] = (int) sizes[2];
+  
+  return output;
 }

@@ -5,7 +5,3 @@ rcpp_minc_apply <- function(filenames, use_mask, mask, mask_lower_val, mask_uppe
     .Call('RMINC_rcpp_minc_apply', PACKAGE = 'RMINC', filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args)
 }
 
-size_vec <- function(filenames) {
-    .Call('RMINC_size_vec', PACKAGE = 'RMINC', filenames)
-}
-

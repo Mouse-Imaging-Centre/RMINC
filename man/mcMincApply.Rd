@@ -5,8 +5,9 @@
 \title{Local multicore mincApply}
 \usage{
 mcMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
-  batches = 4, temp_dir = tempdir(), cores = getOption("mc.cores", 2L),
-  return_indices = FALSE, collate = simplify2minc)
+  batches = 4, temp_dir = tempdir(), cores = getOption("mc.cores",
+  parallel::detectCores() - 1), return_indices = FALSE,
+  collate = simplify2minc)
 }
 \arguments{
 \item{filenames}{Paths to the minc files to apply accross}
