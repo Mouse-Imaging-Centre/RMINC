@@ -124,10 +124,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   
   if (!is.null(parallel)) {
     # a vector with two elements: the methods followed by the # of workers
-    if (parallel[1] %in% c("local", "snowfall", "sge")) {
-      if (parallel[1] == "local") {
-        parallel[1] <- "snowfall" #local and snowfall are synonymous
-      }
+    if (parallel[1] %in% c("local", "snowfall")) {
       out <- mcMincApply(lmod$fr[,1],
                          optimizer_fun,
                          mincLmerList = mincLmerList,
@@ -136,7 +133,17 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          batches = as.numeric(parallel[2]),
                          slab_sizes = slab_dims)
     }
-    else {
+    else if(parallel[1] == "sge"){
+      out <- qMincApply(lmod$fr[,1],
+                        optimizer_fun,
+                        mincLmerList = mincLmerList,
+                        filter_masked = TRUE,
+                        parallel_method = "sge",
+                        cores = 1,
+                        mask = mask,
+                        batches = as.numeric(parallel[2]),
+                        slab_sizes = slab_dims)
+    } else {
       stop("Error: unknown parallelization method")
     }
   }
