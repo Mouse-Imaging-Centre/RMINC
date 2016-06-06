@@ -56,7 +56,8 @@ setMincAttributes <-
       return(minc_object)
     
     if(any(! names(updated_attrs) %in% known_minc_attributes)) 
-      stop(sprintf("New attributes must be a known minc object attribute (%s)",
+      stop(sprintf("New attributes (%s) must be a known minc object attribute (%s)",
+                   paste0(updated_attrs, collapse = ", "),
                    paste0(known_minc_attributes, collapse = ", ")))
     
     all_attrs <- attributes(minc_object)
@@ -108,7 +109,7 @@ simplify2minc <- function(result_list){
   ## ensure they carry over to the simplified object
   result_attributes <- mincAttributes(result_list)
   if(!is.null(result_attributes))
-    simplified_results <- setMincAttributes(simplified_results, result_list)
+    simplified_results <- setMincAttributes(simplified_results, result_attributes)
   
   ## Reclass the object to the appropriate RMINC class
   if(is.null(ncol(simplified_results)) && is.list(simplified_results)){
