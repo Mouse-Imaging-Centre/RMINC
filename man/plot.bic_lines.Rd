@@ -18,6 +18,8 @@ NULL invisibly
 }
 \description{
 Add lines corresponding to the coordinates in a bic_lines
-object to a figure
+object to a figure. Only draws the projection of the lines
+on a single dimension, no regard is given for whether the
+lines are near the slice of interest.
 }
 

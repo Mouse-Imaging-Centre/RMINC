@@ -649,12 +649,16 @@ line_obj_to_voxel <-
     
     class(lines_list) <- c("bic_lines", "list")
     attr(lines_list, "coord_system") <- "voxel" 
+    
+    return(lines_list)
   }
 
 #' Plot A bic_lines object
 #' 
 #' Add lines corresponding to the coordinates in a bic_lines
-#' object to a figure
+#' object to a figure. Only draws the projection of the lines
+#' on a single dimension, no regard is given for whether the
+#' lines are near the slice of interest.
 #' 
 #' @param x an \code{bic_lines} object
 #' @param dimension which axis to display the lines on
@@ -663,7 +667,7 @@ line_obj_to_voxel <-
 #' @export
 plot.bic_lines <-
   function(x, dimension = 2, ...){
-    stopifnot(inherits(line_obj, "bic_lines"))
+    stopifnot(inherits(x, "bic_lines"))
     
     lapply(x,
            function(line){
@@ -672,10 +676,10 @@ plot.bic_lines <-
                line %>%
                t %>%
                as.data.frame %>%
-               setNames("x0", "y0") %>%
-               mutate(
+               setNames(c("y0", "x0")) %>% #X and Y are transposed
+               mutate(                     #in mincImage so follow suit
                  x1 = lag(x0),
-                 y1 = lag(y1)
+                 y1 = lag(y0)
                ) %>%
                with(segments(x0, y0, x1, y1, ...))
              
