@@ -572,7 +572,7 @@ vertexLookup <-
 #' Parse the BIC obj format for when the object contains
 #' lines instead of a mesh. 
 #' 
-#' @param lines_obj Path to the object file of interest
+#' @param line_obj Path to the object file of interest
 #' @return \code{bic_lines} object, which is a list of matrices, each 
 #' matrix coresponds to one line in the object. The matrices are 3xN matrices 
 #' of world coordinates.
@@ -668,6 +668,10 @@ line_obj_to_voxel <-
 plot.bic_lines <-
   function(x, dimension = 2, ...){
     stopifnot(inherits(x, "bic_lines"))
+    
+    #hide these from R CMD check's gobal variable detector
+    #it misses them in the pipe
+    x0 <- x1 <- y0 <- y1 <- NULL 
     
     lapply(x,
            function(line){

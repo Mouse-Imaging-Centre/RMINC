@@ -139,8 +139,10 @@ sliceSeriesLayout <-
 #' @param dimension integer denoting which dimension to slice across
 #' @param mfrow A 2 element vector of the form c(rows, columns) indicating
 #' the number and position of slices to draw - slices are added by rows
-#' @param low the minimum statistic to plot
-#' @param high the maximum statistic to plot
+#' @param low the minimum statistic to plot, taken from histogram if not supplied
+#' and not \code{discreteStats}, otherwise the minimum statistic
+#' @param high the maximum statistic to plot, taken from histogram if not supplied
+#' and not \code{discreteStats}, otherwise the maximum statistic
 #' @param anatLow the minimum anatomy intensity to plot
 #' @param anatHigh the maximum antomy intensity to plot
 #' @param col colours for statistics or for the anatomy if statistics are not passed
@@ -154,6 +156,8 @@ sliceSeriesLayout <-
 #' you requested a legend
 #' @param indicatorLevels numeric vector indicating where to draw slice lines on the 
 #' locator, defaults to every slice
+#' @param discreteStats Whether stats are discrete values and should should not have
+#' their range taken from their histogram if unsupplied.
 #' @details 
 #' You can get a fuller tutorial on how to use the visualization tools by executing
 #' the following command:
@@ -256,7 +260,8 @@ mincPlotStatsSliceSeries <-
            legend = NULL,
            locator = !is.null(legend),
            plottitle = NULL, 
-           indicatorLevels = c(900, 1200)) {
+           indicatorLevels = c(900, 1200),
+           discreteStats = FALSE) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))

@@ -7,7 +7,7 @@
 read_line_obj(line_obj)
 }
 \arguments{
-\item{lines_obj}{Path to the object file of interest}
+\item{line_obj}{Path to the object file of interest}
 }
 \value{
 \code{bic_lines} object, which is a list of matrices, each 

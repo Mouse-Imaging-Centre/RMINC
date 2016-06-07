@@ -21,9 +21,11 @@ mincPlotSliceSeries(anatomy, statistics = NULL, dimension = 2,
 \item{mfrow}{A 2 element vector of the form c(rows, columns) indicating
 the number and position of slices to draw - slices are added by rows}
 
-\item{low}{the minimum statistic to plot}
+\item{low}{the minimum statistic to plot, taken from histogram if not supplied
+and not \code{discreteStats}, otherwise the minimum statistic}
 
-\item{high}{the maximum statistic to plot}
+\item{high}{the maximum statistic to plot, taken from histogram if not supplied
+and not \code{discreteStats}, otherwise the maximum statistic}
 
 \item{anatLow}{the minimum anatomy intensity to plot}
 
@@ -47,6 +49,9 @@ you requested a legend}
 
 \item{indicatorLevels}{numeric vector indicating where to draw slice lines on the 
 locator, defaults to every slice}
+
+\item{discreteStats}{Whether stats are discrete values and should should not have
+their range taken from their histogram if unsupplied.}
 }
 \description{
 Plot a series of slices through a minc volume

@@ -346,7 +346,7 @@ mincConvertVoxelToWorld <- function(filename, v1, v2, v3) {
 mincConvertVoxelMatrix <-
   function(filename, voxel_matrix){
     stopifnot(is.matrix(voxel_matrix), nrow(voxel_matrix) == 3)
-    apply(world_matrix, 2, function(row){
+    apply(voxel_matrix, 2, function(row){
       mincConvertVoxelToWorld(filename, row[1], row[2], row[3])
     })
   }
