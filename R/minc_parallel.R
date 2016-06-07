@@ -287,6 +287,13 @@ qMincApply <-
            clobber = FALSE,
            collate = simplify2minc) {
     
+    parallel_method <- match.arg(parallel_method)
+    
+    if(parallel_method %in% c("sge", "pbs") &&
+       missing(temp_dir))
+      stop("When using a sge or pbs systems using the default temp_dir is unlikely to work.",
+           "Manually specify temp_dir = tempdir() to try anyway")
+    
     qMinc_registry <-
       qMincRegistry(registry_name = registry_name,
                     registry_dir = registry_dir,

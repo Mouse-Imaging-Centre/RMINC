@@ -16,6 +16,9 @@
 #' @param control lmer control function
 #' @param start lmer start function
 #' @param verbose lmer verbosity control
+#' @param temp_dir A directory to create temporary mask and registry files if 
+#' \code{parallel = c("sge", n)}. This should not be \code{tempdir()} so that workers can see
+#' these files. Defaults to the current working directory.
 #' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
 #' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 #' NA for the result.
@@ -68,7 +71,7 @@
 #' @export
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
-                     verbose=0L, safely = FALSE) {
+                     verbose=0L, temp_dir = getwd(), safely = FALSE) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -139,6 +142,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                         mincLmerList = mincLmerList,
                         filter_masked = TRUE,
                         parallel_method = "sge",
+                        temp_dir = temp_dir,
                         cores = 1,
                         mask = mask,
                         batches = as.numeric(parallel[2]),
