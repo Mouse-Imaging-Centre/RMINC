@@ -146,7 +146,8 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                         cores = 1,
                         mask = mask,
                         batches = as.numeric(parallel[2]),
-                        slab_sizes = slab_dims)
+                        slab_sizes = slab_dims,
+                        cleanup = FALSE)
     } else {
       stop("Error: unknown parallelization method")
     }

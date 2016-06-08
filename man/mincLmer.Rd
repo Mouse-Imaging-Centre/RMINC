@@ -5,7 +5,8 @@
 \title{mincified version of lmer from lme4}
 \usage{
 mincLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
-  control = lmerControl(), start = NULL, verbose = 0L, safely = FALSE)
+  control = lmerControl(), start = NULL, verbose = 0L,
+  temp_dir = getwd(), safely = FALSE)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -26,6 +27,10 @@ of processors to use.}
 \item{start}{lmer start function}
 
 \item{verbose}{lmer verbosity control}
+
+\item{temp_dir}{A directory to create temporary mask and registry files if 
+\code{parallel = c("sge", n)}. This should not be \code{tempdir()} so that workers can see
+these files. Defaults to the current working directory.}
 
 \item{safely}{whether or not to wrap the per-voxel lmer code in an exception catching
 block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
