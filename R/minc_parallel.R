@@ -133,7 +133,7 @@ mcMincApply <-
       if(batches %% 1 != 0) stop("the number of batches must be an integer")
       
       nVoxels <- length(sample_volume)
-      mask_values <- (seq_len(nVoxels) - 1) %/% (nVoxels %/% batches) + 1
+      mask_values <- groupingVector(nVoxels, batches)
     } else {
       mask_values <- mincGetVolume(mask)
       if(tinyMask) mask_values[mask_values > 1.5] <- 0
@@ -141,7 +141,7 @@ mcMincApply <-
       nVoxels <- sum(mask_values > .5)
       
       mask_values[mask_values > .5] <- 
-        (seq_len(nVoxels) - 1) %/% (nVoxels %/% batches) + 1
+        groupingVector(nVoxels, batches)
       
     }
     
@@ -386,14 +386,14 @@ qMincMap <-
       if(batches %% 1 != 0) stop("the number of batches must be an integer")
       
       nVoxels <- length(sample_volume)
-      mask_values <- (seq_len(nVoxels) - 1) %/% (nVoxels %/% batches) + 1
+      mask_values <- groupingVector(nVoxels, batches)
     } else {
       mask_values <- mincGetVolume(mask)
       if(tinyMask) mask_values[mask_values > 1.5] <- 0
       
       nVoxels <- sum(mask_values > .5)
       mask_values[mask_values > .5] <- 
-        (seq_len(nVoxels) - 1) %/% (nVoxels %/% batches) + 1
+        groupingVector(nVoxels, batches)
     }
     
     #Map for each mask value and temp mask file and write a sub-mask
@@ -451,6 +451,16 @@ qMincReduce <-
     
     return(results)
   }
+
+groupingVector <- function(len, groups){
+  group_len <- ceiling(len / groups)
+  n_overfill <- (group_len * groups) - len
+  groups <- rep(1:groups, each = group_len)
+  if(n_overfill != 0)
+    groups <- groups[-(1:n_overfill)]
+  
+  return(groups)
+}
 
 ### Legacy code for pMincApply 
 # pMincApply <- 
