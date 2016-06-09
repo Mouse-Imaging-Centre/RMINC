@@ -23,6 +23,10 @@ List rcpp_minc_apply(CharacterVector filenames,
   vector<mihandle_t>::iterator volume_iterator;
   
   if(!check_same_dimensions(volumes)){
+    for(int i = 0; i < volumes.size(); ++i){
+      miclose_volume(volumes[i]);
+    }
+    
     stop("At least one file is a different size");
   }
   
@@ -34,6 +38,12 @@ List rcpp_minc_apply(CharacterVector filenames,
     mask_and_vol.push_back(volumes[0]);
     
     if(!check_same_dimensions(mask_and_vol)){
+      miclose_volume(mask_and_vol[0]);
+      miclose_volume(mask_and_vol[1]);
+      for(int i = 0; i < volumes.size(); ++i){
+        miclose_volume(volumes[i]);
+      }
+      
       stop("The mask and files differ in size");
     }  
   }
@@ -62,12 +72,12 @@ List rcpp_minc_apply(CharacterVector filenames,
 
   //Setup buffers
   double *mask_buffer =
-    (double *) malloc(hyperslab_dims[0] * hyperslab_dims[1] * hyperslab_dims[2] * sizeof(double));
+    (double *) calloc(hyperslab_dims[0] * hyperslab_dims[1] * hyperslab_dims[2], sizeof(double));
   
   double **slab_buffer =
     (double **) malloc(nvols * sizeof(double *));
   
-  for(int i; i < nvols; ++i){
+  for(int i = 0; i < nvols; ++i){
     slab_buffer[i] = 
       (double *) malloc(hyperslab_dims[0] * hyperslab_dims[1] * hyperslab_dims[2] * sizeof(double));
   }
