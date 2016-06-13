@@ -56,7 +56,7 @@ setMincAttributes <-
       return(minc_object)
     
     if(any(! names(updated_attrs) %in% known_minc_attributes)) 
-      stop(sprintf("New attributes (%s) must be a known minc object attribute (%s)",
+      stop(sprintf("New attributes (%s) must be known minc object attribute (%s)",
                    paste0(updated_attrs, collapse = ", "),
                    paste0(known_minc_attributes, collapse = ", ")))
     
@@ -926,8 +926,6 @@ parseLmFormula <- function(formula,data,mf)
   }
   return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
 }
-  
-### end of lmer bits of code
 
 #' converts a vector index to the voxel indices in MINC
 #'
