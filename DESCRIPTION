@@ -1,5 +1,5 @@
 Package: RMINC
-Version: 1.4.1.1
+Version: 1.4.2.0
 Date: 2016-05-02
 Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
 Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
