@@ -998,7 +998,7 @@ checkCurrentUlimit <- function(){
 tableOpenFiles <- function(){
   lsof_results <- 
     paste("lsof -Ft -p ", Sys.getpid()) %>%
-    system(intern = TRUE)
+    system(intern = TRUE, ignore.stderr = TRUE)
     
   table(lsof_results)  
 }
