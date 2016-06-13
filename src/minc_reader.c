@@ -184,6 +184,76 @@ void get_world_voxel_from_files(char **filenames, int *num_files,
     miclose_volume(hvol);
   }
 }
+
+SEXP minc_history_size(SEXP filename){
+  size_t hist_size;
+  mihandle_t hvol;
+  int result;
+  const char *filepath = CHAR(asChar(filename));
+  
+  result = miopen_volume(filepath,
+                         MI2_OPEN_READ, &hvol);
+  
+  if (result != MI_NOERROR) {
+    error("Error opening input file: %s.\n", filepath);
+  }
+  
+  miget_attr_length(hvol, "", "history", &hist_size);
+
+  miclose_volume(hvol);
+  
+  SEXP output = ScalarInteger((int) hist_size);
+  return(output);
+}
+
+SEXP get_minc_history(SEXP filename) {
+  int                result;
+  mihandle_t         hvol;
+  int int_size   =   asInteger(minc_history_size(filename));
+  char  *history = malloc(int_size);  
+  const char *filepath = CHAR(asChar(filename));
+
+  result = miopen_volume(filepath,
+                         MI2_OPEN_READ, &hvol);
+
+  if (result != MI_NOERROR) {
+    error("Error opening input file: %s.\n", filepath);
+  }
+  
+  miget_attr_values(hvol, MI_TYPE_STRING, "", "history", int_size, history);
+  miclose_volume(hvol);
+  
+  SEXP output = PROTECT(mkString(history));
+  free(history);
+  UNPROTECT(1);
+  
+  return(output);
+}
+
+SEXP minc_overwrite_history(SEXP filename, SEXP history, SEXP hist_size){
+  const char *history_line = CHAR(asChar(history));
+  const char *filepath = CHAR(asChar(filename));
+  int history_size = asInteger(hist_size);
+  mihandle_t  hvol;
+  int read_result;
+  int hist_edit_result;
+  
+  read_result = miopen_volume(filepath,
+                              MI2_OPEN_RDWR, &hvol);
+  
+  if (read_result != MI_NOERROR) {
+    error("Error opening input file: %s.\n", filepath);
+  }
+  
+  hist_edit_result = miadd_history_attr(hvol, history_size, history_line);
+  if(hist_edit_result != MI_NOERROR){
+    error("Error editing history for file: %s \n", filepath);
+  }
+  
+  miclose_volume(hvol);
+  
+  return(R_NilValue);
+}
   
 
 /* get a real value hyperslab from file */

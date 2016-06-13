@@ -1,0 +1,31 @@
+INSTALLATION
+=============
+
+**Currently there is no support for RMINC on windows**
+
+Every effort has been made to make RMINC as easy to install as possible. 
+For most systems install.packages("RMINC") should be all you need
+to begin experimenting with MINC files in R. For a richer experience
+The highly recommended approach is to acquire the minc-toolkit (v2),
+this package will allow you to use command line tools in addition
+to RMINC to manipulate minc files.
+
+Binary installers for the toolkit can be acquired from http://bic-mni.github.io/ 
+in the section V2. Alternatively, the toolkit can be build from source
+with code from https://github.com/BIC-MNI/minc-toolkit-v2.
+
+If the toolkit is found on your system, the installation will be a bit faster.
+
+If the toolkit is not found on your system RMINC will attempt to install
+libminc (https://github.com/BIC-MNI/libminc) for you. This provides the
+core functionality needed to use RMINC. In order to install libminc
+you need a few dependencies. You need a version of CMake greater the 2.6,
+you will need git installed to fetch the code, and you will need the 
+development headers for HDF5 the file format underlying MINC. 
+The HDF5 header can be acquired on Debian/Ubuntu type linux systems
+with `sudo apt-get install libhdf5-dev`, or with on Mac OSX with
+the brew package manager `brew install homebrew/science/hdf5`. 
+
+If you find yourself in a position where you need to install these
+dependencies it is probably best to just install the toolkit as
+discussed above. The toolkit provides HDF5 for you. 

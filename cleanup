@@ -1,0 +1,20 @@
+rm src/*.o src/*.so src/Makevars *~ config.* 2>/dev/null
+rm -r autom4te*/ 2>/dev/null
+rm -r conf*/ 2>/dev/null
+
+#Cleanup knitr byproducts
+rm -r inst/documentation/*.tex \
+      inst/documentation/*.toc \
+      inst/documentation/*.idx \
+      inst/documentation/*.log \
+      inst/documentation/*.ind \
+      inst/documentation/*.ilg \
+      inst/documentation/*synctex* 2>/dev/null
+
+if [ -v $TMPDIR ]; then
+   TMPDIR=/tmp
+fi
+
+if [ -z $KEEP_MINC_TOOLKIT_FILES ] || [ ! $KEEP_MINC_TOOLKIT_FILES ] && [ -d $TMPDIR/minc-toolkit-v2 ]; then
+   rm -rf $TMPDIR/minc-toolkit-v2 2>/dev/null
+fi

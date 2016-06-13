@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# The name of the job, can be anything, simply used when displaying the list of running jobs
+#$ -N <%= job.name %>
+# Combining output/error messages into one file
+#$ -j y
+# Giving the name of the output log file
+#$ -o <%= log.file %>
+# One needs to tell the queue system to use the current directory as the working directory
+# Or else the script may fail as it will execute in your top level home directory /home/username
+#$ -cwd
+# use environment variables
+#$ -V
+##### use correct queue 
+#####$ -q <%= resources$queue %>
+##### use job arrays
+#####$ -t 1-<%= arrayjobs %>
+
+# we merge R output with stdout from SGE, which gets then logged via -o option
+R CMD BATCH --no-save --no-restore "<%= rscript %>" /dev/stdout
+exit 0

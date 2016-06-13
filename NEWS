@@ -1,3 +1,15 @@
+New in Version 1.4.0.0
+========================
+*** Aiming for CRAN
+* Major CRAN compatibility changes
+* Revamped build scripts
+* Improved mincApply (mincApplyRCPP)
+* New parallelism abstractions (pMincApply, qMincApply, mcMincApply)
+* New grid computing backend (BatchJobs package)
+* Full conversion to Roxygen documentation
+* Code Re-organization
+* Numerous bug fixes  
+
 New in Version 1.3.0.0
 =======================
 ***RMINC now with more Graphics***

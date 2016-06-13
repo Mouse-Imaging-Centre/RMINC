@@ -1,81 +1,47 @@
-Statistics for MINC volumes: A library to integrate voxel-based statistics for MINC volumes into the R environment. 
-Supports getting and writing of MINC volumes, running voxel-wise linear models, correlations, etc.; correcting for 
-multiple comparisons using the False Discovery Rate, and more. With contributions from Jason Lerch, Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some additional information can be found here:
+Statistics for MINC volumes: A library to integrate voxel-based
+statistics for MINC volumes into the R environment.  Supports getting
+and writing of MINC volumes, running voxel-wise linear models,
+correlations, etc.; correcting for multiple comparisons using the
+False Discovery Rate, and more. With contributions from Jason Lerch,
+Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some
+additional information can be found here:
 
 https://wiki.phenogenomics.ca/display/MICePub/RMINC
 
-Dependencies:
--------------
-
-RMINC depends on the following repository:
-https://github.com/BIC-MNI/libminc
-https://github.com/Mouse-Imaging-Centre/minc-stuffs
 
 Installation:
 -------------
 
-The R_LIBS variable determines where the library is installed. By default it will be installed under /usr/share. 
-If you want to install the library somewhere else, the R_LIBS environment variable should be set.
+RMINC provides functionality for working with Medical Imaging NetCDF
+files, and relies on C libraries specifically designed for working
+with these files. For the richest experience please install the
+minc-toolkit (v2), either from the binary installer:
+http://bic-mni.github.io/ or from source:
+https://github.com/BIC-MNI/minc-toolkit-v2. If the toolkit is not
+found on your system, RMINC will attempt to install libminc from
+source. This requires a version of CMake greater than 2.6 and git, as
+well as the HDF5 development headers. For more details read the
+INSTALL file
 
-> export R_LIBS=/build/directory
-
-The RMINC package currently depends on the MINC libraries to be installed. If these libraries are not installed in
-a standard location, you will have to set the LD_LIBRARY_PATH (on a Mac, this path needs to be set by your default
-shell profile):
-
-export LD_LIBRARY_PATH=/path/to/minc/install/root/directory/lib:$LD_LIBRARY_PATH
-
-The latest version of the software using the devtools package (R 3.1.1) from within R:
-
-> install.packages("devtools")
-> library(devtools)
-> options(devtools.install.args = "--configure-args='--with-build-path=/path/to/minc/install/root/directory/'")
-> install_git("https://github.com/mcvaneede/RMINC")
-
-The latest version of the software using command line tools:
-
-$ git clone https://github.com/mcvaneede/RMINC.git RMINC
-$ cd RMINC
-$ ./autogen.sh
-$ cd ../
-$ R CMD INSTALL RMINC /directory/where/sourcefiles/go --preclean --configure-args='--with-build-path=/install/directory/minc2'
-
-Installation of a release:
-
-Download the tarball from the Github RMINC website https://github.com/mcvaneede/RMINC/tree/master/releases
-Install the package (example is for the tarball version 0.5):
-
-> R CMD INSTALL RMINC_0.5.tar.gz --configure-args='--with-build-path=/install/directory/minc2'
+**Currently there is no support for RMINC on windows**
 
 Tutorials
 ---------
-RMINC Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/doc/visualizationTutorial.html
+
+RMINC provides learning material:
+
+Voxel-wise Statistics: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMStats.pdf
+ 
+RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
 
 Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/doc/RMINC_rgl.html
 
+Development Version:
+---------------------
 
-Some notes on getting RMINC installed on a Mac
-----------------------------------------------
+RMINC is continually evolving, you can try the newest development version with
 
-Install latest version of 'minc-toolkit' from
-http://packages.bic.mni.mcgill.ca/minc-toolkit/MacOSX/
-
-Add the following set-up script and path to ~/.profile using an editor
-
-. /opt/minc-itk4/minc-toolkit-config.sh
-export LD_LIBRARY_PATH=/opt/minc-itk4/lib/:$LD_LIBRARY_PATH
-
-Open a new terminal an then start R
-
+```
 library(devtools)
-options(devtools.install.args = "--configure-args='--with-build-path=/opt/minc-itk4/'")
-install_github('Mouse-Imaging-Centre/RMINC')
-
-Development with RStudio
-------------------------
-
-Newer versions of RMINC ship with an RMINC.Rproj file for easy integration
-with RStudio's build tools. Build tool arguments can be modified from 
-Build > Configure Build Tools. For most cases it suffices to modify
-the environment variable $RMINC_BUILD_PATH to point to the directory
-containing hdf5.h
+install_github("Mouse-Imaging-Centre/RMINC")
+``` 

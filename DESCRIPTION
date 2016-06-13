@@ -1,29 +1,50 @@
 Package: RMINC
-Version: 1.3.0.0
-Date: 2016-02-24
-Title: Package for reading and analyzing MINC2 files
-Author: Jason Lerch <jason@mouseimaging.ca>, Jim Nikelski
-    <nikelski@bic.mni.mcgill.ca>
-Maintainer: Jason lerch <jason@mouseimaging.ca>
-Description: A package for reading and writing MINC2 files
-    and running arbitrary R functions at every voxel of a set of files.
-Additional_Repositiories: http://bioconductor.org/packages/3.1/bioc
+Version: 1.4.2.0
+Date: 2016-05-02
+Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
+Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
+             person("Chris", "Hammill", role = c("aut", "cre"), email = "cfhammill@gmail.com"),
+             person("Matthijs", "van Eede", role = "aut", email = "matthijs.vaneede@sickkids.ca"),
+             person("Daniel", "Cassel", role = "aut"),
+             person("Jim",  "Nikelski", role = "ctb", email = "nikelski@bic.mni.mcgill.ca"),
+             person("Yohan", "Yee", role = "ctb", email = "yohan.yee@sickkids.ca"),
+             person("Miriam", "Friedel", role = "ctb"))
+Description: Tools for reading, writing, analyzing, and visualizing Medical Imaging NetCDF (MINC) files
+             with R. 
+Additional_Repositories: http://bioconductor.org/packages/3.1/bioc
 Depends:
     R (>= 3.0.1),
+    BatchJobs
 Imports:
-    methods,
-    lattice,
     dplyr,
-    rgl,
-    ggplot2,
-    testthat,
-    lme4
+    lme4,
+    shiny,
+    methods,
+    grDevices,
+    graphics,
+    utils,
+    stats,
+    Rcpp,
+    parallel
 Suggests:
-    qvalue
-License: BSD
+    rgl,
+    plotrix,
+    lmerTest,
+    qvalue,
+    testthat
+LinkingTo: 
+    Rcpp,
+SystemRequirements:
+    lsof AND EITHER
+    minc-toolkit-v2 (https://github.com/BIC-MNI/minc-toolkit-v2) OR
+    cmake (> 2.6),
+    git,
+    linux_apt: libhdf5-dev
+    mac_brew: homebrew/science/hdf5
+License: BSD_3_clause + file LICENSE
 LazyLoad: yes
 OS_type: unix
 SystemRequirements: 
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
-BuildVignettes: False
+RoxygenNote: 5.0.1

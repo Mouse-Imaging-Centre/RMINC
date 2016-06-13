@@ -1,0 +1,24 @@
+matrix:
+  include:
+    -  os: linux
+       dist: trusty
+    -  os: osx
+
+language: r
+sudo: required
+       
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install libhdf5-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink cmake; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/hdf5; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade gcc; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir $HOME/.R/; touch $HOME/.R/Makevars; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' > $HOME/.R/Makevars; fi
+repos:
+  bioCsoft: http://bioconductor.org/packages/3.2/bioc
+  cran: https://cran.rstudio.com
+r_check_args: --install-args="--configure-args=\"--enable-build-minc\""
+
+
