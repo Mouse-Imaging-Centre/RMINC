@@ -365,7 +365,7 @@ mincLmerExtractVariables <- function(mmod) {
   })
   fe <- mmod@beta
   t <- fe / se # returns Inf if se=0 (see error handling above); mincLmer removes Inf
-  ll <- lme4::logLik.merMod(mmod)
+  ll <- logLik(mmod)
   # the convergence return value (I think; need to verify) - should be 0 if it converged
   converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
   return(c(fe,t, ll, converged))
