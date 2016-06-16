@@ -357,7 +357,7 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 # returns them as a vector
 mincLmerExtractVariables <- function(mmod) {
   se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
-    sqrt(diag(vcov(mmod, T)))
+    sqrt(diag(lme4::vcov.merMod(mmod, T)))
   }, warning=function(w) {
     return(0)
   }, error=function(e) {
@@ -365,7 +365,7 @@ mincLmerExtractVariables <- function(mmod) {
   })
   fe <- mmod@beta
   t <- fe / se # returns Inf if se=0 (see error handling above); mincLmer removes Inf
-  ll <- logLik(mmod)
+  ll <- lme4::logLik.merMod(mmod)
   # the convergence return value (I think; need to verify) - should be 0 if it converged
   converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
   return(c(fe,t, ll, converged))
