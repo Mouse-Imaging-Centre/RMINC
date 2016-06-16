@@ -10,6 +10,7 @@
 #' @import lme4
 #' @import BatchJobs
 #' @import methods
+#' @importFrom Matrix diag
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
 #' @importFrom graphics abline contour hist layout mtext par plot.default
 #'                      plot.new rasterImage text segments

@@ -357,7 +357,7 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 # returns them as a vector
 mincLmerExtractVariables <- function(mmod) {
   se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
-    sqrt(diag(lme4::vcov.merMod(mmod, T)))
+    sqrt(Matrix::diag(vcov(mmod, T)))
   }, warning=function(w) {
     return(0)
   }, error=function(e) {

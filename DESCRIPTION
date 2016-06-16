@@ -25,7 +25,8 @@ Imports:
     utils,
     stats,
     Rcpp,
-    parallel
+    parallel,
+    Matrix
 Suggests:
     rgl,
     plotrix,
