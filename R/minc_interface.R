@@ -997,7 +997,7 @@ checkCurrentUlimit <- function(){
 
 tableOpenFiles <- function(){
   if(system("command -v lsof", ignore.stderr = TRUE, ignore.stdout = TRUE) != 0)
-    error("Unable to find external program lsof, please install and try again")
+    stop("Unable to find external program lsof, please install and try again")
   
   lsof_results <- 
     paste("lsof -Ft -p ", Sys.getpid()) %>%
