@@ -82,16 +82,10 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   #mc$control <- lmerControl() #overrides user input control
   mc[[1]] <- quote(lme4::lFormula)
   
-  # remove mask and parallel, since lmer does not know about them and keeping them
+  # remove lme4 unknown arguments, since lmer does not know about them and keeping them
   # generates obscure warning messages
-  index <- match("mask", names(mc))
-  if (!is.na(index)) {
-    mc <- mc[-index]
-  }
-  index <- match("parallel", names(mc))
-  if (!is.na(index)) {
-    mc <- mc[-index]
-  }
+  mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
+  
   lmod <- eval(mc, parent.frame(1L))
   
   # code ripped from lme4:::mkLmerDevFun
