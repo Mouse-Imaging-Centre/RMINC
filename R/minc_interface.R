@@ -988,7 +988,6 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
 }
 
 checkCurrentUlimit <- function(){
-    
     current_ulimit <- system("ulimit -Sn", intern = TRUE)
     if(current_ulimit == "unlimited") current_ulimit <- Inf
     current_ulimit <- as.numeric(current_ulimit)
@@ -997,6 +996,9 @@ checkCurrentUlimit <- function(){
 }
 
 tableOpenFiles <- function(){
+  if(system("command -v lsof", ignore.stderr = TRUE, ignore.stdout = TRUE) != 0)
+    error("Unable to find external program lsof, please install and try again")
+  
   lsof_results <- 
     paste("lsof -Ft -p ", Sys.getpid()) %>%
     system(intern = TRUE, ignore.stderr = TRUE)
