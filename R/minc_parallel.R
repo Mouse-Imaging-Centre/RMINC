@@ -107,8 +107,8 @@ pMincApply <-
 #' @param temp_dir A directory to hold mask files used in the job batching
 #' @param cores the Number of cores to use, defaults to the option
 #' \code{mc.cores} or 2 if it is unset
-#' @param return_indices Whether to return the voxel index along with each result
-#' primarily for internal use only
+#' @param return_raw An internal use argument that prevents the resulting object
+#' from being reordered and expanded.
 #' @param collate A function to collate the list into another object type
 #' @export
 mcMincApply <-
@@ -118,7 +118,8 @@ mcMincApply <-
            batches = 4, 
            temp_dir = tempdir(),
            cores = getOption("mc.cores", parallel::detectCores() - 1),
-           return_indices = FALSE,
+           return_raw = FALSE,
+           cleanup = TRUE,
            collate = simplify2minc){
     
     filenames <- as.character(filenames)
@@ -175,14 +176,24 @@ mcMincApply <-
     inds <- unlist(lapply(results, function(el) el$inds))
     vals <- unlist(lapply(results, function(el) el$vals), recursive = FALSE)
     
+    if(return_raw){
+      results <- list(inds = inds, vals = vals)
+      results <- setMincAttributes(results, list(filenames = filenames,
+                                                 likeVolume = filenames[1],
+                                                 mask = mask))
+      return(results)
+    }
+    
     result_order <-
       order(inds)
     
     results <- vals[result_order]
     
-    if(return_indices)
-      results <- list(vals = results, 
-                      inds = inds[result_order])
+    if(!is.null(mask)){
+      expanded_results <- rep(list(getOption("RMINC_MASKED_VALUE")), length(sample_volume))
+      expanded_results[inds[result_order] + 1] <- results ##add one to inds to convert c++ to R
+      results <- expanded_results
+    }
     
     collation_function <- match.fun(collate)
     results <- collation_function(results)
@@ -426,7 +437,7 @@ qMincMap <-
         temp_dir = temp_dir,
         collate = identity)
     #Override these if passed through ...
-    mincApplyArguments$return_indices <- TRUE
+    mincApplyArguments$return_raw <- TRUE
     
     batchMap(registry,
              mcMincApply, 
@@ -455,6 +466,14 @@ qMincReduce <-
     result_indices <- unlist(lapply(results, function(el) el$inds))
     result_order <- order(result_indices)
     results <- unlist(lapply(results, function(el) el$vals), recursive = FALSE)[result_order]
+    
+    if(!is.null(result_attributes$mask)){
+      total_voxels <- prod(minc.dimensions.sizes(result_attributes$mask))
+      expanded_results <- rep(list(getOption("RMINC_MASKED_VALUE")), total_voxels)
+      ##add one to indices to convert from c++ to R
+      expanded_results[result_indices[result_order] + 1] <- results
+      results <- expanded_results
+    }
     
     collation_function <- match.fun(collate)
     results <- collation_function(results)
