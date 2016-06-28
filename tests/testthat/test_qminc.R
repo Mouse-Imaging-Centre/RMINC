@@ -38,6 +38,10 @@ test_that("Test sequential, multicore, and queue applies work", {
 })
 
 test_that("Masking qMincApply behaves as expected", {
+  
+  skip_on_cran()
+  skip_on_travis()
+  
   m_sequential <- verboseRun(
     "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10), mask = mask_file)",
     getOption("verbose"))
