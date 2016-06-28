@@ -361,6 +361,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
   
   config <- getConfig()
   
+  parallel_method <- match.arg(parallel_method)
   script_directory <- system.file("parallel", package = "RMINC")
   
   
@@ -400,7 +401,7 @@ qMincMap <-
     
     sample_file <- filenames[1]
     
-    temp_dir <- normalizePath(temp_dir)
+    temp_dir <- path.expand(temp_dir)
     if(!file.exists(temp_dir)) dir.create(temp_dir)
     
     sample_volume <- mincGetVolume(sample_file)
