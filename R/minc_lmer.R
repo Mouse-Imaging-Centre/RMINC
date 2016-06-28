@@ -71,7 +71,8 @@
 #' @export
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
-                     verbose=0L, temp_dir = getwd(), safely = FALSE) {
+                     verbose=0L, temp_dir = getwd(), safely = FALSE, 
+                     cleanup = TRUE) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -134,7 +135,8 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          filter_masked = TRUE,
                          mask = mask,
                          batches = as.numeric(parallel[2]),
-                         slab_sizes = slab_dims)
+                         slab_sizes = slab_dims,
+                         cleanup = cleanup)
     }
     else if(parallel[1] == "sge"){
       out <- qMincApply(lmod$fr[,1],
@@ -147,7 +149,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                         mask = mask,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
-                        cleanup = FALSE)
+                        cleanup = cleanup)
     } else {
       stop("Error: unknown parallelization method")
     }

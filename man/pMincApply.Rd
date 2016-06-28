@@ -8,7 +8,7 @@ pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
   batches = 4, method = c("local", "snowfall", "pbs", "sge", "none"),
   cores = getOption("mc.cores", 2L), resources = list(), packages = NULL,
   vmem = NULL, walltime = NULL, workers = batches, temp_dir = tempdir(),
-  collate = simplify2minc)
+  cleanup = TRUE, collate = simplify2minc)
 }
 \arguments{
 \item{filenames}{Paths to the minc files to be applied accross}

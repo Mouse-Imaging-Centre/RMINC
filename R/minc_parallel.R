@@ -59,6 +59,7 @@ pMincApply <-
            walltime = NULL,
            workers = batches,
            temp_dir = tempdir(),
+           cleanup = TRUE,
            collate = simplify2minc
   ){
     
@@ -79,13 +80,15 @@ pMincApply <-
       results <- qMincApply(filenames, fun, ..., mask = mask, 
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
-                            clobber = TRUE, queue = "sge", collate = collate)
+                            clobber = TRUE, queue = "sge", collate = collate,
+                            cleaup = cleanup)
     
     if(method == "pbs")
       results <- qMincApply(filenames, fun, ..., mask = mask, 
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
-                            clobber = TRUE, queue = "pbs", collate = collate)
+                            clobber = TRUE, queue = "pbs", collate = collate,
+                            cleanup = cleanup)
     
     results
   }
@@ -128,6 +131,10 @@ mcMincApply <-
     
     sample_volume <- mincGetVolume(sample_file)
     mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
+    
+    on.exit({
+      if(cleanup) unlink(mask_file)
+    })
     
     if(is.null(mask)){
       if(batches %% 1 != 0) stop("the number of batches must be an integer")
@@ -303,6 +310,13 @@ qMincApply <-
                     cores = cores,
                     clobber = clobber)
     
+    on.exit({
+      if(cleanup && wait){
+        removeRegistry(qMinc_registry, ask = "no")
+        lapply(list.files(temp_dir, pattern = "pMincMask.*\\.mnc"), unlink)
+      } 
+    })
+    
     qMincMap(qMinc_registry,
              filenames, 
              fun = match.fun(fun), 
@@ -315,7 +329,6 @@ qMincApply <-
     
     if(wait){
       qMinc_results <- qMincReduce(qMinc_registry, wait = TRUE, collate = collate)
-      if(cleanup) removeRegistry(qMinc_registry, ask = "no")
       return(qMinc_results)
     }
     
