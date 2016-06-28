@@ -87,9 +87,10 @@ simplify2minc <- function(result_list){
   ## Deal with masking, find the first non-masked value, NA it out
   ## insert it back in to standardize element length as much as possible
   lgl_missing <- vapply(result_list, 
-                        function(res){ inherits(res, "RMINC_MASKED_VALUE") | all(is.na(res)) }, 
+                        function(res){ inherits(res, "RMINC_MASKED_VALUE") || all(is.na(res)) }, 
                         logical(1))
-  first_element <- result_list[[min(which(!lgl_missing))]]      
+  
+  first_element <- result_list[[which(!lgl_missing)[1]]]      
   na_value <- first_element                                
   na_value[] <- getOption("RMINC_MASKED_VALUE")            #set all its elements to masked
   result_list[lgl_missing] <- list(na_value)                #replace in result list
