@@ -247,17 +247,8 @@ mincLmerEstimateDF <- function(model) {
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
-    
-    # code directly from lmerTest library
-    rho <- lmerTest:::rhoInitJSS(mmod)
-    dd <- lmerTest:::devfun5(mmod, getME(mmod, "is_REML"))
-    h <- lmerTest:::myhess(dd, c(rho$thopt, sigma = rho$sigma)) 
-    
-    ch <- try(chol(h), silent=TRUE)
-    rho$A <- 2*chol2inv(ch)
-    dfs[i,] <- lmerTest:::calculateTtestJSS(rho, diag(rep(1, length(rho$fixEffs))),
-                                            length(rho$fixEffs), "simple")[,"df"]
-    
+    dfs[i,] <- 
+      lmerTest::summary(mmod)$coefficients[,"df"]
   }
   
   df <- apply(dfs, 2, median)
