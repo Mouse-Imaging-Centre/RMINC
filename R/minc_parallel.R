@@ -33,6 +33,7 @@
 #' created when using a true queuing system and for writing temporary mask
 #' files. This must be a location read/writable by all nodes when using a
 #' true queuing system (so /tmp will not work).
+#' @param cleanup Whether to clean up registry after a queue parallelization job
 #' @param collate A function to be applied to collapse the results of the
 #' the pMincApply. Defaults to \link{simplify2minc}.
 #' @return The results of applying \code{fun} to each voxel accross \code{filenames}
@@ -109,6 +110,7 @@ pMincApply <-
 #' \code{mc.cores} or 2 if it is unset
 #' @param return_raw An internal use argument that prevents the resulting object
 #' from being reordered and expanded.
+#' @param cleanup Whether to delete temporary parallelization masks 
 #' @param collate A function to collate the list into another object type
 #' @export
 mcMincApply <-

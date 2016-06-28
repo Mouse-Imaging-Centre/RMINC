@@ -30,6 +30,8 @@ mcMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
 \item{return_raw}{An internal use argument that prevents the resulting object
 from being reordered and expanded.}
 
+\item{cleanup}{Whether to delete temporary parallelization masks}
+
 \item{collate}{A function to collate the list into another object type}
 }
 \description{

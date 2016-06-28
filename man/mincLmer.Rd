@@ -35,6 +35,9 @@ these files. Defaults to the current working directory.}
 \item{safely}{whether or not to wrap the per-voxel lmer code in an exception catching
 block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 NA for the result.}
+
+\item{cleanup}{Whether or not to cleanup registry files after a queue parallelized 
+run}
 }
 \value{
 a matrix where rows correspond to number of voxels in the file and columns to

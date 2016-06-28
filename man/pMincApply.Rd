@@ -55,6 +55,8 @@ created when using a true queuing system and for writing temporary mask
 files. This must be a location read/writable by all nodes when using a
 true queuing system (so /tmp will not work).}
 
+\item{cleanup}{Whether to clean up registry after a queue parallelization job}
+
 \item{collate}{A function to be applied to collapse the results of the
 the pMincApply. Defaults to \link{simplify2minc}.}
 }

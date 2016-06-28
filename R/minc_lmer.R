@@ -22,7 +22,8 @@
 #' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
 #' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 #' NA for the result.
-#'
+#' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
+#' run
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
 #' the number of terms in the formula, with both the beta coefficient and the t-statistic
 #' being returned. In addition, an extra column keeps the log likelihood, and another
