@@ -344,7 +344,7 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector
 mincLmerExtractVariables <- function(mmod) {
-  se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
+  se <- tryCatch({ # vcov sometimes complains that matrix is not positive definite
     sqrt(Matrix::diag(vcov(mmod, T)))
   }, warning=function(w) {
     return(0)
