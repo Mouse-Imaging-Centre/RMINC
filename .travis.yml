@@ -17,8 +17,6 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir $HOME/.R/; touch $HOME/.R/Makevars; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' > $HOME/.R/Makevars; fi
 repos:
-  bioCsoft: http://bioconductor.org/packages/3.2/bioc
-  cran: https://cran.rstudio.com
-r_check_args: --install-args="--configure-args=\"--enable-build-minc\""
+  bioCsoft: http://bioconductor.org/packages/3.3/bioc
 
 
