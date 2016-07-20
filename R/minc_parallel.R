@@ -9,12 +9,15 @@
 #' notes for a warnings
 #' @param mask The path to a mask for the minc files
 #' @param tinyMask whether to use a small subset of voxels to test the computation
-#' @param batches The number of jobs to break the computation into
+#' @param batches The number of jobs to break the computation into, ignored for
+#' snowfall/local mode
 #' @param method The parallelization method, local and snowfall perform 
-#' computations on multiple cores (snowfall is an alias for local for backcompatibility)
-#' pbs refers to a torque queueing system, and sge refers to an sge refers to the
+#' computations on multiple cores (snowfall is an alias to local for backcompatibility)
+#' pbs refers to a torque queueing system, and sge refers to the
 #' sge queueing system.
-#' @param cores The number of cores to use in local computation
+#' @param cores defaults to 1 in the case of PBS or SGE jobs, and 
+#' \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} for local/snowfall
+#' see \link{qMincApply} for details.
 #' @param resources A list of resources to request from the queueing system
 #' common examples including vmem, walltime, nodes, and modules see
 #' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
@@ -261,9 +264,9 @@ mcMincApply <-
 #' @param cluster_functions Custom cluster functions to use if parallel_method = "custom"
 #' @param batches The number of batches to divide the job into, this is ignored for
 #' multicore jobs, with the number of batches set to the number of cores.
-#' @param cores the Number of cores to use, in all cases except multicore this
+#' @param cores the number of cores to use, in all cases except multicore this
 #' defaults to 1, with a reminder message if method "none" or "custom" are used,
-#' for multicore it defaults to max(getOption("mc.cores"), parallel::detectCores() - 1)
+#' for multicore it defaults to \code{max(getOption("mc.cores"), parallel::detectCores() - 1)}
 #' @param resources The resources to request for each job, overrides the default.resources
 #' specified in .BatchJobs.R config files (see details). These include things like vmem, 
 #' walltime, and nodes.

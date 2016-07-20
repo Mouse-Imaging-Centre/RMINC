@@ -71,9 +71,9 @@ and job management}
 \item{registry_dir}{The path for your BatchJobs registry, defaults to
 \code{temp_dir/registry_name}}
 
-\item{cores}{the Number of cores to use, in all cases except multicore this
+\item{cores}{the number of cores to use, in all cases except multicore this
 defaults to 1, with a reminder message if method "none" or "custom" are used,
-for multicore it defaults to max(getOption("mc.cores"), parallel::detectCores() - 1)}
+for multicore it defaults to \code{max(getOption("mc.cores"), parallel::detectCores() - 1)}}
 
 \item{wait}{Whether to wait for your results or return a registry object
 to be checked on later}

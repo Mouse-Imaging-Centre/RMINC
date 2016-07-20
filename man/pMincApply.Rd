@@ -6,9 +6,10 @@
 \usage{
 pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
   batches = 4, method = c("local", "snowfall", "pbs", "sge", "none"),
-  cores = getOption("mc.cores", 2L), resources = list(), packages = NULL,
-  vmem = NULL, walltime = NULL, workers = batches, temp_dir = tempdir(),
-  cleanup = TRUE, collate = simplify2minc)
+  cores = getOption("mc.cores", parallel::detectCores() - 1),
+  resources = list(), packages = NULL, vmem = NULL, walltime = NULL,
+  workers = batches, temp_dir = tempdir(), cleanup = TRUE,
+  collate = simplify2minc)
 }
 \arguments{
 \item{filenames}{Paths to the minc files to be applied accross}
@@ -22,14 +23,17 @@ notes for a warnings}
 
 \item{tinyMask}{whether to use a small subset of voxels to test the computation}
 
-\item{batches}{The number of jobs to break the computation into}
+\item{batches}{The number of jobs to break the computation into, ignored for
+snowfall/local mode}
 
 \item{method}{The parallelization method, local and snowfall perform 
-computations on multiple cores (snowfall is an alias for local for backcompatibility)
-pbs refers to a torque queueing system, and sge refers to an sge refers to the
+computations on multiple cores (snowfall is an alias to local for backcompatibility)
+pbs refers to a torque queueing system, and sge refers to the
 sge queueing system.}
 
-\item{cores}{The number of cores to use in local computation}
+\item{cores}{defaults to 1 in the case of PBS or SGE jobs, and 
+\code{max(getOption("mc.cores"), parallel::detectCores() - 1)} for local/snowfall
+see \link{qMincApply} for details.}
 
 \item{resources}{A list of resources to request from the queueing system
 common examples including vmem, walltime, nodes, and modules see
