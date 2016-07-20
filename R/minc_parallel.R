@@ -53,7 +53,7 @@ pMincApply <-
            tinyMask = FALSE,
            batches = 4,
            method = c("local", "snowfall", "pbs", "sge", "none"),
-           cores = getOption("mc.cores", 2L),
+           cores = getOption("mc.cores", parallel::detectCores() - 1),
            resources = list(),
            packages = NULL,
            vmem = NULL,
@@ -70,7 +70,7 @@ pMincApply <-
     if(method == "local" || method == "snowfall")
       results <- mcMincApply(filenames, fun, ...,
                              mask = mask, tinyMask = tinyMask, 
-                             batches = batches, cores = cores,
+                             cores = cores,
                              temp_dir = temp_dir, collate = collate)
     
     #Initialize queue resources from arguments if not supplied
