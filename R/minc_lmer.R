@@ -133,12 +133,12 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          slab_sizes = slab_dims,
                          cleanup = cleanup)
     }
-    else if(parallel[1] == "sge"){
+    else if(parallel[1] %in% c("sge", "pbs")){
       out <- qMincApply(lmod$fr[,1],
                         optimizer_fun,
                         mincLmerList = mincLmerList,
                         filter_masked = TRUE,
-                        parallel_method = "sge",
+                        parallel_method = parallel[1],
                         temp_dir = temp_dir,
                         cores = 1,
                         mask = mask,
