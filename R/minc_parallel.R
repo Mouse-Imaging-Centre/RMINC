@@ -104,58 +104,71 @@ pMincApply <-
 #' @param ... Additional arguments to pass to fun, see details for a warning
 #' @param mask The mask used to select voxels to apply to
 #' @param tinyMask Shrink the mask for testing
-#' @param batches The number of batches to divide the job into
 #' @param temp_dir A directory to hold mask files used in the job batching
-#' @param cores the Number of cores to use, defaults to the option
-#' \code{mc.cores} or 2 if it is unset
+#' @param cores the number of cores to use, defaults to the option
+#' \code{mc.cores} or one less than the number of detected cores if \code{mc.cores} 
+#' is unset.
 #' @param return_raw An internal use argument that prevents the resulting object
 #' from being reordered and expanded.
 #' @param cleanup Whether to delete temporary parallelization masks 
+#' @param mask_vals values of the mask over which to parallelize, defaults
+#' to subdividing all masked voxels into the specified number of batches
 #' @param collate A function to collate the list into another object type
 #' @export
 mcMincApply <-
   function(filenames, fun, ...,
            mask = NULL,
            tinyMask = FALSE, 
-           batches = 4, 
            temp_dir = tempdir(),
            cores = getOption("mc.cores", parallel::detectCores() - 1),
            return_raw = FALSE,
            cleanup = TRUE,
+           mask_vals = NULL,
            collate = simplify2minc){
     
     filenames <- as.character(filenames)
     enoughAvailableFileDescriptors(length(filenames))
     
     sample_file <- filenames[1]
-    
-    temp_dir <- path.expand(temp_dir)
-    if(!file.exists(temp_dir)) dir.create(temp_dir)
-    
     sample_volume <- mincGetVolume(sample_file)
-    mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
+    mask_file <- "unset"
     
-    on.exit({
-      if(cleanup) unlink(mask_file)
-    })
-    
-    if(is.null(mask)){
-      if(batches %% 1 != 0) stop("the number of batches must be an integer")
+    if(is.null(mask_vals)){
+      temp_dir <- path.expand(temp_dir)
+      if(!file.exists(temp_dir)) dir.create(temp_dir)
       
-      nVoxels <- length(sample_volume)
-      mask_values <- groupingVector(nVoxels, batches)
-    } else {
-      mask_values <- mincGetVolume(mask)
-      if(tinyMask) mask_values[mask_values > 1.5] <- 0
+      mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
       
-      nVoxels <- sum(mask_values > .5)
+      on.exit({
+        if(cleanup) unlink(mask_file)
+      })
       
-      mask_values[mask_values > .5] <- 
-        groupingVector(nVoxels, batches)
+      if(is.null(mask)){
+        if(cores %% 1 != 0) stop("the number of cores must be an integer")
+        
+        nVoxels <- length(sample_volume)
+        mask_values <- groupingVector(nVoxels, cores)
+      } else {
+        mask_values <- mincGetVolume(mask)
+        if(tinyMask) mask_values[mask_values > 1.5] <- 0
+        
+        nVoxels <- sum(mask_values > .5)
+        
+        mask_values[mask_values > .5] <- 
+          groupingVector(nVoxels, cores)
+        
+      }
       
+      mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
     }
     
-    mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
+    if(mask_file == "unset"){
+      mask_file <- mask
+      on.exit() #clear the on.exit for extra safety
+    }
+    
+    if(is.null(mask_vals))
+      mask_vals <- 1:cores
     
     dot_args <- list(...)
     mincApplyArguments <- 
@@ -170,7 +183,7 @@ mcMincApply <-
     
     results <- 
       parallel::mcmapply(mincApplyRCPP,
-                         maskval = 1:batches,
+                         maskval = mask_vals,
                          MoreArgs = mincApplyArguments,
                          SIMPLIFY = FALSE,
                          mc.cores = cores)
@@ -246,11 +259,11 @@ mcMincApply <-
 #' passed in through \code{cluster_functions} (also not recommend, for more control 
 #' use the .BatchJobs.R configuration system, see details).
 #' @param cluster_functions Custom cluster functions to use if parallel_method = "custom"
-#' @param batches The number of batches to divide the job into
-#' @param cores the Number of cores to use, defaults to the option
-#' \code{mc.cores} or 2 if it is unset. When running on a queuing system
-#' setting cores results in an extra layer of parallelization within each
-#' job, if your scheduler allows it using cores = 1 is probably superior.
+#' @param batches The number of batches to divide the job into, this is ignored for
+#' multicore jobs, with the number of batches set to the number of cores.
+#' @param cores the Number of cores to use, in all cases except multicore this
+#' defaults to 1, with a reminder message if method "none" or "custom" are used,
+#' for multicore it defaults to max(getOption("mc.cores"), parallel::detectCores() - 1)
 #' @param resources The resources to request for each job, overrides the default.resources
 #' specified in .BatchJobs.R config files (see details). These include things like vmem, 
 #' walltime, and nodes.
