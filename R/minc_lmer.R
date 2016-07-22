@@ -22,7 +22,8 @@
 #' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
 #' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 #' NA for the result.
-#'
+#' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
+#' run
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
 #' the number of terms in the formula, with both the beta coefficient and the t-statistic
 #' being returned. In addition, an extra column keeps the log likelihood, and another
@@ -71,7 +72,8 @@
 #' @export
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
-                     verbose=0L, temp_dir = getwd(), safely = FALSE) {
+                     verbose=0L, temp_dir = getwd(), safely = FALSE, 
+                     cleanup = TRUE) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -81,16 +83,10 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   #mc$control <- lmerControl() #overrides user input control
   mc[[1]] <- quote(lme4::lFormula)
   
-  # remove mask and parallel, since lmer does not know about them and keeping them
+  # remove lme4 unknown arguments, since lmer does not know about them and keeping them
   # generates obscure warning messages
-  index <- match("mask", names(mc))
-  if (!is.na(index)) {
-    mc <- mc[-index]
-  }
-  index <- match("parallel", names(mc))
-  if (!is.na(index)) {
-    mc <- mc[-index]
-  }
+  mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
+  
   lmod <- eval(mc, parent.frame(1L))
   
   # code ripped from lme4:::mkLmerDevFun
@@ -134,7 +130,8 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          filter_masked = TRUE,
                          mask = mask,
                          batches = as.numeric(parallel[2]),
-                         slab_sizes = slab_dims)
+                         slab_sizes = slab_dims,
+                         cleanup = cleanup)
     }
     else if(parallel[1] == "sge"){
       out <- qMincApply(lmod$fr[,1],
@@ -147,7 +144,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                         mask = mask,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
-                        cleanup = FALSE)
+                        cleanup = cleanup)
     } else {
       stop("Error: unknown parallelization method")
     }
@@ -251,17 +248,8 @@ mincLmerEstimateDF <- function(model) {
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
-    
-    # code directly from lmerTest library
-    rho <- lmerTest:::rhoInitJSS(mmod)
-    dd <- lmerTest:::devfun5(mmod, getME(mmod, "is_REML"))
-    h <- lmerTest:::myhess(dd, c(rho$thopt, sigma = rho$sigma)) 
-    
-    ch <- try(chol(h), silent=TRUE)
-    rho$A <- 2*chol2inv(ch)
-    dfs[i,] <- lmerTest:::calculateTtestJSS(rho, diag(rep(1, length(rho$fixEffs))),
-                                            length(rho$fixEffs), "simple")[,"df"]
-    
+    dfs[i,] <- 
+      lmerTest::summary(mmod)$coefficients[,"df"]
   }
   
   df <- apply(dfs, 2, median)
@@ -356,8 +344,8 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector
 mincLmerExtractVariables <- function(mmod) {
-  se <- tryCatch({ # vcov sometimes complains that matris is not positive definite
-    sqrt(diag(vcov(mmod, T)))
+  se <- tryCatch({ # vcov sometimes complains that matrix is not positive definite
+    sqrt(Matrix::diag(vcov(mmod, T)))
   }, warning=function(w) {
     return(0)
   }, error=function(e) {

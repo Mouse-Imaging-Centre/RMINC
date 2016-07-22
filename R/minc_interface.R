@@ -56,7 +56,7 @@ setMincAttributes <-
       return(minc_object)
     
     if(any(! names(updated_attrs) %in% known_minc_attributes)) 
-      stop(sprintf("New attributes (%s) must be a known minc object attribute (%s)",
+      stop(sprintf("New attributes (%s) must be known minc object attribute (%s)",
                    paste0(updated_attrs, collapse = ", "),
                    paste0(known_minc_attributes, collapse = ", ")))
     
@@ -87,9 +87,10 @@ simplify2minc <- function(result_list){
   ## Deal with masking, find the first non-masked value, NA it out
   ## insert it back in to standardize element length as much as possible
   lgl_missing <- vapply(result_list, 
-                        function(res){ inherits(res, "RMINC_MASKED_VALUE") | all(is.na(res)) }, 
+                        function(res){ inherits(res, "RMINC_MASKED_VALUE") || all(is.na(res)) }, 
                         logical(1))
-  first_element <- result_list[[min(which(!lgl_missing))]]      
+  
+  first_element <- result_list[[which(!lgl_missing)[1]]]      
   na_value <- first_element                                
   na_value[] <- getOption("RMINC_MASKED_VALUE")            #set all its elements to masked
   result_list[lgl_missing] <- list(na_value)                #replace in result list
@@ -926,8 +927,6 @@ parseLmFormula <- function(formula,data,mf)
   }
   return(list(data.matrix.left = data.matrix.left, data.matrix.right = data.matrix.right,rows = rows,matrixFound = matrixFound,mmatrix = mmatrix))
 }
-  
-### end of lmer bits of code
 
 #' converts a vector index to the voxel indices in MINC
 #'
@@ -989,7 +988,6 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
 }
 
 checkCurrentUlimit <- function(){
-    
     current_ulimit <- system("ulimit -Sn", intern = TRUE)
     if(current_ulimit == "unlimited") current_ulimit <- Inf
     current_ulimit <- as.numeric(current_ulimit)
@@ -998,9 +996,12 @@ checkCurrentUlimit <- function(){
 }
 
 tableOpenFiles <- function(){
+  if(system("command -v lsof", ignore.stderr = TRUE, ignore.stdout = TRUE) != 0)
+    stop("Unable to find external program lsof, please install and try again")
+  
   lsof_results <- 
     paste("lsof -Ft -p ", Sys.getpid()) %>%
-    system(intern = TRUE)
+    system(intern = TRUE, ignore.stderr = TRUE)
     
   table(lsof_results)  
 }

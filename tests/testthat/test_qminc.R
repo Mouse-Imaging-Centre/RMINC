@@ -5,6 +5,7 @@ getRMINCTestData()
 dataPath <- file.path(tempdir(), "rminctestdata/")
  
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+mask_file <- file.path(dataPath, "testminc-mask.mnc")
 
 test_that("Test sequential, multicore, and queue applies work", {
   
@@ -34,6 +35,24 @@ test_that("Test sequential, multicore, and queue applies work", {
   expect_equal(attr(m_sequential, "filenames"), attr(m_multicore, "filenames"))
   expect_equal(attr(m_sequential, "likeVolume"), attr(m_queue, "likeVolume"))
   expect_equal(attr(m_sequential, "likeVolume"), attr(m_multicore, "likeVolume"))
+})
+
+test_that("Masking qMincApply behaves as expected", {
+  
+  skip_on_cran()
+  skip_on_travis()
+  
+  m_sequential <- verboseRun(
+    "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10), mask = mask_file)",
+    getOption("verbose"))
+  
+  m_queue <- verboseRun(
+    paste("qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore',",
+          "slab_sizes = c(5,1,10), mask = mask_file)"),
+    getOption("verbose")
+  )
+  
+  expect_equivalent(m_sequential, m_queue)
 })
 
 # if(getOption("RMINC_QUEUE") == "sge"){

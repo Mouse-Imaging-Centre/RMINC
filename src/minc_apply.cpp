@@ -152,12 +152,12 @@ List rcpp_minc_apply(CharacterVector filenames,
                 sizes[2] * (voxel_offsets[1] + y) +
                 (voxel_offsets[2] + z));
               
+              //ugly indexing into 2nd-D of slab buffer
               int slab_pos =  x * hyperslab_dims[1] * hyperslab_dims[2] +
                 y * hyperslab_dims[2] +
                 z;
                    
               for(int xvol = 0; xvol < nvols; ++xvol){
-                //ugly indexing into 2nd-D of slab buffer
                 voxel_values[xvol] = slab_buffer[xvol][slab_pos];
               }
 

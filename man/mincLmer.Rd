@@ -6,7 +6,7 @@
 \usage{
 mincLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L,
-  temp_dir = getwd(), safely = FALSE)
+  temp_dir = getwd(), safely = FALSE, cleanup = TRUE)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -35,6 +35,9 @@ these files. Defaults to the current working directory.}
 \item{safely}{whether or not to wrap the per-voxel lmer code in an exception catching
 block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 NA for the result.}
+
+\item{cleanup}{Whether or not to cleanup registry files after a queue parallelized 
+run}
 }
 \value{
 a matrix where rows correspond to number of voxels in the file and columns to

@@ -33,6 +33,7 @@
 #' created when using a true queuing system and for writing temporary mask
 #' files. This must be a location read/writable by all nodes when using a
 #' true queuing system (so /tmp will not work).
+#' @param cleanup Whether to clean up registry after a queue parallelization job
 #' @param collate A function to be applied to collapse the results of the
 #' the pMincApply. Defaults to \link{simplify2minc}.
 #' @return The results of applying \code{fun} to each voxel accross \code{filenames}
@@ -59,6 +60,7 @@ pMincApply <-
            walltime = NULL,
            workers = batches,
            temp_dir = tempdir(),
+           cleanup = TRUE,
            collate = simplify2minc
   ){
     
@@ -79,13 +81,15 @@ pMincApply <-
       results <- qMincApply(filenames, fun, ..., mask = mask, 
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
-                            clobber = TRUE, queue = "sge", collate = collate)
+                            clobber = TRUE, queue = "sge", collate = collate,
+                            cleaup = cleanup)
     
     if(method == "pbs")
       results <- qMincApply(filenames, fun, ..., mask = mask, 
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
-                            clobber = TRUE, queue = "pbs", collate = collate)
+                            clobber = TRUE, queue = "pbs", collate = collate,
+                            cleanup = cleanup)
     
     results
   }
@@ -104,8 +108,9 @@ pMincApply <-
 #' @param temp_dir A directory to hold mask files used in the job batching
 #' @param cores the Number of cores to use, defaults to the option
 #' \code{mc.cores} or 2 if it is unset
-#' @param return_indices Whether to return the voxel index along with each result
-#' primarily for internal use only
+#' @param return_raw An internal use argument that prevents the resulting object
+#' from being reordered and expanded.
+#' @param cleanup Whether to delete temporary parallelization masks 
 #' @param collate A function to collate the list into another object type
 #' @export
 mcMincApply <-
@@ -115,7 +120,8 @@ mcMincApply <-
            batches = 4, 
            temp_dir = tempdir(),
            cores = getOption("mc.cores", parallel::detectCores() - 1),
-           return_indices = FALSE,
+           return_raw = FALSE,
+           cleanup = TRUE,
            collate = simplify2minc){
     
     filenames <- as.character(filenames)
@@ -128,6 +134,10 @@ mcMincApply <-
     
     sample_volume <- mincGetVolume(sample_file)
     mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
+    
+    on.exit({
+      if(cleanup) unlink(mask_file)
+    })
     
     if(is.null(mask)){
       if(batches %% 1 != 0) stop("the number of batches must be an integer")
@@ -168,14 +178,24 @@ mcMincApply <-
     inds <- unlist(lapply(results, function(el) el$inds))
     vals <- unlist(lapply(results, function(el) el$vals), recursive = FALSE)
     
+    if(return_raw){
+      results <- list(inds = inds, vals = vals)
+      results <- setMincAttributes(results, list(filenames = filenames,
+                                                 likeVolume = filenames[1],
+                                                 mask = mask))
+      return(results)
+    }
+    
     result_order <-
       order(inds)
     
     results <- vals[result_order]
     
-    if(return_indices)
-      results <- list(vals = results, 
-                      inds = inds[result_order])
+    if(!is.null(mask)){
+      expanded_results <- rep(list(getOption("RMINC_MASKED_VALUE")), length(sample_volume))
+      expanded_results[inds[result_order] + 1] <- results ##add one to inds to convert c++ to R
+      results <- expanded_results
+    }
     
     collation_function <- match.fun(collate)
     results <- collation_function(results)
@@ -303,6 +323,13 @@ qMincApply <-
                     cores = cores,
                     clobber = clobber)
     
+    on.exit({
+      if(cleanup && wait){
+        removeRegistry(qMinc_registry, ask = "no")
+        lapply(list.files(temp_dir, pattern = "pMincMask.*\\.mnc"), unlink)
+      } 
+    })
+    
     qMincMap(qMinc_registry,
              filenames, 
              fun = match.fun(fun), 
@@ -315,7 +342,6 @@ qMincApply <-
     
     if(wait){
       qMinc_results <- qMincReduce(qMinc_registry, wait = TRUE, collate = collate)
-      if(cleanup) removeRegistry(qMinc_registry, ask = "no")
       return(qMinc_results)
     }
     
@@ -337,6 +363,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
   
   config <- getConfig()
   
+  parallel_method <- match.arg(parallel_method)
   script_directory <- system.file("parallel", package = "RMINC")
   
   
@@ -376,7 +403,7 @@ qMincMap <-
     
     sample_file <- filenames[1]
     
-    temp_dir <- normalizePath(temp_dir)
+    temp_dir <- path.expand(temp_dir)
     if(!file.exists(temp_dir)) dir.create(temp_dir)
     
     sample_volume <- mincGetVolume(sample_file)
@@ -413,7 +440,7 @@ qMincMap <-
         temp_dir = temp_dir,
         collate = identity)
     #Override these if passed through ...
-    mincApplyArguments$return_indices <- TRUE
+    mincApplyArguments$return_raw <- TRUE
     
     batchMap(registry,
              mcMincApply, 
@@ -442,6 +469,14 @@ qMincReduce <-
     result_indices <- unlist(lapply(results, function(el) el$inds))
     result_order <- order(result_indices)
     results <- unlist(lapply(results, function(el) el$vals), recursive = FALSE)[result_order]
+    
+    if(!is.null(result_attributes$mask)){
+      total_voxels <- prod(minc.dimensions.sizes(result_attributes$mask))
+      expanded_results <- rep(list(getOption("RMINC_MASKED_VALUE")), total_voxels)
+      ##add one to indices to convert from c++ to R
+      expanded_results[result_indices[result_order] + 1] <- results
+      results <- expanded_results
+    }
     
     collation_function <- match.fun(collate)
     results <- collation_function(results)

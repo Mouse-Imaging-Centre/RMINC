@@ -6,7 +6,7 @@ False Discovery Rate, and more. With contributions from Jason Lerch,
 Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some
 additional information can be found here:
 
-https://wiki.phenogenomics.ca/display/MICePub/RMINC
+https://wiki.mouseimaging.ca/display/MICePub/RMINC
 
 
 Installation:
@@ -30,11 +30,11 @@ Tutorials
 
 RMINC provides learning material:
 
-Voxel-wise Statistics: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMStats.pdf
+Voxel-wise Statistics: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
  
 RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
 
-Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/doc/RMINC_rgl.html
+Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html
 
 Development Version:
 ---------------------

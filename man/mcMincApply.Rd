@@ -6,7 +6,7 @@
 \usage{
 mcMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
   batches = 4, temp_dir = tempdir(), cores = getOption("mc.cores",
-  parallel::detectCores() - 1), return_indices = FALSE,
+  parallel::detectCores() - 1), return_raw = FALSE, cleanup = TRUE,
   collate = simplify2minc)
 }
 \arguments{
@@ -27,8 +27,10 @@ mcMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
 \item{cores}{the Number of cores to use, defaults to the option
 \code{mc.cores} or 2 if it is unset}
 
-\item{return_indices}{Whether to return the voxel index along with each result
-primarily for internal use only}
+\item{return_raw}{An internal use argument that prevents the resulting object
+from being reordered and expanded.}
+
+\item{cleanup}{Whether to delete temporary parallelization masks}
 
 \item{collate}{A function to collate the list into another object type}
 }
