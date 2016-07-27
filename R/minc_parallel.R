@@ -409,8 +409,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
            "none" = config$cluster.functions,
            "pbs" = makeClusterFunctionsTorque(file.path(script_directory, "pbs_script.tmpl")),
            "sge" = makeClusterFunctionsSGE(file.path(script_directory, "sge_script.tmpl")),
-           "multicore" = makeClusterFunctionsMulticore(ncpus = cores,
-                                                       max.load = parallel::detectCores()),
+           "multicore" = makeClusterFunctionsMulticore(max.jobs = cores),
            "interactive" = makeClusterFunctionsInteractive(),
            "custom" = cluster_functions)
   
