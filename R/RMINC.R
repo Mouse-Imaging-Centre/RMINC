@@ -70,7 +70,7 @@ NULL
     
     op.RMINC <- list(
       RMINC_MASKED_VALUE = 
-        structure(NA, class = "RMINC_MASKED_VALUE"),
+        structure(0, class = "RMINC_MASKED_VALUE"),
       RMINC_QUEUE = 
         `if`(Sys.getenv("RMINC_QUEUE") == "",
              Sys.getenv("RMINC_QUEUE"),
