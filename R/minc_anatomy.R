@@ -465,56 +465,63 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' @param data the predictor variables
 #' @param anat a subject by label matrix of anatomical 
 #' summaries typically produced by \link{anatGetAll}
-#' @param subset rows to subset
+#' @param ... additional arguments for the \link{lmer}
 #' @return an \code{anatModel} object of statistical results
 anatLmer <-
-  function(formula, data, anat, subset = NULL, REML = TRUE, 
-           control = lmerControl(), verbose = FALSE, start = NULL){
-    mc <- mcout <- match.call()
-    #mc$control <- lmerControl() #overrides user input control
-    mc[[1]] <- quote(lme4::lFormula)
+  function(formula, data, anat, ...){
+
+    ## This function contains some formula hacking blackmagic
+    ## conceptually the transformation is simple, find the last term
+    ## of the formula and replace it with a reference to a column
+    ## in anatomy. Originally, the new LHS was included as a variable
+    ## updated in the lapply, but this causes lmerTest::summary to fail
+    ## pointing to a scoping bug somewhere in that package. The backticks
+    ## protect non-syntactic names so that the anatomy frame doesn't need
+    ## to need to have its names munged.
     
-    # remove lme4 unknown arguments, since lmer does not know about them and keeping them
-    # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("anat", "subset")]
+    RHS <-
+      deparse(formula[[length(formula)]])
     
-    lmod <- eval(mc, parent.frame(1L))
+    anat_frame <-
+      as.data.frame(anat)
     
-    # code ripped from lme4:::mkLmerDevFun
-    rho <- new.env(parent = parent.env(environment()))
-    rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
-                                                    "Lambdat", "Lind")],
-                                      n = nrow(lmod$X), list(X = lmod$X)))
-    REMLpass <- if (REML) 
-      ncol(lmod$X)
-    else 0L
+    models <-
+      lapply(names(anat_frame), function(var){
+        updated_formula <-
+          paste0("anat_frame$`", var, "` ~ ", RHS)
+        
+        lmerTest::lmer(as.formula(updated_formula), data = data, ...)
+      })
     
+    mmod <-
+      models[[1]]
     
-    mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
-    
-    out <- t(apply(anat, 2, RMINC:::mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
-    
-    out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
-    
-    termnames <- colnames(lmod$X)
+    out <-
+      sapply(models, mincLmerExtractVariables) %>%
+      t
+
+    termnames <- names(fixef(mmod))
     betaNames <- paste("beta-", termnames, sep="")
     tnames <- paste("tvalue-", termnames, sep="")
     colnames(out) <- c(betaNames, tnames, "logLik", "converged")
-    
-    # generate some random numbers for a single fit in order to extract some extra info
-    mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
-    
+
     attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
                                 "logLik", "converged")
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
-    attr(out, "REML") <- REML
-    attr(out, "mincLmerList") <- mincLmerList
+    attr(out, "REML") <- isREML(mmod)
     attr(out, "atlas") <- attr(anat, "atlas")
     attr(out, "definitions") <- attr(anat, "definitions")
     
-    class(out) <- c("anatModel", "matrix")
+    dfs <- 
+      sapply(models, function(mod) lmerTest::summary(mod)$coefficients[,"df"]) %>%
+      t
     
+    df <- apply(dfs, 2, median)
+    attr(out, "df") <- df
+
+    class(out) <- c("anatLmerMod", "anatModel", "matrix")
+
     return(out)
   }
 
