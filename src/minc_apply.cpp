@@ -127,8 +127,7 @@ List rcpp_minc_apply(CharacterVector filenames,
 
         for(int vol = 0; vol < nvols; ++vol){
           stringstream error_message;
-          error_message.str("Error Reading Volume ");
-          error_message << (vol + 1);
+          error_message << "Error Reading Volume " << (vol + 1) << "\n";
 
           cautious_get_hyperslab(volumes[vol],
                                  MI_TYPE_DOUBLE,
