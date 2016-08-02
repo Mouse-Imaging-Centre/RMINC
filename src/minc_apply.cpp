@@ -212,14 +212,3 @@ List rcpp_minc_apply(CharacterVector filenames,
                       _["inds"] = result_inds);
 }
 
-NumericVector size_vec(CharacterVector filenames){
-  vector<mihandle_t> volumes = open_minc2_volumes(filenames);
-  vector<misize_t> sizes = get_volume_dimensions(volumes[0]);
-  NumericVector output(3);
-  
-  output[0] = (int) sizes[0];
-  output[1] = (int) sizes[1];
-  output[2] = (int) sizes[2];
-  
-  return output;
-}
