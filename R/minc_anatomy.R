@@ -465,65 +465,115 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' @param data the predictor variables
 #' @param anat a subject by label matrix of anatomical 
 #' summaries typically produced by \link{anatGetAll}
-#' @param ... additional arguments for the \link{lmer}
+#' @param subset rows to subset
 #' @return an \code{anatModel} object of statistical results
 anatLmer <-
-  function(formula, data, anat, ...){
-
-    ## This function contains some formula hacking blackmagic
-    ## conceptually the transformation is simple, find the last term
-    ## of the formula and replace it with a reference to a column
-    ## in anatomy. Originally, the new LHS was included as a variable
-    ## updated in the lapply, but this causes lmerTest::summary to fail
-    ## pointing to a scoping bug somewhere in that package. The backticks
-    ## protect non-syntactic names so that the anatomy frame doesn't need
-    ## to need to have its names munged.
+  function(formula, data, anat, subset = NULL, REML = TRUE, 
+           control = lmerControl(), verbose = FALSE, start = NULL){
+    mc <- mcout <- match.call()
+    #mc$control <- lmerControl() #overrides user input control
+    mc[[1]] <- quote(lme4::lFormula)
     
-    RHS <-
-      deparse(formula[[length(formula)]])
+    # remove lme4 unknown arguments, since lmer does not know about them and keeping them
+    # generates obscure warning messages
+    mc <- mc[!names(mc) %in% c("anat", "subset")]
     
-    anat_frame <-
-      as.data.frame(anat)
+    lmod <- eval(mc, parent.frame(1L))
     
-    models <-
-      lapply(names(anat_frame), function(var){
-        updated_formula <-
-          paste0("anat_frame$`", var, "` ~ ", RHS)
-        
-        lmerTest::lmer(as.formula(updated_formula), data = data, ...)
-      })
+    # code ripped from lme4:::mkLmerDevFun
+    rho <- new.env(parent = parent.env(environment()))
+    rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
+                                                    "Lambdat", "Lind")],
+                                      n = nrow(lmod$X), list(X = lmod$X)))
+    REMLpass <- if (REML) 
+      ncol(lmod$X)
+    else 0L
     
-    mmod <-
-      models[[1]]
     
-    out <-
-      sapply(models, mincLmerExtractVariables) %>%
-      t
-
-    termnames <- names(fixef(mmod))
+    mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
+    
+    out <- t(apply(anat, 2, RMINC:::mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
+    
+    out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
+    
+    termnames <- colnames(lmod$X)
     betaNames <- paste("beta-", termnames, sep="")
     tnames <- paste("tvalue-", termnames, sep="")
     colnames(out) <- c(betaNames, tnames, "logLik", "converged")
-
+    
+    # generate some random numbers for a single fit in order to extract some extra info
+    mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
+    
     attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
                                 "logLik", "converged")
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
-    attr(out, "REML") <- isREML(mmod)
+    attr(out, "REML") <- REML
+    attr(out, "mincLmerList") <- mincLmerList
     attr(out, "atlas") <- attr(anat, "atlas")
     attr(out, "definitions") <- attr(anat, "definitions")
+    attr(out, "anat") <- anat
     
-    dfs <- 
-      sapply(models, function(mod) lmerTest::summary(mod)$coefficients[,"df"]) %>%
-      t
+    class(out) <- c("anatLmerModel", "anatModel", "matrix")
     
-    df <- apply(dfs, 2, median)
-    attr(out, "df") <- df
-
-    class(out) <- c("anatLmerMod", "anatModel", "matrix")
-
     return(out)
   }
+
+#' Estimate Degrees of freedom for an anatLmer model
+#' 
+#' Estimate the degrees of freedom for an \code{anatLmerModel} object
+#' produced by \link{anatLmer}. See \link{anatLmer} for more details
+#' on degrees of freedom estimation for linear mixed effects models
+#' @param model an \code{anatLmerModel}
+#' @return the same model, now with degrees of freedom set
+#' @export
+anatLmerEstimateDF <- function(model) {
+  # set the DF based on the Satterthwaite approximation
+  
+  mincLmerList <- attr(model, "mincLmerList")
+  
+  # estimated DF depends on the input data. Rather than estimate separately at every structure,
+  # instead select a small number of structures and estimate DF for those structures, then keep the
+  # min
+  nstructures <- min(50, nrow(model))
+  rstructures <- sample(1:nrow(model), nstructures)
+  dfs <- matrix(nrow = nstructures, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
+  
+  for (i in 1:nstructures) {
+    structureData <- attr(model, "anat")[,rstructures[i]]
+    
+    ## It seems LmerTest cannot compute the deviance function for mincLmers
+    ## in the current version, instead extract the model components from
+    ## the mincLmerList and re-fit the lmers directly at each structure,
+    ## Slower but yeilds the correct result
+    lmod <- mincLmerList[[1]]
+    lmod$fr[,1] <- structureData
+    
+    # Rebuild the environment of the formula, otherwise updating does not
+    # work in the lmerTest code
+    environment(lmod$formula)$lmod <- lmod
+    environment(lmod$formula)$mincLmerList <- mincLmerList
+    
+    mmod <-
+      lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+                     start = mincLmerList[[4]], control = mincLmerList[[3]],
+                     verbose = mincLmerList[[5]])
+    
+    dfs[i,] <- 
+      lmerTest::summary(mmod)$coefficients[,"df"]
+  }
+  
+  df <- apply(dfs, 2, median)
+  cat("Mean df: ", apply(dfs, 2, mean), "\n")
+  cat("Median df: ", apply(dfs, 2, median), "\n")
+  cat("Min df: ", apply(dfs, 2, min), "\n")
+  cat("Max df: ", apply(dfs, 2, max), "\n")
+  cat("Sd df: ", apply(dfs, 2, sd), "\n")
+  
+  attr(model, "df") <- df
+  
+  return(model)
+}
 
 #' Performs ANOVA on each region specified 
 #' @param formula a model formula
