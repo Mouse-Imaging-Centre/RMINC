@@ -456,6 +456,68 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   return(result)
 }
 
+#' Anatomy Linear Mixed Effects Model
+#' 
+#' Apply a linear mixed effects model to the results of
+#' \link{anatGetAll}.
+#' 
+#' @param formula the model formula
+#' @param data the predictor variables
+#' @param anat a subject by label matrix of anatomical 
+#' summaries typically produced by \link{anatGetAll}
+#' @param subset rows to subset
+#' @return an \code{anatModel} object of statistical results
+anatLmer <-
+  function(formula, data, anat, subset = NULL, REML = TRUE, 
+           control = lmerControl(), verbose = FALSE, start = NULL){
+    mc <- mcout <- match.call()
+    #mc$control <- lmerControl() #overrides user input control
+    mc[[1]] <- quote(lme4::lFormula)
+    
+    # remove lme4 unknown arguments, since lmer does not know about them and keeping them
+    # generates obscure warning messages
+    mc <- mc[!names(mc) %in% c("anat", "subset")]
+    
+    lmod <- eval(mc, parent.frame(1L))
+    
+    # code ripped from lme4:::mkLmerDevFun
+    rho <- new.env(parent = parent.env(environment()))
+    rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
+                                                    "Lambdat", "Lind")],
+                                      n = nrow(lmod$X), list(X = lmod$X)))
+    REMLpass <- if (REML) 
+      ncol(lmod$X)
+    else 0L
+    
+    
+    mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
+    
+    out <- t(apply(anat, 2, RMINC:::mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
+    
+    out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
+    
+    termnames <- colnames(lmod$X)
+    betaNames <- paste("beta-", termnames, sep="")
+    tnames <- paste("tvalue-", termnames, sep="")
+    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+    
+    # generate some random numbers for a single fit in order to extract some extra info
+    mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
+    
+    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
+                                "logLik", "converged")
+    # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
+    attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
+    attr(out, "REML") <- REML
+    attr(out, "mincLmerList") <- mincLmerList
+    attr(out, "atlas") <- attr(anat, "atlas")
+    attr(out, "definitions") <- attr(anat, "definitions")
+    
+    class(out) <- c("anatModel", "matrix")
+    
+    return(out)
+  }
+
 #' Performs ANOVA on each region specified 
 #' @param formula a model formula
 #' @param data a data.frame containing variables in formula 
@@ -570,7 +632,7 @@ anatFDR <- function(buffer, method="FDR") {
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' vm <- anatMean(gf$lobeThickness)
-#' }
+# }
 #' @name anatSummaries
 NULL
 
