@@ -310,8 +310,8 @@ void get_hyperslab(char **filename, int *start, int *count, double *slab) {
   }
 
   /* get the hyperslab */
-  Rprintf("Start: %i %i %i\n", start[0], start[1], start[2]);
-  Rprintf("Count: %i %i %i\n", count[0], count[1], count[2]);
+  //Rprintf("Start: %i %i %i\n", start[0], start[1], start[2]);
+  //Rprintf("Count: %i %i %i\n", count[0], count[1], count[2]);
   if (miget_real_value_hyperslab(hvol, 
 				 MI_TYPE_DOUBLE, 
 				 (misize_t *) tmp_start, 
