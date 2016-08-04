@@ -3,6 +3,7 @@
 \name{mincFDR}
 \alias{anatFDR}
 \alias{mincFDR}
+\alias{mincFDR.anatLmerMod}
 \alias{mincFDR.mincLmer}
 \alias{mincFDR.mincLogLikRatio}
 \alias{mincFDR.mincMultiDim}
@@ -18,6 +19,8 @@ mincFDR(buffer, ...)
 \method{mincFDR}{mincLogLikRatio}(buffer, mask = NULL, ...)
 
 \method{mincFDR}{mincLmer}(buffer, mask = NULL, ...)
+
+\method{mincFDR}{anatLmerMod}(buffer, ...)
 
 \method{mincFDR}{mincMultiDim}(buffer, columns = NULL, mask = NULL,
   df = NULL, method = "FDR", statType = NULL, ...)
@@ -84,6 +87,8 @@ This function uses the \code{qvalue} package to compute the
 \item \code{mincLogLikRatio}: mincLogLikRatio
 
 \item \code{mincLmer}: mincLmer
+
+\item \code{anatLmerMod}: anatLmerModel
 
 \item \code{mincMultiDim}: mincMultiDim
 }}
