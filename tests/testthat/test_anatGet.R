@@ -16,7 +16,7 @@ label_frame <- read.csv(labels)
 known_labels <- with(label_frame, union(left.label, right.label))
 
 test_that({
-  vox_vol <- prod(minc.separation.sizes(segmentation)))
+  vox_vol <- prod(minc.separation.sizes(segmentation))
   
   label_counts <-
     anatGetAll(segmentation,
