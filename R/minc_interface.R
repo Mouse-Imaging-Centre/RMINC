@@ -617,6 +617,22 @@ minc.dimensions.sizes <- function(filename) {
   return(sizes)
 }
 
+#' Slice Separations
+#' 
+#' Return the slice separation sizes for determining voxel volume
+#' 
+#' @param filename A minc file of interest
+#' @return a vector of the 3 slice separations
+#' @export
+minc.separation.sizes <- function(filename){
+  stopifnot(!is.null(filename))
+  
+  sizes <- .Call("get_minc_separations",
+                 as.character(filename),
+                 sizes = integer(3), PACKAGE="RMINC")
+  return(sizes)
+}
+
 #' Minc History
 #' 
 #' Retrieve or edit the history of a MINC Volume
@@ -636,7 +652,7 @@ minc.get.history <-
     
     history <- 
       .Call("get_minc_history",
-            filename)
+            as.character(filename))
     
     unlist(strsplit(history, "\n"))
   }
