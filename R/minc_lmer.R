@@ -180,7 +180,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   return(out)
 }
 
-#' estimate the degrees of freedom for parameters in a mincLmer model
+#' Estimate the degrees of freedom for parameters in a mincLmer model
 #'
 #' There is much uncertainty in how to compute p-values for mixed-effects
 #' statistics, related to the correct calculation of the degrees of freedom
