@@ -48,7 +48,7 @@ test_that({
     t %>%
     .[,colnames(.) %in% known_labels]
   
-  expect_equal(unclass(label_sums), ref_sums, tolerance = 10e5, check.attributes = FALSE)
+  expect_equal(unclass(label_sums), ref_sums, tolerance = 10e-5, check.attributes = FALSE)
   
   label_means <-
     anatGetAll(gf$jacobians_0.2, 
@@ -56,8 +56,8 @@ test_that({
                method = "means",
                defs = labels)
   
-  expect_equal(sweep(label_sums, 2, label_counts, FUN = `/`), 
-               label_means, tol = 10e5, ignore.attributes = TRUE)
+  expect_equal(sweep(label_sums, 2, label_counts / vox_vol, FUN = `/`), 
+               label_means, tol = 10e-5, ignore.attributes = TRUE)
   #curious to note computing counts then sums and sweeping dividing
   #out the volume is faster than anatGetAll with means...
   
@@ -74,6 +74,6 @@ test_that({
     .[,colnames(.) %in% known_labels]
   
   expect_equal(ref_jacobians, 
-               unclass(jacobians), tol = 10e5, check.attributes = FALSE)
+               unclass(jacobians), tol = 10e-5, check.attributes = FALSE)
 })
 
