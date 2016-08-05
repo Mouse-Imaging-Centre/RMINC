@@ -471,14 +471,20 @@ anatLmer <-
   function(formula, data, anat, subset = NULL, REML = TRUE, 
            control = lmerControl(), verbose = FALSE, start = NULL){
     mc <- mcout <- match.call()
-    #mc$control <- lmerControl() #overrides user input control
+    
+    # Allow the user to omit the LHS by inserting a normal random variable
+    RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    new_formula <- update(formula, RMINC_DUMMY_LHS ~ .)
+    environment(new_formula) <- environment()
+    mc$formula <- new_formula
+    
     mc[[1]] <- quote(lme4::lFormula)
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
     mc <- mc[!names(mc) %in% c("anat", "subset")]
     
-    lmod <- eval(mc, parent.frame(1L))
+    lmod <- eval(mc)
     
     # code ripped from lme4:::mkLmerDevFun
     rho <- new.env(parent = parent.env(environment()))
