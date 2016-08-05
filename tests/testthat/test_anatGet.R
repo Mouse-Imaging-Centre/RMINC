@@ -3,7 +3,7 @@ suppressPackageStartupMessages({
   library(dplyr)
 })
 
-context("anatApply")
+context("anatGet")
 
 getRMINCTestData()
 dataPath <- file.path(tempdir(), "rminctestdata/")
@@ -15,7 +15,7 @@ labels <- file.path(dataPath, "test_defs.csv")
 label_frame <- read.csv(labels)
 known_labels <- with(label_frame, union(left.label, right.label))
 
-test_that({
+test_that("anatGetAll works", {
   vox_vol <- prod(minc.separation.sizes(segmentation))
   
   label_counts <-
