@@ -239,3 +239,84 @@ vertexLm <- function(formula, data, subset=NULL) {
   
   return(result)
 }
+
+vertexApplyRCPP <-
+  function(filenames, 
+           fun, 
+           ..., 
+           mask = NULL, 
+           maskval = NULL,
+           filter_masked = FALSE,
+           slab_sizes = c(1,1,1),
+           return_indices = FALSE,
+           collate = simplify2minc){
+    
+    stopifnot(!is.null(filenames), !is.null(fun))
+    enoughAvailableFileDescriptors(length(filenames))
+    
+    apply_fun <- 
+      function(x, extra_arguments)
+        do.call(match.fun(fun), c(list(x), extra_arguments))
+    
+    args <- list(...)
+    filenames <- as.character(filenames)
+    
+    if(is.null(maskval)){
+      minmask <- 1
+      maxmask <- 99999999
+    } else {
+      minmask <- maxmask <- maskval
+    }
+    
+    if(is.null(mask)){
+      use_mask <- FALSE
+      mask = ""
+    } else {
+      use_mask <- TRUE
+    }
+    
+    masked_value <- getOption("RMINC_MASKED_VALUE")
+    
+    results_indexed <-
+      .Call("RMINC_rcpp_minc_apply",
+            filenames,
+            use_mask = use_mask,
+            mask = mask,
+            mask_lower_val = minmask,
+            mask_upper_val = maxmask,
+            value_for_mask = masked_value,
+            filter_masked = filter_masked,
+            slab_sizes = slab_sizes,
+            fun = apply_fun,
+            args = args,
+            PACKAGE = "RMINC")
+    
+    # run the garbage collector...
+    gcout <- gc()
+    
+    result_order <-
+      order(results_indexed$inds)
+    
+    results <- results_indexed$vals[result_order]
+    
+    if(return_indices)
+      results <- list(vals = results, 
+                      inds = results_indexed$inds[result_order])
+    
+    collation_function <- match.fun(collate)
+    collated_results <- collation_function(results)
+    attr(collated_results, "filenames") <- filenames
+    attr(collated_results, "likeVolume") <- filenames[1]
+    if(use_mask) attr(collated_results, "mask") <- mask
+    
+    return(collated_results)
+  }
+  
+
+vertexLmer <-
+  function(formula, data, mask=NULL, parallel=NULL,
+           REML=TRUE, control=lmerControl(), start=NULL, 
+           verbose=0L, temp_dir = getwd(), safely = FALSE, 
+           cleanup = TRUE) {
+    
+  }
