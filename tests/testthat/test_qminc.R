@@ -20,12 +20,12 @@ test_that("Test sequential, multicore, and queue applies work", {
     getOption("verbose"))
   
   m_queue <- verboseRun(
-    "qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore', slab_sizes = c(5,1,10))",
+    "qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore', slab_sizes = c(5,1,10), cores = min(2, parallel::detectCores() - 1))",
     getOption("verbose")
   )
   
   m_multicore <- verboseRun(
-    "mcMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(10,10,10))",
+    "mcMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(10,10,10), cores = min(2, parallel::detectCores() - 1))",
     getOption("verbose")
   )
   
@@ -48,7 +48,7 @@ test_that("Masking qMincApply behaves as expected", {
   
   m_queue <- verboseRun(
     paste("qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore',",
-          "slab_sizes = c(5,1,10), mask = mask_file)"),
+          "slab_sizes = c(5,1,10), mask = mask_file, cores = min(2, parallel::detectCores() - 1))"),
     getOption("verbose")
   )
   
