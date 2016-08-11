@@ -32,7 +32,7 @@ test_that("pmincapply local",{
   expect_equivalent(ma, mm)
 })
 
-ma <- verboseRun("pMincApply(gf$jacobians_fixed_2, testFunc, cores = min(2, parallel::detectCores() - 1)",
+ma <- verboseRun("pMincApply(gf$jacobians_fixed_2, testFunc, cores = min(2, parallel::detectCores() - 1))",
                  getOption("verbose"))
 
 test_that("pmincApply snowfall two output",{
