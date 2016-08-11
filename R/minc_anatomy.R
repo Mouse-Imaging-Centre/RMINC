@@ -107,6 +107,66 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   return(anat)
 }
 
+#' Get another file
+#' 
+#' doco
+#' @param filenames ... asdf
+#' @param atlas ... asdf
+#' @param method... asdf
+#' @param mask ... asdf
+#' @param strict ... asdf
+#' @return something 
+#' @export
+anatGetFile2 <-
+  function(filenames, atlas, 
+           method = c("jacobians", "labels", "sums", "means"), 
+           mask = NULL,
+           strict = TRUE){
+  
+    method <- match.arg(method)
+    issue <- `if`(strict, stop, warning)
+    sep_sizes <- as.matrix(sapply(filenames, minc.separation.sizes))
+    at_sep_sizes <- minc.separation.sizes(atlas)
+    
+    #Check step sizes (the c++ code worries about dimensions)
+    apply(sep_sizes, 2, function(col){
+      if(any(col != sep_sizes[,1])) issue("At least one file has a different step size")
+    })
+    
+    if(any(at_sep_sizes != sep_sizes[,1])) issue("The atlas has different step sizes than the files")
+    
+    vox_vol <- prod(sep_sizes[,1])
+    
+    atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
+    
+    if(!is.null(mask)){
+      mask_vol <- mincGetVolume(mask) > 0.5
+      use_mask <- TRUE
+    } else {
+      mask_vol <- TRUE
+      use_mask <- FALSE
+    }
+  
+    if(method %in% c("jacobians", "sums", "means")){
+      cpp_res <- anat_summary(filenames, atlas_vol, method, mask_vol, use_mask)
+      missing_labels <- abs(rowSums(cpp_res$counts)) < 10e-7
+      cpp_res$counts <- cpp_res$counts[!missing_labels,]
+      cpp_res$values <- cpp_res$values[!missing_labels,]
+      
+      result_matrix <-
+        switch(method,
+               jacobians = cpp_res$value,
+               means = cpp_res$value / cpp_res$counts,
+               sums = cpp_res$value)
+    } else {
+      cpp_res <- count_labels(filenames, atlas_vol, mask_vol, use_mask)
+      missing_labels <- abs(rowSums(cpp_res)) < 10e-7
+      result_matrix <- cpp_res[!missing_labels,]
+    }
+    
+    result_matrix
+  }
+
 # both unilateral and bilateral matrices can be printed the same way
 print.anatMatrix <- function(x, ...) {
   print.table(x)
