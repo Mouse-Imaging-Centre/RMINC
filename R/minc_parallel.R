@@ -11,6 +11,8 @@
 #' @param tinyMask whether to use a small subset of voxels to test the computation
 #' @param batches The number of jobs to break the computation into, ignored for
 #' snowfall/local mode
+#' @param slab_sizes A 3 element vector indicating large a chunk of data to read from each minc file 
+#' at a time defaults to one slice along the first dimension.
 #' @param method The parallelization method, local and snowfall perform 
 #' computations on multiple cores (snowfall is an alias to local for backcompatibility)
 #' pbs refers to a torque queueing system, and sge refers to the
@@ -55,6 +57,7 @@ pMincApply <-
            mask = NULL,
            tinyMask = FALSE,
            batches = 4,
+           slab_sizes = NULL,
            method = c("local", "snowfall", "pbs", "sge", "none"),
            cores = getOption("mc.cores", parallel::detectCores() - 1),
            resources = list(),
@@ -72,6 +75,7 @@ pMincApply <-
     
     if(method == "local" || method == "snowfall")
       results <- mcMincApply(filenames, fun, ...,
+                             slab_sizes = slab_sizes,
                              mask = mask, tinyMask = tinyMask, 
                              cores = cores,
                              temp_dir = temp_dir, collate = collate)
@@ -82,13 +86,15 @@ pMincApply <-
     
     if(method == "sge")
       results <- qMincApply(filenames, fun, ..., mask = mask, 
+                            slab_sizes = slab_sizes,
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
                             clobber = TRUE, queue = "sge", collate = collate,
                             cleaup = cleanup)
     
     if(method == "pbs")
-      results <- qMincApply(filenames, fun, ..., mask = mask, 
+      results <- qMincApply(filenames, fun, ..., mask = mask,
+                            slab_sizes = slab_sizes,
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
                             clobber = TRUE, queue = "pbs", collate = collate,
@@ -107,6 +113,8 @@ pMincApply <-
 #' @param ... Additional arguments to pass to fun, see details for a warning
 #' @param mask The mask used to select voxels to apply to
 #' @param tinyMask Shrink the mask for testing
+#' @param slab_sizes A 3 element vector indicating large a chunk of data to read from each minc file 
+#' at a time defaults to one slice along the first dimension.
 #' @param temp_dir A directory to hold mask files used in the job batching
 #' @param cores the number of cores to use, defaults to the option
 #' \code{mc.cores} or one less than the number of detected cores if \code{mc.cores} 
@@ -121,7 +129,8 @@ pMincApply <-
 mcMincApply <-
   function(filenames, fun, ...,
            mask = NULL,
-           tinyMask = FALSE, 
+           tinyMask = FALSE,
+           slab_sizes = NULL,
            temp_dir = tempdir(),
            cores = getOption("mc.cores", parallel::detectCores() - 1),
            return_raw = FALSE,
@@ -178,6 +187,7 @@ mcMincApply <-
       c(list(filenames = filenames), #list wrapping ensures c() works
         fun = match.fun(fun),
         dot_args,
+        slab_sizes = slab_sizes,
         mask = mask_file,
         collate = identity)
     #override important argument
@@ -254,6 +264,8 @@ mcMincApply <-
 #' are almost certainly not going to work as expected. 
 #' @param mask The mask used to select voxels to apply to
 #' @param tinyMask Shrink the mask for testing
+#' @param slab_sizes A 3 element vector indicating large a chunk of data to read from each minc file 
+#' at a time defaults to one slice along the first dimension.
 #' @param parallel_method Where to run the batches, defaults to \code{"none"} which results
 #' in using the currently loaded configuration for BatchJobs. The other options
 #' are \code{"sge"} for Sun Grid Engine, \code{"pbs"} for Torque, \code{"multicore"} for
@@ -309,6 +321,7 @@ mcMincApply <-
 qMincApply <- 
   function(filenames, fun, ..., 
            mask=NULL, batches=4, tinyMask=FALSE,
+           slab_sizes = NULL,
            parallel_method = c("none", "sge", "pbs", "multicore", 
                                "interactive", "custom"),
            cluster_functions = NULL,
@@ -360,6 +373,7 @@ qMincApply <-
              filenames, 
              fun = match.fun(fun), 
              ..., 
+             slab_sizes = slab_sizes,
              batches = batches,
              cores = cores,
              mask = mask, 
@@ -433,6 +447,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
 #' @export
 qMincMap <- 
   function(registry, filenames, fun, ..., mask = NULL, 
+           slab_sizes = NULL,
            parallel_method = c("none", "sge", "pbs", 
                                "multicore", "interactive", "custom"),
            batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
@@ -499,6 +514,7 @@ qMincMap <-
       c(list(filenames = filenames), #list wrapping ensures c() works
         fun = match.fun(fun),
         dot_args,
+        slab_sizes = slab_sizes,
         cores = cores,
         mask = new_mask_file,
         tinyMask = tinyMask,
