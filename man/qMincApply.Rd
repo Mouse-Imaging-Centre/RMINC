@@ -8,9 +8,9 @@
 \title{True cluster mincApply}
 \usage{
 qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
-  tinyMask = FALSE, parallel_method = c("none", "sge", "pbs", "multicore",
-  "interactive", "custom"), cluster_functions = NULL, resources = list(),
-  packages = c("RMINC"), temp_dir = tempdir(),
+  tinyMask = FALSE, slab_sizes = NULL, parallel_method = c("none", "sge",
+  "pbs", "multicore", "interactive", "custom"), cluster_functions = NULL,
+  resources = list(), packages = c("RMINC"), temp_dir = tempdir(),
   registry_name = "qMincApply_registry", registry_dir = file.path(temp_dir,
   registry_name), cores = NULL, wait = TRUE, cleanup = TRUE,
   clobber = FALSE, collate = simplify2minc)
@@ -21,7 +21,7 @@ qMincRegistry(registry_name = "qMincApply_registry",
   registry_dir = file.path(tempdir(), registry_name), cores = NULL,
   clobber = FALSE)
 
-qMincMap(registry, filenames, fun, ..., mask = NULL,
+qMincMap(registry, filenames, fun, ..., mask = NULL, slab_sizes = NULL,
   parallel_method = c("none", "sge", "pbs", "multicore", "interactive",
   "custom"), batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
   resources = list(), cores = NULL)
@@ -46,6 +46,9 @@ are almost certainly not going to work as expected.}
 multicore jobs, with the number of batches set to the number of cores.}
 
 \item{tinyMask}{Shrink the mask for testing}
+
+\item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file 
+at a time defaults to one slice along the first dimension.}
 
 \item{parallel_method}{Where to run the batches, defaults to \code{"none"} which results
 in using the currently loaded configuration for BatchJobs. The other options

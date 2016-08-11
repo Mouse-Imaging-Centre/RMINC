@@ -5,8 +5,8 @@
 \title{Parallel MincApply}
 \usage{
 pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
-  batches = 4, method = c("local", "snowfall", "pbs", "sge", "none"),
-  cores = getOption("mc.cores", parallel::detectCores() - 1),
+  batches = 4, slab_sizes = NULL, method = c("local", "snowfall", "pbs",
+  "sge", "none"), cores = getOption("mc.cores", parallel::detectCores() - 1),
   resources = list(), packages = NULL, vmem = NULL, walltime = NULL,
   workers = batches, temp_dir = tempdir(), cleanup = TRUE,
   collate = simplify2minc)
@@ -25,6 +25,9 @@ notes for a warnings}
 
 \item{batches}{The number of jobs to break the computation into, ignored for
 snowfall/local mode}
+
+\item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file 
+at a time defaults to one slice along the first dimension.}
 
 \item{method}{The parallelization method, local and snowfall perform 
 computations on multiple cores (snowfall is an alias to local for backcompatibility)

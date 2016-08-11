@@ -73,6 +73,11 @@ pMincApply <-
     enoughAvailableFileDescriptors(length(filenames))
     method <- match.arg(method)
     
+    if(is.null(slab_sizes)){
+      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes[1] <- 1
+    }
+    
     if(method == "local" || method == "snowfall")
       results <- mcMincApply(filenames, fun, ...,
                              slab_sizes = slab_sizes,
@@ -140,6 +145,11 @@ mcMincApply <-
     
     filenames <- as.character(filenames)
     enoughAvailableFileDescriptors(length(filenames))
+    
+    if(is.null(slab_sizes)){
+      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes[1] <- 1
+    }
     
     sample_file <- filenames[1]
     sample_volume <- mincGetVolume(sample_file)
@@ -343,6 +353,11 @@ qMincApply <-
       stop("When using a sge or pbs systems using the default temp_dir is unlikely to work.",
            "Manually specify temp_dir = tempdir() to try anyway")
     
+    if(is.null(slab_sizes)){
+      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes[1] <- 1
+    }
+    
     if(is.null(cores)){
       cores <-
         switch(parallel_method,
@@ -455,6 +470,11 @@ qMincMap <-
            cores = NULL){
     
     parallel_method <- match.arg(parallel_method)
+    
+    if(is.null(slab_sizes)){
+      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes[1] <- 1
+    }
     
     #Determine default number of cores
     if(is.null(cores)){
