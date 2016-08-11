@@ -5,6 +5,35 @@
 
 using namespace Rcpp;
 
+// anat_summary
+List anat_summary(CharacterVector filenames, IntegerVector atlas, std::string method, LogicalVector mask, bool use_mask);
+RcppExport SEXP RMINC_anat_summary(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP methodSEXP, SEXP maskSEXP, SEXP use_maskSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< CharacterVector >::type filenames(filenamesSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type atlas(atlasSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    Rcpp::traits::input_parameter< LogicalVector >::type mask(maskSEXP);
+    Rcpp::traits::input_parameter< bool >::type use_mask(use_maskSEXP);
+    __result = Rcpp::wrap(anat_summary(filenames, atlas, method, mask, use_mask));
+    return __result;
+END_RCPP
+}
+// count_labels
+NumericMatrix count_labels(CharacterVector filenames, IntegerVector atlas, LogicalVector mask, bool use_mask);
+RcppExport SEXP RMINC_count_labels(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP maskSEXP, SEXP use_maskSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< CharacterVector >::type filenames(filenamesSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type atlas(atlasSEXP);
+    Rcpp::traits::input_parameter< LogicalVector >::type mask(maskSEXP);
+    Rcpp::traits::input_parameter< bool >::type use_mask(use_maskSEXP);
+    __result = Rcpp::wrap(count_labels(filenames, atlas, mask, use_mask));
+    return __result;
+END_RCPP
+}
 // rcpp_minc_apply
 List rcpp_minc_apply(CharacterVector filenames, bool use_mask, CharacterVector mask, double mask_lower_val, double mask_upper_val, RObject value_for_mask, bool filter_masked, NumericVector slab_sizes, Function fun, List args);
 RcppExport SEXP RMINC_rcpp_minc_apply(SEXP filenamesSEXP, SEXP use_maskSEXP, SEXP maskSEXP, SEXP mask_lower_valSEXP, SEXP mask_upper_valSEXP, SEXP value_for_maskSEXP, SEXP filter_maskedSEXP, SEXP slab_sizesSEXP, SEXP funSEXP, SEXP argsSEXP) {
