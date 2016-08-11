@@ -467,6 +467,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' summaries typically produced by \link{anatGetAll}
 #' @param subset rows to subset
 #' @return an \code{anatModel} object of statistical results
+#' @export 
 anatLmer <-
   function(formula, data, anat, subset = NULL, REML = TRUE, 
            control = lmerControl(), verbose = FALSE, start = NULL){
