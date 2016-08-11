@@ -194,12 +194,12 @@ mcMincApply <-
     
     dot_args <- list(...)
     mincApplyArguments <- 
-      c(list(filenames = filenames), #list wrapping ensures c() works
-        fun = match.fun(fun),
-        dot_args,
-        slab_sizes = slab_sizes,
-        mask = mask_file,
-        collate = identity)
+      c(list(filenames = filenames,
+             fun = match.fun(fun),
+             slab_sizes = slab_sizes,
+             mask = mask_file,
+             collate = identity),
+        dot_args)
     #override important argument
     mincApplyArguments$filter_masked <- TRUE
     mincApplyArguments$return_indices <- TRUE
@@ -531,15 +531,15 @@ qMincMap <-
     #Create a list of all additional args to pass to mcMincApply
     dot_args <- list(...)
     mincApplyArguments <- 
-      c(list(filenames = filenames), #list wrapping ensures c() works
-        fun = match.fun(fun),
-        dot_args,
-        slab_sizes = slab_sizes,
-        cores = cores,
-        mask = new_mask_file,
-        tinyMask = tinyMask,
-        temp_dir = temp_dir,
-        collate = identity)
+      c(list(filenames = filenames, 
+             fun = match.fun(fun),
+             slab_sizes = slab_sizes,
+             cores = cores,
+             mask = new_mask_file,
+             tinyMask = tinyMask,
+             temp_dir = temp_dir,
+             collate = identity),
+        dot_args)
     #Override these if passed through ...
     mincApplyArguments$return_raw <- TRUE
     
