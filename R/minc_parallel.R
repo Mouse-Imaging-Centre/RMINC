@@ -81,7 +81,7 @@ pMincApply <-
     if(method == "local" || method == "snowfall")
       results <- mcMincApply(filenames, fun, ...,
                              slab_sizes = slab_sizes,
-                             mask = mask, tinyMask = tinyMask, 
+                             mask = mask, 
                              cores = cores,
                              temp_dir = temp_dir, collate = collate)
     
@@ -147,7 +147,7 @@ mcMincApply <-
     enoughAvailableFileDescriptors(length(filenames))
     
     if(is.null(slab_sizes)){
-      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes <- minc.dimensions.sizes(filenames[1])
       slab_sizes[1] <- 1
     }
     
@@ -354,7 +354,7 @@ qMincApply <-
            "Manually specify temp_dir = tempdir() to try anyway")
     
     if(is.null(slab_sizes)){
-      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes <- minc.dimensions.sizes(filenames[1])
       slab_sizes[1] <- 1
     }
     
@@ -472,7 +472,7 @@ qMincMap <-
     parallel_method <- match.arg(parallel_method)
     
     if(is.null(slab_sizes)){
-      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes <- minc.dimensions.sizes(filenames[1])
       slab_sizes[1] <- 1
     }
     
