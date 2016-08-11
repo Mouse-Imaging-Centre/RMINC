@@ -38,6 +38,6 @@ test_that("anatLmer works", {
     }) %>%
     t
   
-  expect_equal(unclass(lmer_res), lmer_ref, tolerance = 10e-5, check.attributes = FALSE)
+  expect_equal(unclass(lmer_res_nlhs), lmer_ref, tolerance = 10e-5, check.attributes = FALSE)
   expect_equal(lmer_res_lhs, lmer_res_nlhs, tolerance = 10e-5, check.attributes = FALSE)
 })
