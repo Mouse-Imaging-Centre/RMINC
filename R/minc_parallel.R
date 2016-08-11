@@ -74,7 +74,7 @@ pMincApply <-
     method <- match.arg(method)
     
     if(is.null(slab_sizes)){
-      slab_sizes <- minc.dimensions.sizes(lmod$fr[1,1])
+      slab_sizes <- minc.dimensions.sizes(filenames[1])
       slab_sizes[1] <- 1
     }
     
