@@ -379,8 +379,8 @@ qMincApply <-
     
     on.exit({
       if(cleanup && wait){
-        removeRegistry(qMinc_registry, ask = "no")
-        lapply(list.files(temp_dir, pattern = "pMincMask.*\\.mnc"), unlink)
+        try(removeRegistry(qMinc_registry, ask = "no"))
+        try(lapply(list.files(temp_dir, pattern = "pMincMask.*\\.mnc"), unlink))
       } 
     })
     
