@@ -313,7 +313,7 @@ mcMincApply <-
 #' and it is worth learning about BatchJobs to handle more complex situations. This being
 #' said a high degree of flexibility is already available. RMINC honours the hierarchy
 #' of configuration files <BatchJobs>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
-#' these files are the place set sensible defaults for your usage. The template scripts
+#' these files are the place to set sensible defaults for your usage. The template scripts
 #' provided for SGE and PBS are located in \code{system.file("parallel/", package = "RMINC")}
 #' as well as some example .BatchJobs.R files.  
 #' @return 
