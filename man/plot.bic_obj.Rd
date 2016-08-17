@@ -25,6 +25,8 @@ allowable labels/measures/statistics to be includedon the surface}
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}
 
+\item{labels}{whether the statistic map should be treated as discrete labels.}
+
 \item{colour_bar}{whether to draw a colour bar}
 
 \item{add}{whether or not to add this object to the current rgl device (if possible)

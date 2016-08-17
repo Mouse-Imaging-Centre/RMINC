@@ -173,6 +173,7 @@ colour_mesh <- function(mesh,
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
+#' @param labels whether the statistic map should be treated as discrete labels.
 #' @param colour_bar whether to draw a colour bar
 #' @param add whether or not to add this object to the current rgl device (if possible)
 #' defaults to opening a new device
