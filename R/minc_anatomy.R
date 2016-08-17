@@ -564,7 +564,7 @@ anatLmer <-
     
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
-    out <- t(apply(anat, 2, RMINC:::mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
+    out <- t(apply(anat, 2, mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
     
