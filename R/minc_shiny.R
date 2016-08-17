@@ -46,7 +46,7 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALS
   for (i in 1:length(cNames)) {
     if (keepBetas || sType[i] != "beta") {
       # make symmetric for betas and tvalues
-      if (sType[i] %in% c("beta", "t")) {
+      if (sType[i] %in% c("beta", "t", "tlmer")) {
         symmetric <- TRUE
       }
       else {
