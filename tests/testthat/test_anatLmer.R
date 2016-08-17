@@ -18,6 +18,9 @@ known_labels <- with(label_frame, union(left.label, right.label))
 
 test_that("anatLmer works", {
   
+  has_mincstuffs <- Sys.which("label_volumes_from_jacobians") != ""
+  skip_if_not(has_mincstuffs)
+  
   jacobians <-
     anatGetAll(gf$jacobians_0.2, 
                atlas = segmentation, 
