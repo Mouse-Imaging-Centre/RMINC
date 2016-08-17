@@ -112,7 +112,7 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' doco
 #' @param filenames ... asdf
 #' @param atlas ... asdf
-#' @param method... asdf
+#' @param method ... asdf
 #' @param mask ... asdf
 #' @param strict ... asdf
 #' @return something 

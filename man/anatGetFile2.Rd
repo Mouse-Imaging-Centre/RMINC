@@ -12,11 +12,11 @@ anatGetFile2(filenames, atlas, method = c("jacobians", "labels", "sums",
 
 \item{atlas}{... asdf}
 
+\item{method}{... asdf}
+
 \item{mask}{... asdf}
 
 \item{strict}{... asdf}
-
-\item{method...}{asdf}
 }
 \value{
 something
