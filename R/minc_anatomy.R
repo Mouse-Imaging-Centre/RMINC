@@ -525,11 +525,16 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' @param data the predictor variables
 #' @param anat a subject by label matrix of anatomical 
 #' summaries typically produced by \link{anatGetAll}
-#' @param subset rows to subset
+#' @param REML whether or not to use restricted expectation maximum likelihood
+#' when fitting with \link[lme4]{lmer}
+#' @param control configuration list for \link[lme4]{lmer}, typically generated
+#' by \link[lme4]{lmerControl}.
+#' @param verbose increase verbosity
+#' @param start starting values for the optimizer in \link[lme4]{lmer}
 #' @return an \code{anatModel} object of statistical results
 #' @export 
 anatLmer <-
-  function(formula, data, anat, subset = NULL, REML = TRUE, 
+  function(formula, data, anat, REML = TRUE, 
            control = lmerControl(), verbose = FALSE, start = NULL){
     mc <- mcout <- match.call()
     
@@ -756,7 +761,7 @@ anatFDR <- function(buffer, method="FDR") {
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' vm <- anatMean(gf$lobeThickness)
-# }
+#' }
 #' @name anatSummaries
 NULL
 

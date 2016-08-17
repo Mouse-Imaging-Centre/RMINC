@@ -4,8 +4,8 @@
 \alias{anatLmer}
 \title{Anatomy Linear Mixed Effects Model}
 \usage{
-anatLmer(formula, data, anat, subset = NULL, REML = TRUE,
-  control = lmerControl(), verbose = FALSE, start = NULL)
+anatLmer(formula, data, anat, REML = TRUE, control = lmerControl(),
+  verbose = FALSE, start = NULL)
 }
 \arguments{
 \item{formula}{the model formula}
@@ -15,7 +15,15 @@ anatLmer(formula, data, anat, subset = NULL, REML = TRUE,
 \item{anat}{a subject by label matrix of anatomical 
 summaries typically produced by \link{anatGetAll}}
 
-\item{subset}{rows to subset}
+\item{REML}{whether or not to use restricted expectation maximum likelihood
+when fitting with \link[lme4]{lmer}}
+
+\item{control}{configuration list for \link[lme4]{lmer}, typically generated
+by \link[lme4]{lmerControl}.}
+
+\item{verbose}{increase verbosity}
+
+\item{start}{starting values for the optimizer in \link[lme4]{lmer}}
 }
 \value{
 an \code{anatModel} object of statistical results
