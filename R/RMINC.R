@@ -19,8 +19,9 @@
 #'                   pf predict pt pwilcox qchisq qf qt
 #'                   quantile qwilcox rnorm runif sd setNames
 #'                   simulate smooth.spline t.test terms var
-#'                   vcov
-#' @importFrom utils download.file glob2rx read.csv read.table untar write.table
+#'                   update vcov
+#' @importFrom utils download.file capture.output glob2rx read.csv read.table 
+#'                   untar write.table
 #' @useDynLib RMINC
 #' @docType package
 #' @name RMINC
