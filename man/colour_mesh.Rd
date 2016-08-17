@@ -5,7 +5,7 @@
 \title{Colourize a mesh}
 \usage{
 colour_mesh(mesh, colour_map, colour_range = NULL, colour_default = "grey",
-  reverse = NULL, palette = heat.colors(255))
+  reverse = NULL, labels = FALSE, palette = heat.colors(255))
 }
 \arguments{
 \item{mesh}{\link[rgl]{mesh3d} object ideally produced by \link{create_mesh}}
@@ -19,6 +19,8 @@ allowable labels/measures/statistics to be includedon the surface}
 \item{colour_default}{The colour given to vertices excluded by colour_range}
 
 \item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
+
+\item{labels}{Whether or not the colour_map is a set of discrete labels}
 
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}

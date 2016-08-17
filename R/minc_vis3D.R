@@ -101,6 +101,7 @@ create_mesh <-
 #' allowable labels/measures/statistics to be includedon the surface
 #' @param colour_default The colour given to vertices excluded by colour_range
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
+#' @param labels Whether or not the colour_map is a set of discrete labels
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
 #' @return an \code{obj_mesh} object descended from \link[rgl]{mesh3d}, with added colour information
@@ -111,6 +112,7 @@ colour_mesh <- function(mesh,
                         colour_range = NULL,
                         colour_default = "grey",
                         reverse = NULL,
+                        labels = FALSE,
                         palette = heat.colors(255)){
   
   #Check colour_map is a numeric vector of colours per vertex or file name
@@ -126,10 +128,17 @@ colour_mesh <- function(mesh,
   
   colour_depth <- length(palette)
   
-  colour_indices <- 
+  ## Deal with numeric vs label colours
+  if(!labels){
+    colour_indices <- 
     floor(
       (colour_map - colour_range[1]) / 
         diff(colour_range) * (colour_depth - 1)) + 1
+  } else {
+    colour_indices <- factor(colour_map)
+    levels(colour_indices) <- sort(levels(colour_indices))
+    colour_indices <- as.numeric(colour_indices)
+  }
   
   #Internally in tmesh3d, the vertex matrix is expanded
   #Such that the vertices for each triangle appear sequentially
@@ -179,6 +188,7 @@ plot.bic_obj <-
            colour_default = "grey",
            reverse = NULL,
            palette = heat.colors(255),
+           labels = FALSE,
            colour_bar = TRUE,
            add = FALSE,
            ...){
@@ -203,11 +213,12 @@ plot.bic_obj <-
       create_mesh(...)
     
     if(!is.null(colour_map))
-      mesh <- mesh %>% colour_mesh(colour_map, 
-                                   colour_range, 
-                                   colour_default, 
-                                   reverse, 
-                                   palette)
+      mesh <- mesh %>% colour_mesh(colour_map = colour_map, 
+                                   colour_range = colour_range, 
+                                   colour_default = colour_default,
+                                   labels = labels,
+                                   reverse = reverse, 
+                                   palette = palette)
     
     mesh %>% rgl::shade3d(override = FALSE)
     if(colour_bar && !is.null(colour_map)) mesh %>% add_colour_bar

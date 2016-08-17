@@ -6,7 +6,7 @@
 \usage{
 \method{plot}{bic_obj}(x, colour_map = NULL, colour_range = NULL,
   colour_default = "grey", reverse = NULL, palette = heat.colors(255),
-  colour_bar = TRUE, add = FALSE, ...)
+  labels = FALSE, colour_bar = TRUE, add = FALSE, ...)
 }
 \arguments{
 \item{x}{A \code{bic_obj} probably created by \link{read_obj}}
