@@ -11,9 +11,7 @@ using namespace std;
 // [[Rcpp::export]]
 List anat_summary(CharacterVector filenames,
                   IntegerVector atlas,
-                  std::string method,
-                  LogicalVector mask,
-                  bool use_mask) {
+                  std::string method) {
 
   vector<mihandle_t> volumes = open_minc2_volumes(filenames);
 
@@ -37,10 +35,6 @@ List anat_summary(CharacterVector filenames,
     stop("Atlas and files differ in size");
   }
   
-  if(use_mask && mask.size() != total_voxels){
-    stop("Mask and files differ in size");
-  }
-
   int max_label = 0;
   for(int at_vox = 0; at_vox < total_voxels; ++at_vox){
     if(atlas[at_vox] > max_label) max_label = atlas[at_vox];
@@ -69,14 +63,12 @@ List anat_summary(CharacterVector filenames,
     for(int i = 0; i < total_voxels; ++i){
       int current_label = atlas[i];
       double current_value = vol_buffer[i];
+      ++label_counts(current_label, subject);
       
-      if(!use_mask || mask[i]){
-        ++label_counts(current_label, subject);
-        if(method == "jacobians"){
-          label_values(current_label, subject) += exp(current_value) * vox_vol;  
-        } else {
-          label_values(current_label, subject) += current_value;
-        }
+      if(method == "jacobians"){
+        label_values(current_label, subject) += exp(current_value) * vox_vol;  
+      } else {
+        label_values(current_label, subject) += current_value;
       }
     }
   }
@@ -92,9 +84,7 @@ List anat_summary(CharacterVector filenames,
 
 // [[Rcpp::export]]
 NumericMatrix count_labels(CharacterVector filenames,
-                           IntegerVector atlas,
-                           LogicalVector mask,
-                           bool use_mask) {
+                           IntegerVector atlas) {
   
   vector<mihandle_t> volumes = open_minc2_volumes(filenames);
   
@@ -116,10 +106,6 @@ NumericMatrix count_labels(CharacterVector filenames,
   
   if(atlas.size() != total_voxels){
     stop("Atlas and files differ in size");
-  }
-  
-  if(use_mask && mask.size() != total_voxels){
-    stop("Mask and files differ in size");
   }
   
   int max_label = 0;
@@ -150,12 +136,15 @@ NumericMatrix count_labels(CharacterVector filenames,
       int current_label = (int)(vol_buffer[i] + 0.5);
       
       if(current_label > label_values.nrow()){
-        stop("A label not present in the atlas was found in a volume");
+        error_message.str("");
+        error_message << "A label (" << current_label << ") was found in a volume " << 
+            (subject + 1) << " but not in the atlas\n";
+        
+        stop(error_message.str());
       }
       
-      if(!use_mask || mask[i]){
-        label_values(current_label, subject) += vox_vol;  
-      } 
+      label_values(current_label, subject) += vox_vol;  
+      
     }
   }
   
