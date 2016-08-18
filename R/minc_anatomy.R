@@ -107,7 +107,7 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   return(anat)
 }
 
-#' Get another file
+#' Faster AnatGet
 #' 
 #' doco
 #' @param filenames ... asdf
@@ -117,10 +117,10 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' @param strict ... asdf
 #' @return something 
 #' @export
-anatGetFile2 <-
+anatGetAll2 <-
   function(filenames, atlas, 
            method = c("jacobians", "labels", "sums", "means"), 
-           mask = NULL,
+           side = c("both", "left", "right"),
            strict = TRUE){
   
     method <- match.arg(method)
@@ -139,19 +139,11 @@ anatGetFile2 <-
     
     atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
     
-    if(!is.null(mask)){
-      mask_vol <- mincGetVolume(mask) > 0.5
-      use_mask <- TRUE
-    } else {
-      mask_vol <- TRUE
-      use_mask <- FALSE
-    }
-  
     if(method %in% c("jacobians", "sums", "means")){
-      cpp_res <- anat_summary(filenames, atlas_vol, method, mask_vol, use_mask)
+      cpp_res <- anat_summary(filenames, atlas_vol, method)
       missing_labels <- abs(rowSums(cpp_res$counts)) < 10e-7
-      cpp_res$counts <- cpp_res$counts[!missing_labels,]
-      cpp_res$values <- cpp_res$values[!missing_labels,]
+      cpp_res$counts <- cpp_res$counts
+      cpp_res$values <- cpp_res$values
       
       result_matrix <-
         switch(method,
@@ -159,10 +151,12 @@ anatGetFile2 <-
                means = cpp_res$value / cpp_res$counts,
                sums = cpp_res$value)
     } else {
-      cpp_res <- count_labels(filenames, atlas_vol, mask_vol, use_mask)
+      cpp_res <- count_labels(filenames, atlas_vol)
       missing_labels <- abs(rowSums(cpp_res)) < 10e-7
-      result_matrix <- cpp_res[!missing_labels,]
+      result_matrix <- cpp_res
     }
+    
+    found_labels <- which(!missing_labels)
     
     result_matrix
   }
