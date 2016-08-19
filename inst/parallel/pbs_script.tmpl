@@ -29,7 +29,7 @@ resources$modules <- NULL
 
 #PBS -l nodes=<%= resources$nodes %>,walltime=<%= resources$walltime %>,vmem=<%= resources$vmem %>
 ## remove this line if your cluster does not support arrayjobs
-#PBS -t 1-<%= arrayjobs %>
+## Disable array jobs: #PBS -t 1-<%= arrayjobs %>
 #PBS -V  
 ## Run R:
 ## we merge R output with stdout from PBS, which gets then logged via -o option
