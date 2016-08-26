@@ -278,6 +278,13 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
   return(output)
 }
 
+#' @describeIn mincFDR anatLmerModel
+#' @export 
+mincFDR.anatLmerMod <-
+  function(buffer, ...){
+    mincFDR.mincLmer(buffer)
+  }
+
 #' @describeIn mincFDR mincMultiDim
 #' @export
 mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,

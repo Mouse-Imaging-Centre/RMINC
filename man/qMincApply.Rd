@@ -12,19 +12,19 @@ qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
   "interactive", "custom"), cluster_functions = NULL, resources = list(),
   packages = c("RMINC"), temp_dir = tempdir(),
   registry_name = "qMincApply_registry", registry_dir = file.path(temp_dir,
-  registry_name), cores = max(getOption("mc.cores"), parallel::detectCores() -
-  1), wait = TRUE, cleanup = TRUE, clobber = FALSE,
-  collate = simplify2minc)
+  registry_name), cores = NULL, wait = TRUE, cleanup = TRUE,
+  clobber = FALSE, collate = simplify2minc)
 
 qMincRegistry(registry_name = "qMincApply_registry",
   parallel_method = c("none", "sge", "pbs", "multicore", "interactive",
   "custom"), packages = c("RMINC"), cluster_functions = NULL,
-  registry_dir = file.path(tempdir(), registry_name),
-  cores = max(getOption("mc.cores"), parallel::detectCores()),
+  registry_dir = file.path(tempdir(), registry_name), cores = NULL,
   clobber = FALSE)
 
-qMincMap(registry, filenames, fun, ..., mask = NULL, batches = 4,
-  tinyMask = FALSE, temp_dir = tempdir(), resources = list(), cores = 1)
+qMincMap(registry, filenames, fun, ..., mask = NULL,
+  parallel_method = c("none", "sge", "pbs", "multicore", "interactive",
+  "custom"), batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
+  resources = list(), cores = NULL)
 
 qMincReduce(registry, ignore_incompletes = FALSE, wait = FALSE,
   collate = simplify2minc)
@@ -42,7 +42,8 @@ are almost certainly not going to work as expected.}
 
 \item{mask}{The mask used to select voxels to apply to}
 
-\item{batches}{The number of batches to divide the job into}
+\item{batches}{The number of batches to divide the job into, this is ignored for
+multicore jobs, with the number of batches set to the number of cores.}
 
 \item{tinyMask}{Shrink the mask for testing}
 
@@ -70,10 +71,9 @@ and job management}
 \item{registry_dir}{The path for your BatchJobs registry, defaults to
 \code{temp_dir/registry_name}}
 
-\item{cores}{the Number of cores to use, defaults to the option
-\code{mc.cores} or 2 if it is unset. When running on a queuing system
-setting cores results in an extra layer of parallelization within each
-job, if your scheduler allows it using cores = 1 is probably superior.}
+\item{cores}{the number of cores to use, in all cases except multicore this
+defaults to 1, with a reminder message if method "none" or "custom" are used,
+for multicore it defaults to \code{max(getOption("mc.cores"), parallel::detectCores() - 1)}}
 
 \item{wait}{Whether to wait for your results or return a registry object
 to be checked on later}

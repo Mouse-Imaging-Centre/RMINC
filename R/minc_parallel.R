@@ -9,12 +9,15 @@
 #' notes for a warnings
 #' @param mask The path to a mask for the minc files
 #' @param tinyMask whether to use a small subset of voxels to test the computation
-#' @param batches The number of jobs to break the computation into
+#' @param batches The number of jobs to break the computation into, ignored for
+#' snowfall/local mode
 #' @param method The parallelization method, local and snowfall perform 
-#' computations on multiple cores (snowfall is an alias for local for backcompatibility)
-#' pbs refers to a torque queueing system, and sge refers to an sge refers to the
+#' computations on multiple cores (snowfall is an alias to local for backcompatibility)
+#' pbs refers to a torque queueing system, and sge refers to the
 #' sge queueing system.
-#' @param cores The number of cores to use in local computation
+#' @param cores defaults to 1 in the case of PBS or SGE jobs, and 
+#' \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} for local/snowfall
+#' see \link{qMincApply} for details.
 #' @param resources A list of resources to request from the queueing system
 #' common examples including vmem, walltime, nodes, and modules see
 #' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
@@ -53,7 +56,7 @@ pMincApply <-
            tinyMask = FALSE,
            batches = 4,
            method = c("local", "snowfall", "pbs", "sge", "none"),
-           cores = getOption("mc.cores", 2L),
+           cores = getOption("mc.cores", parallel::detectCores() - 1),
            resources = list(),
            packages = NULL,
            vmem = NULL,
@@ -70,7 +73,7 @@ pMincApply <-
     if(method == "local" || method == "snowfall")
       results <- mcMincApply(filenames, fun, ...,
                              mask = mask, tinyMask = tinyMask, 
-                             batches = batches, cores = cores,
+                             cores = cores,
                              temp_dir = temp_dir, collate = collate)
     
     #Initialize queue resources from arguments if not supplied
@@ -104,58 +107,71 @@ pMincApply <-
 #' @param ... Additional arguments to pass to fun, see details for a warning
 #' @param mask The mask used to select voxels to apply to
 #' @param tinyMask Shrink the mask for testing
-#' @param batches The number of batches to divide the job into
 #' @param temp_dir A directory to hold mask files used in the job batching
-#' @param cores the Number of cores to use, defaults to the option
-#' \code{mc.cores} or 2 if it is unset
+#' @param cores the number of cores to use, defaults to the option
+#' \code{mc.cores} or one less than the number of detected cores if \code{mc.cores} 
+#' is unset.
 #' @param return_raw An internal use argument that prevents the resulting object
 #' from being reordered and expanded.
 #' @param cleanup Whether to delete temporary parallelization masks 
+#' @param mask_vals values of the mask over which to parallelize, defaults
+#' to subdividing all masked voxels into the specified number of batches
 #' @param collate A function to collate the list into another object type
 #' @export
 mcMincApply <-
   function(filenames, fun, ...,
            mask = NULL,
            tinyMask = FALSE, 
-           batches = 4, 
            temp_dir = tempdir(),
            cores = getOption("mc.cores", parallel::detectCores() - 1),
            return_raw = FALSE,
            cleanup = TRUE,
+           mask_vals = NULL,
            collate = simplify2minc){
     
     filenames <- as.character(filenames)
     enoughAvailableFileDescriptors(length(filenames))
     
     sample_file <- filenames[1]
-    
-    temp_dir <- path.expand(temp_dir)
-    if(!file.exists(temp_dir)) dir.create(temp_dir)
-    
     sample_volume <- mincGetVolume(sample_file)
-    mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
+    mask_file <- "unset"
     
-    on.exit({
-      if(cleanup) unlink(mask_file)
-    })
-    
-    if(is.null(mask)){
-      if(batches %% 1 != 0) stop("the number of batches must be an integer")
+    if(is.null(mask_vals)){
+      temp_dir <- path.expand(temp_dir)
+      if(!file.exists(temp_dir)) dir.create(temp_dir)
       
-      nVoxels <- length(sample_volume)
-      mask_values <- groupingVector(nVoxels, batches)
-    } else {
-      mask_values <- mincGetVolume(mask)
-      if(tinyMask) mask_values[mask_values > 1.5] <- 0
+      mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
       
-      nVoxels <- sum(mask_values > .5)
+      on.exit({
+        if(cleanup) unlink(mask_file)
+      })
       
-      mask_values[mask_values > .5] <- 
-        groupingVector(nVoxels, batches)
+      if(is.null(mask)){
+        if(cores %% 1 != 0) stop("the number of cores must be an integer")
+        
+        nVoxels <- length(sample_volume)
+        mask_values <- groupingVector(nVoxels, cores)
+      } else {
+        mask_values <- mincGetVolume(mask)
+        if(tinyMask) mask_values[mask_values > 1.5] <- 0
+        
+        nVoxels <- sum(mask_values > .5)
+        
+        mask_values[mask_values > .5] <- 
+          groupingVector(nVoxels, cores)
+        
+      }
       
+      mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
     }
     
-    mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
+    if(mask_file == "unset"){
+      mask_file <- mask
+      on.exit() #clear the on.exit for extra safety
+    }
+    
+    if(is.null(mask_vals))
+      mask_vals <- 1:cores
     
     dot_args <- list(...)
     mincApplyArguments <- 
@@ -170,7 +186,7 @@ mcMincApply <-
     
     results <- 
       parallel::mcmapply(mincApplyRCPP,
-                         maskval = 1:batches,
+                         maskval = mask_vals,
                          MoreArgs = mincApplyArguments,
                          SIMPLIFY = FALSE,
                          mc.cores = cores)
@@ -246,11 +262,11 @@ mcMincApply <-
 #' passed in through \code{cluster_functions} (also not recommend, for more control 
 #' use the .BatchJobs.R configuration system, see details).
 #' @param cluster_functions Custom cluster functions to use if parallel_method = "custom"
-#' @param batches The number of batches to divide the job into
-#' @param cores the Number of cores to use, defaults to the option
-#' \code{mc.cores} or 2 if it is unset. When running on a queuing system
-#' setting cores results in an extra layer of parallelization within each
-#' job, if your scheduler allows it using cores = 1 is probably superior.
+#' @param batches The number of batches to divide the job into, this is ignored for
+#' multicore jobs, with the number of batches set to the number of cores.
+#' @param cores the number of cores to use, in all cases except multicore this
+#' defaults to 1, with a reminder message if method "none" or "custom" are used,
+#' for multicore it defaults to \code{max(getOption("mc.cores"), parallel::detectCores() - 1)}
 #' @param resources The resources to request for each job, overrides the default.resources
 #' specified in .BatchJobs.R config files (see details). These include things like vmem, 
 #' walltime, and nodes.
@@ -301,7 +317,7 @@ qMincApply <-
            temp_dir = tempdir(),
            registry_name = "qMincApply_registry",
            registry_dir = file.path(temp_dir, registry_name),
-           cores = max(getOption("mc.cores"), parallel::detectCores() - 1),
+           cores = NULL, #max(getOption("mc.cores"), parallel::detectCores() - 1),
            wait = TRUE,
            cleanup = TRUE,
            clobber = FALSE,
@@ -313,6 +329,16 @@ qMincApply <-
        missing(temp_dir))
       stop("When using a sge or pbs systems using the default temp_dir is unlikely to work.",
            "Manually specify temp_dir = tempdir() to try anyway")
+    
+    if(is.null(cores)){
+      cores <-
+        switch(parallel_method,
+               sge = 1,
+               pbs = 1,
+               multicore = max(getOption("mc.cores"), parallel::detectCores() - 1),
+               interactive = 1,
+               {message("Defaulting to 1 core for parallel method ", parallel_method); 1})
+    }
     
     qMinc_registry <-
       qMincRegistry(registry_name = registry_name,
@@ -335,10 +361,12 @@ qMincApply <-
              fun = match.fun(fun), 
              ..., 
              batches = batches,
+             cores = cores,
              mask = mask, 
              tinyMask = tinyMask,
              temp_dir = temp_dir,
-             resources = resources)
+             resources = resources,
+             parallel_method = parallel_method)
     
     if(wait){
       qMinc_results <- qMincReduce(qMinc_registry, wait = TRUE, collate = collate)
@@ -357,7 +385,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
                           packages = c("RMINC"),
                           cluster_functions = NULL,
                           registry_dir = file.path(tempdir(), registry_name),
-                          cores = max(getOption("mc.cores"), parallel::detectCores()),
+                          cores = NULL,
                           clobber = FALSE
 ){
   
@@ -366,14 +394,22 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
   parallel_method <- match.arg(parallel_method)
   script_directory <- system.file("parallel", package = "RMINC")
   
+  if(is.null(cores)){
+    cores <-
+      switch(parallel_method,
+             sge = 1,
+             pbs = 1,
+             multicore = max(getOption("mc.cores"), parallel::detectCores() - 1),
+             interactive = 1,
+             {message("Defaulting to 1 core for parallel method ", parallel_method); 1})
+  }
   
   config$cluster.functions <-
     switch(parallel_method,
            "none" = config$cluster.functions,
            "pbs" = makeClusterFunctionsTorque(file.path(script_directory, "pbs_script.tmpl")),
            "sge" = makeClusterFunctionsSGE(file.path(script_directory, "sge_script.tmpl")),
-           "multicore" = makeClusterFunctionsMulticore(ncpus = cores,
-                                                       max.load = parallel::detectCores()),
+           "multicore" = makeClusterFunctionsMulticore(max.jobs = cores),
            "interactive" = makeClusterFunctionsInteractive(),
            "custom" = cluster_functions)
   
@@ -397,37 +433,65 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
 #' @export
 qMincMap <- 
   function(registry, filenames, fun, ..., mask = NULL, 
+           parallel_method = c("none", "sge", "pbs", 
+                               "multicore", "interactive", "custom"),
            batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
            resources = list(),
-           cores = 1){
+           cores = NULL){
     
+    parallel_method <- match.arg(parallel_method)
+    
+    #Determine default number of cores
+    if(is.null(cores)){
+      cores <-
+        switch(parallel_method,
+               sge = 1,
+               pbs = 1,
+               multicore = max(getOption("mc.cores"), parallel::detectCores() - 1),
+               interactive = 1,
+               {message("Defaulting to 1 core for parallel method ", parallel_method); 1})
+    }
+    
+    # If multicore batches is the number of cores
+    if(parallel_method == "multicore"){
+      batches <- cores
+      cores <- 1 
+    }
+    
+    #Read in a likefile
     sample_file <- filenames[1]
     
     temp_dir <- path.expand(temp_dir)
     if(!file.exists(temp_dir)) dir.create(temp_dir)
     
     sample_volume <- mincGetVolume(sample_file)
-    mask_files <- replicate(batches, tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc"))
+    new_mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
+    
     
     if(is.null(mask)){
-      if(batches %% 1 != 0) stop("the number of batches must be an integer")
+      if(batches %% 1 != 0 ||
+         cores %% 1 != 0) 
+        stop("the number of batches and cores must be integers")
       
       nVoxels <- length(sample_volume)
-      mask_values <- groupingVector(nVoxels, batches)
+      mask_values <- groupingVector(nVoxels, batches * cores)
     } else {
       mask_values <- mincGetVolume(mask)
       if(tinyMask) mask_values[mask_values > 1.5] <- 0
       
       nVoxels <- sum(mask_values > .5)
       mask_values[mask_values > .5] <- 
-        groupingVector(nVoxels, batches)
+        groupingVector(nVoxels, batches * cores)
     }
     
-    #Map for each mask value and temp mask file and write a sub-mask
-    mapply(function(mask_value, mask_file){
-      mask_for_batch <- mask_values == mask_value
-      mincWriteVolume(mask_for_batch, mask_file, like.filename = sample_file)
-    }, mask_value = 1:batches, mask_file = mask_files)
+    mincWriteVolume(mask_values, new_mask_file, like.filename = sample_file)
+    
+    #Group the indices
+    mask_indices <- 
+      lapply(1:batches, function(i){
+        seq((i -1)*cores + 1,
+            i * cores)
+      })
     
     #Create a list of all additional args to pass to mcMincApply
     dot_args <- list(...)
@@ -435,7 +499,8 @@ qMincMap <-
       c(list(filenames = filenames), #list wrapping ensures c() works
         fun = match.fun(fun),
         dot_args,
-        batches = cores,
+        cores = cores,
+        mask = new_mask_file,
         tinyMask = tinyMask,
         temp_dir = temp_dir,
         collate = identity)
@@ -444,7 +509,7 @@ qMincMap <-
     
     batchMap(registry,
              mcMincApply, 
-             mask = mask_files,
+             mask_vals = mask_indices,
              more.args = mincApplyArguments)
     
     submitJobs(registry, resources = resources)

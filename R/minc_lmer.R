@@ -133,12 +133,12 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          slab_sizes = slab_dims,
                          cleanup = cleanup)
     }
-    else if(parallel[1] == "sge"){
+    else if(parallel[1] %in% c("sge", "pbs")){
       out <- qMincApply(lmod$fr[,1],
                         optimizer_fun,
                         mincLmerList = mincLmerList,
                         filter_masked = TRUE,
-                        parallel_method = "sge",
+                        parallel_method = parallel[1],
                         temp_dir = temp_dir,
                         cores = 1,
                         mask = mask,
@@ -209,15 +209,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
 #' @export
 mincLmerEstimateDF <- function(model) {
   # set the DF based on the Satterthwaite approximation
-  # load lmerTest library if not loaded; lmerTest takes over some lmer functions, so unload if
-  # it wasn't loaded in the first place
-  # lmerTestLoaded <- "package:lmerTest" %in% search()
-  # if (lmerTestLoaded == FALSE) {
-  #   library(lmerTest)
-  # }
   
-  # put the lmod variable back in the global environment
-  #lmod <<- attr(model, "mincLmerList")[[1]]
   mincLmerList <- attr(model, "mincLmerList")
   mask <- attr(model, "mask")
   
@@ -231,10 +223,10 @@ mincLmerEstimateDF <- function(model) {
   for (i in 1:nvoxels) {
     voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rvoxels[i,])
     
-    ## It seems LmerTest cannot compute the deviance function for mincLmer's
+    ## It seems LmerTest cannot compute the deviance function for mincLmers
     ## in the current version, instead extract the model components from
     ## the mincLmerList and re-fit the lmers directly at each voxel,
-    ## Slower but should yeild the correct result
+    ## Slower but yeilds the correct result
     lmod <- mincLmerList[[1]]
     lmod$fr[,1] <- voxelData
     
@@ -260,9 +252,7 @@ mincLmerEstimateDF <- function(model) {
   cat("Sd df: ", apply(dfs, 2, sd), "\n")
   
   attr(model, "df") <- df
-  # if (lmerTestLoaded == FALSE) {
-  #   detach("package:lmerTest")
-  # }
+
   return(model)
 }
 # the actual optimization of the mixed effects models; everything that has to be recomputed

@@ -5,9 +5,9 @@
 \title{Local multicore mincApply}
 \usage{
 mcMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
-  batches = 4, temp_dir = tempdir(), cores = getOption("mc.cores",
+  temp_dir = tempdir(), cores = getOption("mc.cores",
   parallel::detectCores() - 1), return_raw = FALSE, cleanup = TRUE,
-  collate = simplify2minc)
+  mask_vals = NULL, collate = simplify2minc)
 }
 \arguments{
 \item{filenames}{Paths to the minc files to apply accross}
@@ -20,17 +20,19 @@ mcMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
 
 \item{tinyMask}{Shrink the mask for testing}
 
-\item{batches}{The number of batches to divide the job into}
-
 \item{temp_dir}{A directory to hold mask files used in the job batching}
 
-\item{cores}{the Number of cores to use, defaults to the option
-\code{mc.cores} or 2 if it is unset}
+\item{cores}{the number of cores to use, defaults to the option
+\code{mc.cores} or one less than the number of detected cores if \code{mc.cores} 
+is unset.}
 
 \item{return_raw}{An internal use argument that prevents the resulting object
 from being reordered and expanded.}
 
 \item{cleanup}{Whether to delete temporary parallelization masks}
+
+\item{mask_vals}{values of the mask over which to parallelize, defaults
+to subdividing all masked voxels into the specified number of batches}
 
 \item{collate}{A function to collate the list into another object type}
 }
