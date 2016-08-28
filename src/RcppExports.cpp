@@ -6,31 +6,27 @@
 using namespace Rcpp;
 
 // anat_summary
-List anat_summary(CharacterVector filenames, IntegerVector atlas, std::string method, LogicalVector mask, bool use_mask);
-RcppExport SEXP RMINC_anat_summary(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP methodSEXP, SEXP maskSEXP, SEXP use_maskSEXP) {
+List anat_summary(CharacterVector filenames, IntegerVector atlas, std::string method);
+RcppExport SEXP RMINC_anat_summary(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< CharacterVector >::type filenames(filenamesSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type atlas(atlasSEXP);
     Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
-    Rcpp::traits::input_parameter< LogicalVector >::type mask(maskSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_mask(use_maskSEXP);
-    __result = Rcpp::wrap(anat_summary(filenames, atlas, method, mask, use_mask));
+    __result = Rcpp::wrap(anat_summary(filenames, atlas, method));
     return __result;
 END_RCPP
 }
 // count_labels
-NumericMatrix count_labels(CharacterVector filenames, IntegerVector atlas, LogicalVector mask, bool use_mask);
-RcppExport SEXP RMINC_count_labels(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP maskSEXP, SEXP use_maskSEXP) {
+NumericMatrix count_labels(CharacterVector filenames, IntegerVector atlas);
+RcppExport SEXP RMINC_count_labels(SEXP filenamesSEXP, SEXP atlasSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< CharacterVector >::type filenames(filenamesSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type atlas(atlasSEXP);
-    Rcpp::traits::input_parameter< LogicalVector >::type mask(maskSEXP);
-    Rcpp::traits::input_parameter< bool >::type use_mask(use_maskSEXP);
-    __result = Rcpp::wrap(count_labels(filenames, atlas, mask, use_mask));
+    __result = Rcpp::wrap(count_labels(filenames, atlas));
     return __result;
 END_RCPP
 }
