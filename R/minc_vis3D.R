@@ -100,6 +100,7 @@ create_mesh <-
 #' @param colour_range a two element numeric vector indicating the min and max values of 
 #' allowable labels/measures/statistics to be includedon the surface
 #' @param colour_default The colour given to vertices excluded by colour_range
+#' @param opacity_map a vector containing a label/measure/statistic for every vertex
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
 #' @param labels Whether or not the colour_map is a set of discrete labels
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
@@ -111,6 +112,7 @@ colour_mesh <- function(mesh,
                         colour_map,
                         colour_range = NULL,
                         colour_default = "grey",
+                        opacity_map = NULL, 
                         reverse = NULL,
                         labels = FALSE,
                         palette = heat.colors(255)){
@@ -151,6 +153,9 @@ colour_mesh <- function(mesh,
                       palette = palette)
   
   mesh$material$color <- colours
+  
+  if(!is.null(opacity_map))
+    mesh$material$opacity <- opacity_map
   
   class(mesh) <- c("obj_mesh", class(mesh))
   
