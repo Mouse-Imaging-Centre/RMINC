@@ -119,15 +119,38 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' @export
 anatGetAll2 <-
   function(filenames, atlas, 
+           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
            method = c("jacobians", "labels", "sums", "means"), 
            side = c("both", "left", "right"),
            strict = TRUE){
   
     method <- match.arg(method)
+    side <- match.arg(side)
     issue <- `if`(strict, stop, warning)
+    
+    if(defs == ""){
+      stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
+    }
+    # if the definitions are given, check to see that we can read the 
+    # specified file
+    if(file.access(as.character(defs), 4) == -1){
+      stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
+    }
+    # Get known labels from the definition frame
+    labeldefs <- read.csv(defs) 
+    label_frame <-
+      switch(side,
+             right = label_defs %>% select(Structure, right.label) %>% rename(label = right.label),
+             left = label_defs %>% select(Structure, left.label) %>% rename(label = right.label),
+             both = 
+               bind_rows(
+                 label_defs %>% select(Structure, right.label) %>% rename(label = right.label),
+                 label_defs %>% select(Structure, left.label) %>% rename(label = right.label)
+               ))
+    
+    #Get step sizes
     sep_sizes <- as.matrix(sapply(filenames, minc.separation.sizes))
     at_sep_sizes <- minc.separation.sizes(atlas)
-    
     #Check step sizes (the c++ code worries about dimensions)
     apply(sep_sizes, 2, function(col){
       if(any(col != sep_sizes[,1])) issue("At least one file has a different step size")
@@ -145,7 +168,7 @@ anatGetAll2 <-
       cpp_res$counts <- cpp_res$counts
       cpp_res$values <- cpp_res$values
       
-      result_matrix <-
+      results <-
         switch(method,
                jacobians = cpp_res$value,
                means = cpp_res$value / cpp_res$counts,
@@ -153,10 +176,14 @@ anatGetAll2 <-
     } else {
       cpp_res <- count_labels(filenames, atlas_vol)
       missing_labels <- abs(rowSums(cpp_res)) < 10e-7
-      result_matrix <- cpp_res
+      results <- cpp_res
     }
     
-    found_labels <- which(!missing_labels)
+    result <- as.data.frame(results) %>% add_rownames(var = "indices")
+    
+    
+    
+    
     
     result_matrix
   }
