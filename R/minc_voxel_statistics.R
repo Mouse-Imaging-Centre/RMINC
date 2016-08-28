@@ -702,3 +702,32 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   return(result)
   return(result)
 }
+
+
+#' Threshold Free Cluster Enhancement
+#' 
+#' Perform threshold free cluster enhancement as described in 
+#' Smith and Nichols (2008). Cluster-like structures are enhanced
+#' to allow a hybrid cluster/voxel analysis to be performed.
+#' @param volume Either a character vector with a single filename, 
+#' a \code{mincSingleDim}, or a \code{mincMultiDim} object
+#' @param d The discretization step-size for approximating the threshold integral (default .1)
+#' @param E The exponent by which to raise the extent statistic (default .5)
+#' @param H The exponent by which to raise the height (default 2)
+#' @param side Whether to consider positive and negative statistics or both (default both)
+#' @param ... additional arguments for methods  
+mincTFCE <-
+  function(volume, d = 0.1, E = .5, H = 2.0, side = c("both", "positive", "negative"), ...) {
+    UseMethod("mincTFCE")
+  }
+
+mincTFCE.mincSingleDim <-
+  function(volume, d = 0.1, E = .5, H = 2.0, side = c("both", "positive", "negative"), ...){
+    file_name <- tempfile("minc_tfce")
+    on.exit(unlink(file_name))
+    capture.output(mincWriteVolume(volume, file_name))
+    
+    sprintf("TFCE ")
+  }
+
+
