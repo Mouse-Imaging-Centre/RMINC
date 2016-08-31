@@ -84,11 +84,11 @@ test_that("anatGetAll works", {
   }, envir = test_env)
 })
 
-test_that("AnatGetFile2 works", {
-  evalq({
-    new_jacobians <- anatGetAll2(gf$jacobians_0.2, atlas = segmentation, method = "jacobians")
-  }, envir = test_env)
-})
+# test_that("AnatGetFile2 works", {
+#   evalq({
+#     new_jacobians <- anatGetAll2(gf$jacobians_0.2, atlas = segmentation, method = "jacobians")
+#   }, envir = test_env)
+# })
 
 
 
