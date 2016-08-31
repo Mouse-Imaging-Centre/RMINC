@@ -155,7 +155,7 @@ colour_mesh <- function(mesh,
   mesh$material$color <- colours
   
   if(!is.null(opacity_map))
-    mesh$material$opacity <- opacity_map
+    mesh$material$alpha <- opacity_map
   
   class(mesh) <- c("obj_mesh", class(mesh))
   
