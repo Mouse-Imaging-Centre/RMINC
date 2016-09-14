@@ -118,3 +118,4 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
   out[,4] <- tags[,4]
   return(out)
 }
+
