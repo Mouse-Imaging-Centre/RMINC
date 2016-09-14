@@ -125,7 +125,7 @@ colour_mesh <- function(mesh,
     stop("Colour_map must either be a vector or a text file path")
   }
   
-  if(is.null(colour_range)) colour_range <- range(colour_map)
+  if(is.null(colour_range)) colour_range <- range(colour_map, na.rm = TRUE)
   colour_map[!between(colour_map, colour_range[1], colour_range[2])] <- NA
   
   colour_depth <- length(palette)
@@ -155,7 +155,7 @@ colour_mesh <- function(mesh,
   mesh$material$color <- colours
   
   if(!is.null(opacity_map))
-    mesh$material$opacity <- opacity_map
+    mesh$material$alpha <- opacity_map
   
   class(mesh) <- c("obj_mesh", class(mesh))
   
