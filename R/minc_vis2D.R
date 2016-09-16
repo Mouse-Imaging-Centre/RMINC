@@ -1119,14 +1119,14 @@ mincPlotPeak <- function(peak, anatomy, statistics, dim=2,
   }
   # at it's most basic, show the slice with a cross-hair
   mincPlotAnatAndStatsSlice(anatomy, statistics, dimension = dim, 
-                            slice = peak[dim], ...)
+                            slice = as.numeric(peak[dim]), ...)
   if (dim == 1) {
-    points(peak[2], peak[3], col=crossCol, pch="+", cex=crossSize)
+    points(peak$d2, peak$d3, col=crossCol, pch="+", cex=crossSize)
   } else if (dim == 2) {
-    points(peak[1], peak[3], col=crossCol, pch="+", cex=crossSize)
+    points(peak$d1, peak$d3, col=crossCol, pch="+", cex=crossSize)
   }
   else {
-    points(peak[1], peak[2], col=crossCol, pch="+", cex=crossSize)
+    points(peak$d1, peak$d2, col=crossCol, pch="+", cex=crossSize)
   }
   # add the plot 
   if (!is.null(plotFunction)) {
