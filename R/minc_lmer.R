@@ -129,7 +129,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          mincLmerList = mincLmerList,
                          filter_masked = TRUE,
                          mask = mask,
-                         batches = as.numeric(parallel[2]),
+                         cores = as.numeric(parallel[2]),
                          slab_sizes = slab_dims,
                          cleanup = cleanup)
     }
