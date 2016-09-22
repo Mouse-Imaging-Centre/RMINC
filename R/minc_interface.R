@@ -474,6 +474,27 @@ print.mincQvals <- function(x, ...) {
   print(attr(x, "thresholds"))
 }
 
+#' @method summary mincQvals
+#' @export
+summary.mincQvals <- function(x, ...) {
+  # prints a table of the number of voxels that meet each threshold for each column
+  require(dplyr)
+  require(tidyr)
+  cn <- colnames(x)
+  x %>% 
+    as.data.frame %>% 
+    summarize_each(funs(a=sum(. < 0.01),
+                        b=sum(. < 0.05),
+                        c=sum(. < 0.1),
+                        d=sum(. < 0.15),
+                        e=sum(. < 0.2))) %>% 
+    gather %>% 
+    separate(key, c("var", "stat"), sep="_") %>% 
+    spread(var, value) %>% 
+    mutate(stat = factor(stat, labels=paste("sum <", c(0.01, 0.05, "0.10", 0.15, "0.20")))) %>%
+    .[,c("stat", cn)]
+}
+
 
 #' Volume Export
 #' 
@@ -814,6 +835,9 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
 {
     append.file = TRUE
     if (headers == TRUE) {
+      # get rid of parentheses, as they can cause trouble
+        colnames(vertexData) <- gsub('[\\(\\)]', '', 
+                                     colnames(vertexData), perl=T)
         write("<header>", file = filename)
         if (is.object(mean.stats)) {
             write("<mean>", file = filename, append = TRUE)

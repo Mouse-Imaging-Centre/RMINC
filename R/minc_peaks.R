@@ -84,6 +84,8 @@ mincFindPeaks <- function(inputStats, column=1, direction="both", minDistance=NA
   if (!is.character(inputStats)) {
     file.remove(filename)
   }
+  # make a data frame out of the tags
+  tags <- as.data.frame(tags)
   return(tags)
 }
 
@@ -117,4 +119,63 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
   }
   out[,4] <- tags[,4]
   return(out)
+}
+
+#' label peaks with the name of the atlas structure they are in
+#'
+#' @param peaks the output of \code{\link{mincFindPeaks}}
+#' @param atlas the atlas volume, either as a \code{\link{mincArray}} or as a filename
+#' @param defs the atlas definitions, same as used for \code{\link{anatGetAll}}
+#'
+#' @return the peaks data frame, with an extra column containing the label
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' peaks <- mincFindPeaks(-log10(qvs), "Neonatal:time.to.sac", 
+#'                        "pos", posThreshold=1.3, minDistance=1)
+#' peaks <- mincLabelPeaks(peaks, 
+#'                          atlasVol, 
+#'                          defs="Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv")
+#' }
+mincLabelPeaks <- function(peaks, atlas, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
+  require(dplyr)
+  require(tidyr)
+  # if atlas is a filename, then read it in as a mincArray
+  if (is.character(atlas)) {
+    atlas <- mincArray(mincGetVolume(atlas))
+  }
+  else if (length(dim(atlasVol)) == 3) {
+    # do nothing
+  }
+  else {
+    stop("Error: atlas has to be either a mincArray or a filename")
+  }
+  
+  # get the values from the atlas at every index of the peaks
+  peaks$label <- atlas[as.matrix(peaks[,1:3])]
+  # defs is not set to NULL, then translate numbers to label names
+  if (!is.null(defs)) {
+    defs <- read.csv(defs)
+    # melt into long format
+    mdefs <- defs[,1:3] %>% gather(variable, value, -Structure)
+    mdefs$variable <- as.character(mdefs$variable)
+    mdefs$Structure <- as.character(mdefs$Structure)
+    # get rid of .label
+    mdefs$variable <- sub('.label', '', mdefs$variable, fixed=T)
+    # change the side to empty if label is bilateral
+    dups <- mdefs[duplicated(mdefs$value),"value"]
+    for (i in 1:length(dups)) {
+      mdefs[mdefs$value == dups[i],"variable"] <- ""
+    }
+    # merge side and structure name
+    mdefs$Structure <- paste(mdefs[,2], mdefs[,1])
+    # add an unlabelled structure for peaks outside of the label volume
+    mdefs <- rbind(mdefs, c("unlabelled", "both", 0))
+    # now set structure names
+    for (i in 1:nrow(peaks)) {
+      peaks$label[i] <- mdefs$Structure[mdefs$value == peaks$label[i]]
+    }
+  }
+  return(peaks)
 }
