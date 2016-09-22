@@ -5,8 +5,7 @@
 \title{Colourize a mesh}
 \usage{
 colour_mesh(mesh, colour_map, colour_range = NULL, colour_default = "grey",
-  opacity_map = NULL, reverse = NULL, labels = FALSE,
-  palette = heat.colors(255))
+  reverse = NULL, labels = FALSE, palette = heat.colors(255))
 }
 \arguments{
 \item{mesh}{\link[rgl]{mesh3d} object ideally produced by \link{create_mesh}}
@@ -18,8 +17,6 @@ or a character file path pointing to a file with such a vector in a rowwise form
 allowable labels/measures/statistics to be includedon the surface}
 
 \item{colour_default}{The colour given to vertices excluded by colour_range}
-
-\item{opacity_map}{a vector containing a label/measure/statistic for every vertex}
 
 \item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
 
