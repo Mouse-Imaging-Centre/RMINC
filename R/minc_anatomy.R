@@ -109,13 +109,48 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 
 #' Faster AnatGet
 #' 
-#' doco
-#' @param filenames ... asdf
-#' @param atlas ... asdf
-#' @param method ... asdf
-#' @param mask ... asdf
-#' @param strict ... asdf
-#' @return something 
+#' Computes volumes, means, sums, and similar values across a segmented atlas
+#' 
+#' anatGetAll needs a set of files along with an atlas and a set of atlas
+#' definitions. In the end it will produce one value per label in the atlas for
+#' each of the input files. How that value is computed depends on the methods
+#' argument: \itemize{ \itemjacobians - Each file contains log jacobians, and
+#' the volume for each atlas label is computed by multiplying the jacobian with
+#' the voxel volume at each voxel.
+#' 
+#' \itemlabels - Each file contains integer labels (i.e. same as the atlas).
+#' The volume is computed by counting the number of voxels with each label and
+#' multiplying by the voxel volume.
+#' 
+#' \itemmeans - Each file contains an arbitrary number and the mean of all
+#' voxels inside each label is computed.
+#' 
+#' \itemsums - Each file contains an aribtrary number and the sum of all voxels
+#' inside each label is computed.
+#' 
+#' \itemtext - Each file is a comma separated values text file and is simply
+#' read in.
+#' 
+#' }
+#' 
+#' @param filenames A vector of filenames (strings) which contain the
+#' information to be extracted at every structure in the atlas.
+#' @param atlas A single filename containing the atlas definitions. This MINC
+#' volume has to be of the same sampling (sizes and dimension order) as the
+#' filenames specified in the first argument and use a separate integer for
+#' each atlas label.
+#' @param defs A string pointing to the filename containing the label
+#' definitions. Used to map the integers in the atlas to a proper name for the
+#' structure and contains additional information for laterality of each
+#' structure. See \link{voxel_atlas_defs} for details.
+#' @param method A string specifying the way information is to be computed at
+#' every voxel. See the details section for the possible options and what they
+#' mean.
+#' @param side Three choices, "right", "left", and "both" (the default) which
+#' specify what labels to obtain.
+#' @param strict check if any files differ in step sizes
+#' @return A matrix with ncols equal to the number of labels in the atlas and
+#' nrows equal to the number of files.
 #' @export
 anatGetAll2 <-
   function(filenames, atlas, 
