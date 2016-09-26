@@ -109,46 +109,34 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 
 #' Faster AnatGet
 #' 
-#' Computes volumes, means, sums, and similar values across a segmented atlas
-#' 
-#' anatGetAll needs a set of files along with an atlas and a set of atlas
-#' definitions. In the end it will produce one value per label in the atlas for
-#' each of the input files. How that value is computed depends on the methods
-#' argument: \itemize{ \itemjacobians - Each file contains log jacobians, and
-#' the volume for each atlas label is computed by multiplying the jacobian with
-#' the voxel volume at each voxel.
-#' 
-#' \itemlabels - Each file contains integer labels (i.e. same as the atlas).
-#' The volume is computed by counting the number of voxels with each label and
-#' multiplying by the voxel volume.
-#' 
-#' \itemmeans - Each file contains an arbitrary number and the mean of all
-#' voxels inside each label is computed.
-#' 
-#' \itemsums - Each file contains an aribtrary number and the sum of all voxels
-#' inside each label is computed.
-#' 
-#' \itemtext - Each file is a comma separated values text file and is simply
-#' read in.
-#' 
-#' }
-#' 
-#' @param filenames A vector of filenames (strings) which contain the
-#' information to be extracted at every structure in the atlas.
-#' @param atlas A single filename containing the atlas definitions. This MINC
-#' volume has to be of the same sampling (sizes and dimension order) as the
-#' filenames specified in the first argument and use a separate integer for
-#' each atlas label.
-#' @param defs A string pointing to the filename containing the label
-#' definitions. Used to map the integers in the atlas to a proper name for the
-#' structure and contains additional information for laterality of each
-#' structure. See \link{voxel_atlas_defs} for details.
-#' @param method A string specifying the way information is to be computed at
-#' every voxel. See the details section for the possible options and what they
-#' mean.
-#' @param side Three choices, "right", "left", and "both" (the default) which
-#' specify what labels to obtain.
+#' Computes volumes, means, sums, and similar values across a
+#' segmented atlas
+#' @inheritParams anatGetAll
 #' @param strict check if any files differ in step sizes
+#' @details 
+#' anatGetAll needs a set of files along with an atlas and a set of
+#' atlas definitions. In the end it will produce one value per label
+#' in the atlas for each of the input files. How that value is
+#' computed depends on the methods argument:
+#' \itemize{
+#'   \item{jacobians -}{ Each file contains log jacobians, and the volume for
+#'   each atlas label is computed by multiplying the jacobian with
+#'   the voxel volume at each voxel.
+#'   }
+#'   \item{labels -}{ Each file contains integer labels (i.e. same as the atlas).
+#'   The volume is computed by counting the number of voxels with
+#'   each label and multiplying by the voxel volume.
+#'   }
+#'   \item{means -}{ Each file contains an arbitrary number and the mean of all
+#'   voxels inside each label is computed.
+#'   }
+#'   \item{sums -}{ Each file contains an aribtrary number and the sum of all
+#'   voxels inside each label is computed.
+#'   }
+#'   \item{text -}{ Each file is a comma separated values text file and is simply
+#'   read in.
+#'   }
+#' }
 #' @return A matrix with ncols equal to the number of labels in the atlas and
 #' nrows equal to the number of files.
 #' @export
@@ -172,15 +160,31 @@ anatGetAll2 <-
       stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
     }
     # Get known labels from the definition frame
-    labeldefs <- read.csv(defs) 
+    label_defs <- 
+      read.csv(defs) %>%
+      mutate(both_sides = right.label == left.label)
+    
     label_frame <-
-      switch(side,
-             right = label_defs %>% select(Structure, right.label) %>% rename(label = right.label),
-             left = label_defs %>% select(Structure, left.label) %>% rename(label = right.label),
-             both = 
-               bind_rows(
-                 label_defs %>% select(Structure, right.label) %>% rename(label = right.label),
-                 label_defs %>% select(Structure, left.label) %>% rename(label = right.label)
+      switch(side
+             , right = label_defs %>% select(Structure, right.label) %>% rename(label = right.label)
+             , left = label_defs %>% select(Structure, left.label) %>% rename(label = left.label)
+             , both = 
+               bind_rows(label_defs %>% 
+                           filter(!both_sides) %>%
+                           select(Structure, right.label) %>% 
+                           mutate(Structure = paste0("right_", Structure)) %>%
+                           rename(label = right.label)
+                         
+                         , label_defs %>% 
+                           filter(!both_sides) %>%
+                           select(Structure, left.label) %>% 
+                           mutate(Structure = paste0("left_", Structure)) %>%
+                           rename(label = left.label)
+                         
+                         , label_defs %>%
+                           filter(both_sides) %>%
+                           select(Structure, right.label) %>%
+                           rename(label = right.label)
                ))
     
     #Get step sizes
@@ -191,15 +195,13 @@ anatGetAll2 <-
       if(any(col != sep_sizes[,1])) issue("At least one file has a different step size")
     })
     
-    if(any(at_sep_sizes != sep_sizes[,1])) issue("The atlas has different step sizes than the files")
-    
     vox_vol <- prod(sep_sizes[,1])
     
     atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
     
     if(method %in% c("jacobians", "sums", "means")){
       cpp_res <- anat_summary(filenames, atlas_vol, method)
-      missing_labels <- abs(rowSums(cpp_res$counts)) < 10e-7
+      missing_labels <- abs(rowSums(cpp_res$counts)) == 0
       cpp_res$counts <- cpp_res$counts
       cpp_res$values <- cpp_res$values
       
@@ -210,17 +212,48 @@ anatGetAll2 <-
                sums = cpp_res$value)
     } else {
       cpp_res <- count_labels(filenames, atlas_vol)
-      missing_labels <- abs(rowSums(cpp_res)) < 10e-7
+      missing_labels <- abs(rowSums(cpp_res)) == 0
       results <- cpp_res
     }
     
-    result <- as.data.frame(results) %>% add_rownames(var = "indices")
+    results <- 
+      as.data.frame(results) %>%
+      slice(-1) %>% #removes the zero label
+      mutate(indices = 1:n()) %>%
+      filter(! missing_labels[-1]) %>%
+      left_join(label_frame, by = c("indices" = "label"))
     
+    extra_structures <- results %>% filter(is.na(Structure)) %>% .$indices
+    if(length(extra_structures) != 0)
+      warning("Extra Structures  found in files but not in labels: "
+              , paste0(extra_structures, collapse = ", "))
     
+    missing_structures <- 
+      with(label_frame, Structure[! label %in% results$indices])
+    if(length(missing_structures) != 0)
+      warning("Missing Structures found in labels but not in any files: "
+              , paste0(missing_structures, collapse = ", "))
     
+    results <- 
+      results %>%
+      filter(!is.na(Structure))
     
+    label_inds <- results$indices
+    structures <- results$Structure
     
-    result_matrix
+    results <-
+      results %>%
+      select(-indices, -Structure) %>%
+      t %>%
+      `colnames<-`(structures) %>%
+      `rownames<-`(NULL)
+    
+    attr(results, "atlas") <- atlas
+    attr(results, "input") <- filenames
+    attr(results, "anatIDs") <- label_inds
+    class(results) <- c("anatUnilateral", "anatMatrix", "matrix")
+    
+    results  
   }
 
 # both unilateral and bilateral matrices can be printed the same way
