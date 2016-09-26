@@ -89,7 +89,7 @@ test_that("AnatGetAll2 works", {
     new_jacobians <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "jacobians")
     expect_equal(new_jacobians, jacobians, check.attributes = FALSE, tolerance = 10e-4)
     
-    new_label_counts <- anatGetAll2(gf$jacobians_0.2)
+    #new_label_counts <- anatGetAll2(gf$jacobians_0.2, )
   }, envir = test_env)
 })
 
