@@ -141,6 +141,10 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
 mincLabelPeaks <- function(peaks, atlas, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   require(dplyr)
   require(tidyr)
+  
+  if(getRversion() >= "3.1.0") 
+    utils::suppressForeignCheck(c("variable", "value"))
+  
   # if atlas is a filename, then read it in as a mincArray
   if (is.character(atlas)) {
     atlas <- mincArray(mincGetVolume(atlas))

@@ -146,6 +146,10 @@ anatGetAll2 <-
            method = c("jacobians", "labels", "sums", "means"), 
            side = c("both", "left", "right"),
            strict = TRUE){
+    
+    if(getRversion() >= "3.1.0") #Ignore R CMD checks for dplyr nse vars
+      utils::suppressForeignCheck(c("Structure", "right.label", "left.label"
+                                    , "both_sides", "indices"))
   
     method <- match.arg(method)
     side <- match.arg(side)
@@ -162,7 +166,7 @@ anatGetAll2 <-
     # Get known labels from the definition frame
     label_defs <- 
       read.csv(defs) %>%
-      mutate(both_sides = right.label == left.label)
+      mutate_(both_sides = "right.label == left.label")
     
     label_frame <-
       switch(side
