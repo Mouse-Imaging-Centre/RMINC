@@ -1133,8 +1133,6 @@ mincPlotPeak <- function(peak, anatomy, statistics, dim=2,
     pp <- plotFunction(peak)
     # if the plot is grid (ggplot2), then need to play with viewports
     if( any(class(pp) %in% "gg") ) {
-      require(grid)
-      require(gridBase)
       plot.new()
       vps <- baseViewports()
       pushViewport(vps$figure)

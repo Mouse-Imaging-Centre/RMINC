@@ -478,8 +478,6 @@ print.mincQvals <- function(x, ...) {
 #' @export
 summary.mincQvals <- function(x, ...) {
   # prints a table of the number of voxels that meet each threshold for each column
-  require(dplyr)
-  require(tidyr)
   cn <- colnames(x)
   x %>% 
     as.data.frame %>% 
