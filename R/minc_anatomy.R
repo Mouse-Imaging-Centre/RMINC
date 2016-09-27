@@ -147,9 +147,9 @@ anatGetAll2 <-
            side = c("both", "left", "right"),
            strict = TRUE){
     
-    if(getRversion() >= "3.1.0") #Ignore R CMD checks for dplyr nse vars
-      utils::suppressForeignCheck(c("Structure", "right.label", "left.label"
-                                    , "both_sides", "indices"))
+    if(getRversion() >= "2.15.1") #Ignore R CMD checks for dplyr nse vars
+      utils::globalVariables(c("Structure", "right.label", "left.label"
+                               , "both_sides", "indices"), package = "RMINC")
   
     method <- match.arg(method)
     side <- match.arg(side)

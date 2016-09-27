@@ -139,11 +139,9 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
 #'                          defs="Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv")
 #' }
 mincLabelPeaks <- function(peaks, atlas, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
-  require(dplyr)
-  require(tidyr)
   
-  if(getRversion() >= "3.1.0") 
-    utils::suppressForeignCheck(c("variable", "value"))
+  if(getRversion() >= "2.15.1") #Ignore R CMD checks for dplyr nse vars
+    utils::globalVariables(c("variable", "value"), package = "RMINC")
   
   # if atlas is a filename, then read it in as a mincArray
   if (is.character(atlas)) {
