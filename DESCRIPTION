@@ -17,11 +17,14 @@ Depends:
     BatchJobs
 Imports:
     dplyr,
+    tidyr,
     lme4,
     shiny,
     methods,
     grDevices,
     graphics,
+    grid,
+    gridBase,
     utils,
     stats,
     Rcpp,
