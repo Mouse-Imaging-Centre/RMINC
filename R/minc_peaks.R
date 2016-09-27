@@ -1,4 +1,3 @@
-
 #' Finds peak values in a MINC file or volume
 #' 
 #' Inputs a MINC file or RMINC output and identifies peak voxels (given some constraints) within
@@ -140,9 +139,6 @@ mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
 #' }
 mincLabelPeaks <- function(peaks, atlas, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   
-  if(getRversion() >= "2.15.1") #Ignore R CMD checks for dplyr nse vars
-    utils::globalVariables(c("variable", "value"), package = "RMINC")
-  
   # if atlas is a filename, then read it in as a mincArray
   if (is.character(atlas)) {
     atlas <- mincArray(mincGetVolume(atlas))
@@ -160,7 +156,7 @@ mincLabelPeaks <- function(peaks, atlas, defs=getOption("RMINC_LABEL_DEFINITIONS
   if (!is.null(defs)) {
     defs <- read.csv(defs)
     # melt into long format
-    mdefs <- defs[,1:3] %>% gather(variable, value, -Structure)
+    mdefs <- defs[,1:3] %>% gather_("variable", "value", c("right.label", "left.label"))
     mdefs$variable <- as.character(mdefs$variable)
     mdefs$Structure <- as.character(mdefs$Structure)
     # get rid of .label

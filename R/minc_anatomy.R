@@ -146,10 +146,6 @@ anatGetAll2 <-
            method = c("jacobians", "labels", "sums", "means"), 
            side = c("both", "left", "right"),
            strict = TRUE){
-    
-    if(getRversion() >= "2.15.1") #Ignore R CMD checks for dplyr nse vars
-      utils::globalVariables(c("Structure", "right.label", "left.label"
-                               , "both_sides", "indices"), package = "RMINC")
   
     method <- match.arg(method)
     side <- match.arg(side)
@@ -166,29 +162,29 @@ anatGetAll2 <-
     # Get known labels from the definition frame
     label_defs <- 
       read.csv(defs) %>%
-      mutate_(both_sides = "right.label == left.label")
+      mutate_(both_sides = ~ right.label == left.label)
     
     label_frame <-
       switch(side
-             , right = label_defs %>% select(Structure, right.label) %>% rename(label = right.label)
-             , left = label_defs %>% select(Structure, left.label) %>% rename(label = left.label)
+             , right = label_defs %>% select_(~ Structure, ~ right.label) %>% rename_(label = ~ right.label)
+             , left = label_defs %>% select_(~ Structure, ~ left.label) %>% rename_(label = ~ left.label)
              , both = 
                bind_rows(label_defs %>% 
-                           filter(!both_sides) %>%
-                           select(Structure, right.label) %>% 
-                           mutate(Structure = paste0("right_", Structure)) %>%
-                           rename(label = right.label)
+                           filter_(~ !both_sides) %>%
+                           select_(~Structure, ~ right.label) %>% 
+                           mutate_(Structure = ~ paste0("right_", Structure)) %>%
+                           rename_(label = ~ right.label)
                          
                          , label_defs %>% 
-                           filter(!both_sides) %>%
-                           select(Structure, left.label) %>% 
-                           mutate(Structure = paste0("left_", Structure)) %>%
-                           rename(label = left.label)
+                           filter_(~ !both_sides) %>%
+                           select_(~ Structure, ~ left.label) %>% 
+                           mutate_(Structure = ~ paste0("left_", Structure)) %>%
+                           rename_(label = ~ left.label)
                          
                          , label_defs %>%
-                           filter(both_sides) %>%
-                           select(Structure, right.label) %>%
-                           rename(label = right.label)
+                           filter_(~ both_sides) %>%
+                           select_(~ Structure, ~ right.label) %>%
+                           rename_(label = ~ right.label)
                ))
     
     #Get step sizes
@@ -224,10 +220,10 @@ anatGetAll2 <-
       as.data.frame(results) %>%
       slice(-1) %>% #removes the zero label
       mutate(indices = 1:n()) %>%
-      filter(! missing_labels[-1]) %>%
+      filter_(~ ! missing_labels[-1]) %>%
       left_join(label_frame, by = c("indices" = "label"))
     
-    extra_structures <- results %>% filter(is.na(Structure)) %>% .$indices
+    extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)
       warning("Extra Structures  found in files but not in labels: "
               , paste0(extra_structures, collapse = ", "))
@@ -240,14 +236,14 @@ anatGetAll2 <-
     
     results <- 
       results %>%
-      filter(!is.na(Structure))
+      filter_(~ !is.na(Structure))
     
     label_inds <- results$indices
     structures <- results$Structure
     
     results <-
       results %>%
-      select(-indices, -Structure) %>%
+      select_(~ -indices,~ -Structure) %>%
       t %>%
       `colnames<-`(structures) %>%
       `rownames<-`(NULL)

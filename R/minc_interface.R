@@ -481,16 +481,17 @@ summary.mincQvals <- function(x, ...) {
   cn <- colnames(x)
   x %>% 
     as.data.frame %>% 
-    summarize_each(funs(a=sum(. < 0.01),
-                        b=sum(. < 0.05),
-                        c=sum(. < 0.1),
-                        d=sum(. < 0.15),
-                        e=sum(. < 0.2))) %>% 
-    gather %>% 
-    separate(key, c("var", "stat"), sep="_") %>% 
-    spread(var, value) %>% 
-    mutate(stat = factor(stat, labels=paste("sum <", c(0.01, 0.05, "0.10", 0.15, "0.20")))) %>%
-    .[,c("stat", cn)]
+    summarize_each_(funs(a=sum(. < 0.01),
+                         b=sum(. < 0.05),
+                         c=sum(. < 0.1),
+                         d=sum(. < 0.15),
+                         e=sum(. < 0.2)), 
+                    vars = sapply(cn, as.symbol)) %>% 
+    gather_("key", "value", names(.)) %>% 
+    separate_("key", c("var", "stat"), sep="_") %>% 
+    spread_("var", "value") %>% 
+    mutate_(stat = ~ factor(stat, labels=paste("sum <", c(0.01, 0.05, "0.10", 0.15, "0.20")))) %>%
+    select_(~ stat, ~ everything())
 }
 
 
