@@ -476,10 +476,10 @@ print.mincQvals <- function(x, ...) {
 
 #' @method summary mincQvals
 #' @export
-summary.mincQvals <- function(x, ...) {
+summary.mincQvals <- function(object, ...) {
   # prints a table of the number of voxels that meet each threshold for each column
-  cn <- colnames(x)
-  x %>% 
+  cn <- colnames(object)
+  object %>% 
     as.data.frame %>% 
     summarize_each_(funs(a=sum(. < 0.01),
                          b=sum(. < 0.05),
