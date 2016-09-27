@@ -143,7 +143,7 @@ mincLabelPeaks <- function(peaks, atlas, defs=getOption("RMINC_LABEL_DEFINITIONS
   if (is.character(atlas)) {
     atlas <- mincArray(mincGetVolume(atlas))
   }
-  else if (length(dim(atlasVol)) == 3) {
+  else if (length(dim(atlas)) == 3) {
     # do nothing
   }
   else {
