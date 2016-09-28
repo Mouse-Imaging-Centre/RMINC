@@ -86,6 +86,8 @@ test_that("anatGetAll works", {
 
 test_that("AnatGetAll2 works", {
   evalq({
+    skip_if_not(has_mincstuffs)
+    
     new_jacobians <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "jacobians")
     expect_equal(new_jacobians, jacobians, check.attributes = FALSE, tolerance = 10e-4)
     
