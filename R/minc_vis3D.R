@@ -774,7 +774,58 @@ plot.bic_lines <-
     return(invisible(NULL))
   }
 
+obj_to_graph <-
+  function(bic_obj){
+    edges <-
+      with(bic_obj, {
+        cbind(triangle_matrix[1:2,]
+                , triangle_matrix[2:3]
+                , triangle_matrix[c(1,3),])})
+    
+    graph <- make_undirected_graph(edges)
+    vertex_attr(graph, "x") <- bic_obj$vertex_matrix[1,]
+    vertex_attr(graph, "y") <- bic_obj$vertex_matrix[2,]
+    vertex_attr(graph, "z") <- bic_obj$vertex_matrix[3,]
+    vertex_attr(graph, "name") <- 1:length(V(graph))
+    
+    graph
+  }
 
+connected_components <- 
+  function(obj_graph, data_map, data_range){
+     subgraph <- 
+       induced_subgraph(obj_graph
+                        , V(obj_graph)[between(data_map
+                                               , data_range[1]
+                                               , data_range[2])])
+     
+     con_coms <- 
+       components(subgraph)
+     
+     con_com_frame <-
+       with(con_coms, {
+         data_frame(vertex = as.numeric(names(membership))
+                    , clust_id = membership) %>%
+           inner_join(data_frame(clust_size = csize
+                                 , clust_id = 1:length(csize))
+                      , by = "clust_id")
+       })
+     
+     con_com_frame
+  }
+
+components_to_map <- 
+  function(graph, components, type = c("size", "label")){
+    type <- match.arg(type)
+    col <- switch(type, 
+                  size = "clust_size",
+                  label = "clust_id")
+    
+    data_map <- rep(0, length(V(graph)))
+    data_map[components$vertex] <- unlist(components[,col])
+    
+    data_map
+  }
 
 
 
