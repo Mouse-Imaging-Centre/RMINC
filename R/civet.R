@@ -1370,4 +1370,50 @@ civet.flattenForDplyr <-
       mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
   }
 
-
+civet.readQC <-
+  function(basedir, civetVersion="1.1.12"){
+    if(civetVersion != "1.1.12")
+      warning("Unsure how to deal with QC results for civet version: ", civetVersion,
+              "\n trying 1.1.12 approach")
+    
+    qc_file <- 
+      file.path(basedir, "QC") %>%
+      list.files(full.names = TRUE) %>%
+      grep("\\.glm", ., value = TRUE)
+    
+    if(length(qc_file) == 0) stop("No QC data found")
+    if(length(qc_file) > 1) stop("More than one results table found, aborting")
+    
+    good_med_bad <- 
+      function(vec, mb, bb)  
+        ifelse(vec < mb, "good", ifelse(vec < bb, "med", "bad"))
+    
+    qc_res <- 
+      read.table(qc_file, stringsAsFactors = FALSE)[,1:24] %>%
+      setNames(c("ID", "x-step", "y-step", "z-step", "StxMaskErr", "CSFcls", 
+                 "GMcls", "WMcls", "GMCortical", "WMsurf", "GMsurf", "SRLeft", 
+                 "SRRight", "SSLeft", "SSRight", "MeanCTLeft", "MeanCTRight", 
+                 "MeanWM-T1", "StdDevWM-T1", "MeanGM-T1", "StdDevGM-T1", "GIleft", 
+                 "GIright", "GIfull")) %>%
+      mutate_(
+        CSFcls_score   = ~ ifelse(between(CSFcls, 15, 80), "good", "med"),
+        GMcls_score    = ~ ifelse(between(GMcls, 15, 80), "good", "med"),
+        WMcls_score    = ~ ifelse(between(WMcls, 15, 80), "good", "med"),
+        WMsurf_score   = ~ good_med_bad(WMsurf, 10, 20),
+        GMsurf_score   = ~ good_med_bad(GMsurf, 10, 20),
+        SRLeft_score   = ~ good_med_bad(SRLeft, 250, 500),
+        SRRight_score  = ~ good_med_bad(SRRight, 250, 500),
+        SSLeft_score   = ~ good_med_bad(SSLeft, 250, 500),
+        SSRight_score  = ~ good_med_bad(SSRight, 250, 500)
+      ) %>%
+      cbind(
+        rowwise(.) %>% 
+          do(QC_PASS = 
+               as_data_frame(.) %>%
+               select(matches("_score")) %>% 
+               unlist %>%
+               `!=`("bad") %>%
+               all) %>%
+          mutate_(QC_PASS = ~ unlist(QC_PASS))
+      )
+  }
