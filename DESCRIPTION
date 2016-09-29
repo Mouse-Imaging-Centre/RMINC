@@ -36,7 +36,8 @@ Suggests:
     lmerTest,
     BiocInstaller,
     qvalue,
-    testthat
+    testthat,
+    igraph
 LinkingTo: 
     Rcpp,
 SystemRequirements:
