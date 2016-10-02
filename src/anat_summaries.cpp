@@ -83,8 +83,7 @@ List anat_summary(CharacterVector filenames,
 
 
 // [[Rcpp::export]]
-NumericMatrix count_labels(CharacterVector filenames,
-                           IntegerVector atlas) {
+NumericMatrix count_labels(CharacterVector filenames) {
   
   vector<mihandle_t> volumes = open_minc2_volumes(filenames);
   
@@ -104,22 +103,24 @@ NumericMatrix count_labels(CharacterVector filenames,
   }
   misize_t offsets[3] = {0,0,0};
   
-  if(atlas.size() != total_voxels){
-    stop("Atlas and files differ in size");
-  }
-  
-  int max_label = 0;
-  for(int at_vox = 0; at_vox < total_voxels; ++at_vox){
-    if(atlas[at_vox] > max_label) max_label = atlas[at_vox];
-  }
-  
-  NumericMatrix label_values(max_label + 1, filenames.size());
-  
   double *vol_buffer =
     (double *) malloc(total_voxels * sizeof(double));
   
   NumericVector separations = as<NumericVector>(get_minc_separations(wrap(filenames[0])));
   double vox_vol = fabs(separations[0]) * fabs(separations[1]) * fabs(separations[2]);
+  
+  // Get first subject
+  cautious_get_hyperslab(volumes[0],
+                         MI_TYPE_DOUBLE,
+                         offsets,
+                         vol_sizes,
+                         vol_buffer,
+                         "trouble reading first volume");
+  int max_label = 0;
+  for(int at_vox = 0; at_vox < total_voxels; ++at_vox){
+    if(vol_buffer[at_vox] > max_label) max_label = (int)(vol_buffer[at_vox] + .5);
+  }
+  NumericMatrix label_values(max_label + 1, filenames.size());
   
   for(int subject = 0; subject < volumes.size(); ++subject){
     stringstream error_message;
@@ -138,7 +139,7 @@ NumericMatrix count_labels(CharacterVector filenames,
       if(current_label > label_values.nrow()){
         error_message.str("");
         error_message << "A label (" << current_label << ") was found in a volume " << 
-            (subject + 1) << " but not in the atlas\n";
+            (subject + 1) << " but not in the first volume\n";
         
         stop(error_message.str());
       }

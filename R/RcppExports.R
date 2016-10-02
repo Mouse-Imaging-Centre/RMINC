@@ -5,8 +5,8 @@ anat_summary <- function(filenames, atlas, method) {
     .Call('RMINC_anat_summary', PACKAGE = 'RMINC', filenames, atlas, method)
 }
 
-count_labels <- function(filenames, atlas) {
-    .Call('RMINC_count_labels', PACKAGE = 'RMINC', filenames, atlas)
+count_labels <- function(filenames) {
+    .Call('RMINC_count_labels', PACKAGE = 'RMINC', filenames)
 }
 
 rcpp_minc_apply <- function(filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args) {

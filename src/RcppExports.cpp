@@ -19,14 +19,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // count_labels
-NumericMatrix count_labels(CharacterVector filenames, IntegerVector atlas);
-RcppExport SEXP RMINC_count_labels(SEXP filenamesSEXP, SEXP atlasSEXP) {
+NumericMatrix count_labels(CharacterVector filenames);
+RcppExport SEXP RMINC_count_labels(SEXP filenamesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< CharacterVector >::type filenames(filenamesSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type atlas(atlasSEXP);
-    __result = Rcpp::wrap(count_labels(filenames, atlas));
+    __result = Rcpp::wrap(count_labels(filenames));
     return __result;
 END_RCPP
 }
