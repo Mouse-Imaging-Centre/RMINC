@@ -793,7 +793,7 @@ obj_to_graph <-
     igraph::vertex_attr(graph, "x") <- bic_obj$vertex_matrix[1,]
     igraph::vertex_attr(graph, "y") <- bic_obj$vertex_matrix[2,]
     igraph::vertex_attr(graph, "z") <- bic_obj$vertex_matrix[3,]
-    igraph::vertex_attr(graph, "name") <- 1:length(V(graph))
+    igraph::vertex_attr(graph, "name") <- 1:length(igraph::V(graph))
     
     graph
   }
