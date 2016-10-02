@@ -214,6 +214,34 @@ mincFileCheck <- function(filenames) {
   return(invisible(NULL))
 }
 
+#' Check file step sizes
+#' 
+#' Check if a collection of minc files all have the same step size.
+#' 
+#' @param filenames A character vector of minc file names
+#' @param atlas An optional atlas to compare against the files
+#' @param strict Should differences be treated as errors or warnings
+#' @return A 3-component vector of step sizes.
+#' 
+#' @export
+check_step_sizes <-
+  function(filenames, atlas = NULL, strict = FALSE){
+  
+  issue <- `if`(strict, stop, warning)
+  #Check step sizes (the c++ code worries about dimensions)
+  sep_sizes <- as.matrix(sapply(filenames, minc.separation.sizes))
+  sapply(1:ncol(sep_sizes), function(i){
+    if(any(sep_sizes[,i] != sep_sizes[,1])) 
+      issue("File ", i, "differs in step sizes from the first file")
+  })
+  
+  if(!is.null(atlas) &&
+     any(minc.separation.sizes(atlas) != sep_sizes[,1]))
+    issue("The atlas differs in step sizes from the files")
+  
+  return(sep_sizes[,1])
+}
+
 
 #' World Vector
 #' 
