@@ -4,9 +4,10 @@
 \alias{anatGetAll2}
 \title{Faster AnatGet}
 \usage{
-anatGetAll2(filenames, atlas, defs = getOption("RMINC_LABEL_DEFINITIONS"),
-  method = c("jacobians", "labels", "sums", "means"), side = c("both",
-  "left", "right"), strict = TRUE)
+anatGetAll2(filenames, atlas = NULL,
+  defs = getOption("RMINC_LABEL_DEFINITIONS"), method = c("jacobians",
+  "labels", "sums", "means"), side = c("both", "left", "right"),
+  strict = TRUE)
 }
 \arguments{
 \item{filenames}{A vector of filenames (strings) which contain the

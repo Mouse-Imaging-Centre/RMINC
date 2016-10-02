@@ -141,80 +141,73 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' nrows equal to the number of files.
 #' @export
 anatGetAll2 <-
-  function(filenames, atlas, 
+  function(filenames, atlas = NULL, 
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
            method = c("jacobians", "labels", "sums", "means"), 
            side = c("both", "left", "right"),
            strict = TRUE){
   
     method <- match.arg(method)
-    side <- match.arg(side)
-    issue <- `if`(strict, stop, warning)
     
-    if(defs == ""){
-      stop("No label definitions specified. Either use the defs argument, or use the environment variable $RMINC_LABEL_DEFINITIONS.")    
+    if(method == "labels"){
+      return(
+        label_counts(filenames = filenames
+                     , defs = defs
+                     , side = side
+                     , strict = strict))
+    } else {
+      return(
+        anatomy_summary(filenames = filenames
+                        , atlas = atlas
+                        , method = method
+                        , defs = defs
+                        , side = side
+                        , strict= strict))
     }
+  }
+
+# Convert an RMINC style atlas label set to a nice data.frame
+create_labels_frame <-
+  function(defs, side = c("both", "left", "right")){
+    side <- match.arg(side)
+    
     # if the definitions are given, check to see that we can read the 
     # specified file
     if(file.access(as.character(defs), 4) == -1){
       stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
     }
-    # Get known labels from the definition frame
+    
     label_defs <- 
-      read.csv(defs) %>%
-      mutate_(both_sides = ~ right.label == left.label)
+      read.csv(defs, stringsAsFactors = FALSE) %>%
+      mutate_(both_sides = ~ right.label == left.label) %>%
+      gather_("hemisphere", "label", c("right.label", "left.label")) %>%
+      mutate_(Structure =
+                ~ ifelse(both_sides
+                         , Structure
+                         , ifelse(hemisphere == "right.label"
+                                  , paste0("left_", Structure)
+                                  , paste0("right_", Structure))))
     
-    label_frame <-
+    label_defs <-
       switch(side
-             , right = label_defs %>% select_(~ Structure, ~ right.label) %>% rename_(label = ~ right.label)
-             , left = label_defs %>% select_(~ Structure, ~ left.label) %>% rename_(label = ~ left.label)
-             , both = 
-               bind_rows(label_defs %>% 
-                           filter_(~ !both_sides) %>%
-                           select_(~Structure, ~ right.label) %>% 
-                           mutate_(Structure = ~ paste0("right_", Structure)) %>%
-                           rename_(label = ~ right.label)
-                         
-                         , label_defs %>% 
-                           filter_(~ !both_sides) %>%
-                           select_(~ Structure, ~ left.label) %>% 
-                           mutate_(Structure = ~ paste0("left_", Structure)) %>%
-                           rename_(label = ~ left.label)
-                         
-                         , label_defs %>%
-                           filter_(~ both_sides) %>%
-                           select_(~ Structure, ~ right.label) %>%
-                           rename_(label = ~ right.label)
-               ))
+             , left  = filter_(label_defs, ~ both_sides | hemisphere == "left.label")
+             , right = filter_(label_defs, ~ both_sides | hemisphere == "right.label")
+             , both  = label_defs)
     
-    #Get step sizes
-    sep_sizes <- as.matrix(sapply(filenames, minc.separation.sizes))
-    at_sep_sizes <- minc.separation.sizes(atlas)
-    #Check step sizes (the c++ code worries about dimensions)
-    apply(sep_sizes, 2, function(col){
-      if(any(col != sep_sizes[,1])) issue("At least one file has a different step size")
-    })
+    label_defs <-
+      label_defs %>%
+      select_(~ -c(hemisphere, both_sides)) %>%
+      filter_(~ ! duplicated(label))
     
-    vox_vol <- prod(sep_sizes[,1])
+    label_defs
+  }
+
+# create the results matrix from the c++ results and a label frame 
+create_anat_results <-
+  function(results, label_frame, filenames = NULL, atlas = NULL){
     
-    atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
-    
-    if(method %in% c("jacobians", "sums", "means")){
-      cpp_res <- anat_summary(filenames, atlas_vol, method)
-      missing_labels <- abs(rowSums(cpp_res$counts)) == 0
-      cpp_res$counts <- cpp_res$counts
-      cpp_res$values <- cpp_res$values
-      
-      results <-
-        switch(method,
-               jacobians = cpp_res$value,
-               means = cpp_res$value / cpp_res$counts,
-               sums = cpp_res$value)
-    } else {
-      cpp_res <- count_labels(filenames, atlas_vol)
-      missing_labels <- abs(rowSums(cpp_res)) == 0
-      results <- cpp_res
-    }
+    missing_labels <- abs(rowSums(results)) == 0
+    if(nrow(results) == 1) stop("No structures found, check your atlas or label volumes")
     
     results <- 
       as.data.frame(results) %>%
@@ -243,17 +236,88 @@ anatGetAll2 <-
     
     results <-
       results %>%
-      select_(~ -indices,~ -Structure) %>%
+      select_(~ -c(indices,Structure)) %>% 
       t %>%
       `colnames<-`(structures) %>%
       `rownames<-`(NULL)
     
-    attr(results, "atlas") <- atlas
-    attr(results, "input") <- filenames
     attr(results, "anatIDs") <- label_inds
+    if(!is.null(atlas))     attr(results, "atlas") <- atlas
+    if(!is.null(filenames)) attr(results, "input") <- filenames
     class(results) <- c("anatUnilateral", "anatMatrix", "matrix")
     
-    results  
+    results
+  }
+
+anatomy_summary <- 
+  function(filenames, atlas, 
+           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+           method = c("jacobians", "labels", "sums", "means"), 
+           side = c("both", "left", "right"),
+           strict = TRUE){
+    
+    method <- match.arg(method)
+    side <- match.arg(side)
+    atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
+    
+    if(!is.null(defs)){
+      label_frame <- create_labels_frame(defs, side = side)
+    } else {
+      warning("No definitions provided, using indices from atlas \n",
+              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
+              " or set it as an environment variable")
+      uniq_labels <- unique(atlas_vol)
+      label_frame <-
+        data_frame(Structure = as.character(uniq_labels)
+                   , label   = uniq_labels) 
+    }
+    
+    check_step_sizes(filenames, atlas, strict)
+
+    cpp_res <- anat_summary(filenames, atlas_vol, method)
+    cpp_res$counts <- cpp_res$counts
+    cpp_res$values <- cpp_res$values
+    
+    results <-
+      switch(method
+             , jacobians = cpp_res$value
+             , means     = cpp_res$value / cpp_res$counts
+             , sums      = cpp_res$value)
+    
+    results[!is.finite(results)] <- 0
+    
+    create_anat_results(results, label_frame, filenames = filenames, atlas = atlas)
+  }
+
+label_counts <- 
+  function(filenames,
+           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+           method = c("jacobians", "labels", "sums", "means"), 
+           side = c("both", "left", "right"),
+           strict = TRUE){
+    
+    method <- match.arg(method)
+    side <- match.arg(side)
+
+    check_step_sizes(filenames, strict = strict)
+    
+    cpp_res <- count_labels(filenames)
+    missing_labels <- abs(rowSums(cpp_res)) == 0
+    results <- cpp_res
+    
+    if(!is.null(defs)){
+      label_frame <- create_labels_frame(defs, side = side)
+    } else {
+      warning("No definitions provided, using indices from atlas \n",
+              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
+              " or set it as an environment variable")
+      uniq_labels <- which(!missing_labels)
+      label_frame <-
+        data_frame(Structure = as.character(uniq_labels)
+                   , label   = uniq_labels) 
+    }
+    
+    create_anat_results(results, label_frame, filenames = filenames)
   }
 
 # both unilateral and bilateral matrices can be printed the same way
