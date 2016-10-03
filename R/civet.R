@@ -318,7 +318,12 @@ civet.getFilenameMidSurfaces <- function(scanID, baseDir, civetVersion="1.1.9", 
 
 #' @describeIn civet.getFilename cortical thickness
 #' @export
-civet.getFilenameCorticalThickness <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
+civet.getFilenameCorticalThickness <- 
+  function(scanID
+           , baseDir
+           , civetVersion="1.1.9"
+           , smoothing = "20mm"
+           , fullPath=TRUE) {
 	#
 	# check whether the Civet version has been tested
 	civet.checkVersion(civetVersion)
@@ -327,7 +332,10 @@ civet.getFilenameCorticalThickness <- function(scanID, baseDir, civetVersion="1.
 	baseDir <- path.expand(baseDir)
 	scanRoot <- file.path(baseDir, scanID)
 	ctDir <- file.path(scanRoot, 'thickness')
-	files <- list.files(ctDir, pattern=glob2rx("*_native_rms_rsl_tlink_20mm_*.txt"))
+	
+	file_pattern <- paste0("native_rms_tlink_", smoothing, ".*\\.txt")
+	
+	files <- list.files(ctDir, pattern = file_pattern)
 	
 	# fully-qualified path requested?
 	if ( fullPath ) {
@@ -335,6 +343,64 @@ civet.getFilenameCorticalThickness <- function(scanID, baseDir, civetVersion="1.
 	}
 	
 	return(list(left=files[1], right=files[2]))
+}
+
+#' @describeIn civet.getFilename cortical area
+#' @export
+civet.getFilenameCorticalArea <- 
+  function(scanID
+           , baseDir
+           , civetVersion="1.1.9"
+           , smoothing = "40mm"
+           , fullPath=TRUE) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+  
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  ctDir <- file.path(scanRoot, 'surfaces')
+  
+  file_pattern <- paste0("mid_surface_rsl_(right|left)_native_area_", smoothing, "\\.txt")
+  
+  files <- list.files(ctDir, pattern = file_pattern)
+  
+  # fully-qualified path requested?
+  if ( fullPath ) {
+    files <- file.path(ctDir, files)
+  }
+  
+  return(list(left=files[1], right=files[2]))
+}
+
+#' @describeIn civet.getFilename cortical volume
+#' @export
+civet.getFilenameCorticalVolume <- 
+  function(scanID
+           , baseDir
+           , civetVersion="1.1.9"
+           , smoothing = "40mm"
+           , fullPath=TRUE) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+  
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  ctDir <- file.path(scanRoot, 'surfaces')
+  
+  file_pattern <- paste0("surface_rsl_(right|left)_native_volume_", smoothing, ".*\\.txt")
+  
+  files <- list.files(ctDir, pattern = file_pattern)
+  
+  # fully-qualified path requested?
+  if ( fullPath ) {
+    files <- file.path(ctDir, files)
+  }
+  
+  return(list(left=files[1], right=files[2]))
 }
 
 #' @describeIn civet.getFilename surface curvature
