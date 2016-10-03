@@ -4,9 +4,6 @@
 \alias{civet.getFilename}
 \alias{civet.getFilenameCerebrumMask}
 \alias{civet.getFilenameClassify}
-\alias{civet.getFilenameCorticalArea}
-\alias{civet.getFilenameCorticalThickness}
-\alias{civet.getFilenameCorticalVolume}
 \alias{civet.getFilenameCsfPve}
 \alias{civet.getFilenameGrayMatterPve}
 \alias{civet.getFilenameGrayMatterSurfaces}
@@ -18,6 +15,9 @@
 \alias{civet.getFilenameStxT1}
 \alias{civet.getFilenameWhiteMatterPve}
 \alias{civet.getFilenameWhiteMatterSurfaces}
+\alias{civet.getFilenamesCorticalArea}
+\alias{civet.getFilenamesCorticalThickness}
+\alias{civet.getFilenamesCorticalVolume}
 \title{Get Selected Civet Filenames}
 \usage{
 civet.getFilenameClassify(scanID, baseDir, civetVersion = "1.1.9",
@@ -50,13 +50,13 @@ civet.getFilenameWhiteMatterSurfaces(scanID, baseDir, civetVersion = "1.1.9",
 civet.getFilenameMidSurfaces(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
 
-civet.getFilenameCorticalThickness(scanID, baseDir, civetVersion = "1.1.9",
+civet.getFilenamesCorticalThickness(scanID, baseDir, civetVersion = "1.1.9",
   smoothing = "20mm", fullPath = TRUE)
 
-civet.getFilenameCorticalArea(scanID, baseDir, civetVersion = "1.1.9",
+civet.getFilenamesCorticalArea(scanID, baseDir, civetVersion = "1.1.9",
   smoothing = "40mm", fullPath = TRUE)
 
-civet.getFilenameCorticalVolume(scanID, baseDir, civetVersion = "1.1.9",
+civet.getFilenamesCorticalVolume(scanID, baseDir, civetVersion = "1.1.9",
   smoothing = "40mm", fullPath = TRUE)
 
 civet.getFilenameMeanSurfaceCurvature(scanID, baseDir, civetVersion = "1.1.9",
@@ -120,11 +120,11 @@ filename(s).
 
 \item \code{civet.getFilenameMidSurfaces}: mid surfaces
 
-\item \code{civet.getFilenameCorticalThickness}: cortical thickness
+\item \code{civet.getFilenamesCorticalThickness}: cortical thickness
 
-\item \code{civet.getFilenameCorticalArea}: cortical area
+\item \code{civet.getFilenamesCorticalArea}: cortical area
 
-\item \code{civet.getFilenameCorticalVolume}: cortical volume
+\item \code{civet.getFilenamesCorticalVolume}: cortical volume
 
 \item \code{civet.getFilenameMeanSurfaceCurvature}: surface curvature
 
