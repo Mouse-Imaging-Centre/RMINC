@@ -4,7 +4,8 @@
 \alias{check_step_sizes}
 \title{Check file step sizes}
 \usage{
-check_step_sizes(filenames, atlas = NULL, strict = FALSE)
+check_step_sizes(filenames, atlas = NULL, strict = FALSE,
+  tolerance = 1e-05)
 }
 \arguments{
 \item{filenames}{A character vector of minc file names}
@@ -12,6 +13,8 @@ check_step_sizes(filenames, atlas = NULL, strict = FALSE)
 \item{atlas}{An optional atlas to compare against the files}
 
 \item{strict}{Should differences be treated as errors or warnings}
+
+\item{tolerance}{The tolerance for comparing step sizes, 10e-6 by default}
 }
 \value{
 A 3-component vector of step sizes.

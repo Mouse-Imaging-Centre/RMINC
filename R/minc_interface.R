@@ -221,22 +221,23 @@ mincFileCheck <- function(filenames) {
 #' @param filenames A character vector of minc file names
 #' @param atlas An optional atlas to compare against the files
 #' @param strict Should differences be treated as errors or warnings
+#' @param tolerance The tolerance for comparing step sizes, 10e-6 by default
 #' @return A 3-component vector of step sizes.
 #' 
 #' @export
 check_step_sizes <-
-  function(filenames, atlas = NULL, strict = FALSE){
+  function(filenames, atlas = NULL, strict = FALSE, tolerance = 10e-6){
   
   issue <- `if`(strict, stop, warning)
   #Check step sizes (the c++ code worries about dimensions)
   sep_sizes <- as.matrix(sapply(filenames, minc.separation.sizes))
   sapply(1:ncol(sep_sizes), function(i){
-    if(any(sep_sizes[,i] != sep_sizes[,1])) 
-      issue("File ", i, "differs in step sizes from the first file")
+    if(any(abs(sep_sizes[,i] - sep_sizes[,1]) > tolerance)) 
+      issue("File ", i, " differs in step sizes from the first file")
   })
   
   if(!is.null(atlas) &&
-     any(minc.separation.sizes(atlas) != sep_sizes[,1]))
+     any(abs(minc.separation.sizes(atlas) - sep_sizes[,1]) > tolerance))
     issue("The atlas differs in step sizes from the files")
   
   return(sep_sizes[,1])
