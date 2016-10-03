@@ -318,7 +318,7 @@ civet.getFilenameMidSurfaces <- function(scanID, baseDir, civetVersion="1.1.9", 
 
 #' @describeIn civet.getFilename cortical thickness
 #' @export
-civet.getFilenameCorticalThickness <- 
+civet.getFilenamesCorticalThickness <- 
   function(scanID
            , baseDir
            , civetVersion="1.1.9"
@@ -347,7 +347,7 @@ civet.getFilenameCorticalThickness <-
 
 #' @describeIn civet.getFilename cortical area
 #' @export
-civet.getFilenameCorticalArea <- 
+civet.getFilenamesCorticalArea <- 
   function(scanID
            , baseDir
            , civetVersion="1.1.9"
@@ -376,7 +376,7 @@ civet.getFilenameCorticalArea <-
 
 #' @describeIn civet.getFilename cortical volume
 #' @export
-civet.getFilenameCorticalVolume <- 
+civet.getFilenamesCorticalVolume <- 
   function(scanID
            , baseDir
            , civetVersion="1.1.9"
