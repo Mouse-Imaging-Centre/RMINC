@@ -1436,6 +1436,17 @@ civet.flattenForDplyr <-
       mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
   }
 
+#' Read CIVET QC data
+#' 
+#' After running the CIVET quality control pipeline, import the results
+#' 
+#' @param basedir The CIVET output directory
+#' @param civetVersion the version of CIVET used, currently only supports
+#' 1.1.12
+#' @return A table of QC results including whether or not the subjects passed
+#' overall quality control. See \url{http://www.bic.mni.mcgill.ca/ServicesSoftware/QualityControlCIVET12}
+#' for more details.
+#' @export
 civet.readQC <-
   function(basedir, civetVersion="1.1.12"){
     if(civetVersion != "1.1.12")
