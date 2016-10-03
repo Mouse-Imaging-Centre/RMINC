@@ -20,7 +20,7 @@
 #' }
 #' @export
 civet.checkVersion <- function(civetVersion) {
-	if ( civetVersion != "1.1.9" &&  civetVersion != "1.1.7") {
+	if (! civetVersion %in% c("1.1.12", "1.1.9", "1.1.7")) {
 		warning(sprintf("This function has not been tested with Civet version %s. Use at your own risk.", civetVersion), immediate.=TRUE)
 	}
 	return
