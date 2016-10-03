@@ -87,12 +87,12 @@ NumericMatrix count_labels(CharacterVector filenames) {
   
   vector<mihandle_t> volumes = open_minc2_volumes(filenames);
   
-  if(!check_same_dimensions(volumes)){
-    for(int i = 0; i < volumes.size(); ++i){
-      miclose_volume(volumes[i]);
-    }
-    stop("At least one file is a different size");
-  }
+  // if(!check_same_dimensions(volumes)){
+  //   for(int i = 0; i < volumes.size(); ++i){
+  //     miclose_volume(volumes[i]);
+  //   }
+  //   stop("At least one file is a different size");
+  // }
   
   vector<misize_t> sizes = get_volume_dimensions(volumes[0]);
   int total_voxels = sizes[0] * sizes[1] * sizes[2];
@@ -126,6 +126,15 @@ NumericMatrix count_labels(CharacterVector filenames) {
     stringstream error_message;
     error_message << "Error Reading Volume " << (subject + 1) << "\n";
     
+    sizes = get_volume_dimensions(volumes[subject]);
+    total_voxels = sizes[0] * sizes[1] * sizes[2];
+    for(int i = 0; i < 3; ++i){
+      vol_sizes[i] = sizes[i];
+    }
+    
+    free(vol_buffer);
+    vol_buffer = (double *) malloc(total_voxels * sizeof(double));
+    
     cautious_get_hyperslab(volumes[subject],
                            MI_TYPE_DOUBLE,
                            offsets,
@@ -145,7 +154,6 @@ NumericMatrix count_labels(CharacterVector filenames) {
       }
       
       label_values(current_label, subject) += vox_vol;  
-      
     }
   }
   
