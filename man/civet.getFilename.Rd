@@ -4,7 +4,9 @@
 \alias{civet.getFilename}
 \alias{civet.getFilenameCerebrumMask}
 \alias{civet.getFilenameClassify}
+\alias{civet.getFilenameCorticalArea}
 \alias{civet.getFilenameCorticalThickness}
+\alias{civet.getFilenameCorticalVolume}
 \alias{civet.getFilenameCsfPve}
 \alias{civet.getFilenameGrayMatterPve}
 \alias{civet.getFilenameGrayMatterSurfaces}
@@ -49,7 +51,13 @@ civet.getFilenameMidSurfaces(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
 
 civet.getFilenameCorticalThickness(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+  smoothing = "20mm", fullPath = TRUE)
+
+civet.getFilenameCorticalArea(scanID, baseDir, civetVersion = "1.1.9",
+  smoothing = "40mm", fullPath = TRUE)
+
+civet.getFilenameCorticalVolume(scanID, baseDir, civetVersion = "1.1.9",
+  smoothing = "40mm", fullPath = TRUE)
 
 civet.getFilenameMeanSurfaceCurvature(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
@@ -113,6 +121,10 @@ filename(s).
 \item \code{civet.getFilenameMidSurfaces}: mid surfaces
 
 \item \code{civet.getFilenameCorticalThickness}: cortical thickness
+
+\item \code{civet.getFilenameCorticalArea}: cortical area
+
+\item \code{civet.getFilenameCorticalVolume}: cortical volume
 
 \item \code{civet.getFilenameMeanSurfaceCurvature}: surface curvature
 
