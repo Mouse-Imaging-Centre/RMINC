@@ -576,8 +576,90 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civet
 	return(filenames.df)
 }
 
+#' Assemble vertex files for a CIVET run
+#' 
+#' Locate the vertex thickness, area, and volume files for a CIVET run
+#' 
+#' @inheritParams civet.getAllFilenames
+#' @return A data.frame containing left and right thickness, area, and volume files.
+#' @export
+civet.vertexFilenames <-
+  function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9"){
+    ids <- getElement(gf, idvar)
+    
+    thickness_files <-
+      lapply(ids, function(id){ 
+        civet.getFilenamesCorticalThickness(id, baseDir = basedir, civetVersion = civetVersion) %>%
+          as_data_frame
+      }) %>% 
+      bind_rows %>%
+      rename_(left_thickness = "left"
+              , right_thickness = "right")
+    
+    area_files <-
+      lapply(ids, function(id){ 
+        civet.getFilenamesCorticalArea(id, baseDir = basedir, civetVersion = civetVersion) %>%
+          as_data_frame
+      }) %>% 
+      bind_rows %>%
+      rename_(left_area = "left"
+              , right_area = "right")
+    
+    volume_files <-
+      lapply(ids, function(id){ 
+        civet.getFilenamesCorticalVolume(id, baseDir = basedir, civetVersion = civetVersion) %>%
+          as_data_frame
+      }) %>% 
+      bind_rows %>%
+      rename_(left_volume = "left"
+              , right_volume = "right")
+    
+    bind_cols(data_frame(ids = ids)
+              , thickness_files
+              , area_files
+              , volume_files)
+  }
 
-
+#' Create a table of vertex measures
+#' 
+#' Read in the vertex data results of a CIVET run
+#' 
+#' @param vertex_files The data frame of vertex file names
+#' produced by \link{civet.vertexFilenames}
+#' @return A 6-element list of matrices:
+#' \itemize{
+#' \item{}
+#' }
+#' @export
+civet.vertexTable <- function(vertex_files){
+  columns_to_collect <- setdiff(names(vertex_files), "ids")
+  
+  n_vertices <- 
+    getElement(vertex_files, columns_to_collect[1]) %>%
+    .[!is.na(.)] %>%
+    first %>%
+    readLines %>%
+    length
+  
+  read_or_NAs <- 
+    function(file) 
+      `if`(is.na(file)
+           , rep(NA_real_, n_vertices)
+           , as.numeric(readLines(file)))
+    
+  
+  vertex_files %>%
+    gather_("measure", "file", columns_to_collect) %>%
+    mutate_(vertex_data = ~ lapply(file, read_or_NAs)) %>%
+    arrange_(~ ids) %>%
+    split(.$measure) %>%
+    lapply(function(df){
+      unlist(df$vertex_data) %>%
+        matrix(ncol = nrow(df)) %>%
+        `colnames<-`(df$ids)
+    })
+  
+}
 
 civet.AllROIs <- function(gf, defprefix) {
 	# =============================================================================
