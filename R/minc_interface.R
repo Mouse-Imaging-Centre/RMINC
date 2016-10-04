@@ -517,10 +517,11 @@ summary.mincQvals <- function(object, ...) {
                          e=sum(. < 0.2, na.rm = TRUE)), 
                     vars = sapply(cn, as.symbol)) %>% 
     gather_("key", "value", names(.)) %>% 
-    separate_("key", c("var", "stat"), sep="_") %>% 
+    separate_("key", c("var", "stat"), sep=-2) %>% 
     spread_("var", "value") %>% 
-    mutate_(stat = ~ factor(stat, labels=paste("sum <", c(0.01, 0.05, "0.10", 0.15, "0.20")))) %>%
-    select_(~ stat, ~ everything())
+    mutate_(stat = ~ factor(stat, labels=paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20)))) %>%
+    select_(~ stat, ~ everything()) %>%
+    setNames(sub("_$","", names(.)))
 }
 
 
