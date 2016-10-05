@@ -507,3 +507,16 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   
   return(output)
 }
+
+#' Get FDR Thresholds
+#' 
+#' @param qvals A \code{mincQvals} object, typically computed with \code{mincFDR}
+#' methods
+#' @return A matrix of thresholds, accessible with standard matrix indexing
+#' @export 
+thresholds <- 
+  function(qvals){
+    if(!inherits(qvals, "mincQvals")) stop("Input is not a mincQvals object")
+    
+    attr(qvals, "thresholds")
+  }
