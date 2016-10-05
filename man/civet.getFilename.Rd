@@ -82,6 +82,9 @@ structures may change across difference versions of Civet.}
 \item{fullPath}{A boolean specifying whether the function is to return
 either a fully-qualified path (TRUE) or just the filename without path
 (FALSE).}
+
+\item{smoothing}{A character code indicating the smoothing level used in
+computing thickness, area, or volume e.g. "20mm"}
 }
 \value{
 Either a string or a list is returned, depending on the number of

@@ -47,6 +47,8 @@ civet.checkVersion <- function(civetVersion) {
 #' @param fullPath A boolean specifying whether the function is to return
 #' either a fully-qualified path (TRUE) or just the filename without path
 #' (FALSE).
+#' @param smoothing A character code indicating the smoothing level used in
+#' computing thickness, area, or volume e.g. "20mm"
 #' @return Either a string or a list is returned, depending on the number of
 #' filenames returned.  Specifically, a single filename is returned as a
 #' string, whereas multiple filenames are returned as named lists.
