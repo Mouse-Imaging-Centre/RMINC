@@ -332,6 +332,18 @@ getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
   return(c(low, high))
 }
 
+#' Plot Slice Along Each Axis
+#' 
+#' Show a slice from each axis of minc volume
+#' 
+#' @param anatomy a \link{mincArray} object containing the source anatomy
+#' @param statistics a \link{mincArray} object containing a statistic to overlay
+#' @param slice 3-component vector indicating which slice along each axis
+#' @param layoutMatrix A matrix describing the layout for the plots typically
+#' produced by \link{layout}
+#' @param ... extra parameters to be passed to \link{mincPlotAnatAndStatsSlice}
+#' @return invisible NULL 
+#' @export 
 mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL, 
                                    layoutMatrix=NULL, ...) {
   opar <- par(no.readonly = TRUE)
@@ -362,6 +374,7 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
   mincPlotAnatAndStatsSlice(anatomy, statistics, slice = slice[1], dimension = 1, ...)
   par(opar)
 
+  invisible(NULL)
 }
 
 # note - works, but is extremely slow. In profiling it appears to spend almost all
