@@ -219,13 +219,15 @@ create_anat_results <-
     extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)
       warning("Extra Structures  found in files but not in labels: "
-              , paste0(extra_structures, collapse = ", "))
+              , paste0(extra_structures, collapse = ", ")
+              , call. = FALSE)
     
     missing_structures <- 
       with(label_frame, Structure[! label %in% results$indices])
     if(length(missing_structures) != 0)
       warning("Missing Structures found in labels but not in any files: "
-              , paste0(missing_structures, collapse = ", "))
+              , paste0(missing_structures, collapse = ", ")
+              , call. = FALSE)
     
     results <- 
       results %>%
@@ -240,6 +242,14 @@ create_anat_results <-
       t %>%
       `colnames<-`(structures) %>%
       `rownames<-`(NULL)
+    
+    sapply(colnames(results), function(cn){
+      missings <- which(results[,cn] == 0)
+      
+      if(length(missings) != 0)
+        warning("Files ", paste0(missings, sep = ", "), " are missing label ", cn
+                , call. = FALSE)
+    })
     
     attr(results, "anatIDs") <- label_inds
     if(!is.null(atlas))     attr(results, "atlas") <- atlas
