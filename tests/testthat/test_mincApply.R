@@ -24,7 +24,10 @@ test_that("mincApply two output",{
 })
 
 # Core setting prevents memory explosion on many core machines 
-ma <- verboseRun("pMincApply(gf$jacobians_fixed_2, mean, cores = min(2, parallel::detectCores() - 1))",getOption("verbose"))
+ma <- verboseRun("pMincApply(gf$jacobians_fixed_2, mean, 
+                             local = TRUE, cores = min(2, parallel::detectCores() - 1))",
+                 getOption("verbose"))
+
 dim(ma) <- c(length(ma), 1)
 class(ma) <- "mincMultiDim"
 
@@ -32,7 +35,8 @@ test_that("pmincapply local",{
   expect_equivalent(ma, mm)
 })
 
-ma <- verboseRun("pMincApply(gf$jacobians_fixed_2, testFunc, cores = min(2, parallel::detectCores() - 1))",
+ma <- verboseRun("pMincApply(gf$jacobians_fixed_2, testFunc, 
+                             local = TRUE, cores = min(2, parallel::detectCores() - 1))",
                  getOption("verbose"))
 
 test_that("pmincApply snowfall two output",{
