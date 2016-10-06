@@ -1,3 +1,47 @@
+#' Parallel Configuration
+#' 
+#' Set up configuration for running parallel jobs with RMINC
+#' Use a standard configuration for SGE and Torque queuing systems
+#' or setup a custom configuration. Essentially a wrapper to
+#' \link{loadConfig} from BatchJobs, with two standard configurations
+#' provided. 
+#' 
+#' @param queue_type one of custom, sge, or pbs (torque)
+#' @param config_file the configuration file to use if a custom \code{queue_type} is
+#' selected.
+#' @return returns the configuration list invisibly
+#' @details 
+#' In order for parallelization to be as general as possible we provide means to setup the parallelization
+#' backend (BatchJobs) for any type of queuing system. For details on how to configure BatchJobs see
+#' \url{https://github.com/tudo-r/BatchJobs/wiki/Configuration}, or get inspiration from the SGE and PBS
+#' template scripts provided for SGE and PBS are located in \code{system.file("parallel/", package = "RMINC")}.
+#' Use of this function can be unnecessary, RMINC honours the hierarchy
+#' of configuration files <BatchJobs>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
+#' you can edit one of these files to suit your use case. Alternatively, you can modify
+#' your R \link{Startup} files with \code{
+#' setHook(packageEvent("RMINC", "attach"),
+#' function(...) 
+#'   configureMincParallel("custom", "<your-config-file.R>"))
+#' } to set your configuration whenever \code{RMINC} is loaded
+#' @export 
+configureMincParallel <- 
+  function(queue_type = c("custom", "sge", "pbs")
+           , config_file = NULL){
+    
+    queue_type <- match.arg(queue_type)
+    
+    if(queue_type == "custom" && is.null(config_file))
+      stop("To use a custom configuration you need to pass a config file\n"
+           , "Please see ?configureMincParallel for details")
+    
+    script_directory <- system.file("parallel", package = "RMINC")
+    
+    switch(queue_type
+           , "custom" = loadConfig(config_file)
+           , "pbs"    = loadConfig(file.path(script_directory, "pbs_BatchJobs.R"))
+           , "sge"    = loadConfig(file.path(script_directory, "sge_BatchJobs.R")))
+  }
+
 #' Parallel MincApply
 #' 
 #' Apply an arbitrary R function across a collection of minc files, distributing
