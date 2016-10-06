@@ -10,8 +10,12 @@
 #' @param mask the mask within which lmer is solved
 #' @param parallel how many processors to run on (default=single processor).
 #' Specified as a two element vector, with the first element corresponding to
-#' the type of parallelization (sge or snowfall), and the second to the number
-#' of processors to use. 
+#' the type of parallelization, and the second to the number
+#' of processors to use. For local running set the first element to "local" or "snowfall"
+#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' and \link{configureMincParallel} for details.
+#' Leaving this argument NULL runs sequentially and may take a long time. 
+
 #' @param REML whether to use use Restricted Maximum Likelihood or Maximum Likelihood
 #' @param control lmer control function
 #' @param start lmer start function
@@ -133,21 +137,18 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          slab_sizes = slab_dims,
                          cleanup = cleanup)
     }
-    else if(parallel[1] %in% c("sge", "pbs")){
+    else {
       out <- qMincApply(lmod$fr[,1],
                         optimizer_fun,
                         mincLmerList = mincLmerList,
                         filter_masked = TRUE,
-                        parallel_method = parallel[1],
                         temp_dir = temp_dir,
                         cores = 1,
                         mask = mask,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
                         cleanup = cleanup)
-    } else {
-      stop("Error: unknown parallelization method")
-    }
+    } 
   }
   else {
     out <- mincApplyRCPP(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects

@@ -17,8 +17,11 @@ mincLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
 
 \item{parallel}{how many processors to run on (default=single processor).
 Specified as a two element vector, with the first element corresponding to
-the type of parallelization (sge or snowfall), and the second to the number
-of processors to use.}
+the type of parallelization, and the second to the number
+of processors to use. For local running set the first element to "local" or "snowfall"
+for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+and \link{configureMincParallel} for details.
+Leaving this argument NULL runs sequentially and may take a long time.}
 
 \item{REML}{whether to use use Restricted Maximum Likelihood or Maximum Likelihood}
 
