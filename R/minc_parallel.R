@@ -55,14 +55,13 @@ configureMincParallel <-
 #' @param tinyMask whether to use a small subset of voxels to test the computation
 #' @param batches The number of jobs to break the computation into, ignored for
 #' snowfall/local mode
-#' @param slab_sizes A 3 element vector indicating large a chunk of data to read from each minc file 
+#' @param slab_sizes A 3 element vector indicating how large a chunk of data to read from each minc file 
 #' at a time defaults to one slice along the first dimension.
-#' @param method The parallelization method, local and snowfall perform 
-#' computations on multiple cores (snowfall is an alias to local for backcompatibility)
-#' pbs refers to a torque queueing system, and sge refers to the
-#' sge queueing system.
-#' @param cores defaults to 1 in the case of PBS or SGE jobs, and 
-#' \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} for local/snowfall
+#' @param method A deprecated argument formerly used to configure how to parallelize the jobs
+#' now this is handled with \link{configureMincParallel} or by setting \code{local = TRUE}
+#' @param local boolean whether to run the jobs locally (with the parallel package) or with BatchJovs
+#' @param cores defaults to 1 or  
+#' \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} if running locally
 #' see \link{qMincApply} for details.
 #' @param resources A list of resources to request from the queueing system
 #' common examples including vmem, walltime, nodes, and modules see
@@ -102,8 +101,9 @@ pMincApply <-
            tinyMask = FALSE,
            batches = 4,
            slab_sizes = NULL,
-           method = c("local", "snowfall", "pbs", "sge", "none"),
-           cores = getOption("mc.cores", parallel::detectCores() - 1),
+           method = NULL,
+           local = FALSE,
+           cores = NULL,
            resources = list(),
            packages = NULL,
            vmem = NULL,
@@ -114,41 +114,39 @@ pMincApply <-
            collate = simplify2minc
   ){
     
-    enoughAvailableFileDescriptors(length(filenames))
-    method <- match.arg(method)
+    if(!is.null(method))
+      warning("Use of method is deprecated, see ?configureMincParallel to configure parallelization or use"
+              , "the local argument")
     
+    enoughAvailableFileDescriptors(length(filenames))
+
     if(is.null(slab_sizes)){
       slab_sizes <- minc.dimensions.sizes(filenames[1])
       slab_sizes[1] <- 1
     }
     
-    if(method == "local" || method == "snowfall")
+    if(local){
+      if(is.null(cores))
+        cores <- max(getOption("mc.cores"), parallel::detectCores() - 1)
+      
       results <- mcMincApply(filenames, fun, ...,
                              slab_sizes = slab_sizes,
                              mask = mask, 
                              cores = cores,
                              temp_dir = temp_dir, collate = collate)
-    
-    #Initialize queue resources from arguments if not supplied
-    if(!is.null(vmem)) resources$vmem <- vmem
-    if(!is.null(walltime)) resources$walltime <- walltime
-    
-    if(method == "sge")
+    } else {
+      if(is.null(cores))
+        cores <- 1
+      
       results <- qMincApply(filenames, fun, ..., mask = mask, 
                             slab_sizes = slab_sizes,
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
                             clobber = TRUE, queue = "sge", collate = collate,
-                            cleaup = cleanup)
-    
-    if(method == "pbs")
-      results <- qMincApply(filenames, fun, ..., mask = mask,
-                            slab_sizes = slab_sizes,
-                            tinyMask = tinyMask, batches = batches, 
-                            resources = resources, packages = packages,
-                            clobber = TRUE, queue = "pbs", collate = collate,
-                            cleanup = cleanup)
-    
+                            cleaup = cleanup) 
+    }
+
+  
     results
   }
 
@@ -320,22 +318,13 @@ mcMincApply <-
 #' @param tinyMask Shrink the mask for testing
 #' @param slab_sizes A 3 element vector indicating large a chunk of data to read from each minc file 
 #' at a time defaults to one slice along the first dimension.
-#' @param parallel_method Where to run the batches, defaults to \code{"none"} which results
-#' in using the currently loaded configuration for BatchJobs. The other options
-#' are \code{"sge"} for Sun Grid Engine, \code{"pbs"} for Torque, \code{"multicore"} for
-#' local (not recommended, use \link{mcMincApply}), \code{"interactive"} for sequential local
-#' processing, and \code{"custom"} in which case a cluster.functions object must be
-#' passed in through \code{cluster_functions} (also not recommend, for more control 
-#' use the .BatchJobs.R configuration system, see details).
-#' @param cluster_functions Custom cluster functions to use if parallel_method = "custom"
 #' @param batches The number of batches to divide the job into, this is ignored for
 #' multicore jobs, with the number of batches set to the number of cores.
-#' @param cores the number of cores to use, in all cases except multicore this
-#' defaults to 1, with a reminder message if method "none" or "custom" are used,
-#' for multicore it defaults to \code{max(getOption("mc.cores"), parallel::detectCores() - 1)}
-#' @param resources The resources to request for each job, overrides the default.resources
-#' specified in .BatchJobs.R config files (see details). These include things like vmem, 
-#' walltime, and nodes.
+#' @param cores the number of cores to parallelize across for each worker, defaults to 1
+#' but higher numbers may be useful for BatchJobs multicore or systems like SciNet that do
+#' not allocate single core jobs.
+#' @param resources The resources to request for each job, overrides the \code{default.resources}
+#' specified in the configuration list. See \link{configureMincParallel} for more on configuration 
 #' @param packages packages to be loaded for each job in a registry
 #' @param temp_dir A directory to store files needed for the parallelization
 #' and job management
@@ -354,12 +343,10 @@ mcMincApply <-
 #' @details RMINC's batching facilities are inherited with little modification from
 #' the BatchJobs package, mostly just providing handy wrappers to handle registry
 #' creation, batching, submission, and reduction. The abstractions provided are very leaky
-#' and it is worth learning about BatchJobs to handle more complex situations. This being
-#' said a high degree of flexibility is already available. RMINC honours the hierarchy
-#' of configuration files <BatchJobs>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
-#' these files are the place to set sensible defaults for your usage. The template scripts
-#' provided for SGE and PBS are located in \code{system.file("parallel/", package = "RMINC")}
-#' as well as some example .BatchJobs.R files.  
+#' and it is worth learning about BatchJobs to handle more complex situations. Formerly one
+#' could set the parallelization method from this function, this has been removed. 
+#' Controlling how and where to execute the parallel jobs is now handled by 
+#' \link{configureMincParallel}.
 #' @return 
 #' \itemize{
 #' \item{If \code{qMincApply} is called with \code{wait = TRUE} or if \code{qMincReduce}
@@ -376,47 +363,25 @@ qMincApply <-
   function(filenames, fun, ..., 
            mask=NULL, batches=4, tinyMask=FALSE,
            slab_sizes = NULL,
-           parallel_method = c("none", "sge", "pbs", "multicore", 
-                               "interactive", "custom"),
-           cluster_functions = NULL,
            resources = list(),
            packages = c("RMINC"),
-           temp_dir = tempdir(),
+           temp_dir = getwd(),
            registry_name = "qMincApply_registry",
            registry_dir = file.path(temp_dir, registry_name),
-           cores = NULL, #max(getOption("mc.cores"), parallel::detectCores() - 1),
+           cores = 1, #max(getOption("mc.cores"), parallel::detectCores() - 1),
            wait = TRUE,
            cleanup = TRUE,
            clobber = FALSE,
            collate = simplify2minc) {
-    
-    parallel_method <- match.arg(parallel_method)
-    
-    if(parallel_method %in% c("sge", "pbs") &&
-       missing(temp_dir))
-      stop("When using a sge or pbs systems using the default temp_dir is unlikely to work.",
-           "Manually specify temp_dir = tempdir() to try anyway")
-    
+
     if(is.null(slab_sizes)){
       slab_sizes <- minc.dimensions.sizes(filenames[1])
       slab_sizes[1] <- 1
     }
-    
-    if(is.null(cores)){
-      cores <-
-        switch(parallel_method,
-               sge = 1,
-               pbs = 1,
-               multicore = max(getOption("mc.cores"), parallel::detectCores() - 1),
-               interactive = 1,
-               {message("Defaulting to 1 core for parallel method ", parallel_method); 1})
-    }
-    
+
     qMinc_registry <-
       qMincRegistry(registry_name = registry_name,
                     registry_dir = registry_dir,
-                    parallel_method = parallel_method,
-                    cluster_functions = cluster_functions,
                     packages = packages,
                     cores = cores,
                     clobber = clobber)
@@ -438,8 +403,7 @@ qMincApply <-
              mask = mask, 
              tinyMask = tinyMask,
              temp_dir = temp_dir,
-             resources = resources,
-             parallel_method = parallel_method)
+             resources = resources)
     
     if(wait){
       qMinc_results <- qMincReduce(qMinc_registry, wait = TRUE, collate = collate)
@@ -453,40 +417,10 @@ qMincApply <-
 #' @describeIn qMincApply registry 
 #' @export
 qMincRegistry <- function(registry_name = "qMincApply_registry",
-                          parallel_method = c("none", "sge", "pbs", 
-                                              "multicore", "interactive", "custom"),
                           packages = c("RMINC"),
-                          cluster_functions = NULL,
                           registry_dir = file.path(tempdir(), registry_name),
                           cores = NULL,
-                          clobber = FALSE
-){
-  
-  config <- getConfig()
-  
-  parallel_method <- match.arg(parallel_method)
-  script_directory <- system.file("parallel", package = "RMINC")
-  
-  if(is.null(cores)){
-    cores <-
-      switch(parallel_method,
-             sge = 1,
-             pbs = 1,
-             multicore = max(getOption("mc.cores"), parallel::detectCores() - 1),
-             interactive = 1,
-             {message("Defaulting to 1 core for parallel method ", parallel_method); 1})
-  }
-  
-  config$cluster.functions <-
-    switch(parallel_method,
-           "none" = config$cluster.functions,
-           "pbs" = makeClusterFunctionsTorque(file.path(script_directory, "pbs_script.tmpl")),
-           "sge" = makeClusterFunctionsSGE(file.path(script_directory, "sge_script.tmpl")),
-           "multicore" = makeClusterFunctionsMulticore(max.jobs = cores),
-           "interactive" = makeClusterFunctionsInteractive(),
-           "custom" = cluster_functions)
-  
-  setConfig(config)
+                          clobber = FALSE){
   
   if(! "RMINC" %in% packages)
     packages <- c("RMINC", packages)
@@ -507,34 +441,13 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
 qMincMap <- 
   function(registry, filenames, fun, ..., mask = NULL, 
            slab_sizes = NULL,
-           parallel_method = c("none", "sge", "pbs", 
-                               "multicore", "interactive", "custom"),
            batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
            resources = list(),
-           cores = NULL){
-    
-    parallel_method <- match.arg(parallel_method)
+           cores = 1){
     
     if(is.null(slab_sizes)){
       slab_sizes <- minc.dimensions.sizes(filenames[1])
       slab_sizes[1] <- 1
-    }
-    
-    #Determine default number of cores
-    if(is.null(cores)){
-      cores <-
-        switch(parallel_method,
-               sge = 1,
-               pbs = 1,
-               multicore = max(getOption("mc.cores"), parallel::detectCores() - 1),
-               interactive = 1,
-               {message("Defaulting to 1 core for parallel method ", parallel_method); 1})
-    }
-    
-    # If multicore batches is the number of cores
-    if(parallel_method == "multicore"){
-      batches <- cores
-      cores <- 1 
     }
     
     #Read in a likefile

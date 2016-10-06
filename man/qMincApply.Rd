@@ -8,23 +8,19 @@
 \title{True cluster mincApply}
 \usage{
 qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
-  tinyMask = FALSE, slab_sizes = NULL, parallel_method = c("none", "sge",
-  "pbs", "multicore", "interactive", "custom"), cluster_functions = NULL,
-  resources = list(), packages = c("RMINC"), temp_dir = tempdir(),
+  tinyMask = FALSE, slab_sizes = NULL, resources = list(),
+  packages = c("RMINC"), temp_dir = getwd(),
   registry_name = "qMincApply_registry", registry_dir = file.path(temp_dir,
-  registry_name), cores = NULL, wait = TRUE, cleanup = TRUE,
+  registry_name), cores = 1, wait = TRUE, cleanup = TRUE,
   clobber = FALSE, collate = simplify2minc)
 
-qMincRegistry(registry_name = "qMincApply_registry",
-  parallel_method = c("none", "sge", "pbs", "multicore", "interactive",
-  "custom"), packages = c("RMINC"), cluster_functions = NULL,
+qMincRegistry(registry_name = "qMincApply_registry", packages = c("RMINC"),
   registry_dir = file.path(tempdir(), registry_name), cores = NULL,
   clobber = FALSE)
 
 qMincMap(registry, filenames, fun, ..., mask = NULL, slab_sizes = NULL,
-  parallel_method = c("none", "sge", "pbs", "multicore", "interactive",
-  "custom"), batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
-  resources = list(), cores = NULL)
+  batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
+  resources = list(), cores = 1)
 
 qMincReduce(registry, ignore_incompletes = FALSE, wait = FALSE,
   collate = simplify2minc)
@@ -50,19 +46,8 @@ multicore jobs, with the number of batches set to the number of cores.}
 \item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file 
 at a time defaults to one slice along the first dimension.}
 
-\item{parallel_method}{Where to run the batches, defaults to \code{"none"} which results
-in using the currently loaded configuration for BatchJobs. The other options
-are \code{"sge"} for Sun Grid Engine, \code{"pbs"} for Torque, \code{"multicore"} for
-local (not recommended, use \link{mcMincApply}), \code{"interactive"} for sequential local
-processing, and \code{"custom"} in which case a cluster.functions object must be
-passed in through \code{cluster_functions} (also not recommend, for more control 
-use the .BatchJobs.R configuration system, see details).}
-
-\item{cluster_functions}{Custom cluster functions to use if parallel_method = "custom"}
-
-\item{resources}{The resources to request for each job, overrides the default.resources
-specified in .BatchJobs.R config files (see details). These include things like vmem, 
-walltime, and nodes.}
+\item{resources}{The resources to request for each job, overrides the \code{default.resources}
+specified in the configuration list. See \link{configureMincParallel} for more on configuration}
 
 \item{packages}{packages to be loaded for each job in a registry}
 
@@ -74,9 +59,9 @@ and job management}
 \item{registry_dir}{The path for your BatchJobs registry, defaults to
 \code{temp_dir/registry_name}}
 
-\item{cores}{the number of cores to use, in all cases except multicore this
-defaults to 1, with a reminder message if method "none" or "custom" are used,
-for multicore it defaults to \code{max(getOption("mc.cores"), parallel::detectCores() - 1)}}
+\item{cores}{the number of cores to parallelize across for each worker, defaults to 1
+but higher numbers may be useful for BatchJobs multicore or systems like SciNet that do
+not allocate single core jobs.}
 
 \item{wait}{Whether to wait for your results or return a registry object
 to be checked on later}
@@ -129,12 +114,10 @@ maintaining the ability to access results when the jobs have finished.
 RMINC's batching facilities are inherited with little modification from
 the BatchJobs package, mostly just providing handy wrappers to handle registry
 creation, batching, submission, and reduction. The abstractions provided are very leaky
-and it is worth learning about BatchJobs to handle more complex situations. This being
-said a high degree of flexibility is already available. RMINC honours the hierarchy
-of configuration files <BatchJobs>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
-these files are the place to set sensible defaults for your usage. The template scripts
-provided for SGE and PBS are located in \code{system.file("parallel/", package = "RMINC")}
-as well as some example .BatchJobs.R files.
+and it is worth learning about BatchJobs to handle more complex situations. Formerly one
+could set the parallelization method from this function, this has been removed. 
+Controlling how and where to execute the parallel jobs is now handled by 
+\link{configureMincParallel}.
 }
 \section{Functions}{
 \itemize{
