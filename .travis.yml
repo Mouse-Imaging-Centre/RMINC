@@ -9,8 +9,9 @@ sudo: required
        
 before_install: |
    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-     wget http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb
-     sudo dpkg -i minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb
+     (cd ../ ;
+     wget http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb)
+     sudo dpkg -i ../minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb
      source /opt/minc-itk4/minc-toolkit-config.sh
    fi
    
@@ -18,8 +19,9 @@ before_install: |
      brew install gcc
      mkdir $HOME/.R/; touch $HOME/.R/Makevars
      echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' > $HOME/.R/Makevars
-     wget http://packages.bic.mni.mcgill.ca/minc-toolkit/MacOSX/minc-toolkit-1.9.11-20160202-Darwin-10.11-x86_64.dmg
-     sudo hdiutil attach minc-toolkit-1.9.11-20160202-Darwin-10.11-x86_64.dmg
+     (cd ../ ;
+     wget http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb)
+     sudo hdiutil attach ../minc-toolkit-1.9.11-20160202-Darwin-10.11-x86_64.dmg
      sudo installer -package /Volumes/minc-toolkit-1.9.11-20160202-Darwin-x86_64/minc-toolkit-1.9.11-20160202-Darwin-x86_64.pkg -target /
      source /opt/minc-itk4/minc-toolkit-config.sh
    fi
