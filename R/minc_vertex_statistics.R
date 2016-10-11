@@ -297,122 +297,92 @@ vertexLm <- function(formula, data, subset=NULL) {
   return(result)
 }
 
+#' Vertex Mixed Effects Models
+#' 
+#' Perform linear mixed effects model fitting for vertex data.
+#' vertexLmer should be used the same way as a straight lmer call, except
+#' that the left hand side of the equation contains vertex filenames rather than
+#' an actual response variable.
+#' 
+#' @inheritParams mincLmer
+#' @details \code{vertexLmer}, like its relative \link{mincLmer} provides an interface to running 
+#' linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
+#' in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
+#' more difficult to  determine. RMINC provides two alternatives: (1) estimating degrees of freedom using the
+#' \code{\link{mincLmerEstimateDF}} function, and (2) comparing two separate models using
+#' \code{\link{mincLogLikRatio}} (which in turn can be corrected using
+#' \code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
+#' models with a separate intercept or separate intercept and slope per subject - both of these
+#' approximations are likely correct. Be careful in using these approximations if
+#' using more complicated random effects structures.
+#'
+#' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
+#' @export
+vertexLmer <-
+  function(formula, data, mask=NULL, parallel=NULL,
+           REML=TRUE, control=lmerControl(), start=NULL,
+           verbose=0L, temp_dir = getwd(), safely = FALSE,
+           cleanup = TRUE) {
 
-# vertexLmer <-
-#   function(formula, data, mask=NULL, parallel=NULL,
-#            REML=TRUE, control=lmerControl(), start=NULL, 
-#            verbose=0L, temp_dir = getwd(), safely = FALSE, 
-#            cleanup = TRUE) {
-#     
-#     mc <- mcout <- match.call()
-#     mc[[1]] <- quote(lme4::lFormula)
-#     
-#     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
-#     # generates obscure warning messages
-#     mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
-#     
-#     lmod <- eval(mc, parent.frame(1L))
-#     
-#     # code ripped from lme4:::mkLmerDevFun
-#     rho <- new.env(parent = parent.env(environment()))
-#     rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
-#                                                     "Lambdat", "Lind")],
-#                                       n = nrow(lmod$X), list(X = lmod$X)))
-#     REMLpass <- if (REML) 
-#       ncol(lmod$X)
-#     else 0L
-#     
-#     
-#     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
-#     
-#     
-#     mincLmerOptimizeAndExtractSafely <-
-#       function(x, mincLmerList){
-#         tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
-#                  error = function(e){warning(e); return(NA)})
-#       }
-#     
-#     optimizer_fun <- 
-#       `if`(safely, mincLmerOptimizeAndExtractSafely, mincLmerOptimizeAndExtract)
-#     
-#     if (!is.null(parallel)) {
-#       # a vector with two elements: the methods followed by the # of workers
-#       if (parallel[1] %in% c("local", "snowfall")) {
-#         out <- mcMincApply(lmod$fr[,1],
-#                            optimizer_fun,
-#                            mincLmerList = mincLmerList,
-#                            filter_masked = TRUE,
-#                            mask = mask,
-#                            cores = as.numeric(parallel[2]),
-#                            slab_sizes = slab_dims,
-#                            cleanup = cleanup)
-#       }
-#       else if(parallel[1] %in% c("sge", "pbs")){
-#         reg <- qMincRegistry("qVertexLmer_registry",
-#                              parallel_method = parallel[1],
-#                              temp_dir = temp_dir,
-#                              cores = 1)
-#         
-#       } else {
-#         stop("Error: unknown parallelization method")
-#       }
-#     }
-#     else {
-#       out <- mincApplyRCPP(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
-#                            optimizer_fun,
-#                            mincLmerList = mincLmerList,
-#                            mask = mask,
-#                            slab_sizes = slab_dims)
-#     }
-#     
-#     ## Result post processing
-#     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
-#     
-#     termnames <- colnames(lmod$X)
-#     betaNames <- paste("beta-", termnames, sep="")
-#     tnames <- paste("tvalue-", termnames, sep="")
-#     colnames(out) <- c(betaNames, tnames, "logLik", "converged")
-#     
-#     # generate some random numbers for a single fit in order to extract some extra info
-#     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
-#     
-#     attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-#                                 "logLik", "converged")
-#     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
-#     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
-#     attr(out, "REML") <- REML
-#     attr(out, "mask") <- mask
-#     attr(out, "mincLmerList") <- mincLmerList
-#     class(out) <- c("mincLmer", "mincMultiDim", "matrix")
-#     
-#     return(out)
-#     
-#     # out <- t(apply(anat, 2, mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
-#     # 
-#     # out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
-#     # 
-#     # termnames <- colnames(lmod$X)
-#     # betaNames <- paste("beta-", termnames, sep="")
-#     # tnames <- paste("tvalue-", termnames, sep="")
-#     # colnames(out) <- c(betaNames, tnames, "logLik", "converged")
-#     # 
-#     # # generate some random numbers for a single fit in order to extract some extra info
-#     # mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
-#     # 
-#     # attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-#     #                             "logLik", "converged")
-#     # # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
-#     # attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
-#     # attr(out, "REML") <- REML
-#     # attr(out, "mincLmerList") <- mincLmerList
-#     # attr(out, "atlas") <- attr(anat, "atlas")
-#     # attr(out, "definitions") <- attr(anat, "definitions")
-#     # attr(out, "anat") <- anat
-#     # 
-#     # class(out) <- c("anatLmerModel", "anatModel", "matrix")
-#     # 
-#     # return(out)
-#   }
+    mc <- mcout <- match.call()
+    mc[[1]] <- quote(lme4::lFormula)
+
+    # remove lme4 unknown arguments, since lmer does not know about them and keeping them
+    # generates obscure warning messages
+    mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
+
+    lmod <- eval(mc, parent.frame(1L))
+
+    # code ripped from lme4:::mkLmerDevFun
+    rho <- new.env(parent = parent.env(environment()))
+    rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta",
+                                                    "Lambdat", "Lind")],
+                                      n = nrow(lmod$X), list(X = lmod$X)))
+    REMLpass <- if (REML)
+      ncol(lmod$X)
+    else 0L
+
+
+    mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
+
+
+    mincLmerOptimizeAndExtractSafely <-
+      function(x, mincLmerList){
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+                 error = function(e){warning(e); return(NA)})
+      }
+
+    optimizer_fun <-
+      `if`(safely, mincLmerOptimizeAndExtractSafely, mincLmerOptimizeAndExtract)
+
+    out <- 
+      vertexApply(lmod$fr[,1],
+                  optimizer_fun,
+                  mincLmerList = mincLmerList,
+                  parallel = parallel)
+
+    ## Result post processing
+    out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
+
+    termnames <- colnames(lmod$X)
+    betaNames <- paste("beta-", termnames, sep="")
+    tnames <- paste("tvalue-", termnames, sep="")
+    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+
+    # generate some random numbers for a single fit in order to extract some extra info
+    mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
+
+    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
+                                "logLik", "converged")
+    # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
+    attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
+    attr(out, "REML") <- REML
+    attr(out, "mask") <- mask
+    attr(out, "mincLmerList") <- mincLmerList
+    class(out) <- c("vertexLmer", "mincLmer", "mincMultiDim", "matrix")
+
+    return(out)
+  }
 #   
 # vertexApplyRCPP <-
 #   function(filenames, 
