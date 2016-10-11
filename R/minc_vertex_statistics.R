@@ -60,30 +60,86 @@ vertexSd<- function(filenames)
 #' @name vertexApply
 #' @title Apply function over vertex Files
 #' @param filenames vertex file names
-#' @param function.string The function which to apply. Can only take a single
-#' argument, which has to be 'x'.
-#' @return  out: The output will be a single vector containing as many
-#'          elements as there are vertices in the input variable. 
+#' @param fun A function to be applied to each vertex
+#' @param ... additional arguments to \code{fun}
+#' @param mask A vector of filename indicating a vertex mask (\code{fun} is applied to all vertices
+#' where mask is greater than .5)
+#' @param parallel A two component vector indicating how to parallelize the computation. If the 
+#' first element is "local" the computation will be run via the parallel package, otherwise it will
+#' be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+#' indicating the number of jobs to split the computation into.
+#' @return  The a matrix with a row of results for each vertex
 #' @examples 
 #' \dontrun{
 #' getRMINCTestData() 
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-#' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft,quote(mean(x)))
+#' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft, mean)
 #' }
 #' @export
-vertexApply <- function(filenames,function.string) 
+vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL) 
 {
   # Load the data
-  vertexData = vertexTable(filenames)
+  vertexData <- vertexTable(filenames)
   
-  # In order to maintain the same interface as mincApply, the (x) part needs to be stripped
-  function.string = gsub('(x)','', function.string, fixed = TRUE)
+  if(!is.null(mask)){
+    if(length(mask) == 1 && is.character(mask))
+      mask <- readLines(mask)
+    
+    mask_lgl <- mask > .5
+    vertexData <- vertexData[mask_lgl,]
+  }
+    
+  fun <- match.fun(fun)
+  
+  apply_fun <- function(sub_matrix){
+    if(!is.matrix(sub_matrix))
+      sub_matrix <- matrix(sub_matrix, nrow = 1)
+    
+    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
+      matrix(ncol = nrow(sub_matrix))
+  }
+  
+  if(is.null(parallel)){
+    results <- apply_fun(vertexData)
+  } else {
+    n_groups <- as.numeric(parallel[2])
+    groups <- split(seq_len(nrow(vertexData)), groupingVector(nrow(vertexData), n_groups))
+    
+    if(parallel[1] == "local") {
+      results <- 
+        mclapply(groups, function(group){
+          apply_fun(vertexData[group,])
+        }, mc.cores = n_groups) %>%
+        Reduce(cbind, ., NULL)
+    } else {
+      reg <- makeRegistry("vertexApply_registry")
+      on.exit( try(removeRegistry(reg, ask = "no")))
+      
+      batchMap(reg, function(group){
+        apply_fun(vertexData[group,])
+      }, group = groups)
+      
+      submitJobs(reg)
+      waitForJobs(reg)
+      
+      results <-
+        loadResults(reg, use.names = FALSE) %>%
+        Reduce(cbind, ., NULL)
+    }
+  }
   
   # The apply part (transpose to match output of mincApply)
-  results <- t(apply(vertexData,1,function.string[1]))
+  results <- t(results)
   
+  if(!is.null(mask)){
+    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
+    results_expanded[mask_lgl, ] <- results
+    results <- results
+  }
+  
+  if(ncol(results) == 1) dim(results) <- NULL
   attr(results, "likeFile") <- filenames[1]
   
   # run the garbage collector...
@@ -91,6 +147,7 @@ vertexApply <- function(filenames,function.string)
   
   return(results)
 }
+
 
 #' Performs ANOVA on each vertex point specified 
 #' @param formula a model formula
