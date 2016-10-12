@@ -29,7 +29,8 @@ Imports:
     stats,
     Rcpp,
     parallel,
-    Matrix
+    Matrix,
+    tibble
 Suggests:
     rgl,
     plotrix,
