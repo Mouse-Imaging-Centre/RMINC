@@ -4,7 +4,7 @@ suppressPackageStartupMessages({
   library(lmerTest)
 })
 
-context("anatGet")
+context("anatLmer")
 
 getRMINCTestData()
 dataPath <- file.path(tempdir(), "rminctestdata/")
@@ -18,7 +18,7 @@ known_labels <- with(label_frame, union(left.label, right.label))
 
 test_that("anatLmer works", {
   
-  has_mincstuffs <- Sys.which("label_volumes_from_jacobians") != ""
+  has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) != ""
   skip_if_not(has_mincstuffs)
   
   jacobians <-
@@ -27,19 +27,25 @@ test_that("anatLmer works", {
                method = "jacobians",
                defs = labels)
   
-  lmer_res_nlhs <- anatLmer( ~ Pain.sensitivity + (1|Genotype), 
+  expect_warning(
+    lmer_res_nlhs <- anatLmer( ~ Pain.sensitivity + (1|Genotype), 
+                               data = gf, anat = jacobians)
+    , regexp = "bobyqa")
+  
+  expect_warning(
+    lmer_res_lhs <- anatLmer(dummy ~ Pain.sensitivity + (1|Genotype), 
                              data = gf, anat = jacobians)
+    , regexp = "bobyqa")
   
-  lmer_res_lhs <- anatLmer(dummy ~ Pain.sensitivity + (1|Genotype), 
-                           data = gf, anat = jacobians)
-  
-  lmer_ref <-
-    apply(jacobians, 2, function(col){
-      gf2 <- gf %>% mutate(resp = col)
-      mod <- lmer(resp ~ Pain.sensitivity + (1|Genotype), data = gf2)
-      RMINC:::mincLmerExtractVariables(mod)
-    }) %>%
-    t
+  expect_warning({
+    lmer_ref <-
+      apply(jacobians, 2, function(col){
+        gf2 <- gf %>% mutate(resp = col)
+        mod <- lmer(resp ~ Pain.sensitivity + (1|Genotype), data = gf2)
+        RMINC:::mincLmerExtractVariables(mod)
+      }) %>%
+      t
+  }, regexp = "bobyqa")
   
   expect_equal(unclass(lmer_res_nlhs), lmer_ref, tolerance = 10e-5, check.attributes = FALSE)
   expect_equal(lmer_res_lhs, lmer_res_nlhs, tolerance = 10e-5, check.attributes = FALSE)

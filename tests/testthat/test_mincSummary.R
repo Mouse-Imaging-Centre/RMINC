@@ -88,30 +88,24 @@ test_that("wilcoxon", {
 
 # t-test
 rttest = p.adjust( pt2(mtt[,1],attr(mtt,"df")),"fdr")
-rmincFDR = mincFDR(mtt)
+verboseRun("rmincFDR = mincFDR(mtt)", getOption("verbose"))
 test_that("mincTtest works with mincFDR",{
-    for (nVox in 1:dim(mtt)[1]) {
- 	   expect_equal(rmincFDR[nVox], rttest[nVox],tolerance = 0.0001) 
-	   }
+  expect_equal(as.numeric(rmincFDR), rttest,tolerance = 0.0001) 
 })
 
 # paired t-test
 rttest = p.adjust( pt2(mptt[,1],attr(mptt,"df")),"fdr")
-rmincFDR = mincFDR(mptt)
+verboseRun("rmincFDR = mincFDR(mptt)", getOption("verbose"))
 test_that("mincPairedTtest works with mincFDR",{
-    for (nVox in 1:dim(mtt)[1]) {
- 	   expect_equal(rmincFDR[nVox], rttest[nVox],tolerance = 0.0001) 
-	   }
+  expect_equal(as.numeric(rmincFDR), rttest,tolerance = 0.0001) 
 })
 
 # wilcox 
 # uses pwilcox to compute p-values 
 rWilcoxFDR = p.adjust(1 - pwilcox(mw[,1],attr(mw,"m"),attr(mw,"n"),lower.tail = FALSE),"fdr")
-rmincWilcoxFDR = mincFDR(mw)
+verboseRun("rmincWilcoxFDR = mincFDR(mw)", getOption("verbose"))
 test_that("mincWilcoxon works with mincFDR",{
-    for (nVox in 1:dim(mw)[1]) {
- 	   expect_equal(rmincWilcoxFDR[nVox], rWilcoxFDR[nVox],tolerance = 0.0001) 
-	   }
+  expect_equal(as.numeric(rmincWilcoxFDR), rWilcoxFDR,tolerance = 0.0001) 
 })
 
 ithreshold = which(mw[,1] == attr(rmincWilcoxFDR,"thresholds")[[1]])
