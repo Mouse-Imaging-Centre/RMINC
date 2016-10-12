@@ -1092,6 +1092,8 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
   
   setRMINCMaskedValue(0)
   Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
+  
+  getRMINCTestData()
 
   # Run Tests
   rmincPath <- find.package("RMINC")
@@ -1156,14 +1158,18 @@ getRMINCTestData <- function(dataPath = tempdir()) {
 #' to the calling environment
 #' @export
 verboseRun <- function(expr,verbose,env = parent.frame()) {
-	
-	env$expr <- expr
-	
+
 	if(!verbose) {
 	  sink("/dev/null")
 	  on.exit(sink())
 	}
 	
-	output = with(env,eval(parse(text=expr)))
+	if(is.character(expr)){
+	  output <- eval(parse(text=expr), envir = env) 
+	} else {
+	  output <- eval(expr, envir = env)
+	}
+	
 	return(invisible(output))
 }
+
