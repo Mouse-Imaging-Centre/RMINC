@@ -433,6 +433,20 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   return(result)
 }
 
+mincLm_c_wrapper <-
+  function(plm, mask, mask_min, mask_max){
+    .Call("minc2_model",
+          as.character(plm$data.matrix.left),
+          plm$data.matrix.right,
+          as.matrix(plm$mmatrix),
+          NULL,
+          as.double(! is.null(mask)),
+          as.character(mask),
+          as.double(mask_min),
+          as.double(mask_max),
+          NULL, NULL,
+          as.character("lm"), PACKAGE="RMINC")
+  }
 
 #' @description Linear Model at Every Voxel
 #' @name mincLm
@@ -528,17 +542,9 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
       stop("Mask Volume input volume dimension mismatch.") }
   }
   
-  result <- .Call("minc2_model",
-                  as.character(parseLmOutput$data.matrix.left),
-                  parseLmOutput$data.matrix.right,
-                  as.matrix(parseLmOutput$mmatrix),
-                  NULL,
-                  as.double(! is.null(mask)),
-                  as.character(mask),
-                  as.double(minmask),
-                  as.double(maxmask),
-                  NULL, NULL,
-                  as.character(method), PACKAGE="RMINC")
+  if(is.null(parallel)){
+    result <- mincLm_c_wrapper(parseLmOutput, mask, mask_min = minmask, mask_max = maxmask)
+  }
   
   attr(result, "likeVolume") <- parseLmOutput$data.matrix.left[1]
   attr(result, "filenames") <- parseLmOutput$data.matrix.left
