@@ -329,8 +329,6 @@ mcMincApply <-
 #' @param temp_dir A directory to store files needed for the parallelization
 #' and job management
 #' @param registry_name The name to give your BatchJobs registry
-#' @param registry_dir The path for your BatchJobs registry, defaults to
-#' \code{temp_dir/registry_name}
 #' @param wait Whether to wait for your results or return a registry object
 #' to be checked on later
 #' @param cleanup Whether to empty the registry after a successful run defaults
@@ -365,9 +363,8 @@ qMincApply <-
            slab_sizes = NULL,
            resources = list(),
            packages = c("RMINC"),
-           temp_dir = getwd(),
            registry_name = "qMincApply_registry",
-           registry_dir = file.path(temp_dir, registry_name),
+           temp_dir = getwd(),
            cores = 1, #max(getOption("mc.cores"), parallel::detectCores() - 1),
            wait = TRUE,
            cleanup = TRUE,
@@ -381,9 +378,8 @@ qMincApply <-
 
     qMinc_registry <-
       qMincRegistry(registry_name = registry_name,
-                    registry_dir = registry_dir,
+                    registry_dir = file.path(temp_dir, registry_name),
                     packages = packages,
-                    cores = cores,
                     clobber = clobber)
     
     on.exit({
@@ -418,8 +414,7 @@ qMincApply <-
 #' @export
 qMincRegistry <- function(registry_name = "qMincApply_registry",
                           packages = c("RMINC"),
-                          registry_dir = file.path(tempdir(), registry_name),
-                          cores = NULL,
+                          registry_dir = file.path(getwd(), registry_name),
                           clobber = FALSE){
   
   if(! "RMINC" %in% packages)
@@ -441,7 +436,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
 qMincMap <- 
   function(registry, filenames, fun, ..., mask = NULL, 
            slab_sizes = NULL,
-           batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
+           batches = 4, tinyMask = FALSE, temp_dir = getwd(),
            resources = list(),
            cores = 1){
     

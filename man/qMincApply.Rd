@@ -9,18 +9,16 @@
 \usage{
 qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
   tinyMask = FALSE, slab_sizes = NULL, resources = list(),
-  packages = c("RMINC"), temp_dir = getwd(),
-  registry_name = "qMincApply_registry", registry_dir = file.path(temp_dir,
-  registry_name), cores = 1, wait = TRUE, cleanup = TRUE,
+  packages = c("RMINC"), registry_name = "qMincApply_registry",
+  temp_dir = getwd(), cores = 1, wait = TRUE, cleanup = TRUE,
   clobber = FALSE, collate = simplify2minc)
 
 qMincRegistry(registry_name = "qMincApply_registry", packages = c("RMINC"),
-  registry_dir = file.path(tempdir(), registry_name), cores = NULL,
-  clobber = FALSE)
+  registry_dir = file.path(getwd(), registry_name), clobber = FALSE)
 
 qMincMap(registry, filenames, fun, ..., mask = NULL, slab_sizes = NULL,
-  batches = 4, tinyMask = FALSE, temp_dir = tempdir(),
-  resources = list(), cores = 1)
+  batches = 4, tinyMask = FALSE, temp_dir = getwd(), resources = list(),
+  cores = 1)
 
 qMincReduce(registry, ignore_incompletes = FALSE, wait = FALSE,
   collate = simplify2minc)
@@ -51,13 +49,10 @@ specified in the configuration list. See \link{configureMincParallel} for more o
 
 \item{packages}{packages to be loaded for each job in a registry}
 
-\item{temp_dir}{A directory to store files needed for the parallelization
-and job management}
-
 \item{registry_name}{The name to give your BatchJobs registry}
 
-\item{registry_dir}{The path for your BatchJobs registry, defaults to
-\code{temp_dir/registry_name}}
+\item{temp_dir}{A directory to store files needed for the parallelization
+and job management}
 
 \item{cores}{the number of cores to parallelize across for each worker, defaults to 1
 but higher numbers may be useful for BatchJobs multicore or systems like SciNet that do
