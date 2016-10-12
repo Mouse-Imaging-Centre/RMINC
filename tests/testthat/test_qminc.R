@@ -15,11 +15,11 @@ test_that("Test sequential, multicore, and queue applies work", {
   skip_on_cran()
   skip_on_travis()
   
-  options(BBmisc.ProgressBar.style = "off")
-  setConfig(list(cluster.functions = makeClusterFunctionsMulticore(min(2, parallel::detectCores() - 1))))
-  
   if(Sys.getenv("TEST_Q_MINC") != "yes") 
     skip("qMinc tests disabled")
+  
+  options(BBmisc.ProgressBar.style = "off")
+  setConfig(list(cluster.functions = makeClusterFunctionsMulticore(min(2, parallel::detectCores() - 1))))
   
   m_sequential <- verboseRun(
     mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10)),
