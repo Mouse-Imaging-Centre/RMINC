@@ -54,7 +54,72 @@ vertexSd<- function(filenames)
   vertexData = vertexTable(filenames)
   return(apply(vertexData,1,sd))
   
-} 
+}
+
+### Helper function for applying over rows of a potentially 
+### masked matrix potentially in parallel
+matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
+  
+  if(!is.null(mask)){
+    if(length(mask) == 1 && is.character(mask))
+      mask <- readLines(mask)
+    
+    mask_lgl <- mask > .5
+    mat <- mat[mask_lgl,]
+  }
+  
+  fun <- match.fun(fun)
+  
+  apply_fun <- function(sub_matrix){
+    if(!is.matrix(sub_matrix))
+      sub_matrix <- matrix(sub_matrix, nrow = 1)
+    
+    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
+      matrix(ncol = nrow(sub_matrix))
+  }
+  
+  if(is.null(parallel)){
+    results <- apply_fun(mat)
+  } else {
+    n_groups <- as.numeric(parallel[2])
+    groups <- split(seq_len(nrow(mat)), groupingVector(nrow(mat), n_groups))
+    
+    if(parallel[1] == "local") {
+      results <- 
+        mclapply(groups, function(group){
+          apply_fun(mat[group,])
+        }, mc.cores = n_groups) %>%
+        Reduce(cbind, ., NULL)
+    } else {
+      reg <- makeRegistry("matrixApply_registry")
+      on.exit( try(removeRegistry(reg, ask = "no")))
+      
+      batchMap(reg, function(group){
+        apply_fun(mat[group,])
+      }, group = groups)
+      
+      submitJobs(reg)
+      waitForJobs(reg)
+      
+      results <-
+        loadResults(reg, use.names = FALSE) %>%
+        Reduce(cbind, ., NULL)
+    }
+  }
+  
+  # The apply part (transpose to match output of mincApply)
+  results <- t(results)
+  
+  if(!is.null(mask)){
+    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
+    results_expanded[mask_lgl, ] <- results
+    results <- results
+  }
+  
+  if(ncol(results) == 1) dim(results) <- NULL
+  
+  results
+}
 
 #' @description This function is used to compute an arbitrary function of every region in a set of vertex files.
 #' @name vertexApply
@@ -83,69 +148,10 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL)
   # Load the data
   vertexData <- vertexTable(filenames)
   
-  if(!is.null(mask)){
-    if(length(mask) == 1 && is.character(mask))
-      mask <- readLines(mask)
-    
-    mask_lgl <- mask > .5
-    vertexData <- vertexData[mask_lgl,]
-  }
-    
-  fun <- match.fun(fun)
-  
-  apply_fun <- function(sub_matrix){
-    if(!is.matrix(sub_matrix))
-      sub_matrix <- matrix(sub_matrix, nrow = 1)
-    
-    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
-      matrix(ncol = nrow(sub_matrix))
-  }
-  
-  if(is.null(parallel)){
-    results <- apply_fun(vertexData)
-  } else {
-    n_groups <- as.numeric(parallel[2])
-    groups <- split(seq_len(nrow(vertexData)), groupingVector(nrow(vertexData), n_groups))
-    
-    if(parallel[1] == "local") {
-      results <- 
-        mclapply(groups, function(group){
-          apply_fun(vertexData[group,])
-        }, mc.cores = n_groups) %>%
-        Reduce(cbind, ., NULL)
-    } else {
-      reg <- makeRegistry("vertexApply_registry")
-      on.exit( try(removeRegistry(reg, ask = "no")))
-      
-      batchMap(reg, function(group){
-        apply_fun(vertexData[group,])
-      }, group = groups)
-      
-      submitJobs(reg)
-      waitForJobs(reg)
-      
-      results <-
-        loadResults(reg, use.names = FALSE) %>%
-        Reduce(cbind, ., NULL)
-    }
-  }
-  
-  # The apply part (transpose to match output of mincApply)
-  results <- t(results)
-  
-  if(!is.null(mask)){
-    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
-    results_expanded[mask_lgl, ] <- results
-    results <- results
-  }
-  
-  if(ncol(results) == 1) dim(results) <- NULL
+  results <- matrixApply(vertexData, fun, ..., mask = mask, parallel = parallel)
   attr(results, "likeFile") <- filenames[1]
   
-  # run the garbage collector...
-  gcout <- gc()
-  
-  return(results)
+  results
 }
 
 
@@ -321,8 +327,7 @@ vertexLm <- function(formula, data, subset=NULL) {
 vertexLmer <-
   function(formula, data, mask=NULL, parallel=NULL,
            REML=TRUE, control=lmerControl(), start=NULL,
-           verbose=0L, temp_dir = getwd(), safely = FALSE,
-           cleanup = TRUE) {
+           verbose=0L, safely = FALSE) {
 
     mc <- mcout <- match.call()
     mc[[1]] <- quote(lme4::lFormula)
@@ -356,10 +361,11 @@ vertexLmer <-
       `if`(safely, mincLmerOptimizeAndExtractSafely, mincLmerOptimizeAndExtract)
 
     out <- 
-      vertexApply(lmod$fr[,1],
-                  optimizer_fun,
-                  mincLmerList = mincLmerList,
-                  parallel = parallel)
+      vertexApply(lmod$fr[,1]
+                  , optimizer_fun
+                  , mincLmerList = mincLmerList
+                  , mask = mask
+                  , parallel = parallel)
 
     ## Result post processing
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
