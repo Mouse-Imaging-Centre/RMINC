@@ -445,6 +445,13 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' @param maskval the value in the mask used to select unmasked voxels, defaults to any positive intensity
 #' from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities 
 #' within 0.5 of the chosen value are considered selected. 
+#' @param parallel how many processors to run on (default=single processor).
+#' Specified as a two element vector, with the first element corresponding to
+#' the type of parallelization, and the second to the number
+#' of processors to use. For local running set the first element to "local" or "snowfall"
+#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' and \link{configureMincParallel} for details.
+#' Leaving this argument NULL runs sequentially.
 #' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 #' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
 #' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
@@ -459,7 +466,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL) {
+mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, parallel = NULL) {
   
   #INITIALIZATION
   method <- "lm"

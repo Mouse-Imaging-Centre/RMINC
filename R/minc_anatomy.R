@@ -113,6 +113,14 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' segmented atlas
 #' @inheritParams anatGetAll
 #' @param strict check if any files differ in step sizes
+#' @param parallel how many processors to run on (default=single processor).
+#' Specified as a two element vector, with the first element corresponding to
+#' the type of parallelization, and the second to the number
+#' of processors to use. For local running set the first element to "local" or "snowfall"
+#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' and \link{configureMincParallel} for details.
+#' Leaving this argument NULL runs sequentially.
+
 #' @details 
 #' anatGetAll needs a set of files along with an atlas and a set of
 #' atlas definitions. In the end it will produce one value per label
@@ -194,7 +202,7 @@ anatGetAll2 <-
       # a vector with two elements: the methods followed by the # of workers
       if (parallel[1] %in% c("local", "snowfall")) {
         out <- 
-          mclapply(groups, function(group){
+          parallel::mclapply(groups, function(group){
             compute_summary(filenames[group])
           }, mc.cores = n_groups) %>%
           reduce_matrices %>%
@@ -219,6 +227,8 @@ anatGetAll2 <-
           setNA(0)
       } 
     }
+    
+    missing_labels <- abs(rowSums(out)) == 0
     
     ## Handle creating the label frame
     if(!is.null(defs)){
