@@ -752,8 +752,9 @@ civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="
 		}
 		if(file.exists(dataFiles[j]))
 		{
-			labels = read.table(dataFiles[j])[,1]
-			value = read.table(dataFiles[j])[,2]
+		  data_file <- read.table(dataFiles[j]) %>% filter_(~ V1 != "Total")
+			labels <- data_file$V1
+			value <- data_file$V2
 			labels = as.numeric(as.character(labels))
 			value = as.numeric(as.character(value))
 			for (i in 1:length(labels)) 
