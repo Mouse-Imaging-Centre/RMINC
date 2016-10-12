@@ -42,6 +42,38 @@ configureMincParallel <-
            , "sge"    = loadConfig(file.path(script_directory, "sge_BatchJobs.R")))
   }
 
+create_parallel_mask <-
+  function(sample_file, mask = NULL, n, temp_dir = getwd(), prefix = "pMincMask", tinyMask = FALSE){
+    
+    sample_volume <- mincGetVolume(sample_file)
+    mask_file <- "unset"
+    
+    temp_dir <- path.expand(temp_dir)
+    if(!file.exists(temp_dir)) dir.create(temp_dir)
+    
+    mask_file <- tempfile(prefix, tmpdir = temp_dir, fileext = ".mnc")
+    
+    if(is.null(mask)){
+      if(n %% 1 != 0) stop("the number of jobs must be an integer")
+      
+      nVoxels <- length(sample_volume)
+      mask_values <- groupingVector(nVoxels, n)
+    } else {
+      mask_values <- mincGetVolume(mask)
+      if(tinyMask) mask_values[mask_values > 1.5] <- 0
+      
+      nVoxels <- sum(mask_values > .5)
+      
+      mask_values[mask_values > .5] <- 
+        groupingVector(nVoxels, n)
+      
+    }
+    
+    mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
+    
+    return(mask_file)
+  }
+
 #' Parallel MincApply
 #' 
 #' Apply an arbitrary R function across a collection of minc files, distributing
@@ -198,41 +230,15 @@ mcMincApply <-
     mask_file <- "unset"
     
     if(is.null(mask_vals)){
-      temp_dir <- path.expand(temp_dir)
-      if(!file.exists(temp_dir)) dir.create(temp_dir)
-      
-      mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
-      
-      on.exit({
-        if(cleanup) unlink(mask_file)
-      })
-      
-      if(is.null(mask)){
-        if(cores %% 1 != 0) stop("the number of cores must be an integer")
-        
-        nVoxels <- length(sample_volume)
-        mask_values <- groupingVector(nVoxels, cores)
-      } else {
-        mask_values <- mincGetVolume(mask)
-        if(tinyMask) mask_values[mask_values > 1.5] <- 0
-        
-        nVoxels <- sum(mask_values > .5)
-        
-        mask_values[mask_values > .5] <- 
-          groupingVector(nVoxels, cores)
-        
-      }
-      
-      mincWriteVolume(mask_values, mask_file, like.filename = sample_file)
-    }
-    
-    if(mask_file == "unset"){
-      mask_file <- mask
-      on.exit() #clear the on.exit for extra safety
-    }
-    
-    if(is.null(mask_vals))
+      mask_file <- create_parallel_mask(sample_file = sample_file
+                                        , mask = mask
+                                        , n = cores
+                                        , tinyMask = tinyMask)
+      on.exit(try(unlink(mask_file)))
       mask_vals <- 1:cores
+    } else {
+      mask_file <- mask
+    }
     
     dot_args <- list(...)
     mincApplyArguments <- 
@@ -445,33 +451,10 @@ qMincMap <-
       slab_sizes[1] <- 1
     }
     
-    #Read in a likefile
-    sample_file <- filenames[1]
-    
-    temp_dir <- path.expand(temp_dir)
-    if(!file.exists(temp_dir)) dir.create(temp_dir)
-    
-    sample_volume <- mincGetVolume(sample_file)
-    new_mask_file <- tempfile("pMincMask", tmpdir = temp_dir, fileext = ".mnc")
-    
-    
-    if(is.null(mask)){
-      if(batches %% 1 != 0 ||
-         cores %% 1 != 0) 
-        stop("the number of batches and cores must be integers")
-      
-      nVoxels <- length(sample_volume)
-      mask_values <- groupingVector(nVoxels, batches * cores)
-    } else {
-      mask_values <- mincGetVolume(mask)
-      if(tinyMask) mask_values[mask_values > 1.5] <- 0
-      
-      nVoxels <- sum(mask_values > .5)
-      mask_values[mask_values > .5] <- 
-        groupingVector(nVoxels, batches * cores)
-    }
-    
-    mincWriteVolume(mask_values, new_mask_file, like.filename = sample_file)
+    new_mask_file <- create_parallel_mask(sample_file = filenames[1]
+                                          , mask = mask
+                                          , n = batches * cores
+                                          , tinyMask = tinyMask)
     
     #Group the indices
     mask_indices <- 
