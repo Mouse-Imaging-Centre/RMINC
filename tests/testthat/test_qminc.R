@@ -7,25 +7,31 @@ dataPath <- file.path(tempdir(), "rminctestdata/")
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 mask_file <- file.path(dataPath, "testminc-mask.mnc")
 
+old_config <- getConfig()
+old_options <- options()
+
 test_that("Test sequential, multicore, and queue applies work", {
   
   skip_on_cran()
   skip_on_travis()
   
+  options(BBmisc.ProgressBar.style = "off")
+  setConfig(list(cluster.functions = makeClusterFunctionsMulticore(min(2, parallel::detectCores() - 1))))
+  
   if(Sys.getenv("TEST_Q_MINC") != "yes") 
     skip("qMinc tests disabled")
   
   m_sequential <- verboseRun(
-    "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10))",
+    mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10)),
     getOption("verbose"))
   
   m_queue <- verboseRun(
-    "qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore', slab_sizes = c(5,1,10), cores = min(2, parallel::detectCores() - 1))",
+    qMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10)),
     getOption("verbose")
   )
   
   m_multicore <- verboseRun(
-    "mcMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(10,10,10), cores = min(2, parallel::detectCores() - 1))",
+    mcMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(10,10,10), cores = min(2, parallel::detectCores() - 1)),
     getOption("verbose")
   )
   
@@ -46,17 +52,19 @@ test_that("Masking qMincApply behaves as expected", {
     skip("qMinc tests disabled")
   
   m_sequential <- verboseRun(
-    "mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10), mask = mask_file)",
+    mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10), mask = mask_file),
     getOption("verbose"))
   
   m_queue <- verboseRun(
-    paste("qMincApply(gf$jacobians_fixed_2, mean, parallel_method = 'multicore',",
-          "slab_sizes = c(5,1,10), mask = mask_file, cores = min(2, parallel::detectCores() - 1))"),
+    qMincApply(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10), mask = mask_file),
     getOption("verbose")
   )
   
   expect_equivalent(m_sequential, m_queue)
 })
+
+setConfig(old_config)
+options(old_options)
 
 # if(getOption("RMINC_QUEUE") == "sge"){
 #   gf2 <- gf
