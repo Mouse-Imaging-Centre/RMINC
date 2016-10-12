@@ -5,31 +5,50 @@
 \title{Anatomy Linear Mixed Effects Model}
 \usage{
 anatLmer(formula, data, anat, REML = TRUE, control = lmerControl(),
-  verbose = FALSE, start = NULL)
+  verbose = FALSE, start = NULL, parallel = NULL, safely = FALSE)
 }
 \arguments{
-\item{formula}{the model formula}
+\item{formula}{the lmer formula, filenames go on left hand side}
 
-\item{data}{the predictor variables}
+\item{data}{the data frame, all items in formula should be in here}
 
 \item{anat}{a subject by label matrix of anatomical 
 summaries typically produced by \link{anatGetAll}}
 
-\item{REML}{whether or not to use restricted expectation maximum likelihood
-when fitting with \link[lme4]{lmer}}
+\item{REML}{whether to use use Restricted Maximum Likelihood or Maximum Likelihood}
 
-\item{control}{configuration list for \link[lme4]{lmer}, typically generated
-by \link[lme4]{lmerControl}.}
+\item{control}{lmer control function}
 
-\item{verbose}{increase verbosity}
+\item{verbose}{lmer verbosity control}
 
-\item{start}{starting values for the optimizer in \link[lme4]{lmer}}
-}
-\value{
-an \code{anatModel} object of statistical results
+\item{start}{lmer start function}
+
+\item{parallel}{how many processors to run on (default=single processor).
+Specified as a two element vector, with the first element corresponding to
+the type of parallelization, and the second to the number
+of processors to use. For local running set the first element to "local" or "snowfall"
+for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+and \link{configureMincParallel} for details.
+Leaving this argument NULL runs sequentially and may take a long time.}
+
+\item{safely}{whether or not to wrap the per-voxel lmer code in an exception catching
+block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
+NA for the result.}
 }
 \description{
-Apply a linear mixed effects model to the results of
+Fit a linear mixed effects model for each structure in the results of
 \link{anatGetAll}.
+}
+\details{
+\code{anatLmer}, like its relative \link{mincLmer} provides an interface to running 
+linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
+in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
+more difficult to  determine. RMINC provides two alternatives: (1) estimating degrees of freedom using the
+\code{\link{mincLmerEstimateDF}} function, and (2) comparing two separate models using
+\code{\link{mincLogLikRatio}} (which in turn can be corrected using
+\code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
+models with a separate intercept or separate intercept and slope per subject - both of these
+approximations are likely correct. Be careful in using these approximations if
+using more complicated random effects structures.
 }
 
