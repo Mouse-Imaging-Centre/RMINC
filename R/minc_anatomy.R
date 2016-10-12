@@ -737,26 +737,33 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 
 #' Anatomy Linear Mixed Effects Model
 #' 
-#' Apply a linear mixed effects model to the results of
+#' Fit a linear mixed effects model for each structure in the results of
 #' \link{anatGetAll}.
 #' 
-#' @param formula the model formula
-#' @param data the predictor variables
 #' @param anat a subject by label matrix of anatomical 
 #' summaries typically produced by \link{anatGetAll}
-#' @param REML whether or not to use restricted expectation maximum likelihood
-#' when fitting with \link[lme4]{lmer}
-#' @param control configuration list for \link[lme4]{lmer}, typically generated
-#' by \link[lme4]{lmerControl}.
-#' @param verbose increase verbosity
-#' @param start starting values for the optimizer in \link[lme4]{lmer}
-#' @return an \code{anatModel} object of statistical results
+#' @inheritParams mincLmer
+#' @details \code{anatLmer}, like its relative \link{mincLmer} provides an interface to running 
+#' linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
+#' in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
+#' more difficult to  determine. RMINC provides two alternatives: (1) estimating degrees of freedom using the
+#' \code{\link{mincLmerEstimateDF}} function, and (2) comparing two separate models using
+#' \code{\link{mincLogLikRatio}} (which in turn can be corrected using
+#' \code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
+#' models with a separate intercept or separate intercept and slope per subject - both of these
+#' approximations are likely correct. Be careful in using these approximations if
+#' using more complicated random effects structures.
 #' @export 
 anatLmer <-
-  function(formula, data, anat, REML = TRUE, 
-           control = lmerControl(), verbose = FALSE, start = NULL){
+  function(formula, data, anat, REML = TRUE,
+           control = lmerControl(), verbose = FALSE, 
+           start = NULL, parallel = NULL, safely = FALSE){
+    
     mc <- mcout <- match.call()
     
+    # For reasons I don't understand data needs to be brought into this environment
+    # otherwise the environment for the formula is unable to find the data arg.
+    assign(deparse(substitute(data)), data)
     # Allow the user to omit the LHS by inserting a normal random variable
     RMINC_DUMMY_LHS <- rnorm(nrow(data))
     new_formula <- update(formula, RMINC_DUMMY_LHS ~ .)
@@ -783,7 +790,20 @@ anatLmer <-
     
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
-    out <- t(apply(anat, 2, mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
+    mincLmerOptimizeAndExtractSafely <-
+      function(x, mincLmerList){
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+                 error = function(e){warning(e); return(NA)})
+      }
+    
+    optimizer_fun <-
+      `if`(safely, mincLmerOptimizeAndExtractSafely, mincLmerOptimizeAndExtract)
+    
+    out <- 
+      matrixApply(t(anat)
+                  , optimizer_fun
+                  , mincLmerList = mincLmerList
+                  , parallel = parallel)
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
     
