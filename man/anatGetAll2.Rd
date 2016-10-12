@@ -31,6 +31,14 @@ and what they mean.}
 \item{side}{Three choices, "right", "left", and "both" (the default)
 which specify what labels to obtain.}
 
+\item{parallel}{how many processors to run on (default=single processor).
+Specified as a two element vector, with the first element corresponding to
+the type of parallelization, and the second to the number
+of processors to use. For local running set the first element to "local" or "snowfall"
+for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+and \link{configureMincParallel} for details.
+Leaving this argument NULL runs sequentially.}
+
 \item{strict}{check if any files differ in step sizes}
 }
 \value{

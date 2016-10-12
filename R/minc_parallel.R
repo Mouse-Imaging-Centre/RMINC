@@ -343,7 +343,8 @@ mcMincApply <-
 #' @param collate A function to collate the returned list into another object type.
 #' @param ignore_incompletes Whether to reduce the results with \code{qMincReduce}
 #' even if all jobs are not complete.
-#' @param registry A pre-made BatchJobs registry
+#' @param registry_dir where qMincRegistry should create the registry
+#' @param registry a pre-existing job registry
 #' @details RMINC's batching facilities are inherited with little modification from
 #' the BatchJobs package, mostly just providing handy wrappers to handle registry
 #' creation, batching, submission, and reduction. The abstractions provided are very leaky

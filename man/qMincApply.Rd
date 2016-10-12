@@ -68,7 +68,9 @@ to true}
 
 \item{collate}{A function to collate the returned list into another object type.}
 
-\item{registry}{A pre-made BatchJobs registry}
+\item{registry_dir}{where qMincRegistry should create the registry}
+
+\item{registry}{a pre-existing job registry}
 
 \item{ignore_incompletes}{Whether to reduce the results with \code{qMincReduce}
 even if all jobs are not complete.}
