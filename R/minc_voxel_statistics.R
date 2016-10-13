@@ -486,7 +486,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   method <- "lm"
   
   # Build model.frame
-  m <- match.call()
+  m <- m_orig <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
   mf <- mf[c(1, m)]
@@ -549,6 +549,8 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   attr(result, "likeVolume") <- parseLmOutput$data.matrix.left[1]
   attr(result, "filenames") <- parseLmOutput$data.matrix.left
   attr(result, "model") <- as.matrix(parseLmOutput$mmatrix)
+  attr(result, "call") <- m_orig
+  attr(result, "data") <- data
   
   
   # the order of return values is:
@@ -575,7 +577,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   betaNames = paste('beta-',parseLmOutput$rows, sep='')
   tnames = paste('tvalue-',parseLmOutput$rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
-  class(result) <- c("mincMultiDim", "matrix")
+  class(result) <- c("mincLm", "mincMultiDim", "matrix")
   
   # run the garbage collector...
   gcout <- gc()
