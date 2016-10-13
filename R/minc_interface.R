@@ -157,6 +157,55 @@ as.minc <- function(x){
   class(x) <- c("mincSingleDim", class(x))
   return(x)
 } 
+
+
+
+
+#' Get or set a likeVolume
+#' 
+#' LikeVolumes control the dimensions of an output minc file.
+#' 
+#' @param x The minc object
+#' @param strict Whether or not to throw an error if the likeVolume does not exist
+#' @param value The replacement value for the likeVolume attribute
+#' @return The likeVolume name if getting, or the object invisibly if setting
+#' @export
+likeVolume <- function(x, strict = TRUE){
+  volFile <- attr(x, "likeVolume")
+  if(is.null(volFile) && strict) stop(deparse(subsititute(x)), " does not have an associate likeVolume")
+  
+  volFile
+}
+
+#' @describeIn likeVolume setter
+#' @export
+`likeVolume<-` <- function(x, value){
+  attr(x, "likeVolume") <- value
+  invisible(x)
+}
+
+#' Get or set a mask file
+#' 
+#' Mask files control which voxels to perform operations on
+#' 
+#' @param x The minc object
+#' @param strict Whether or not to throw an error if the mask does not exist
+#' @param value The replacement value for the mask attribute
+#' @return The mask name if getting, or the object invisibly if setting
+#' @export
+maskFile <- function(x, strict = TRUE){
+  maskFile <- attr(x, "mask")
+  if(is.null(maskFile) && strict) stop(deparse(subsititute(x)), " does not have an associate mask file")
+  
+  maskFile
+}
+
+#' @describeIn maskFile setter
+#' @export
+`maskFile<-` <- function(x, value){
+  attr(x, "mask") <- value
+  invisible(x)
+}
     
 
 #' Retrieve Voxel Values
