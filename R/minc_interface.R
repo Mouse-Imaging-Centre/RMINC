@@ -172,7 +172,7 @@ as.minc <- function(x){
 #' @export
 likeVolume <- function(x, strict = TRUE){
   volFile <- attr(x, "likeVolume")
-  if(is.null(volFile) && strict) stop(deparse(subsititute(x)), " does not have an associate likeVolume")
+  if(is.null(volFile) && strict) stop(deparse(substitute(x)), " does not have an associate likeVolume")
   
   volFile
 }
@@ -195,7 +195,7 @@ likeVolume <- function(x, strict = TRUE){
 #' @export
 maskFile <- function(x, strict = TRUE){
   maskFile <- attr(x, "mask")
-  if(is.null(maskFile) && strict) stop(deparse(subsititute(x)), " does not have an associate mask file")
+  if(is.null(maskFile) && strict) stop(deparse(substitute(x)), " does not have an associate mask file")
   
   maskFile
 }
@@ -484,8 +484,8 @@ mincGetVolume <- function(filename) {
                as.integer(sizes),
                hs=double(total.size), PACKAGE="RMINC")$hs
   class(output) <- c("mincSingleDim", "numeric")
-  attr(output, "filename") <- filename
-  attr(output, "likeVolume") <- filename
+  attr(output, "filename") <- as.character(filename)
+  attr(output, "likeVolume") <- as.character(filename)
   attr(output, "sizes") <- sizes
   return(output)
 }
