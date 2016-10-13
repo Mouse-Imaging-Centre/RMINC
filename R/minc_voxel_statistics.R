@@ -746,6 +746,8 @@ mincTFCE <-
     UseMethod("mincTFCE")
   }
 
+#' @method mincTFCE mincSingleDim
+#' @export 
 mincTFCE.mincSingleDim <-
   function(volume, d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
@@ -786,6 +788,11 @@ mincTFCE.mincSingleDim <-
     out_vol
   }
 
-mincTFCE.minc
+mincTFCE.mincLm <- 
+  function(model, tails = c("both", "positive", "negative")
+           , d = 0.1, E = .5, H = 2.0
+           , side = c("both", "positive", "negative")
+           , output_file = NULL
+           , ...){}
 
 
