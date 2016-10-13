@@ -88,26 +88,25 @@ test_that("AnatGetAll2 works", {
   evalq({
     skip_if_not(has_mincstuffs)
     
-    expect_warning(
+    verboseRun(
       new_label_counts <- anatGetAll2(segmentation, defs = labels, method = "labels")
-      , regexp = "found in files but not in labels: 95, 180"
     )
     
     expect_equal(new_label_counts[1,], label_counts_ref$count, check.attributes = FALSE)
     
-    expect_warning(
+    verboseRun(
       new_jacobians <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "jacobians")
     )
     
     expect_equal(new_jacobians, jacobians, check.attributes = FALSE, tolerance = 10e-4)
     
-    expect_warning(
+    verboseRun(
       new_sums <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "sums")
     )
     
     expect_equal(new_sums, label_sums, check.attributes = FALSE, tolerance = 10e-4)
     
-    expect_warning(
+    verboseRun(
       new_means <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "means")
     )
     

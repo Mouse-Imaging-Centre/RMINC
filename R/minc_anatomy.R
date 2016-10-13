@@ -264,7 +264,9 @@ create_labels_frame <-
     # if the definitions are given, check to see that we can read the 
     # specified file
     if(file.access(as.character(defs), 4) == -1){
-      stop("The specified label definitions can not be read: ", defs, "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
+      stop("The specified label definitions can not be read: "
+           , defs
+           , "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
     }
     
     label_defs <- 
@@ -308,14 +310,14 @@ create_anat_results <-
     
     extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)
-      warning("Extra Structures  found in files but not in labels: "
+      message("Extra Structures  found in files but not in labels: "
               , paste0(extra_structures, collapse = ", ")
               , call. = FALSE)
     
     missing_structures <- 
       with(label_frame, Structure[! label %in% results$indices])
     if(length(missing_structures) != 0)
-      warning("Missing Structures found in labels but not in any files: "
+      message("Missing Structures found in labels but not in any files: "
               , paste0(missing_structures, collapse = ", ")
               , call. = FALSE)
     
