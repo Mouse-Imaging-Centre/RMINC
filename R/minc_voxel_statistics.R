@@ -728,19 +728,62 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @param E The exponent by which to raise the extent statistic (default .5)
 #' @param H The exponent by which to raise the height (default 2)
 #' @param side Whether to consider positive and negative statistics or both (default both)
-#' @param ... additional arguments for methods  
+#' @param output_file A filename for the enhanced volume.
+#' @param keep whether to keep the resulting volume, defaults to whether or not you specified
+#' a name for the output volume.
+#' @param ... additional arguments for methods
+#' @return A minc volume with the results of the enhancement
+#' @export  
 mincTFCE <-
-  function(volume, d = 0.1, E = .5, H = 2.0, side = c("both", "positive", "negative"), ...) {
+  function(volume, d = 0.1, E = .5, H = 2.0
+           , side = c("both", "positive", "negative")
+           , output_file = NULL
+           , keep = is.null(output_file)
+           , ...) {
+    
     UseMethod("mincTFCE")
   }
 
 mincTFCE.mincSingleDim <-
-  function(volume, d = 0.1, E = .5, H = 2.0, side = c("both", "positive", "negative"), ...){
-    file_name <- tempfile("minc_tfce")
-    on.exit(unlink(file_name))
-    capture.output(mincWriteVolume(volume, file_name))
+  function(volume, d = 0.1, E = .5, H = 2.0
+           , side = c("both", "positive", "negative")
+           , output_file = NULL
+           , keep = is.null(output_file)
+           , ...){
     
-    sprintf("TFCE ")
+    side <- match.arg(side)
+    in_file <- tempfile("minc_tfce_in", fileext = ".mnc")
+    on.exit(unlink(in_file))
+    
+    if(is.null(output_file))
+      output_file <- tempfile("minc_tfce_out", fileext = ".mnc")
+    
+    if(!keep)  on.exit(unlink(output_file), add = TRUE)
+
+    capture.output(mincWriteVolume(volume, in_file))
+    
+    side_flag <-
+      `if`(side == "both"
+           , "pos-and-neg"
+           , `if`(side == "positive"
+                  , "pos-only"
+                  , "neg-only"))
+    
+    system(
+      sprintf("TFCE -d %s -E %s -H %s --%s %s %s"
+              , d, E, H
+              , side_flag
+              , in_file
+              , output_file)
+      , intern = TRUE)
+
+      
+    out_vol <- mincGetVolume(output_file)
+    likeVolume(out_vol) <- likeVolume(volume)
+    
+    out_vol
   }
+
+mincTFCE.minc
 
 

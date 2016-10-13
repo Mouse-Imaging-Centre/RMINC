@@ -5,7 +5,7 @@
 \title{Threshold Free Cluster Enhancement}
 \usage{
 mincTFCE(volume, d = 0.1, E = 0.5, H = 2, side = c("both", "positive",
-  "negative"), ...)
+  "negative"), output_file = NULL, keep = is.null(output_file), ...)
 }
 \arguments{
 \item{volume}{Either a character vector with a single filename, 
@@ -19,7 +19,15 @@ a \code{mincSingleDim}, or a \code{mincMultiDim} object}
 
 \item{side}{Whether to consider positive and negative statistics or both (default both)}
 
+\item{output_file}{A filename for the enhanced volume.}
+
+\item{keep}{whether to keep the resulting volume, defaults to whether or not you specified
+a name for the output volume.}
+
 \item{...}{additional arguments for methods}
+}
+\value{
+A minc volume with the results of the enhancement
 }
 \description{
 Perform threshold free cluster enhancement as described in 
