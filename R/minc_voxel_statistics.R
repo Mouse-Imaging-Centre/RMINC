@@ -550,8 +550,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     groups <- seq_len(n_groups)
     new_mask_file <- create_parallel_mask(sample_file = parseLmOutput$data.matrix.left[1]
                                           , mask = mask
-                                          , n = n_groups
-                                          , tinyMask = tinyMask)
+                                          , n = n_groups)
     on.exit(try(unlink(new_mask_file)))
     mask_vol <- as.integer(mincGetVolume(new_mask_file))
     # a vector with two elements: the methods followed by the # of workers
@@ -837,7 +836,7 @@ mincTFCE.mincLm <-
     m_call <- attr(model, "call")
     m_data <- attr(model, "model")
     
-    random_data <- m_data[sample(seq_len(nrow(data))),]
+    random_data <- m_data[sample(seq_len(nrow(m_data))),]
     
     m_call["data"] <- random_data
     
