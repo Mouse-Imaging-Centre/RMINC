@@ -833,6 +833,17 @@ mincTFCE.mincLm <-
            , d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
            , output_file = NULL
-           , ...){}
+           , ...){
+    m_call <- attr(model, "call")
+    m_data <- attr(model, "model")
+    
+    random_data <- m_data[sample(seq_len(nrow(data))),]
+    
+    m_call["data"] <- random_data
+    
+    lm_res <- eval.parent(m_call)
+    
+    
+  }
 
 
