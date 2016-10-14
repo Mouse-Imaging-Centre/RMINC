@@ -544,6 +544,46 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   
   if(is.null(parallel)){
     result <- mincLm_c_wrapper(parseLmOutput, mask, mask_min = minmask, mask_max = maxmask)
+  } else {
+    #Setup shared parallel mask and grouping
+    n_groups <- as.numeric(parallel[2])
+    groups <- seq_len(n_groups)
+    new_mask_file <- create_parallel_mask(sample_file = parseLmOutput$data.matrix.left[1]
+                                          , mask = mask
+                                          , n = n_groups
+                                          , tinyMask = tinyMask)
+    on.exit(try(unlink(new_mask_file)))
+    mask_vol <- as.integer(mincGetVolume(new_mask_file))
+    # a vector with two elements: the methods followed by the # of workers
+    if (parallel[1] %in% c("local", "snowfall")) {
+      result <- 
+        parallel::mclapply(groups, function(group){
+          mincLm_c_wrapper(parseLmOutput, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
+        }, mc.cores = n_groups) %>%
+        Reduce(rbind, ., NULL) 
+    }
+    else {
+      reg <- makeRegistry("mincLm_registry")
+      on.exit( try(removeRegistry(reg, ask = "no")), add = TRUE)
+      
+      batchMap(reg, function(group){
+        mincLm_c_wrapper(parseLmOutput, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
+      }, group = groups)
+      
+      submitJobs(reg)
+      waitForJobs(reg)
+      
+      result <-
+        loadResults(reg, use.names = FALSE) %>%
+        Reduce(rbind, ., NULL) 
+    } 
+    
+    result_fleshed_out <- matrix(0
+                                 , nrow = prod(minc.dimensions.sizes(new_mask_file))
+                                 , ncol = ncol(result))
+    
+    result_fleshed_out[mask_vol > .5,] <- result 
+    result <- result_fleshed_out
   }
   
   attr(result, "likeVolume") <- parseLmOutput$data.matrix.left[1]

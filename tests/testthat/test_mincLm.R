@@ -99,4 +99,15 @@ test_that("mincLm Three Factors Interaction",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
+test_that("mincLm local multicore works", {
+  verboseRun(prlm <- mincLm(voxel_left_file~Scale*Coil,gftest, parallel = c("local", 3)))
+  
+  expect_equal(rmincLm, prlm, check.attributes = FALSE)
+})
+
+# test_that("mincLm queue parallel works", {
+#   verboseRun(qrlm <- mincLm(voxel_left_file~Scale*Coil,gftest, parallel = c("sge", 2)))
+#   
+#   expect_equal(rmincLm, qrlm, check.attributes = FALSE)
+# })
 
