@@ -100,6 +100,12 @@ test_that("mincLm Three Factors Interaction",{
 })
 
 test_that("mincLm local multicore works", {
+  skip_on_cran()
+  skip_on_travis()
+  
+  if(Sys.getenv("TEST_Q_MINC") != "yes") 
+    skip("qMinc tests disabled")
+  
   verboseRun(prlm <- mincLm(voxel_left_file~Scale*Coil,gftest, parallel = c("local", 3)))
   
   expect_equal(rmincLm, prlm, check.attributes = FALSE)
