@@ -1206,7 +1206,7 @@ getRMINCTestData <- function(dataPath = tempdir()) {
 #' @param env the environment in which to run the expression, defaults
 #' to the calling environment
 #' @export
-verboseRun <- function(expr,verbose,env = parent.frame()) {
+verboseRun <- function(expr,verbose = getOption("verbose", FALSE),env = parent.frame()) {
 
 	if(!verbose) {
 	  sink("/dev/null")

@@ -4,7 +4,8 @@
 \alias{verboseRun}
 \title{Run function with/without output silenced}
 \usage{
-verboseRun(expr, verbose, env = parent.frame())
+verboseRun(expr, verbose = getOption("verbose", FALSE),
+  env = parent.frame())
 }
 \arguments{
 \item{expr}{an expression to run}
