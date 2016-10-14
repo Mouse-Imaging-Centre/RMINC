@@ -44,6 +44,7 @@ multidim_matrix <- as.numeric(multidim) #as.matrix does nothing, because it is o
 dim(multidim_matrix) <- dim(multidim)
 
 multidim_reconstituted <- as.minc(multidim_matrix)
+class(multidim_reconstituted) <- c("mincLm", class(multidim_reconstituted))
 multidim_reconstituted <- setMincAttributes(multidim_reconstituted, mincAttributes(multidim))
 
 
