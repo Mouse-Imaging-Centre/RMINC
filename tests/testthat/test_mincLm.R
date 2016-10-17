@@ -32,6 +32,29 @@ test_that("mincLm Two Factors",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
+# now test that findPeaks works
+context("mincFindPeaks - ensure we can find correct peaks")
+# get rid of NAs
+rmincLm[is.na(rmincLm)] <- 0
+# find peaks
+peaks <- mincFindPeaks(rmincLm, "tvalue-SexM", minDistance = 1)
+# find the min and max by hand
+rmincLmArray <- mincArray(rmincLm, "tvalue-SexM")
+maxPeak <- arrayInd(which.max(rmincLmArray), .dim=c(10,10,10))
+minPeak <- arrayInd(which.min(rmincLmArray), .dim=c(10,10,10))
+minPeakFromPeaks <- as.integer(sortByCol(peaks, "value")[1,1:3])
+maxPeakFromPeaks <- as.integer(peaks[1,1:3])
+
+test_that("mincFindPeaks min and max", {
+  expect_that(maxPeak[1],is_equivalent_to(maxPeakFromPeaks[1]))
+  expect_that(maxPeak[2],is_equivalent_to(maxPeakFromPeaks[2]))
+  expect_that(maxPeak[3],is_equivalent_to(maxPeakFromPeaks[3]))
+  expect_that(minPeak[1],is_equivalent_to(minPeakFromPeaks[1]))
+  expect_that(minPeak[2],is_equivalent_to(minPeakFromPeaks[2]))
+  expect_that(minPeak[3],is_equivalent_to(minPeakFromPeaks[3]))
+})
+
+
 context("mincLm - two group test with interaction")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
