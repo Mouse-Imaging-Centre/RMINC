@@ -310,15 +310,13 @@ create_anat_results <-
     extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)
       message("Extra Structures  found in files but not in labels: "
-              , paste0(extra_structures, collapse = ", ")
-              , call. = FALSE)
+              , paste0(extra_structures, collapse = ", "))
     
     missing_structures <- 
       with(label_frame, Structure[! label %in% results$indices])
     if(length(missing_structures) != 0)
       message("Missing Structures found in labels but not in any files: "
-              , paste0(missing_structures, collapse = ", ")
-              , call. = FALSE)
+              , paste0(missing_structures, collapse = ", "))
     
     results <- 
       results %>%
@@ -338,8 +336,7 @@ create_anat_results <-
       missings <- which(results[,cn] == 0)
       
       if(length(missings) != 0)
-        warning("Files ", paste0(missings, sep = ", "), " are missing label ", cn
-                , call. = FALSE)
+        message("Files ", paste0(missings, sep = ", "), " are missing label ", cn)
     })
     
     attr(results, "anatIDs") <- label_inds
