@@ -782,7 +782,7 @@ anatLmer <-
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("anat", "subset")]
+    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely")]
     
     lmod <- eval(mc)
     

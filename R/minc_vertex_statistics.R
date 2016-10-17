@@ -334,7 +334,7 @@ vertexLmer <-
 
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
+    mc <- mc[!names(mc) %in% c("mask", "parallel", "safely")]
 
     lmod <- eval(mc, parent.frame(1L))
 
