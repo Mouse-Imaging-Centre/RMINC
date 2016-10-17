@@ -189,9 +189,6 @@ anatGetAll2 <-
           as.matrix
       }
     
-    ## NA corrector
-    setNA <- function(x, val){ x[is.na(x) <- val]; x}
-    
     ## Handle parallelism choices
     if (is.null(parallel)) {
       out <- compute_summary(filenames)
