@@ -586,10 +586,10 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   }
   
   attr(result, "likeVolume") <- parseLmOutput$data.matrix.left[1]
-  attr(result, "filenames") <- parseLmOutput$data.matrix.left
-  attr(result, "model") <- as.matrix(parseLmOutput$mmatrix)
-  attr(result, "call") <- m_orig
-  attr(result, "data") <- data
+  attr(result, "filenames")  <- parseLmOutput$data.matrix.left
+  attr(result, "model")      <- as.matrix(parseLmOutput$mmatrix)
+  attr(result, "data")       <- data 
+  attr(result, "call")       <- m_orig
   
   
   # the order of return values is:
@@ -827,22 +827,105 @@ mincTFCE.mincSingleDim <-
     out_vol
   }
 
+#' @method mincTFCE matrix
+#' @export
+mincTFCE.matrix <- 
+  function(mat, d = 0.1, E = .5, H = 2.0
+           , side = c("both", "positive", "negative")
+           , likeVolume
+           , ...){
+    mapply(function(col_ind, d){
+      mat[,col_ind] %>%
+        `class<-`(c("mincSingleDim", "numeric")) %>%
+        `likeVolume<-`(likeVolume) %>%
+        setNA(0) %>%
+        setNaN(0) %>% 
+        mincTFCE(d = d, E = E, H = H, side = side)
+    }, col_ind = seq_len(ncol(mat)), d = d)
+  }
+
+getCall.mincLm <-
+  function(x, ...) attributes(x)$call
+
+#' @method mincTFCE mincLm
+#' @export
 mincTFCE.mincLm <- 
-  function(model, tails = c("both", "positive", "negative")
+  function(lmod, alternative = c("two.sided", "greater")
            , d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
-           , output_file = NULL
+           , R = 500
+           , parallel = NULL
            , ...){
-    m_call <- attr(model, "call")
-    m_data <- attr(model, "model")
     
-    random_data <- m_data[sample(seq_len(nrow(m_data))),]
+    # Setup useful local variables
+    alternative       <- match.arg(alternative)
+    side              <- match.arg(side)
+    lmod_data         <- attr(lmod, "data")
+    lmod_call         <- attr(lmod, "call")
+    lmod_lhs          <- as.character(lmod_call[["formula"]][[2]])
+    t_columns         <- colnames(lmod)[grepl("tvalue-", colnames(lmod))]
+    like_vol          <- likeVolume(lmod)
     
-    m_call["data"] <- random_data
+    # Compute the TFCE statistic for the t-stat columns of mincLm
+    lmod_tfce <- 
+      mincTFCE.matrix(lmod[,t_columns], d = d, E = E, H = H, side = side, likeVolume = like_vol)
     
-    lm_res <- eval.parent(m_call)
+    # Helper function to compute for each of n randomizations, how many times the observed statistic
+    # is exceeded by the randomized value
+    boot_model <- function(n){
+      Reduce(function(acc, i){
+        # Permute the filenames
+        shuf_data <- lmod_data
+        shuf_data[,lmod_lhs] <- lmod_data %>% `$`(lmod_lhs) %>% sample(replace = replace)
+        
+        # relies on RMINC:::getCall.mincLm to get update to do its magic
+        new_mod   <- update(lmod, data = shuf_data)
+        
+        # Compute the TFCE stats for the randomized model
+        new_tfce <-
+          mincTFCE.matrix(new_mod[,t_columns], d = d, E = E, H = H, side = side, likeVolume = like_vol)
+        
+        if(alternative == "two.sided"){
+          acc <- acc + (abs(new_tfce) > abs(lmod_tfce)) 
+        } else {
+          acc <- acc + (new_tfce > lmod_tfce)
+        }
+         
+        acc
+      }, seq_len(n), 0)
+    }
     
+    # Handle dispatching of parallelization
+    if(is.null(parallel)){
+      result <- boot_model(R) / R
+    } else {
+      
+      n_groups <- as.numeric(parallel[2])
+      group_sizes <- table(RMINC:::groupingVector(R, n_groups))
+      
+      if (parallel[1] %in% c("local", "snowfall")) {
+        result <- 
+          parallel::mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
+          Reduce(`+`, ., 0) %>%
+          `/`(R)
+      }
+      else {
+        reg <- makeRegistry("mincTFCE_registry")
+        on.exit( try(removeRegistry(reg, ask = "no")), add = TRUE)
+        
+        batchMap(reg, boot_model, group = group_sizes)
+        
+        submitJobs(reg)
+        waitForJobs(reg)
+        
+        result <-
+          reduceResults(reg, fun = `+`, init = 0) %>%
+          `/`(R)
+      } 
+    }
     
+    result
   }
+
 
 
