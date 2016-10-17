@@ -862,7 +862,7 @@ mincTFCE.matrix <-
         setNA(0) %>%
         setNaN(0) %>% 
         mincTFCE(d = d, E = E, H = H, side = side)
-    }, col_ind = seq_len(ncol(mat)), d = d)
+    }, col_ind = seq_len(ncol(x)), d = d)
   }
 
 getCall.mincLm <-
