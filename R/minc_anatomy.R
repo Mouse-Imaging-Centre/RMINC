@@ -210,9 +210,11 @@ anatGetAll2 <-
         reg <- makeRegistry("anatGet_registry")
         on.exit( try(removeRegistry(reg, ask = "no")))
         
-        batchMap(reg, function(group){
-          compute_summary(filenames[group])
-        }, group = groups)
+        suppressWarnings( #Warning suppression for large env for function (>10mb)
+          batchMap(reg, function(group){
+            compute_summary(filenames[group])
+          }, group = groups)
+        )
         
         submitJobs(reg)
         waitForJobs(reg)

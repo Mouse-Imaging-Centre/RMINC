@@ -553,6 +553,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
                                           , n = n_groups)
     on.exit(try(unlink(new_mask_file)))
     mask_vol <- as.integer(mincGetVolume(new_mask_file))
+    
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
@@ -565,9 +566,11 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
       reg <- makeRegistry("mincLm_registry")
       on.exit( try(removeRegistry(reg, ask = "no")), add = TRUE)
       
-      batchMap(reg, function(group){
-        mincLm_c_wrapper(parseLmOutput, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
-      }, group = groups)
+      suppressWarnings(
+        batchMap(reg, function(group){
+          mincLm_c_wrapper(parseLmOutput, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
+        }, group = groups)
+      )
       
       submitJobs(reg)
       waitForJobs(reg)
@@ -935,7 +938,9 @@ mincTFCE.mincLm <-
         reg <- makeRegistry("mincTFCE_registry")
         on.exit( try(removeRegistry(reg, ask = "no")), add = TRUE)
         
-        batchMap(reg, boot_model, group = group_sizes)
+        suppressWarnings( #Warning suppression for large env for bootmodel (>10mb)
+          batchMap(reg, boot_model, group = group_sizes)
+        )
         
         submitJobs(reg)
         waitForJobs(reg)
