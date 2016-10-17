@@ -389,75 +389,119 @@ vertexLmer <-
 
     return(out)
   }
-#   
-# vertexApplyRCPP <-
-#   function(filenames, 
-#            fun, 
-#            ..., 
-#            mask = NULL, 
-#            maskval = NULL,
-#            filter_masked = FALSE,
-#            slab_sizes = c(1,1,1),
-#            return_indices = FALSE,
-#            collate = simplify2minc){
+
+# vertexLmer <-
+#   function(formula, data, mask=NULL, parallel=NULL,
+#            REML=TRUE, control=lmerControl(), start=NULL, 
+#            verbose=0L, temp_dir = getwd(), safely = FALSE, 
+#            cleanup = TRUE) {
 #     
-#     stopifnot(!is.null(filenames), !is.null(fun))
-#     enoughAvailableFileDescriptors(length(filenames))
+#     mc <- mcout <- match.call()
+#     mc[[1]] <- quote(lme4::lFormula)
 #     
-#     apply_fun <- 
-#       function(x, extra_arguments)
-#         do.call(match.fun(fun), c(list(x), extra_arguments))
+#     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
+#     # generates obscure warning messages
+#     mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
 #     
-#     args <- list(...)
-#     filenames <- as.character(filenames)
+#     lmod <- eval(mc, parent.frame(1L))
 #     
-#     if(is.null(maskval)){
-#       minmask <- 1
-#       maxmask <- 99999999
-#     } else {
-#       minmask <- maxmask <- maskval
+#     # code ripped from lme4:::mkLmerDevFun
+#     rho <- new.env(parent = parent.env(environment()))
+#     rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
+#                                                     "Lambdat", "Lind")],
+#                                       n = nrow(lmod$X), list(X = lmod$X)))
+#     REMLpass <- if (REML) 
+#       ncol(lmod$X)
+#     else 0L
+#     
+#     
+#     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
+#     
+#     
+#     mincLmerOptimizeAndExtractSafely <-
+#       function(x, mincLmerList){
+#         tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+#                  error = function(e){warning(e); return(NA)})
+#       }
+#     
+#     optimizer_fun <- 
+#       `if`(safely, mincLmerOptimizeAndExtractSafely, mincLmerOptimizeAndExtract)
+#     
+#     if (!is.null(parallel)) {
+#       # a vector with two elements: the methods followed by the # of workers
+#       if (parallel[1] %in% c("local", "snowfall")) {
+#         out <- mcMincApply(lmod$fr[,1],
+#                            optimizer_fun,
+#                            mincLmerList = mincLmerList,
+#                            filter_masked = TRUE,
+#                            mask = mask,
+#                            cores = as.numeric(parallel[2]),
+#                            slab_sizes = slab_dims,
+#                            cleanup = cleanup)
+#       }
+#       else if(parallel[1] %in% c("sge", "pbs")){
+#         reg <- qMincRegistry("qVertexLmer_registry",
+#                              parallel_method = parallel[1],
+#                              temp_dir = temp_dir,
+#                              cores = 1)
+#         
+#       } else {
+#         stop("Error: unknown parallelization method")
+#       }
+#     }
+#     else {
+#       out <- mincApplyRCPP(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
+#                            optimizer_fun,
+#                            mincLmerList = mincLmerList,
+#                            mask = mask,
+#                            slab_sizes = slab_dims)
 #     }
 #     
-#     if(is.null(mask)){
-#       use_mask <- FALSE
-#       mask = ""
-#     } else {
-#       use_mask <- TRUE
-#     }
+#     ## Result post processing
+#     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
 #     
-#     masked_value <- getOption("RMINC_MASKED_VALUE")
+#     termnames <- colnames(lmod$X)
+#     betaNames <- paste("beta-", termnames, sep="")
+#     tnames <- paste("tvalue-", termnames, sep="")
+#     colnames(out) <- c(betaNames, tnames, "logLik", "converged")
 #     
-#     results_indexed <-
-#       .Call("RMINC_rcpp_minc_apply",
-#             filenames,
-#             use_mask = use_mask,
-#             mask = mask,
-#             mask_lower_val = minmask,
-#             mask_upper_val = maxmask,
-#             value_for_mask = masked_value,
-#             filter_masked = filter_masked,
-#             slab_sizes = slab_sizes,
-#             fun = apply_fun,
-#             args = args,
-#             PACKAGE = "RMINC")
+#     # generate some random numbers for a single fit in order to extract some extra info
+#     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
 #     
-#     # run the garbage collector...
-#     gcout <- gc()
+#     attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
+#                                 "logLik", "converged")
+#     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
+#     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
+#     attr(out, "REML") <- REML
+#     attr(out, "mask") <- mask
+#     attr(out, "mincLmerList") <- mincLmerList
+#     class(out) <- c("mincLmer", "mincMultiDim", "matrix")
 #     
-#     result_order <-
-#       order(results_indexed$inds)
+#     return(out)
 #     
-#     results <- results_indexed$vals[result_order]
-#     
-#     if(return_indices)
-#       results <- list(vals = results, 
-#                       inds = results_indexed$inds[result_order])
-#     
-#     collation_function <- match.fun(collate)
-#     collated_results <- collation_function(results)
-#     attr(collated_results, "filenames") <- filenames
-#     attr(collated_results, "likeVolume") <- filenames[1]
-#     if(use_mask) attr(collated_results, "mask") <- mask
-#     
-#     return(collated_results)
+#     # out <- t(apply(anat, 2, mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
+#     # 
+#     # out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
+#     # 
+#     # termnames <- colnames(lmod$X)
+#     # betaNames <- paste("beta-", termnames, sep="")
+#     # tnames <- paste("tvalue-", termnames, sep="")
+#     # colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+#     # 
+#     # # generate some random numbers for a single fit in order to extract some extra info
+#     # mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
+#     # 
+#     # attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
+#     #                             "logLik", "converged")
+#     # # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
+#     # attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
+#     # attr(out, "REML") <- REML
+#     # attr(out, "mincLmerList") <- mincLmerList
+#     # attr(out, "atlas") <- attr(anat, "atlas")
+#     # attr(out, "definitions") <- attr(anat, "definitions")
+#     # attr(out, "anat") <- anat
+#     # 
+#     # class(out) <- c("anatLmerModel", "anatModel", "matrix")
+#     # 
+#     # return(out)
 #   }
