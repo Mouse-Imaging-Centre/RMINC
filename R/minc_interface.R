@@ -16,22 +16,13 @@ print.RMINC_MASKED_VALUE <-
   function(x, ...)
     print(as.symbol("masked"))
 
-# Attributes for minc result objects
-known_minc_attributes <-
-  c("filename", "filenames", "likeVolume", "mask", "mincLmerList", "mincLmerLists", "sizes",
-    "model", "stat-type", "df", "dimnames")
+# Attributes to skip when assigning minc object attributes
+attributes_to_skip <- "dim"
 
 #' Get and Set Minc Specific Attributes
 #' 
-#' Manage auxillary information contained in RMINC objects. Currently recognizes:
-#' \itemize{
-#' \item{filenames: filenames of minc files used to create an object}
-#' \item{likeVolume: a minc file to use a structural template when writing out
-#' data}
-#' \item{mask: a mask file associated with the object}
-#' \item{mincLmerList: extra information used in fitting \link{mincLmer}s}
-#' \item{mincLmerLists: collections of mincLmerLists used to compare \link{mincLmer} fits}
-#' }
+#' Manage auxillary information contained in RMINC objects. Currently returns all attributes
+#' except dimension information
 #' @param minc_object the RMINC object of interest typically a \code{mincMultiDim} or
 #' a related class
 #' @param updated_attrs A named list containing the new attributes to be replaced
@@ -42,7 +33,7 @@ mincAttributes <-
   function(minc_object){
     minc_attributes <- attributes(minc_object)
     minc_attributes <- 
-      minc_attributes[names(minc_attributes) %in% known_minc_attributes]
+      minc_attributes[! names(minc_attributes) %in% attributes_to_skip]
     
     return(minc_attributes)
   }
@@ -54,11 +45,6 @@ setMincAttributes <-
     
     if(is.null(updated_attrs) || length(updated_attrs) == 0)
       return(minc_object)
-    
-    if(any(! names(updated_attrs) %in% known_minc_attributes)) 
-      stop(sprintf("New attributes (%s) must be known minc object attribute (%s)",
-                   paste0(updated_attrs, collapse = ", "),
-                   paste0(known_minc_attributes, collapse = ", ")))
     
     all_attrs <- attributes(minc_object)
     
@@ -1118,6 +1104,12 @@ enoughAvailableFileDescriptors <-
     
     return(enough_avail)
   }
+
+## NA corrector
+setNA <- function(x, val){ x[is.na(x) <- val]; x}
+
+## NaN corrector
+setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
 
 #' @title Run Testbed
 #' @description Run the test bed to ensure all RMINC functions
