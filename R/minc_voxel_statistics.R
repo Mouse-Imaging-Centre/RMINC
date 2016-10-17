@@ -763,39 +763,57 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' Perform threshold free cluster enhancement as described in 
 #' Smith and Nichols (2008). Cluster-like structures are enhanced
 #' to allow a hybrid cluster/voxel analysis to be performed.
-#' @param volume Either a character vector with a single filename, 
-#' a \code{mincSingleDim}, or a \code{mincMultiDim} object
+#' @param x Either a character vector with a single filename, a \code{mincSingleDim} object,
+#' or a \code{matrix} object, or \code{mincLm} object.
 #' @param d The discretization step-size for approximating the threshold integral (default .1)
 #' @param E The exponent by which to raise the extent statistic (default .5)
 #' @param H The exponent by which to raise the height (default 2)
 #' @param side Whether to consider positive and negative statistics or both (default both)
 #' @param output_file A filename for the enhanced volume.
-#' @param keep whether to keep the resulting volume, defaults to whether or not you specified
-#' a name for the output volume.
+#' @param keep Whether or not to keep the enhanced volume, defaults to whether or not 
+#' a \code{output_file} was specified.
+#' @param likeVolume A path to a like volume specifying the dimensions of the output volumes
+#' @param alternative The alternative hypothesis for randomization test, either both.sides or
+#' greater are currently supported.
+#' @param R the number of randomizations to perform
+#' @param replace Whether to sample with or without replacement, defaults to without.
+#' @param parallel how many processors to run on (default=single processor).
+#' Specified as a two element vector, with the first element corresponding to
+#' the type of parallelization, and the second to the number
+#' of processors to use. For local running set the first element to "local" or "snowfall"
+#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' and \link{configureMincParallel} for details.
+#' Leaving this argument NULL runs sequentially.
 #' @param ... additional arguments for methods
+#' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
+#' in the single dimensional case, a string denoting a minc file or a \code{mincSingleDim} object
+#' it returns a \code{mincSingleDim} object with the result, optionally saving the file if
+#' keep is set to true. In the matrix case each column is converted to a \code{mincSingleDim} in
+#' accordance with the \code{likeVolume}, this is then cluster enhanced and recomposed into a matrix.
+#' In the mincLm case a randomization test is performed with the t-stats enhanced computing the proportion
+#' of random values that exceed the value originally observed in the \code{mincLm} object, a matrix
+#' or these proportions is returned.
 #' @return A minc volume with the results of the enhancement
 #' @export  
 mincTFCE <-
-  function(volume, d = 0.1, E = .5, H = 2.0
-           , side = c("both", "positive", "negative")
-           , output_file = NULL
-           , keep = is.null(output_file)
-           , ...) {
+  function(x, ...) {
     
     UseMethod("mincTFCE")
   }
 
-#' @method mincTFCE mincSingleDim
+#' @describeIn mincTFCE mincSingleDim
 #' @export 
 mincTFCE.mincSingleDim <-
-  function(volume, d = 0.1, E = .5, H = 2.0
+  function(x, d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
            , output_file = NULL
            , keep = is.null(output_file)
            , ...){
     
-    side <- match.arg(side)
+    volume  <- x
+    side    <- match.arg(side)
     in_file <- tempfile("minc_tfce_in", fileext = ".mnc")
+    
     on.exit(unlink(in_file))
     
     if(is.null(output_file))
@@ -827,15 +845,15 @@ mincTFCE.mincSingleDim <-
     out_vol
   }
 
-#' @method mincTFCE matrix
+#' @describeIn mincTFCE matrix
 #' @export
 mincTFCE.matrix <- 
-  function(mat, d = 0.1, E = .5, H = 2.0
+  function(x, d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
            , likeVolume
            , ...){
     mapply(function(col_ind, d){
-      mat[,col_ind] %>%
+      x[,col_ind] %>%
         `class<-`(c("mincSingleDim", "numeric")) %>%
         `likeVolume<-`(likeVolume) %>%
         setNA(0) %>%
@@ -847,24 +865,27 @@ mincTFCE.matrix <-
 getCall.mincLm <-
   function(x, ...) attributes(x)$call
 
-#' @method mincTFCE mincLm
+#' @describeIn mincTFCE mincLm
 #' @export
 mincTFCE.mincLm <- 
-  function(lmod, alternative = c("two.sided", "greater")
+  function(x, alternative = c("two.sided", "greater")
            , d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
            , R = 500
+           , replace = FALSE
            , parallel = NULL
            , ...){
     
     # Setup useful local variables
-    alternative       <- match.arg(alternative)
-    side              <- match.arg(side)
-    lmod_data         <- attr(lmod, "data")
-    lmod_call         <- attr(lmod, "call")
-    lmod_lhs          <- as.character(lmod_call[["formula"]][[2]])
-    t_columns         <- colnames(lmod)[grepl("tvalue-", colnames(lmod))]
-    like_vol          <- likeVolume(lmod)
+    lmod        <- x
+    alternative <- match.arg(alternative)
+    side        <- match.arg(side)
+    lmod_data   <- attr(lmod, "data")
+    lmod_call   <- attr(lmod, "call")
+    lmod_lhs    <- as.character(lmod_call[["formula"]][[2]])
+    pred_cols   <- names(lmod_data)[names(lmod_data) != lmod_lhs]
+    t_columns   <- colnames(lmod)[grepl("tvalue-", colnames(lmod))]
+    like_vol    <- likeVolume(lmod)
     
     # Compute the TFCE statistic for the t-stat columns of mincLm
     lmod_tfce <- 
@@ -876,7 +897,8 @@ mincTFCE.mincLm <-
       Reduce(function(acc, i){
         # Permute the filenames
         shuf_data <- lmod_data
-        shuf_data[,lmod_lhs] <- lmod_data %>% `$`(lmod_lhs) %>% sample(replace = replace)
+        shuf_data[,pred_cols] <- 
+          lmod_data[sample(seq_len(nrow(lmod_data)), replace = replace), pred_cols]
         
         # relies on RMINC:::getCall.mincLm to get update to do its magic
         new_mod   <- update(lmod, data = shuf_data)
@@ -901,7 +923,7 @@ mincTFCE.mincLm <-
     } else {
       
       n_groups <- as.numeric(parallel[2])
-      group_sizes <- table(RMINC:::groupingVector(R, n_groups))
+      group_sizes <- table(groupingVector(R, n_groups))
       
       if (parallel[1] %in% c("local", "snowfall")) {
         result <- 
@@ -924,8 +946,10 @@ mincTFCE.mincLm <-
       } 
     }
     
+    result <- setMincAttributes(result, mincLm)
+    
     result
-  }
+}
 
 
 

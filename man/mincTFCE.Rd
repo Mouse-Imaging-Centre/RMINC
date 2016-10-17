@@ -2,14 +2,29 @@
 % Please edit documentation in R/minc_voxel_statistics.R
 \name{mincTFCE}
 \alias{mincTFCE}
+\alias{mincTFCE.matrix}
+\alias{mincTFCE.mincLm}
+\alias{mincTFCE.mincSingleDim}
 \title{Threshold Free Cluster Enhancement}
 \usage{
-mincTFCE(volume, d = 0.1, E = 0.5, H = 2, side = c("both", "positive",
-  "negative"), output_file = NULL, keep = is.null(output_file), ...)
+mincTFCE(x, ...)
+
+\method{mincTFCE}{mincSingleDim}(x, d = 0.1, E = 0.5, H = 2,
+  side = c("both", "positive", "negative"), output_file = NULL,
+  keep = is.null(output_file), ...)
+
+\method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2, side = c("both",
+  "positive", "negative"), likeVolume, ...)
+
+\method{mincTFCE}{mincLm}(x, alternative = c("two.sided", "greater"),
+  d = 0.1, E = 0.5, H = 2, side = c("both", "positive", "negative"),
+  R = 500, replace = FALSE, parallel = NULL, ...)
 }
 \arguments{
-\item{volume}{Either a character vector with a single filename, 
-a \code{mincSingleDim}, or a \code{mincMultiDim} object}
+\item{x}{Either a character vector with a single filename, a \code{mincSingleDim} object,
+or a \code{matrix} object, or \code{mincLm} object.}
+
+\item{...}{additional arguments for methods}
 
 \item{d}{The discretization step-size for approximating the threshold integral (default .1)}
 
@@ -21,12 +36,36 @@ a \code{mincSingleDim}, or a \code{mincMultiDim} object}
 
 \item{output_file}{A filename for the enhanced volume.}
 
-\item{keep}{whether to keep the resulting volume, defaults to whether or not you specified
-a name for the output volume.}
+\item{keep}{Whether or not to keep the enhanced volume, defaults to whether or not 
+a \code{output_file} was specified.}
 
-\item{...}{additional arguments for methods}
+\item{likeVolume}{A path to a like volume specifying the dimensions of the output volumes}
+
+\item{alternative}{The alternative hypothesis for randomization test, either both.sides or
+greater are currently supported.}
+
+\item{R}{the number of randomizations to perform}
+
+\item{replace}{Whether to sample with or without replacement, defaults to without.}
+
+\item{parallel}{how many processors to run on (default=single processor).
+Specified as a two element vector, with the first element corresponding to
+the type of parallelization, and the second to the number
+of processors to use. For local running set the first element to "local" or "snowfall"
+for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+and \link{configureMincParallel} for details.
+Leaving this argument NULL runs sequentially.}
 }
 \value{
+The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
+in the single dimensional case, a string denoting a minc file or a \code{mincSingleDim} object
+it returns a \code{mincSingleDim} object with the result, optionally saving the file if
+keep is set to true. In the matrix case each column is converted to a \code{mincSingleDim} in
+accordance with the \code{likeVolume}, this is then cluster enhanced and recomposed into a matrix.
+In the mincLm case a randomization test is performed with the t-stats enhanced computing the proportion
+of random values that exceed the value originally observed in the \code{mincLm} object, a matrix
+or these proportions is returned.
+
 A minc volume with the results of the enhancement
 }
 \description{
@@ -34,4 +73,12 @@ Perform threshold free cluster enhancement as described in
 Smith and Nichols (2008). Cluster-like structures are enhanced
 to allow a hybrid cluster/voxel analysis to be performed.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{mincSingleDim}: mincSingleDim
+
+\item \code{matrix}: matrix
+
+\item \code{mincLm}: mincLm
+}}
 
