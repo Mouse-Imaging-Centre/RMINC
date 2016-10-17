@@ -5,3 +5,4 @@
 ^.Rhistory$
 ^.travis.yml$
 ^.git$
+^tests/testthat/test_torque_parallel.R$
