@@ -86,7 +86,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
     
     if(parallel[1] == "local") {
       results <- 
-        parallel::mclapply(groups, function(group){
+        quiet_mclapply(groups, function(group){
           apply_fun(mat[group,])
         }, mc.cores = n_groups) %>%
         Reduce(cbind, ., NULL)

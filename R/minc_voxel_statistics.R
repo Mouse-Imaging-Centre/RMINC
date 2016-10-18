@@ -557,7 +557,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
-        parallel::mclapply(groups, function(group){
+        quiet_mclapply(groups, function(group){
           mincLm_c_wrapper(parseLmOutput, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
         }, mc.cores = n_groups) %>%
         Reduce(rbind, ., NULL) 
@@ -930,7 +930,7 @@ mincTFCE.mincLm <-
       
       if (parallel[1] %in% c("local", "snowfall")) {
         result <- 
-          parallel::mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
+          quiet_mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
           Reduce(`+`, ., 0) %>%
           `/`(R)
       }
