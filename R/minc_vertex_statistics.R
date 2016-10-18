@@ -390,6 +390,59 @@ vertexLmer <-
     return(out)
   }
 
+vertexLmerEstimateDF <-
+  function(model){
+    # set the DF based on the Satterthwaite approximation
+    mincLmerList <- attr(model, "mincLmerList")
+    
+    initial_frame <- #unpack the lmerList object to get the raw data
+      attr(model, "mincLmerList")[[1]]$fr
+    
+    vertex_data <- vertexTable(initial_frame[,1])
+    
+    # estimated DF depends on the input data. Rather than estimate separately at every structure,
+    # instead select a small number of structures and estimate DF for those structures, then keep the
+    # min
+    nvertices <- min(50, nrow(model))
+    rvertices <- sample(1:nrow(model), nvertices)
+    dfs <- matrix(nrow = nvertices, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
+    
+    for (i in 1:nvertices) {
+      vertex_vals <- vertex_data[i,]
+      
+      ## It seems LmerTest cannot compute the deviance function for mincLmers
+      ## in the current version, instead extract the model components from
+      ## the mincLmerList and re-fit the lmers directly at each structure,
+      ## Slower but yeilds the correct result
+      lmod <- mincLmerList[[1]]
+      lmod$fr[,1] <- vertex_vals
+      
+      # Rebuild the environment of the formula, otherwise updating does not
+      # work in the lmerTest code
+      environment(lmod$formula)$lmod <- lmod
+      environment(lmod$formula)$mincLmerList <- mincLmerList
+      
+      mmod <-
+        lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+                       start = mincLmerList[[4]], control = mincLmerList[[3]],
+                       verbose = mincLmerList[[5]])
+      
+      dfs[i,] <- 
+        lmerTest::summary(mmod)$coefficients[,"df"]
+    }
+    
+    df <- apply(dfs, 2, median)
+    cat("Mean df: ", apply(dfs, 2, mean), "\n")
+    cat("Median df: ", apply(dfs, 2, median), "\n")
+    cat("Min df: ", apply(dfs, 2, min), "\n")
+    cat("Max df: ", apply(dfs, 2, max), "\n")
+    cat("Sd df: ", apply(dfs, 2, sd), "\n")
+    
+    attr(model, "df") <- df
+    
+    return(model)
+  }
+
 # vertexLmer <-
 #   function(formula, data, mask=NULL, parallel=NULL,
 #            REML=TRUE, control=lmerControl(), start=NULL, 

@@ -833,7 +833,7 @@ anatLmer <-
     attr(out, "definitions") <- attr(anat, "definitions")
     attr(out, "anat") <- anat
     
-    class(out) <- c("anatLmerModel", "anatModel", "matrix")
+    class(out) <- c("anatLmer", "anatModel", "matrix")
     
     return(out)
   }
@@ -987,11 +987,6 @@ anatCreateVolume <- function(anat, filename, column=1) {
   mincWriteVolume(newvolume, filename, attr(anat, "atlas"))
   
   return(invisible(newvolume))
-}
-
-#' @export
-anatFDR <- function(buffer, method="FDR") {
-  vertexFDR(buffer, method)
 }
 
 #' anatSummaries
