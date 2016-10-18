@@ -13,9 +13,9 @@ verboseRun({
   defs <- "/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013/Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv" 
   
   test_that("MincLm works in parallel", {
-    sMincLm <- mincLm(files ~ sex*age, data = df)
-    pMincLm <- mincLm(files ~ sex*age, data = df, parallel = c("local", 4))
-    qMincLm <- mincLm(files ~ sex*age, data = df, parallel = c("pbs", 6))
+    system.time(sMincLm <- mincLm(files ~ sex*age, data = df))
+    system.time(pMincLm <- mincLm(files ~ sex*age, data = df, parallel = c("local", 4)))
+    system.time(qMincLm <- mincLm(files ~ sex*age, data = df, parallel = c("pbs", 6)))
     
     expect_equal(sMincLm, pMincLm, check.attributes = FALSE)
     expect_equal(sMincLm, qMincLm, check.attributes = FALSE)
@@ -38,6 +38,28 @@ verboseRun({
       t
     
     expect_equal(slow_fit, vslmer[test_inds, 1:2], check.attributes = FALSE)
+  })
+  
+  test_that("AnatGetAll works in parallel", {
+    anat_frame <- 
+      read.csv("/hpf/largeprojects/MICe/vousdend/osmopumps/documents/final_osmostic_pump_image_list.csv") %>%
+      filter(Useable == 1)
+    
+    anat_files <- 
+      system("ls /hpf/largeprojects/MICe/vousdend/osmopumps/registration/full_maget/08feb15_maget/*_no_nuc_no_inorm_lsq6/labels/*votedlabels.mnc"
+             , intern = TRUE)
+    
+    aga <- anatGetAll2(anat_files, method = "labels"
+                       , defs = "/hpf/largeprojects/MICe/tools/atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv")
+    paga <- anatGetAll2(anat_files, method = "labels"
+                        , defs = "/hpf/largeprojects/MICe/tools/atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv"
+                        , parallel = c("local", 4))
+    qaga <- anatGetAll2(anat_files, method = "labels"
+                        , defs = "/hpf/largeprojects/MICe/tools/atlases/Dorr_2008/Dorr_2008_mapping_of_labels.csv"
+                        , parallel = c("pbs", 6))
+    
+    expect_equal(aga, paga)
+    expect_equal(aga, qaga)
   })
 })
 
