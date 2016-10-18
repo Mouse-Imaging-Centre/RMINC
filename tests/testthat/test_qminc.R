@@ -1,5 +1,5 @@
 library(testthat)
-context("test_qminc_apply")
+context("Parallel Functions")
 
 getRMINCTestData()
 dataPath <- file.path(tempdir(), "rminctestdata/")
