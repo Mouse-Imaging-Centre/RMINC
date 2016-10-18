@@ -213,7 +213,6 @@ mincFDRThresholdVector <- function(pvals, qvals, thresholdFunc=NULL,
 #' @describeIn mincFDR mincLmer
 #' @export
 mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
-  cat("In mincFDR.mincLmer\n")
   
   # if no DF set, exit with message
   df <- attr(buffer, "df")
