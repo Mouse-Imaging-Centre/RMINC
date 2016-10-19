@@ -485,6 +485,12 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   #INITIALIZATION
   method <- "lm"
   
+  # Make a wrapper function (don't move this, otherwise the env get bigger)
+  parallel_mincLm_c <- 
+    function(group, plm, mask, mask_vol){
+      mincLm_c_wrapper(plm, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
+    }
+  
   # Build model.frame
   m <- m_orig <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -557,20 +563,20 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
-        quiet_mclapply(groups, function(group){
-          mincLm_c_wrapper(parseLmOutput, new_mask_file, mask_min = group, mask_max = group)[mask_vol == group, ]
-        }, mc.cores = n_groups) %>%
+        quiet_mclapply(groups
+                       , parallel_mincLm_c
+                       , plm = parseLmOutput, mask = new_mask_file, mask_vol = mask_vol
+                       , mc.cores = n_groups) %>%
         Reduce(rbind, ., NULL) 
     }
     else {
       reg <- makeRegistry("mincLm_registry")
       on.exit( try(removeRegistry(reg, ask = "no")), add = TRUE)
       
-      suppressWarnings(
-        batchMap(reg, function(group){
-          mincLm_c_wrapper(parseLmOutput, new_mask_file, mask_min = group, mask_max = group)[mask_vol == group, ]
-        }, group = groups)
-      )
+      batchMap(reg
+               , parallel_mincLm_c
+               , group = groups
+               , more.args = list(plm = parseLmOutput, mask = new_mask_file, mask_vol = mask_vol))
       
       submitJobs(reg)
       waitForJobs(reg)
