@@ -113,7 +113,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
   if(!is.null(mask)){
     results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
     results_expanded[mask_lgl, ] <- results
-    results <- results
+    results <- results_expanded
   }
   
   if(ncol(results) == 1) dim(results) <- NULL
