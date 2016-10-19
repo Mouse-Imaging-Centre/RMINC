@@ -558,7 +558,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
         quiet_mclapply(groups, function(group){
-          mincLm_c_wrapper(parseLmOutput, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
+          mincLm_c_wrapper(parseLmOutput, new_mask_file, mask_min = group, mask_max = group)[mask_vol == group, ]
         }, mc.cores = n_groups) %>%
         Reduce(rbind, ., NULL) 
     }
@@ -568,7 +568,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
       
       suppressWarnings(
         batchMap(reg, function(group){
-          mincLm_c_wrapper(parseLmOutput, mask, mask_min = group, mask_max = group)[mask_vol == group, ]
+          mincLm_c_wrapper(parseLmOutput, new_mask_file, mask_min = group, mask_max = group)[mask_vol == group, ]
         }, group = groups)
       )
       
