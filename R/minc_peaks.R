@@ -96,7 +96,7 @@ mincFindPeaks <- function(inputStats, column=1, direction="both", minDistance=NA
 #' @return tags as a ntags by 7 matrix
 #' @export
 mincGetTagFile <- function(filename) {
-  tags <- scan(filename, what="character")
+  tags <- scan(filename, what="character", quiet = TRUE)
   # tag points begin after Points = line
   beginIndex <- grep("Points", tags) + 2
   endIndex <- length(tags)-1 # get rid of training ;
