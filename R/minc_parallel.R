@@ -74,6 +74,16 @@ create_parallel_mask <-
     return(mask_file)
   }
 
+tenacious_remove_registry <- 
+  function(reg){
+    tryCatch(removeRegistry(reg, ask = "no")
+             , error = 
+               function(e){
+                 killJobs(reg, findNotTerminated(reg))
+                 removeRegistry(reg, ask = "no")
+               })
+  }
+
 #' Parallel MincApply
 #' 
 #' Apply an arbitrary R function across a collection of minc files, distributing
@@ -391,8 +401,8 @@ qMincApply <-
     
     on.exit({
       if(cleanup && wait){
-        try(removeRegistry(qMinc_registry, ask = "no"))
         try(lapply(list.files(temp_dir, pattern = "pMincMask.*\\.mnc"), unlink))
+        tenacious_remove_registry(qMinc_registry)
       } 
     })
     

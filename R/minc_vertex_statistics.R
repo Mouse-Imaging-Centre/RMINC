@@ -92,7 +92,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
         Reduce(cbind, ., NULL)
     } else {
       reg <- makeRegistry("matrixApply_registry")
-      on.exit( try(removeRegistry(reg, ask = "no")))
+      on.exit( tenacious_remove_registry(reg) )
       
       batchMap(reg, function(group){
         apply_fun(mat[group,])

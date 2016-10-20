@@ -208,7 +208,7 @@ anatGetAll2 <-
       }
       else {
         reg <- makeRegistry("anatGet_registry")
-        on.exit( try(removeRegistry(reg, ask = "no")))
+        on.exit( tenacious_remove_registry(reg) )
         
         suppressWarnings( #Warning suppression for large env for function (>10mb)
           batchMap(reg, function(group){

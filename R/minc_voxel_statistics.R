@@ -571,7 +571,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     }
     else {
       reg <- makeRegistry("mincLm_registry")
-      on.exit( try(removeRegistry(reg, ask = "no")), add = TRUE)
+      on.exit( tenacious_remove_registry(reg), add = TRUE)
       
       batchMap(reg
                , parallel_mincLm_c
@@ -942,7 +942,7 @@ mincTFCE.mincLm <-
       }
       else {
         reg <- makeRegistry("mincTFCE_registry")
-        on.exit( try(removeRegistry(reg, ask = "no")), add = TRUE)
+        on.exit( tenacious_remove_registry(reg), add = TRUE)
         
         suppressWarnings( #Warning suppression for large env for bootmodel (>10mb)
           batchMap(reg, boot_model, group = group_sizes)
