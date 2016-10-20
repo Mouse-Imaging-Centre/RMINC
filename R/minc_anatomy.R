@@ -402,10 +402,6 @@ label_counts <-
     results
   }
 
-# both unilateral and bilateral matrices can be printed the same way
-print.anatMatrix <- function(x, ...) {
-  print.table(x)
-}
 ###########################################################################################
 #' @description Computes volumes, means, sums, and similar values across a
 #' segmented atlas
