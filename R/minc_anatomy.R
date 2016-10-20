@@ -347,6 +347,14 @@ create_anat_results <-
     results
   }
 
+#' @export
+print.anatMatrix <- function(x, n = 6, width = 6){
+  sub_x <- x[seq_len(n), seq_len(width)]
+  
+  print(sub_x)
+  invisible(x)
+}
+
 anatomy_summary <- 
   function(filenames, atlas, 
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
