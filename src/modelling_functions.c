@@ -941,6 +941,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     number_of_protects += 1;
   }
   xoutput = REAL(output);
+  for(i=0; i < (sizes[0] * sizes[1] * sizes[2]); ++i) xoutput[i] = 0;
     
   //PROTECT(R_fcall = lang2(fn, R_NilValue));
 
@@ -1132,23 +1133,6 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
                 xoutput[output_index + (k + p + 1) * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k];
               }
             }
-            /*
-             else if (strcmp(method_name, "anova") == 0) {
-             t_sexp = voxel_anova(buffer, Sx, asgn,
-             coefficients, residuals,
-             effects, work, qraux, v, pivot,
-             se, t, comp, ss, df);
-             for(i=0; i < maxasgn-1; i++) {
-             xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] 
-             = REAL(t_sexp)[i];
-             }
-             }
-             */
-          }
-          else {
-            // this is the else that checked whether we have a mask and 
-            // are in the masked area. In this case, we are outside the mask
-            xoutput[output_index] = 0;
           }
         }
       }
