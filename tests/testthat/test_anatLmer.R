@@ -27,17 +27,15 @@ test_that("anatLmer works", {
                method = "jacobians",
                defs = labels)
   
-  expect_warning(
+  suppressWarnings(
     lmer_res_nlhs <- anatLmer( ~ Pain.sensitivity + (1|Genotype), 
-                               data = gf, anat = jacobians)
-    , regexp = "bobyqa")
+                               data = gf, anat = jacobians))
   
-  expect_warning(
+  suppressWarnings(
     lmer_res_lhs <- anatLmer(dummy ~ Pain.sensitivity + (1|Genotype), 
-                             data = gf, anat = jacobians)
-    , regexp = "bobyqa")
+                             data = gf, anat = jacobians))
   
-  expect_warning({
+  suppressWarnings({
     lmer_ref <-
       apply(jacobians, 2, function(col){
         gf2 <- gf %>% mutate(resp = col)
@@ -45,7 +43,7 @@ test_that("anatLmer works", {
         RMINC:::mincLmerExtractVariables(mod)
       }) %>%
       t
-  }, regexp = "bobyqa")
+  })
   
   expect_equal(unclass(lmer_res_nlhs), lmer_ref, tolerance = 10e-5, check.attributes = FALSE)
   expect_equal(lmer_res_lhs, lmer_res_nlhs, tolerance = 10e-5, check.attributes = FALSE)
