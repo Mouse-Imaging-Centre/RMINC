@@ -874,8 +874,8 @@ mincTFCE.matrix <-
 getCall.mincLm <-
   function(x, ...) attributes(x)$call
 
-#' @describeIn mincTFCE mincLm
-#' @export
+# @describeIn mincTFCE mincLm
+# @export
 mincTFCE.mincLm <- 
   function(x, alternative = c("two.sided", "greater")
            , d = 0.1, E = .5, H = 2.0
