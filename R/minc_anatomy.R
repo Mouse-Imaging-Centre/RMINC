@@ -148,7 +148,7 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' @return A matrix with ncols equal to the number of labels in the atlas and
 #' nrows equal to the number of files.
 #' @export
-anatGetAll2 <-
+anatGetAll <-
   function(filenames, atlas = NULL, 
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
            method = c("jacobians", "labels", "sums", "means"), 
