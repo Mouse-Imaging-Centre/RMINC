@@ -1,3 +1,42 @@
+New in Version 1.4.3
+======================
+* Mixed effects for all
+  - added vertex and anatLmer variants along with degrees of freedom
+    estimation and FDR correction
+* Major parallelism updates
+  - offload configuration to BatchJobs, see ?configureMincParallel
+  - provide graceful exit and cleanup if interrupted
+* Parallelize all the things (for local and queued systems)
+  - mincLm (+ minor performance improvement)
+  - vertexLmer
+  - vertexApply
+  - anatLmer
+  - anatGetAll
+* vertexApply behaves more like apply, no longer requires a quoted function string
+  accepting a function name and an arbitrary number of additional arguments
+* MincLmer returns the full volume matrix as opposed to the masked subset
+* Peak finding: Find local optima in a minc volume subject to constraints
+* anatGetAll rewrite:
+  - 10-15x faster for method = "labels" (and parallelizable)
+  - More informative errors
+  - no minc-stuffs dependency
+  - atlas name no longer required for method = "labels"
+  - pretty printing
+* File and vector masks for vertex operations (apply, lmer)
+* Simple single volume and matrix TFCE interfaces, randomization tests
+  complete but inadequately tested
+* Mesh->Graph conversion (via igraph) opens surface oriented graph algorithms
+* thresholds method for FDR (mincQValues) objects to retrieve matrix of thresholds
+  and a summary to tabulate N significant tests per threshold
+* maskFile(obj) and maskFile(obj) <- "mask.mnc" methods for getting/setting masks
+* likeVolume(obj) and likeVolume(obj) <- "vol.mnc" methods for getting/setting likeVolumes
+* simple civet QC reader civet.readQC
+* Surface transpareny for surface renderings with add_opacity
+* Decrease mincGetVolume verbosity
+* File handle problem detection with many files.
+
+
+
 New in Version 1.4.0.0
 ========================
 *** Aiming for CRAN
