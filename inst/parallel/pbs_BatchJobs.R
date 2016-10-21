@@ -2,7 +2,5 @@ cluster.functions <- makeClusterFunctionsTorque(system.file("parallel/pbs_script
 default.resources <-
   list(nodes = 1,
        vmem = "8G",
-       walltime = "01:00:00",
-       modules = NULL,
-       module_paths = NULL)
+       walltime = "01:00:00")
 
