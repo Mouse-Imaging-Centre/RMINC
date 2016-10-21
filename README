@@ -31,6 +31,8 @@ Tutorials
 RMINC provides learning material:
 
 Voxel-wise Statistics: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
+
+How RMINC Parallel Works: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html
  
 RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
 

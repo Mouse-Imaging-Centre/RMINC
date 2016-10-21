@@ -4,9 +4,9 @@ INSTALLATION
 **Currently there is no support for RMINC on windows**
 
 Every effort has been made to make RMINC as easy to install as possible. 
-For most systems install.packages("RMINC") should be all you need
-to begin experimenting with MINC files in R. For a richer experience
-The highly recommended approach is to acquire the minc-toolkit (v2),
+For most systems, devtools::install_github("Mouse-Imaging-Centre/RMINC") should 
+be all you need to begin experimenting with MINC files in R. For a richer 
+experience, the highly recommended approach is to acquire the minc-toolkit (v2),
 this package will allow you to use command line tools in addition
 to RMINC to manipulate minc files.
 

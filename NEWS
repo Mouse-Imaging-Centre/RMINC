@@ -12,6 +12,8 @@ New in Version 1.4.3
   - vertexApply
   - anatLmer
   - anatGetAll
+* Explanation of parallel use and implementation in 
+  RMINC/documentation/RMINC_parallelism.html
 * vertexApply behaves more like apply, no longer requires a quoted function string
   accepting a function name and an arbitrary number of additional arguments
 * MincLmer returns the full volume matrix as opposed to the masked subset
