@@ -6,7 +6,7 @@ verboseRun({
   })
   
   test_inside <- function(test, code, env = test_env()){
-    test_that(test, evalq(code, envir = env))
+    test_that(test, eval(code, envir = env))
   }
   
   df <- read.csv("/hpf/largeprojects/MICe/dfernandes/lqiu_long/all_relative_jacobians/files.csv")
@@ -40,7 +40,7 @@ verboseRun({
       simplify2array %>%
       t
     
-    expect_equal(slow_fit, vslmer[test_inds, 1:2], check.attributes = FALSE)
+    expect_equal(slow_fit, vslmer[test_inds, 1:4], check.attributes = FALSE)
   })
   
   anat_env <- new.env()
@@ -66,7 +66,7 @@ verboseRun({
     expect_equal(aga, qaga)
   }, anat_env)
   
-  test_that("AnatLmer works in Parallel", {
+  test_inside("AnatLmer works in Parallel", {
     
     almer <- anatLmer(~ Dose + (1|Cage), data = anat_frame, anat = aga)
     palmer <- anatLmer(~ Dose + (1|Cage), data = anat_frame, anat = aga, parallel = c("local", 4))
