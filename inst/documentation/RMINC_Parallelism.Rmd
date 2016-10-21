@@ -4,7 +4,7 @@ author: "Chris Hammill"
 date: "October 20, 2016"
 output: html_document
 ---
-
+<div style="line-height: 170%">
 The vast majority of problems tackled by RMINC as of 2016 are considered
 ["embarassingly parallel"](https://en.wikipedia.org/wiki/Embarrassingly_parallel) this means that
 the problem can be broken into smaller pieces that can be solved completely independently. Take
@@ -20,15 +20,19 @@ Imagine for example there are some simple images that are 10 x 10 x 10 voxels.
 
 ```{r}
 library(RMINC)
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
+
+## Pull in some example data
 getRMINCTestData("./")
 
-image_frame <- read.csv("test_data_set.csv", stringsAsFactors = FALSE)
+## Read a csv containing the paths to the test files and some covariates
+image_frame <- read.csv("rminctestdata/test_data_set.csv", stringsAsFactors = FALSE)
 
+## Take a look at a few sample slices through the first volume volume
 image_frame$jacobians_fixed_2[1] %>%
   mincGetVolume %>%
   mincArray %>%
-  mincPlotSliceSeries(mfrow = c(2,2))
+  mincPlotSliceSeries(mfrow = c(2,2), begin = 2, end = -2)
 ```
 
 Now to see if the values at each voxel depend on some variable, body weight for example, we can fit a linear model. Since 
@@ -44,6 +48,7 @@ image_frame$jacobians_fixed_2[1] %>%
   mincPlotSliceSeries(statistic = mincArray(model, "tvalue-Body.Weight")
                       , symmetric = TRUE
                       , low = 2, high = 5
+                      , begin = 2, end = -2
                       , legend = "t-value", locator = FALSE
                       , mfrow = c(2,2))
 ```
@@ -72,7 +77,7 @@ Each of these can run sequentially, locally (multicore), or on a cluster.
 ## RMINC on a Cluster
 
 Using RMINC on a cluster is now relatively simple. Thanks to the wonderful 
-["BatchJobs"](https://github.com/tudo-r/BatchJobs/blob/master/README.md)
+["BatchJobs"](https://github.com/tudo-r/BatchJobs/blob/master/README.md) package 
 RMINC can be configured to run on Torque, SGE, Slurm, ad-hoc SSH clusters and more. We and our collaborators typically 
 use Torque and SGE but using these other systems is possible with a little configuration effort. 
 
@@ -87,17 +92,29 @@ To setup RMINC to run on your cluster you can do one of the following:
   
 For example:
 
+```{r, include=FALSE}
+setConfig(
+  list(default.resources = 
+         list(nodes = 1, vmem = "8G", walltime = "01:00:00", extras = "-l q=defdev.q")))
+```
+
 ```{r}
+## Tell RMINC to use the default SGE configuration
 configureMincParallel("sge")
 
-qmodel <- mincLm(jacobians_fixed_2 ~ Body.Weight, data = image_frame, parallel = c("sge", 6))
+## Quietly fit a mincLm using 6 SGE cores
+suppressMessages(  
+  qmodel <- mincLm(jacobians_fixed_2 ~ Body.Weight, data = image_frame, parallel = c("sge", 6))
+)
 
+##  Check the results look the same as the local version
 image_frame$jacobians_fixed_2[1] %>%
   mincGetVolume %>%
   mincArray %>%
   mincPlotSliceSeries(statistic = mincArray(qmodel, "tvalue-Body.Weight")
                       , symmetric = TRUE
                       , low = 2, high = 5
+                      , begin = 2, end = -2
                       , legend = "t-value", locator = FALSE
                       , mfrow = c(2,2))
 
@@ -118,16 +135,15 @@ the following:
      If you are configuring for your site this will likely involve editing the configuration files
      in the BatchJobs package itself.
   2. Use the Rprofile mechanisms (see `?Startup`) to load the following: 
-     ```
+    ```{r, eval = FALSE}
      setHook(packageEvent("RMINC", "attach"),
            function(...) 
               BatchJobs::loadConfig(system.file("parallel/pbs_BatchJobs.R", package = "RMINC")))
-     ```
-     For our setup, I organized a module that sets the `R_PROFILE` environment variable (in addition
-     to the package libraries) that points to a file containing the above code. This instructs
-     R to load the pbs configuration file when RMINC is attached.
-
-I recommend option two.
+    ```
+    
+For our setup, I organized a module that sets the `R_PROFILE` environment variable (in addition
+to the package libraries) that points to a file containing the above code. This instructs
+R to load the pbs configuration file when RMINC is attached.
 
 The default PBS configuration file looks like:
 
@@ -189,14 +205,222 @@ setConfig(
   list(default.resources = 
          list(nodes = 1, vmem = "8G", walltime = "02:00:00")))
 ```
-```{r, include=FALSE}
-setConfig(
-  list(default.resources = 
-         list(nodes = 1, vmem = "8G", walltime = "02:00:00", extras = "-l q=defdev.q")))
-```
 
 I know the nested lists are cumbersome, but ideally reconfiguring mid-session should be rare.
 
 It is also important to note that with RMINC 1.4.3 nested parallelism (as is required for SciNet)
 has been discontinued. It introduced unnecessary fragility into the code. If enough users request
 this be supported it will be re-added to a future release.
+
+```{r, include = FALSE}
+unlink("rminctestdata.tar.gz")
+unlink("rminctestdata/", recursive = TRUE)
+```
+
+
+## Internals For Intrepid Developers
+
+The basics of parallel system is to dispatch one of three commands, the basic sequential form, the local
+form, and the queued form. Within the parallel forms the first task is to divide the problem into pieces.
+
+We'll look at vertexApply as a simple case study
+
+```{r, eval = FALSE}
+vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL) 
+{
+  # Load the data
+  vertexData <- vertexTable(filenames)
+  
+  results <- matrixApply(vertexData, fun, ..., mask = mask, parallel = parallel)
+  attr(results, "likeFile") <- filenames[1]
+  
+  results
+}
+```
+
+First the filenames are converted into a matrix of values with each column representing a subject and each row representing
+a vertex. This is shipped off to `matrixApply` an internal alternative to `apply` that can parallelize both locally and on
+a queue.
+
+```{r, eval = FALSE}
+matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
+  
+  if(!is.null(mask)){
+    if(length(mask) == 1 && is.character(mask))
+      mask <- readLines(mask)
+    
+    mask_lgl <- mask > .5
+    mat <- mat[mask_lgl,]
+  }
+  
+  fun <- match.fun(fun)
+  
+  apply_fun <- function(sub_matrix){
+    if(!is.matrix(sub_matrix))
+      sub_matrix <- matrix(sub_matrix, nrow = 1)
+    
+    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
+      matrix(ncol = nrow(sub_matrix))
+  }
+  
+  if(is.null(parallel)){
+    results <- apply_fun(mat)
+  } else {
+    n_groups <- as.numeric(parallel[2])
+    groups <- split(seq_len(nrow(mat)), groupingVector(nrow(mat), n_groups))
+    
+    if(parallel[1] == "local") {
+      results <- 
+        quiet_mclapply(groups, function(group){
+          apply_fun(mat[group,])
+        }, mc.cores = n_groups) %>%
+        Reduce(cbind, ., NULL)
+    } else {
+      reg <- makeRegistry("matrixApply_registry")
+      on.exit( tenacious_remove_registry(reg) )
+      
+      batchMap(reg, function(group){
+        apply_fun(mat[group,])
+      }, group = groups)
+      
+      submitJobs(reg)
+      waitForJobs(reg)
+      
+      results <-
+        loadResults(reg, use.names = FALSE) %>%
+        Reduce(cbind, ., NULL)
+    }
+  }
+  
+  # The apply part (transpose to match output of mincApply)
+  results <- t(results)
+  
+  if(!is.null(mask)){
+    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
+    results_expanded[mask_lgl, ] <- results
+    results <- results_expanded
+  }
+  
+  if(ncol(results) == 1) dim(results) <- NULL
+  
+  results
+}
+```
+
+We'll break it down section by section:
+
+The first block handles numeric and file name masks. This is used to subset the rows to save computation time 
+
+```{r, eval = FALSE}
+  if(!is.null(mask)){
+    if(length(mask) == 1 && is.character(mask))
+      mask <- readLines(mask)
+    
+    mask_lgl <- mask > .5
+    mat <- mat[mask_lgl,]
+  }
+```
+
+match.fun ensures that the function passed in is a properly bound function.
+```{r, eval = FALSE}
+fun <- match.fun(fun)
+```
+
+The next block is the engine of `matrixApply`, its a function that applies the user supplied function to each row 
+
+```{r, eval = FALSE}
+  apply_fun <- function(sub_matrix){
+    if(!is.matrix(sub_matrix))
+      sub_matrix <- matrix(sub_matrix, nrow = 1)
+    
+    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
+      matrix(ncol = nrow(sub_matrix))
+  }
+```
+
+Now we handle dispatch
+
+```{r, eval = FALSE}
+if(is.null(parallel)){
+    results <- apply_fun(mat)
+  } else {
+    n_groups <- as.numeric(parallel[2])
+    groups <- split(seq_len(nrow(mat)), groupingVector(nrow(mat), n_groups))
+    
+    if(parallel[1] == "local") {
+      results <- 
+        quiet_mclapply(groups, function(group){
+          apply_fun(mat[group,])
+        }, mc.cores = n_groups) %>%
+        Reduce(cbind, ., NULL)
+    } else {
+      reg <- makeRegistry("matrixApply_registry")
+      on.exit( tenacious_remove_registry(reg) )
+      
+      batchMap(reg, function(group){
+        apply_fun(mat[group,])
+      }, group = groups)
+      
+      submitJobs(reg)
+      waitForJobs(reg)
+      
+      results <-
+        loadResults(reg, use.names = FALSE) %>%
+        Reduce(cbind, ., NULL)
+    }
+  }
+```
+
+If parallel is NULL, we just pass the whole matrix into `apply_fun`, otherwise we handle the two parallel cases.
+First the number of parallel jobs the user wants is retrieved. Then the row indices are split into groups using
+split and RMINC's internal `groupingVector` function. The split returns a list of indices, one per group.
+
+Then if the first portion of parallel is "local", a muffled version of `parallel::mclapply` is called, split
+the job up amongst cores. This creates a list of results which are then merged via `Reduce` and cbind. 
+
+The BatchJobs case follows the same logic, although a few more infrastructure functions are required. A
+BatchJobs registry is created with `makeRegistry` and registered for removal when the function ends. 
+`tenacious_remove_registry` works hard to ensure all evidence of a failed run is scrubbed from the system.
+The triplet of `batchMap`, `submitJobs`, and `waitForJobs` instructs the queue to start running the jobs
+and wait patiently for them to finish. The results are then loaded with `loadResults` and reduced as above.
+
+After this there is a little result coercion
+
+```{r, eval = FALSE}
+  # The apply part (transpose to match output of mincApply)
+  results <- t(results)
+  
+  if(!is.null(mask)){
+    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
+    results_expanded[mask_lgl, ] <- results
+    results <- results_expanded
+  }
+  
+  if(ncol(results) == 1) dim(results) <- NULL
+  
+  results
+```
+
+The results are transposed to give results that resemble mincApply, if a mask was used, the results are inflated
+back to their original dimensions, and if the result has only a single column it is returned to a vector form.
+
+Then the results are returned. This bubbles back up to vertexApply which tacks on a likeFile attribute and
+returns.
+
+Implementing additional parallel functions will follow this general framework:
+
+1. Create an engine function that does the work
+2. Check if `parallel` is NULL, if so dispatch the engine function as is
+3. Determine how to split the job up into peices that the engine can run on, create a list or vector
+   with the appropriate information
+4. If `parallel[1]` is "local" run mclapply or its muffled variant on the engine function and the 
+   grouping object
+5. Otherwise run the BatchJobs commands above
+6. Reduce the results to an appropriate format.
+
+Although it is possible `matrixApply` will work for your problem (potentially with a little transposition).
+If not `mincLm` is a little harder to read, but has some examples for how to use a mask to parallelize
+jobs.
+
+
+</div>
