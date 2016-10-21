@@ -17,7 +17,7 @@ known_labels <- with(label_frame, union(left.label, right.label))
 
 test_env <- new.env()
 
-test_that("anatGetAll works", {
+test_that("anatGetAll_old works", {
   evalq({
     has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) != ""
     skip_if_not(has_mincstuffs)
@@ -25,10 +25,10 @@ test_that("anatGetAll works", {
     vox_vol <- prod(minc.separation.sizes(segmentation))
     
     label_counts <-
-      anatGetAll(segmentation,
-                 atlas = segmentation, 
-                 method = "labels",
-                 defs = labels)
+      anatGetAll_old(segmentation,
+                     atlas = segmentation, 
+                     method = "labels",
+                     defs = labels)
     
     label_counts_ref <- 
       mincGetVolume(segmentation) %>%
@@ -41,10 +41,10 @@ test_that("anatGetAll works", {
     expect_equal(label_counts[1,], label_counts_ref$count, check.attributes = FALSE)
     
     label_sums <-
-      anatGetAll(gf$jacobians_0.2, 
-                 atlas = segmentation, 
-                 method = "sums",
-                 defs = labels)
+      anatGetAll_old(gf$jacobians_0.2, 
+                     atlas = segmentation, 
+                     method = "sums",
+                     defs = labels)
     
     seg_vol <- mincGetVolume(segmentation)
     
@@ -57,10 +57,10 @@ test_that("anatGetAll works", {
     expect_equal(unclass(label_sums), ref_sums, tolerance = 10e-5, check.attributes = FALSE)
     
     label_means <-
-      anatGetAll(gf$jacobians_0.2, 
-                 atlas = segmentation, 
-                 method = "means",
-                 defs = labels)
+      anatGetAll_old(gf$jacobians_0.2, 
+                     atlas = segmentation, 
+                     method = "means",
+                     defs = labels)
     
     expect_equal(sweep(label_sums, 2, label_counts / vox_vol, FUN = `/`), 
                  label_means, tol = 10e-5, ignore.attributes = TRUE)
@@ -68,10 +68,10 @@ test_that("anatGetAll works", {
     #out the volume is faster than anatGetAll with means...
     
     jacobians <-
-      anatGetAll(gf$jacobians_0.2, 
-                 atlas = segmentation, 
-                 method = "jacobians",
-                 defs = labels)
+      anatGetAll_old(gf$jacobians_0.2, 
+                     atlas = segmentation, 
+                     method = "jacobians",
+                     defs = labels)
     
     ref_jacobians <-
       sapply(gf$jacobians_0.2, mincGetVolume) %>%
@@ -89,25 +89,25 @@ test_that("AnatGetAll2 works", {
     skip_if_not(has_mincstuffs)
     
     verboseRun(
-      new_label_counts <- anatGetAll2(segmentation, defs = labels, method = "labels")
+      new_label_counts <- anatGetAll(segmentation, defs = labels, method = "labels")
     )
     
     expect_equal(new_label_counts[1,], label_counts_ref$count, check.attributes = FALSE)
     
     verboseRun(
-      new_jacobians <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "jacobians")
+      new_jacobians <- anatGetAll(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "jacobians")
     )
     
     expect_equal(new_jacobians, jacobians, check.attributes = FALSE, tolerance = 10e-4)
     
     verboseRun(
-      new_sums <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "sums")
+      new_sums <- anatGetAll(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "sums")
     )
     
     expect_equal(new_sums, label_sums, check.attributes = FALSE, tolerance = 10e-4)
     
     verboseRun(
-      new_means <- anatGetAll2(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "means")
+      new_means <- anatGetAll(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "means")
     )
     
     expect_equal(new_means, label_means, check.attributes = FALSE, tolerance = 10e-4)
