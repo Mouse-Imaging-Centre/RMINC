@@ -673,30 +673,28 @@ civet.AllROIs <- function(gf, defprefix) {
 	# =============================================================================
 	#
   tissues <- anatGetAll(gf$tissue, NULL, method="text",
-                        defs=paste(defprefix,"/","tissue-volumes.csv",sep=""),
-                        dropLabels=TRUE)
+                        defs=paste(defprefix,"/","tissue-volumes.csv",sep=""))
   colnames(tissues) <- paste(colnames(tissues), "volume")
 
   structures <- anatGetAll(gf$structures, NULL, method="text",
                            defs=paste(defprefix, "/","lobe-seg-volumes.csv",
-                             sep=""),
-                           dropLabels=TRUE)
+                             sep=""))
   colnames(structures) <- paste(colnames(structures), "volume")
   leftareas <- anatGetAll(gf$leftROIarea, NULL, method="text",
                           defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          dropLabels=TRUE, side="left")
+                          side="left")
   colnames(leftareas) <- paste(colnames(leftareas), "surface area")
   rightareas <- anatGetAll(gf$rightROIarea, NULL,method="text",
                           defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          dropLabels=TRUE, side="right")
+                          side="right")
   colnames(rightareas) <- paste(colnames(rightareas), "surface area")
   leftthickness <- anatGetAll(gf$leftROIthickness, NULL,method="text",
                           defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          dropLabels=TRUE, side="left")
+                          side="left")
   colnames(leftthickness) <- paste(colnames(leftthickness), "mean thickness")
   rightthickness <- anatGetAll(gf$rightROIthickness, NULL,method="text",
                           defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          dropLabels=TRUE, side="right")
+                          side="right")
   colnames(rightthickness) <- paste(colnames(rightthickness), "mean thickness")
 
   vols <- data.frame(tissues, structures, leftareas, rightareas, leftthickness, rightthickness)
