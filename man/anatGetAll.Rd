@@ -6,7 +6,7 @@
 \usage{
 anatGetAll(filenames, atlas = NULL,
   defs = getOption("RMINC_LABEL_DEFINITIONS"), method = c("jacobians",
-  "labels", "sums", "means"), side = c("both", "left", "right"),
+  "labels", "sums", "means", "text"), side = c("both", "left", "right"),
   parallel = NULL, strict = TRUE)
 }
 \arguments{

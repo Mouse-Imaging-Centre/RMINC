@@ -151,7 +151,7 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 anatGetAll <-
   function(filenames, atlas = NULL, 
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
-           method = c("jacobians", "labels", "sums", "means"), 
+           method = c("jacobians", "labels", "sums", "means", "text"), 
            side = c("both", "left", "right"),
            parallel = NULL, 
            strict = TRUE){
@@ -161,22 +161,27 @@ anatGetAll <-
     ## Handle dispatch of worker functions
     compute_summary <-
       function(filenames){
-        if(method == "labels"){
-          return(
-            label_counts(filenames = filenames
-                         , defs = defs
-                         , side = side
-                         , strict = strict))
-        } else {
-          return(
-            anatomy_summary(filenames = filenames
-                            , atlas = atlas
-                            , method = method
-                            , defs = defs
-                            , side = side
-                            , strict= strict))
+        switch(method
+               , labels =
+                   return(
+                     label_counts(filenames = filenames
+                                , defs = defs
+                                , side = side
+                                , strict = strict))
+               , test = 
+                   return(
+                     Reduce(function(acc, file){ cbind(acc, read.csv(file, header = FALSE)) }
+                            , filenames
+                            , NULL))
+               , #default
+                   return(
+                     anatomy_summary(filenames = filenames
+                                     , atlas = atlas
+                                     , method = method
+                                     , defs = defs
+                                     , side = side
+                                     , strict= strict)))
         }
-      }
     
     ## Special matrix reducer to ensure rows are bound by index
     reduce_matrices <- 
