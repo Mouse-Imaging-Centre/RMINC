@@ -111,7 +111,7 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' 
 #' Computes volumes, means, sums, and similar values across a
 #' segmented atlas
-#' @inheritParams anatGetAll
+#' @inheritParams anatGetAll_old
 #' @param strict check if any files differ in step sizes
 #' @param parallel how many processors to run on (default=single processor).
 #' Specified as a two element vector, with the first element corresponding to
@@ -405,7 +405,6 @@ label_counts <-
 ###########################################################################################
 #' @description Computes volumes, means, sums, and similar values across a
 #' segmented atlas
-#' @name anatGetAll
 #' @title Get values given a set of files and an atlas
 #' @param filenames A vector of filenames (strings) which contain the
 #' information to be extracted at every structure in the atlas.
@@ -463,7 +462,7 @@ label_counts <-
 #'                       defs="/tmp/rminctestdata/test_defs.csv")
 #'}
 #'@export
-anatGetAll <- function(filenames, atlas, method="jacobians", 
+anatGetAll_old <- function(filenames, atlas, method="jacobians", 
                        defs = getOption("RMINC_LABEL_DEFINITIONS"), 
                        dropLabels = TRUE, 
                        side="both") {
