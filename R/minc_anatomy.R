@@ -827,6 +827,7 @@ anatLmer <-
     betaNames <- paste("beta-", termnames, sep="")
     tnames <- paste("tvalue-", termnames, sep="")
     colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+    rownames(out) <- colnames(anat)
     
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
