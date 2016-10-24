@@ -1,0 +1,111 @@
+---
+title: "Bench Marking MincLm"
+author: "Chris Hammill"
+date: "October 24, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+RcppArmadillo provides a fast lm function implemented in c++, I suspect it would be an easier starting point for getting residuals
+than hacking through the gorey guts of minc2_model. I want to figure out how much performance we can expect to lose when
+converting away
+
+We'll start with a small test from test_mincLm
+
+## Test 1
+
+Let's load up the test files
+
+```{r}
+suppressPackageStartupMessages({
+  library(RMINC)
+  library(dplyr)
+  library(RcppArmadillo)
+  library(rbenchmark)
+})
+
+getRMINCTestData()
+dataPath <- file.path(tempdir(), "rminctestdata/")
+
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+
+voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
+voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
+Sex <- gf$Sex[1:10]
+Scale <- gf$scale[1:10]
+Coil <- as.factor(gf$coil[1:10])
+
+gf$coil <- as.factor(gf$coil)
+gftest <- gf[1:10,]
+```
+
+Now we'll setup the rcppArmadillo function, from https://github.com/RcppCore/RcppArmadillo/blob/master/inst/examples/fastLm.r.
+
+```{r}
+src <- '
+Rcpp::List fLmSEXP(SEXP Xs, SEXP ys) {
+    Rcpp::NumericMatrix Xr(Xs);
+    Rcpp::NumericVector yr(ys);
+    int n = Xr.nrow(), k = Xr.ncol();
+    arma::mat X(Xr.begin(), n, k, false);
+    arma::colvec y(yr.begin(), yr.size(), false);
+    int df = n - k;
+    // fit model y ~ X, extract residuals
+    arma::colvec coef = arma::solve(X, y);
+    arma::colvec res  = y - X*coef;
+    double s2 = std::inner_product(res.begin(), res.end(),
+                                   res.begin(), 0.0)/df;
+    // std.errors of coefficients
+    arma::colvec sderr = arma::sqrt(s2 *
+       arma::diagvec(arma::pinv(arma::trans(X)*X)));
+    return Rcpp::List::create(Rcpp::Named("coefficients")=coef,
+                              Rcpp::Named("stderr")      =sderr,
+                              Rcpp::Named("df")          =df);
+}
+'
+cppFunction(code=src, depends="RcppArmadillo") #creates fLmSEXP.R
+```
+
+Now we'll benchmark them
+
+```{r}
+sink("/dev/null")
+pred_mat <- as.matrix(as.numeric(gftest$Sex))
+benches <- benchmark(mincLm(jacobians_fixed_2 ~ Sex, data = gftest)
+                     , mincApplyRCPP(gftest$jacobians_fixed_2
+                                     , function(x) fLmSEXP(pred_mat, as.matrix(x))
+                                     , slab_sizes = c(10,10,1))
+                     , mincApplyRCPP(gftest$jacobians_fixed_2
+                                     , function(x) lm.fit(pred_mat, as.matrix(x))
+                                     , slab_sizes = c(10,10,1))
+                     , columns = c("test", "replications", "relative", "elapsed")
+                     , order = "relative")
+sink()
+
+# Runtime
+benches
+```
+
+At time of first run this looks like `mincApplyRCPP` w/ `fLmSEXP` is about 20% slower than `mincLm`, and 20% faster than `lm.fit`. This
+is not bad given no effort is made to re-use data structures between calls. I wonder how the two would stack up running on a single voxel.
+
+```{R}
+like <- gftest$jacobians_fixed_2[1]
+c(1, rep(0, 999)) %>%
+  as.minc %>%
+  `likeVolume<-`(like) %>%
+  mincWriteVolume("one_el_mask.mnc")
+
+sink("/dev/null")
+benches <- benchmark(mincLm(jacobians_fixed_2 ~ Sex, data = gftest, mask = "one_el_mask.mnc")
+                     , mincApplyRCPP(gftest$jacobians_fixed_2
+                                     , function(x) fLmSEXP(pred_mat, as.matrix(x))
+                                     , slab_sizes = c(10,10,1), mask = "one_el_mask.mnc")
+                     , columns = c("test", "replications", "relative", "elapsed")
+                     , order = "relative")
+sink()
+```
