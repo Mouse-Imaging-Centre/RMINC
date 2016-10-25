@@ -182,5 +182,3 @@ CharacterVector path_to_filename(CharacterVector filenames){
   
   return(results); 
 }
-
-}

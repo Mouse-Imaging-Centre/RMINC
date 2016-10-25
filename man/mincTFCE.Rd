@@ -3,7 +3,6 @@
 \name{mincTFCE}
 \alias{mincTFCE}
 \alias{mincTFCE.matrix}
-\alias{mincTFCE.mincLm}
 \alias{mincTFCE.mincSingleDim}
 \title{Threshold Free Cluster Enhancement}
 \usage{
@@ -15,10 +14,6 @@ mincTFCE(x, ...)
 
 \method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2, side = c("both",
   "positive", "negative"), likeVolume, ...)
-
-\method{mincTFCE}{mincLm}(x, alternative = c("two.sided", "greater"),
-  d = 0.1, E = 0.5, H = 2, side = c("both", "positive", "negative"),
-  R = 500, replace = FALSE, parallel = NULL, ...)
 }
 \arguments{
 \item{x}{Either a character vector with a single filename, a \code{mincSingleDim} object,
@@ -78,7 +73,5 @@ to allow a hybrid cluster/voxel analysis to be performed.
 \item \code{mincSingleDim}: mincSingleDim
 
 \item \code{matrix}: matrix
-
-\item \code{mincLm}: mincLm
 }}
 
