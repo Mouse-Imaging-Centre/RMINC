@@ -275,14 +275,15 @@ create_labels_frame <-
     
     label_defs <- 
       read.csv(defs, stringsAsFactors = FALSE) %>%
+      select_( ~ Structure, ~ left.label, ~ right.label) %>%
       mutate_(both_sides = ~ right.label == left.label) %>%
       gather_("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
                 ~ ifelse(both_sides
                          , Structure
                          , ifelse(hemisphere == "right.label"
-                                  , paste0("left_", Structure)
-                                  , paste0("right_", Structure))))
+                                  , paste0("left ", Structure)
+                                  , paste0("right ", Structure))))
     
     label_defs <-
       switch(side
@@ -827,6 +828,7 @@ anatLmer <-
     betaNames <- paste("beta-", termnames, sep="")
     tnames <- paste("tvalue-", termnames, sep="")
     colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+    rownames(out) <- colnames(anat)
     
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)

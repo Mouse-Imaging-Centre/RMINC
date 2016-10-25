@@ -20,6 +20,8 @@ New in Version 1.4.3
 * Peak finding: Find local optima in a minc volume subject to constraints
 * anatGetAll rewrite:
   - 10-15x faster for method = "labels" (and parallelizable)
+  - 2x faster for method = "jacobians" (and parallelizable)
+  - >10x faster for method = "means" (and parallelizable)
   - More informative errors
   - no minc-stuffs dependency
   - atlas name no longer required for method = "labels"
