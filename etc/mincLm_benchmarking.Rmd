@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
 ```
 
 
@@ -24,14 +24,14 @@ Let's load up the test files
 suppressPackageStartupMessages({
   library(RMINC)
   library(dplyr)
+  library(Rcpp)
   library(RcppArmadillo)
   library(rbenchmark)
 })
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+getRMINCTestData("./")
 
-gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+gf <- read.csv("rminctestdata/test_data_set.csv")
 
 voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
 voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)
@@ -67,24 +67,26 @@ Rcpp::List fLmSEXP(SEXP Xs, SEXP ys) {
                               Rcpp::Named("df")          =df);
 }
 '
-cppFunction(code=src, depends="RcppArmadillo") #creates fLmSEXP.R
+cppFunction(code=src, depends="RcppArmadillo") #creates fLmSEXP
 ```
 
 Now we'll benchmark them
 
 ```{r}
-sink("/dev/null")
-pred_mat <- as.matrix(as.numeric(gftest$Sex))
-benches <- benchmark(mincLm(jacobians_fixed_2 ~ Sex, data = gftest)
-                     , mincApplyRCPP(gftest$jacobians_fixed_2
-                                     , function(x) fLmSEXP(pred_mat, as.matrix(x))
-                                     , slab_sizes = c(10,10,1))
-                     , mincApplyRCPP(gftest$jacobians_fixed_2
-                                     , function(x) lm.fit(pred_mat, as.matrix(x))
-                                     , slab_sizes = c(10,10,1))
-                     , columns = c("test", "replications", "relative", "elapsed")
-                     , order = "relative")
-sink()
+{# Hide this code from knitr's output capture (it breaks normal sinking)
+  sink("/dev/null")
+  pred_mat <- as.matrix(as.numeric(gftest$Sex))
+  benches <- benchmark(mincLm = mincLm(jacobians_fixed_2 ~ Sex, data = gftest)
+                       , fLmSEXP = mincApplyRCPP(gftest$jacobians_fixed_2
+                                                 , function(x) fLmSEXP(pred_mat, as.matrix(x))
+                                                 , slab_sizes = c(10,10,1))
+                       , lm.fit = mincApplyRCPP(gftest$jacobians_fixed_2
+                                                , function(x) lm.fit(pred_mat, as.matrix(x))
+                                                , slab_sizes = c(10,10,1))
+                       , columns = c("test", "replications", "relative", "elapsed")
+                       , order = "relative")
+  sink()
+}
 
 # Runtime
 benches
@@ -93,19 +95,39 @@ benches
 At time of first run this looks like `mincApplyRCPP` w/ `fLmSEXP` is about 20% slower than `mincLm`, and 20% faster than `lm.fit`. This
 is not bad given no effort is made to re-use data structures between calls. I wonder how the two would stack up running on a single voxel.
 
-```{R}
+```{r}
 like <- gftest$jacobians_fixed_2[1]
 c(1, rep(0, 999)) %>%
   as.minc %>%
   `likeVolume<-`(like) %>%
   mincWriteVolume("one_el_mask.mnc")
 
-sink("/dev/null")
-benches <- benchmark(mincLm(jacobians_fixed_2 ~ Sex, data = gftest, mask = "one_el_mask.mnc")
-                     , mincApplyRCPP(gftest$jacobians_fixed_2
-                                     , function(x) fLmSEXP(pred_mat, as.matrix(x))
-                                     , slab_sizes = c(10,10,1), mask = "one_el_mask.mnc")
-                     , columns = c("test", "replications", "relative", "elapsed")
-                     , order = "relative")
-sink()
+{# Hide this code from knitr's output capture (it breaks normal sinking)
+  sink("/dev/null")
+  benches <- benchmark(mincLm = mincLm(jacobians_fixed_2 ~ Sex, data = gftest, mask = "one_el_mask.mnc")
+                       , fLmSEXP = mincApplyRCPP(gftest$jacobians_fixed_2
+                                                 , function(x) fLmSEXP(pred_mat, as.matrix(x))
+                                                 , slab_sizes = c(10,10,1), mask = "one_el_mask.mnc")
+                       , columns = c("test", "replications", "relative", "elapsed")
+                       , order = "relative")
+  sink()
+}
+
+#Runtime
+benches
+```
+
+So it looks like for a single voxel, fLmSEXP wins by a few percent. Nothing to write home about. But from a code clarity standpoint, the ARMA code
+is much nicer. Although I'm a bit unsure of which of the two functions has more overhead. The rcpp version has an additional sort step, and has much
+larger output objects (list instead of vector), but the standard mincLm has to deal with the formula. 
+
+Although mincLm actually does a bit more, it computes the t-statistics. I think the smart thing to do is to piggy-back on minc_voxel_lm.
+
+In addition as Eddelbuettel points out the fit using dqrls is more robust, implementing a better pivoting strategy. Oh well, worth exploring
+alternatives.
+
+```{r, include = FALSE}
+unlink("one_el_mask.mnc")
+unlink("rminctestdata", recursive = TRUE)
+unlink("rminctestdata.tar.gz")
 ```
