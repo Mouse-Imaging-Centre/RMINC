@@ -275,6 +275,7 @@ create_labels_frame <-
     
     label_defs <- 
       read.csv(defs, stringsAsFactors = FALSE) %>%
+      select_( ~ Structure, ~ left.label, ~ right.label) %>%
       mutate_(both_sides = ~ right.label == left.label) %>%
       gather_("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
