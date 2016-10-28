@@ -1119,10 +1119,11 @@ setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
 #' to print simplified results
 #' @param dataPath The directory to download and unpack the test data 
 #' (unpacks in dataPath/rminctestdata)
+#' @param Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' @param ... additional parameter for \link[testthat]{test_dir}
 #' @return invisibly return the test results
 #' @export
-runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
+runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verboseTest = FALSE) {
   
   original_opts <- options()
   old_env_vars <- Sys.getenv(c("TEST_Q_MINC", "NOT_CRAN", "TRAVIS"))
@@ -1130,6 +1131,8 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
     options(original_opts)
     do.call(Sys.setenv, as.list(old_env_vars))
   })
+  
+  if(verboseTest) options(verbose = TRUE)
   
   setRMINCMaskedValue(0)
   Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
@@ -1155,8 +1158,10 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
 #' \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
 #' @param dataPath The directory to download and unpack the test data 
 #' (unpacks in dataPath/rminctestdata)
+#' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
+#' and \code{wget}
 #' @export
-getRMINCTestData <- function(dataPath = tempdir()) {
+getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
 
   downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
   extractedPath <- file.path(dataPath, "rminctestdata/")
@@ -1165,7 +1170,7 @@ getRMINCTestData <- function(dataPath = tempdir()) {
     dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
     download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata2.tar.gz",
                   destfile = downloadPath,
-                  method = "libcurl") # changed from "wget" to stop freakouts on mac
+                  method = method) # changed from "wget" to stop freakouts on mac
   }
   
   untar(downloadPath, exdir = dataPath, compressed = "gzip")

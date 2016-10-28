@@ -4,7 +4,8 @@
 \alias{runRMINCTestbed}
 \title{Run Testbed}
 \usage{
-runRMINCTestbed(..., dataPath = tempdir(), verboseTest = FALSE)
+runRMINCTestbed(..., dataPath = tempdir(), method = "libcurl",
+  verboseTest = FALSE)
 }
 \arguments{
 \item{...}{additional parameter for \link[testthat]{test_dir}}
@@ -14,6 +15,8 @@ runRMINCTestbed(..., dataPath = tempdir(), verboseTest = FALSE)
 
 \item{verboseTest}{Whether or not to verbosely print test output, default is
 to print simplified results}
+
+\item{Argument}{to pass to \link{download.file} typical options are \code{libcurl}}
 }
 \value{
 invisibly return the test results
