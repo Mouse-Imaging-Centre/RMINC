@@ -3,7 +3,6 @@
 \name{mincTFCE}
 \alias{mincTFCE}
 \alias{mincTFCE.matrix}
-\alias{mincTFCE.mincLm}
 \alias{mincTFCE.mincSingleDim}
 \title{Threshold Free Cluster Enhancement}
 \usage{
@@ -15,10 +14,6 @@ mincTFCE(x, ...)
 
 \method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2, side = c("both",
   "positive", "negative"), likeVolume, ...)
-
-\method{mincTFCE}{mincLm}(x, alternative = c("two.sided", "greater"),
-  d = 0.1, E = 0.5, H = 2, side = c("both", "positive", "negative"),
-  R = 500, replace = FALSE, parallel = NULL, ...)
 }
 \arguments{
 \item{x}{Either a character vector with a single filename, a \code{mincSingleDim} object,
@@ -40,21 +35,6 @@ or a \code{matrix} object, or \code{mincLm} object.}
 a \code{output_file} was specified.}
 
 \item{likeVolume}{A path to a like volume specifying the dimensions of the output volumes}
-
-\item{alternative}{The alternative hypothesis for randomization test, either both.sides or
-greater are currently supported.}
-
-\item{R}{the number of randomizations to perform}
-
-\item{replace}{Whether to sample with or without replacement, defaults to without.}
-
-\item{parallel}{how many processors to run on (default=single processor).
-Specified as a two element vector, with the first element corresponding to
-the type of parallelization, and the second to the number
-of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-and \link{configureMincParallel} for details.
-Leaving this argument NULL runs sequentially.}
 }
 \value{
 The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
@@ -78,7 +58,5 @@ to allow a hybrid cluster/voxel analysis to be performed.
 \item \code{mincSingleDim}: mincSingleDim
 
 \item \code{matrix}: matrix
-
-\item \code{mincLm}: mincLm
 }}
 

@@ -767,6 +767,19 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 }
 
 
+### Randomization args for TFCE
+# @param alternative The alternative hypothesis for randomization test, either both.sides or
+# greater are currently supported.
+# @param R the number of randomizations to perform
+# @param replace Whether to sample with or without replacement, defaults to without.
+# @param parallel how many processors to run on (default=single processor).
+# Specified as a two element vector, with the first element corresponding to
+# the type of parallelization, and the second to the number
+# of processors to use. For local running set the first element to "local" or "snowfall"
+# for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+# and \link{configureMincParallel} for details.
+# Leaving this argument NULL runs sequentially.
+
 #' Threshold Free Cluster Enhancement
 #' 
 #' Perform threshold free cluster enhancement as described in 
@@ -782,17 +795,6 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @param keep Whether or not to keep the enhanced volume, defaults to whether or not 
 #' a \code{output_file} was specified.
 #' @param likeVolume A path to a like volume specifying the dimensions of the output volumes
-#' @param alternative The alternative hypothesis for randomization test, either both.sides or
-#' greater are currently supported.
-#' @param R the number of randomizations to perform
-#' @param replace Whether to sample with or without replacement, defaults to without.
-#' @param parallel how many processors to run on (default=single processor).
-#' Specified as a two element vector, with the first element corresponding to
-#' the type of parallelization, and the second to the number
-#' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
-#' Leaving this argument NULL runs sequentially.
 #' @param ... additional arguments for methods
 #' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
 #' in the single dimensional case, a string denoting a minc file or a \code{mincSingleDim} object
