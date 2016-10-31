@@ -1119,7 +1119,7 @@ setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
 #' to print simplified results
 #' @param dataPath The directory to download and unpack the test data 
 #' (unpacks in dataPath/rminctestdata)
-#' @param Argument to pass to \link{download.file} typical options are \code{libcurl}
+#' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' @param ... additional parameter for \link[testthat]{test_dir}
 #' @return invisibly return the test results
 #' @export

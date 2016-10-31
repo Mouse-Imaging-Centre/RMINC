@@ -13,10 +13,10 @@ runRMINCTestbed(..., dataPath = tempdir(), method = "libcurl",
 \item{dataPath}{The directory to download and unpack the test data 
 (unpacks in dataPath/rminctestdata)}
 
+\item{method}{Argument to pass to \link{download.file} typical options are \code{libcurl}}
+
 \item{verboseTest}{Whether or not to verbosely print test output, default is
 to print simplified results}
-
-\item{Argument}{to pass to \link{download.file} typical options are \code{libcurl}}
 }
 \value{
 invisibly return the test results
