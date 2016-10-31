@@ -35,21 +35,6 @@ or a \code{matrix} object, or \code{mincLm} object.}
 a \code{output_file} was specified.}
 
 \item{likeVolume}{A path to a like volume specifying the dimensions of the output volumes}
-
-\item{alternative}{The alternative hypothesis for randomization test, either both.sides or
-greater are currently supported.}
-
-\item{R}{the number of randomizations to perform}
-
-\item{replace}{Whether to sample with or without replacement, defaults to without.}
-
-\item{parallel}{how many processors to run on (default=single processor).
-Specified as a two element vector, with the first element corresponding to
-the type of parallelization, and the second to the number
-of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-and \link{configureMincParallel} for details.
-Leaving this argument NULL runs sequentially.}
 }
 \value{
 The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
