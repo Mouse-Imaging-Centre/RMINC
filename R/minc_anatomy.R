@@ -158,7 +158,7 @@ anatGetAll <-
     
     method <- match.arg(method)
     
-    files_exist <- sapply(filenames, file.exists)
+    files_exist <- sapply(as.character(filenames), file.exists)
     if(any(!files_exist))
       stop("Files ", paste0(filenames[!files_exist], collapse = ", "), " do no exist")
     
