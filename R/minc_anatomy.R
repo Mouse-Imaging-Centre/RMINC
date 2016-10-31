@@ -158,6 +158,10 @@ anatGetAll <-
     
     method <- match.arg(method)
     
+    files_exist <- sapply(filenames, file.exists)
+    if(any(!files_exist))
+      stop("Files ", paste0(filenames[!files_exist], collapse = ", "), " do no exist")
+    
     ## Handle dispatch of worker functions
     compute_summary <-
       function(filenames){
