@@ -68,7 +68,8 @@ mincFindPeaks <- function(inputStats, column=1, direction="both", minDistance=NA
   }
   
   # call find_peaks on command line
-  system(paste(command, collapse=" "))
+  output <- system(paste(command, collapse=" "), intern = TRUE)
+  cat(output, sep = "\n")
   
   # read in the resulting tags
   tags <- mincGetTagFile(tagfile)
