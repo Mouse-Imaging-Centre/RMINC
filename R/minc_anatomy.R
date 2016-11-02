@@ -782,16 +782,13 @@ anatLmer <-
     
     mc <- mcout <- match.call()
     
-    # For reasons I don't understand data needs to be brought into this environment
-    # otherwise the environment for the formula is unable to find the data arg.
-    assign(deparse(substitute(data)), data)
     # Allow the user to omit the LHS by inserting a normal random variable
+    mc$formula <- update(formula, RMINC_DUMMY_LHS ~ .)
+    environment(mc$formula) <- environment()
     RMINC_DUMMY_LHS <- rnorm(nrow(data))
-    new_formula <- update(formula, RMINC_DUMMY_LHS ~ .)
-    environment(new_formula) <- environment()
-    mc$formula <- new_formula
     
     mc[[1]] <- quote(lme4::lFormula)
+    mc$data <- as.symbol("data")
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
