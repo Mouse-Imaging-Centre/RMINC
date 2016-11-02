@@ -842,6 +842,7 @@ anatLmer <-
     attr(out, "mincLmerList") <- mincLmerList
     attr(out, "atlas") <- attr(anat, "atlas")
     attr(out, "definitions") <- attr(anat, "definitions")
+    attr(out, "data") <- data
     attr(out, "anat") <- anat
     
     class(out) <- c("anatLmer", "anatModel", "matrix")
@@ -861,44 +862,52 @@ anatLmerEstimateDF <- function(model) {
   # set the DF based on the Satterthwaite approximation
   
   mincLmerList <- attr(model, "mincLmerList")
+  anat <- attr(model, "anat")
   
   # estimated DF depends on the input data. Rather than estimate separately at every structure,
   # instead select a small number of structures and estimate DF for those structures, then keep the
   # min
   nstructures <- min(50, nrow(model))
-  rstructures <- sample(1:nrow(model), nstructures)
+  rstructures <- sample(seq_len(nrow(model)), nstructures)
   dfs <- matrix(nrow = nstructures, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
   
-  for (i in 1:nstructures) {
-    structureData <- attr(model, "anat")[,rstructures[i]]
+  for (i in seq_len(nstructures)) {
+    rand_ind <- rstructures[i]
+    structureData <- anat[,rand_ind]
+    RMINC_DUMMY_LHS <- structureData
     
     ## It seems LmerTest cannot compute the deviance function for mincLmers
     ## in the current version, instead extract the model components from
     ## the mincLmerList and re-fit the lmers directly at each structure,
     ## Slower but yeilds the correct result
+    original_data <- attr(model, "data")
     lmod <- mincLmerList[[1]]
-    lmod$fr[,1] <- structureData
     
     # Rebuild the environment of the formula, otherwise updating does not
-    # work in the lmerTest code
-    environment(lmod$formula)$lmod <- lmod
-    environment(lmod$formula)$mincLmerList <- mincLmerList
-    
+    # ensuring it can find both RMINC_DUMMY_LHS and original_data
+    environment(lmod$formula) <- environment()
+
     mmod <-
-      lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
-      lmerTest::summary(mmod)$coefficients[,"df"]
+      suppressMessages(
+        tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+                 , error = function(e){ 
+                   warning("Unable to estimate DFs for structure "
+                           , colnames(anat)[rand_ind]
+                           , call. = FALSE)
+                   NA}))
   }
   
-  df <- apply(dfs, 2, median)
-  cat("Mean df: ", apply(dfs, 2, mean), "\n")
-  cat("Median df: ", apply(dfs, 2, median), "\n")
-  cat("Min df: ", apply(dfs, 2, min), "\n")
-  cat("Max df: ", apply(dfs, 2, max), "\n")
-  cat("Sd df: ", apply(dfs, 2, sd), "\n")
+  df <- apply(dfs, 2, median, na.rm = TRUE)
+  cat("Mean df: ", apply(dfs, 2, mean, na.rm = TRUE), "\n")
+  cat("Median df: ", apply(dfs, 2, median, na.rm = TRUE), "\n")
+  cat("Min df: ", apply(dfs, 2, min, na.rm = TRUE), "\n")
+  cat("Max df: ", apply(dfs, 2, max, na.rm = TRUE), "\n")
+  cat("Sd df: ", apply(dfs, 2, sd, na.rm = TRUE), "\n")
   
   attr(model, "df") <- df
   

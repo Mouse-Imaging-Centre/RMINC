@@ -175,6 +175,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
   attr(out, "REML") <- REML
   attr(out, "mask") <- mask
+  attr(out, "data") <- data
   attr(out, "mincLmerList") <- mincLmerList
   class(out) <- c("mincLmer", "mincMultiDim", "matrix")
   
@@ -222,35 +223,44 @@ mincLmerEstimateDF <- function(model) {
   dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
   
   for (i in 1:nvoxels) {
-    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rvoxels[i,])
+    rand_inds <- rvoxels[i,]
+    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rand_inds)
+    RMINC_DUMMY_LHS <- voxelData
     
     ## It seems LmerTest cannot compute the deviance function for mincLmers
     ## in the current version, instead extract the model components from
-    ## the mincLmerList and re-fit the lmers directly at each voxel,
+    ## the mincLmerList and re-fit the lmers directly at each structure,
     ## Slower but yeilds the correct result
+    original_data <- attr(model, "data")
     lmod <- mincLmerList[[1]]
-    lmod$fr[,1] <- voxelData
     
     # Rebuild the environment of the formula, otherwise updating does not
-    # work in the lmerTest code
-    environment(lmod$formula)$lmod <- lmod
-    environment(lmod$formula)$mincLmerList <- mincLmerList
+    # ensuring it can find both RMINC_DUMMY_LHS and original_data
+    lmod$formula <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
+    environment(lmod$formula) <- environment()
     
     mmod <-
-      lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
-      lmerTest::summary(mmod)$coefficients[,"df"]
+      suppressMessages(
+        tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+                 , error = function(e){ 
+                   warning("Unable to estimate DFs for voxel ("
+                           , paste0(rand_inds, collapse = ", ")
+                           , ")"
+                           , call. = FALSE)
+                   NA}))
   }
   
-  df <- apply(dfs, 2, median)
-  cat("Mean df: ", apply(dfs, 2, mean), "\n")
-  cat("Median df: ", apply(dfs, 2, median), "\n")
-  cat("Min df: ", apply(dfs, 2, min), "\n")
-  cat("Max df: ", apply(dfs, 2, max), "\n")
-  cat("Sd df: ", apply(dfs, 2, sd), "\n")
+  df <- apply(dfs, 2, median, na.rm = TRUE)
+  cat("Mean df: ", apply(dfs, 2, mean, na.rm = TRUE), "\n")
+  cat("Median df: ", apply(dfs, 2, median, na.rm = TRUE), "\n")
+  cat("Min df: ", apply(dfs, 2, min, na.rm = TRUE), "\n")
+  cat("Max df: ", apply(dfs, 2, max, na.rm = TRUE), "\n")
+  cat("Sd df: ", apply(dfs, 2, sd, na.rm = TRUE), "\n")
   
   attr(model, "df") <- df
 
