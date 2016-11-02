@@ -50,13 +50,37 @@ test_that("empty DF by default", {
   expect_that( mincFDR(vsreml), throws_error() )
 })
 
-vsreml <- mincLmerEstimateDF(vsreml)
+verboseRun(vsreml <- mincLmerEstimateDF(vsreml))
 df <- attr(vsreml, "df")
 test_that("DF within reasonable range", {
   expect_that( df[[2]], is_less_than(nrow(gf)+1))
   expect_that( df[[2]], is_more_than(1))
 })
           
+test_that("Local parallel mincLmer works", {
+  skip_on_cran()
+  skip_on_travis()
+  
+  if(Sys.getenv("TEST_Q_MINC") != "yes") 
+    skip("qMinc tests disabled")
+  
+  verboseRun(
+    preml <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, mask=maskfile, parallel = c("local", 2))
+  )
+  
+  expect_equal(vsreml, preml, check.attributes = FALSE)
+})
 
-#TODO: test parallel variants of mincLmer
+
+test_that("Exotic formulae work", {
+  verboseRun({
+    exotic <- mincLmer(jacobians_fixed_2 ~ I(factor(as.numeric(Sex) - 1)) + (1|coil), gf, mask=maskfile)
+    exotic_dfs <- mincLmerEstimateDF(exotic)
+    df <- attr(exotic_dfs, "df")
+  })
+  
+  expect_that( df[[2]], is_less_than(nrow(gf)+1))
+  expect_that( df[[2]], is_more_than(1))
+
+})
 
