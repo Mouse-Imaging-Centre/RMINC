@@ -1059,7 +1059,7 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
   #load volume - should be a binary mask
   mvol <- mincGetVolume(volumeFileName) 
   # get the indices of voxels inside mask
-  vinmask <- which(mvol %in% 1)
+  vinmask <- which(mvol > .5)
   # keep a random set of voxels
   indicesToKeep <-  vinmask[ floor(runif(nvoxels, min=1, max=length(vinmask))) ]
   if (convert == TRUE) {
