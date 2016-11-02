@@ -34,16 +34,19 @@ test_that("mincLm Two Factors",{
 
 # now test that findPeaks works
 context("mincFindPeaks - ensure we can find correct peaks")
-# get rid of NAs
-rmincLm[is.na(rmincLm)] <- 0
-# find peaks
-peaks <- mincFindPeaks(rmincLm, "tvalue-SexM", minDistance = 1)
-# find the min and max by hand
-rmincLmArray <- mincArray(rmincLm, "tvalue-SexM")
-maxPeak <- arrayInd(which.max(rmincLmArray), .dim=c(10,10,10))
-minPeak <- arrayInd(which.min(rmincLmArray), .dim=c(10,10,10))
-minPeakFromPeaks <- as.integer(sortByCol(peaks, "value")[1,1:3])
-maxPeakFromPeaks <- as.integer(peaks[1,1:3])
+
+verboseRun({
+  # get rid of NAs
+  rmincLm[is.na(rmincLm)] <- 0
+  # find peaks
+  peaks <- mincFindPeaks(rmincLm, "tvalue-SexM", minDistance = 1)
+  # find the min and max by hand
+  rmincLmArray <- mincArray(rmincLm, "tvalue-SexM")
+  maxPeak <- arrayInd(which.max(rmincLmArray), .dim=c(10,10,10))
+  minPeak <- arrayInd(which.min(rmincLmArray), .dim=c(10,10,10))
+  minPeakFromPeaks <- as.integer(sortByCol(peaks, "value")[1,1:3])
+  maxPeakFromPeaks <- as.integer(peaks[1,1:3])
+})
 
 test_that("mincFindPeaks min and max", {
   expect_that(maxPeak[1],is_equivalent_to(maxPeakFromPeaks[1]))
@@ -53,7 +56,6 @@ test_that("mincFindPeaks min and max", {
   expect_that(minPeak[2],is_equivalent_to(minPeakFromPeaks[2]))
   expect_that(minPeak[3],is_equivalent_to(minPeakFromPeaks[3]))
 })
-
 
 context("mincLm - two group test with interaction")
 
