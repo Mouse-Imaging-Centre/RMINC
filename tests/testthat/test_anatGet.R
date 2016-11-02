@@ -84,7 +84,7 @@ test_that("anatGetAll_old works", {
   }, envir = test_env)
 })
 
-test_that("AnatGetAll2 works", {
+test_that("AnatGetAll works", {
   evalq({
     skip_if_not(has_mincstuffs)
     
@@ -115,7 +115,12 @@ test_that("AnatGetAll2 works", {
   }, envir = test_env)
 })
 
-test_that
+test_that("AnatGetAll Flags Garbage", {
+  gf2 <- gf
+  gf2[1,"jacobians_0.2"] <- NA
+  expect_error(anatGetAll(gf2$jacobians_0.2, defs = labels, atlas = segmentation)
+               , regex = "do not exist")
+})
 
 
 
