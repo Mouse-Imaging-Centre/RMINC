@@ -74,5 +74,5 @@ test_that("anatLmer exotic formulae work", {
     dfs <- attr(with_dfs, "df")
     expect_true(between(dfs[1], 1, 3))
     expect_true(all(between(dfs[2:4], 30, 50)))
-  })
+  }, envir = anat_env)
 })
