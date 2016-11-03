@@ -13,6 +13,7 @@ before_install: |
      wget http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb)
      sudo dpkg -i ../minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb
      source /opt/minc-itk4/minc-toolkit-config.sh
+     Rscript -e "install.packages('survival')"
    fi
    
    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
