@@ -1,5 +1,18 @@
 New in Version 1.4.3
 ======================
+.2
+--
+* AnatGetAll errors on missing files instead of segfaulting
+* Both lmer functions now support exotic formulae (with function calls
+  inside terms)
+
+.1
+---
+* Minor fix to anatGetAll when definitions csv contains additional columns
+* anatLmer now sets rownames to the associated structure.
+
+.0
+---
 * Mixed effects for all
   - added vertex and anatLmer variants along with degrees of freedom
     estimation and FDR correction
