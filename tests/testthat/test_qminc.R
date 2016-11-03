@@ -19,7 +19,7 @@ test_that("Test sequential, multicore, and queue applies work", {
     skip("qMinc tests disabled")
   
   options(BBmisc.ProgressBar.style = "off")
-  setConfig(list(cluster.functions = makeClusterFunctionsMulticore(min(2, parallel::detectCores() - 1))))
+  setConfig(list(cluster.functions = makeClusterFunctionsMulticore(max.jobs = min(2, parallel::detectCores() - 1))))
   
   m_sequential <- verboseRun(
     mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10)),
