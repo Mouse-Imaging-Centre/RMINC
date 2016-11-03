@@ -54,6 +54,8 @@ test_that("anatLmer works", {
 
 test_that("anatLmer estimate DF returns sensible results", {
   evalq({
+    skip_if_not(has_mincstuffs)
+    
     expect_warning(verboseRun(with_dfs <- anatLmerEstimateDF(lmer_res_nlhs)),
                    regex = "Unable to estimate")
     dfs <- attr(with_dfs, "df")
@@ -64,6 +66,8 @@ test_that("anatLmer estimate DF returns sensible results", {
 
 test_that("anatLmer exotic formulae work", {
   evalq({
+    skip_if_not(has_mincstuffs)
+    
     verboseRun(
       exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
                               , data = gf, anat = jacobians)
