@@ -58,7 +58,8 @@ vertexSd<- function(filenames)
 
 ### Helper function for applying over rows of a potentially 
 ### masked matrix potentially in parallel
-matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
+matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
+                        , collate = simplify_masked){
   
   if(!is.null(mask)){
     if(length(mask) == 1 && is.character(mask))
@@ -74,8 +75,8 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
     if(!is.matrix(sub_matrix))
       sub_matrix <- matrix(sub_matrix, nrow = 1)
     
-    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
-      matrix(ncol = nrow(sub_matrix))
+    lapply(seq_len(nrow(sub_matrix))
+           , function(i) fun(sub_matrix[i,], ...))
   }
   
   if(is.null(parallel)){
@@ -89,7 +90,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
         quiet_mclapply(groups, function(group){
           apply_fun(mat[group,])
         }, mc.cores = n_groups) %>%
-        Reduce(cbind, ., NULL)
+        Reduce(c, ., NULL)
     } else {
       reg <- makeRegistry("matrixApply_registry")
       on.exit( tenacious_remove_registry(reg) )
@@ -103,20 +104,20 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
       
       results <-
         loadResults(reg, use.names = FALSE) %>%
-        Reduce(cbind, ., NULL)
+        Reduce(c, ., NULL)
     }
   }
   
-  # The apply part (transpose to match output of mincApply)
-  results <- t(results)
-  
+  # Flesh out the object if a mask was used
   if(!is.null(mask)){
-    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
-    results_expanded[mask_lgl, ] <- results
+    mask_val <- getOption("RMINC_MASKED_VALUE")
+    results_expanded <- replicate(length(mask_lgl), getOption("RMINC_MASKED_VALUE"), simplify = FALSE)
+    results_expanded[mask_lgl] <- results
     results <- results_expanded
   }
   
-  if(ncol(results) == 1) dim(results) <- NULL
+  collate_fun <- match.fun(collate)
+  results <- collate(results)
   
   results
 }
@@ -133,6 +134,8 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
 #' first element is "local" the computation will be run via the parallel package, otherwise it will
 #' be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
 #' indicating the number of jobs to split the computation into.
+#' @param collate A function to reduce the (potentially masked) list of results into a nice
+#' structure. Defaults to \link{simplify_masked}
 #' @return  The a matrix with a row of results for each vertex
 #' @examples 
 #' \dontrun{
@@ -143,12 +146,12 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
 #' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft, mean)
 #' }
 #' @export
-vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL) 
+vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL, collate = simplify_masked) 
 {
   # Load the data
   vertexData <- vertexTable(filenames)
   
-  results <- matrixApply(vertexData, fun, ..., mask = mask, parallel = parallel)
+  results <- matrixApply(vertexData, fun, ..., mask = mask, parallel = parallel, collate = collate)
   attr(results, "likeFile") <- filenames[1]
   
   results

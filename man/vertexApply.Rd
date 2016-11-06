@@ -4,7 +4,8 @@
 \alias{vertexApply}
 \title{Apply function over vertex Files}
 \usage{
-vertexApply(filenames, fun, ..., mask = NULL, parallel = NULL)
+vertexApply(filenames, fun, ..., mask = NULL, parallel = NULL,
+  collate = simplify_masked)
 }
 \arguments{
 \item{filenames}{vertex file names}
@@ -20,6 +21,9 @@ where mask is greater than .5)}
 first element is "local" the computation will be run via the parallel package, otherwise it will
 be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
 indicating the number of jobs to split the computation into.}
+
+\item{collate}{A function to reduce the (potentially masked) list of results into a nice
+structure. Defaults to \link{simplify_masked}}
 }
 \value{
 The a matrix with a row of results for each vertex
