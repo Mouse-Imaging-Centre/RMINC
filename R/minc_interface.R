@@ -60,16 +60,20 @@ setMincAttributes <-
     return(minc_object)
   }
 
-#' Collate Minc
+#' Simplify Masked Results
 #' 
-#' Helper function to collate the results of a \link{mincApplyRCPP} family 
-#' (\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function
-#' @param result_list The mincApply results to collate.
-#' @return a matrix like object of class \code{mincSingleDim}, code{mincMultiDim},
-#' or code{mincList} depending on the dimensions of the input object
-#'@export
-simplify2minc <- function(result_list){
-  
+#' Take the results of an RMINC function that produces masked results
+#' and coerce it to the appropriate result. Scalar elements are converted to a vector,
+#' Vector elements are converted to an array, data.frame elements are row-bound, 
+#' and more complex objects are converted to a list.
+#' 
+#' @param results_list The list of potentially masked results
+#' @return Scalar elements are converted to a vector,
+#' Vector elements are converted to an array, data.frame elements are row-bound, 
+#' and more complex objects are converted to a list. Result lists should be
+#' all of the same type of unexpected errors may occur.
+#' @export
+simplify_masked <- function(result_list){
   ## Deal with masking, find the first non-masked value, NA it out
   ## insert it back in to standardize element length as much as possible
   lgl_missing <- vapply(result_list, 
@@ -97,6 +101,24 @@ simplify2minc <- function(result_list){
   result_attributes <- mincAttributes(result_list)
   if(!is.null(result_attributes))
     simplified_results <- setMincAttributes(simplified_results, result_attributes)
+  
+  simplified_results
+}
+
+#' Collate Minc
+#' 
+#' Helper function to collate the results of a \link{mincApplyRCPP} family 
+#' (\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function.
+#' Internally it calls \link{simplify_masked} and then coerces the result
+#' to the appropriate volumetric class (e.g \code{mincMultiDim})
+#' @param result_list The mincApply results to collate.
+#' @return an object of class \code{mincSingleDim}, code{mincMultiDim},
+#' or code{mincList} depending on the dimensions of elements of the input
+#' list, see \link{simplify_masked} for details.
+#'@export
+simplify2minc <- function(result_list){
+  
+  simplified_results <- simplify_masked(result_list) 
   
   ## Reclass the object to the appropriate RMINC class
   if(is.null(ncol(simplified_results)) && is.list(simplified_results)){
