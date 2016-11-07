@@ -7,7 +7,7 @@
 simplify_masked(result_list)
 }
 \arguments{
-\item{results_list}{The list of potentially masked results}
+\item{result_list}{The list of potentially masked results}
 }
 \value{
 Scalar elements are converted to a vector,

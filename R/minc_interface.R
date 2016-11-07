@@ -67,7 +67,7 @@ setMincAttributes <-
 #' Vector elements are converted to an array, data.frame elements are row-bound, 
 #' and more complex objects are converted to a list.
 #' 
-#' @param results_list The list of potentially masked results
+#' @param result_list The list of potentially masked results
 #' @return Scalar elements are converted to a vector,
 #' Vector elements are converted to an array, data.frame elements are row-bound, 
 #' and more complex objects are converted to a list. Result lists should be
