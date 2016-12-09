@@ -82,7 +82,8 @@ simplify_masked <- function(result_list){
   
   first_element <- result_list[[which(!lgl_missing)[1]]]      
   na_value <- first_element                                
-  na_value[] <- getOption("RMINC_MASKED_VALUE")            #set all its elements to masked
+  if(length(na_value) != 1)
+    na_value[] <- getOption("RMINC_MASKED_VALUE")           #set all its elements to masked
   result_list[lgl_missing] <- list(na_value)                #replace in result list
   
   ## Determine the correct reduction technique and apply it
