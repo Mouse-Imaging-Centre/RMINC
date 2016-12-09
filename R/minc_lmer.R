@@ -344,21 +344,89 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector
-mincLmerExtractVariables <- function(mmod) {
+fixef_summary <- function(mmod) {
   se <- tryCatch({ # vcov sometimes complains that matrix is not positive definite
-    sqrt(Matrix::diag(vcov(mmod, T)))
+    sqrt(Matrix::diag(vcov(mmod)))
   }, warning=function(w) {
     return(0)
   }, error=function(e) {
     return(0)
   })
-  fe <- mmod@beta
+  fe <- fixef(mmod)
+  effects <- names(fe)
   t <- fe / se # returns Inf if se=0 (see error handling above); mincLmer removes Inf
   ll <- logLik(mmod)
+  names(fe) <- paste0("beta-", effects)
+  names(t) <- paste0("tvalue-", effects)
   # the convergence return value (I think; need to verify) - should be 0 if it converged
   converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
-  return(c(fe,t, ll, converged))
+  return(c(fe,t, logLik = logLik(mmod), converged = converged))
 }
+
+ranef_summary <- 
+  function(mmod){
+    
+    gather_matrix <- 
+      function(m, val_name){
+        as.data.frame(m) %>%
+          mutate(group = rownames(m)) %>%
+          gather_("effect", val_name, colnames(m))  
+      }
+    
+    
+    eff <- ranef(mmod, condVar = TRUE)
+    
+    betas_and_ts <-
+      mapply(function(e, group_name){
+        condVar <- attr(e, "postVar")
+        group_se <- t(apply(condVar, 3, function(v) sqrt(diag(v))))
+        dimnames(group_se) <- dimnames(e)
+        group_se <- 
+          gather_matrix(group_se, "se")
+        
+        e <- 
+          gather_matrix(e, "beta")
+        
+        t_mat <- 
+          inner_join(group_se, e, by = c("group", "effect")) %>%
+          mutate_(tvalue = ~ beta / se
+                  , grouping = ~ group_name
+                  , se = ~ NULL) %>%
+          gather_("var", "value", c("tvalue", "beta")) %>%
+          unite_("groupingXgroup", c("grouping", "group"), sep = "") %>%
+          unite_("varXeffectXgroupingXgroup", c("var", "effect", "groupingXgroup"), sep = "-") %>%
+          spread_("varXeffectXgroupingXgroup", "value") %>%
+          as.matrix %>%
+          .[1,]
+      }, e = eff, group_name = names(eff), SIMPLIFY = FALSE) %>%
+      Reduce(c, ., NULL)
+    
+    converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
+    c(betas_and_ts, logLik = logLik(mmod), converged = converged)
+  }
+
+effect_summary <-
+  function(mmod){
+    fix <- fixef_summary(mmod)
+    #remove converged and logLik, these will come from the random effects
+    fix <- fix[! names(fix) %in% c("converged", "logLik")] 
+    
+    ran <- ranef_summary(mmod)
+    names(ran) <- names(ran) %>% sub("beta", "rand-beta", .) %>% sub("tvalue", "rand-tvalue", .)
+    
+    c(fix, ran)
+  }
+
+anova_summary <-
+  function(mmod){
+    converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
+    
+    anova(mmod) %>% 
+      t %>% 
+      .["F value", ] %>%
+      setNames(paste0("F-", names(.))) %>%
+      c(logLik = logLik(mmod), converged = converged)
+  }
 
 mincLmerOptimizeAndExtract <- function(x, mincLmerList) {
   mmod <- mincLmerOptimize(x, mincLmerList)
