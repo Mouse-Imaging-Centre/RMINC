@@ -354,6 +354,38 @@ SEXP voxel_mean(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
   return(Soutput);
 }
 
+double* voxel_mean2(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
+  double *voxel, *groupings, *n_groups, *means;
+  double *sum_voxel;
+  int *subjects_per_group;
+  int n_subjects, i;
+  double *output;
+  
+  
+  voxel = REAL(Svoxel);
+  n_groups = REAL(Sn_groups);
+  groupings = REAL(Sgroupings);
+  
+  n_subjects = LENGTH(Svoxel);
+  
+  output = (double*) Calloc( *n_groups, double);
+  subjects_per_group = (int*) Calloc( *n_groups, int);
+  sum_voxel = (double*) Calloc( *n_groups, double);
+  
+  for(i=0; i < n_subjects; i++) {
+    subjects_per_group[(int) groupings[i]]++;
+    sum_voxel[(int) groupings[i]] += voxel[i];
+  }
+  
+  for(i=0; i< *n_groups; i++) {
+    means[i] = sum_voxel[i] / subjects_per_group[i];
+  }
+  
+  Free(sum_voxel);
+  Free(subjects_per_group);
+  return(output);
+}
+
 SEXP voxel_var(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
   double *voxel, *groupings, *n_groups, *means;
   double *var, *sum_voxel;
@@ -721,6 +753,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   midimhandle_t      dimensions[3];
   misize_t           sizes[3];
   SEXP               output, buffer,buffer1, t_sexp, n_groups;
+  double*            t_dbl;
   /* stuff for linear models only */
   double             *coefficients, *residuals, *effects; 
   double             *diag, *se, *t, *work, *qraux, *v, *ss, *comp;
@@ -735,7 +768,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   number_of_protects = 0;
  
   /* get the method that should be used at each voxel */
-  method_name = CHAR(STRING_ELT(method, 0));
+  method_name = (char *) CHAR(STRING_ELT(method, 0));
   Rprintf("Method: %s\n", method_name);
 
   /* allocate memory for the volume handles */
@@ -1055,6 +1088,14 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
               for(i=0; i < xn_groups[0]; i++) {
                 xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[i];
               }
+            }
+            // Testing memory bug
+            else if (strcmp(method_name, "mean2") == 0) {
+              t_dbl = voxel_mean2(buffer, n_groups, mmatrix);
+              for(i=0; i < xn_groups[0]; i++) {
+                xoutput[output_index + i * (sizes[0]*sizes[1]*sizes[2])] = t_dbl[i];
+              }
+              Free(t_dbl);
             }
             else if (strcmp(method_name, "sum") == 0) {
               t_sexp = voxel_sum(buffer, n_groups, mmatrix);
