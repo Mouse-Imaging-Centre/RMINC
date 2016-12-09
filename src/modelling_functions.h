@@ -1,6 +1,11 @@
 #ifndef __MODELLING_FUNCTIONS_H__
 #define __MODELLING_FUNCTIONS_H__
 
+//make C functions available from c++
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
 #include <R.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
@@ -30,4 +35,9 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
                  double *comp,
                  double *ss,
                  int *df);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif
