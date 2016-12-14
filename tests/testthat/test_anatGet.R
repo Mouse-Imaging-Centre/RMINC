@@ -93,24 +93,28 @@ test_that("AnatGetAll works", {
     )
     
     expect_equal(new_label_counts[1,], label_counts_ref$count, check.attributes = FALSE)
+    expect_equal(colnames(new_label_counts), colnames(label_counts))
     
     verboseRun(
       new_jacobians <- anatGetAll(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "jacobians")
     )
     
     expect_equal(new_jacobians, jacobians, check.attributes = FALSE, tolerance = 10e-4)
+    expect_equal(colnames(new_jacobians), colnames(jacobians))
     
     verboseRun(
       new_sums <- anatGetAll(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "sums")
     )
     
     expect_equal(new_sums, label_sums, check.attributes = FALSE, tolerance = 10e-4)
+    expect_equal(colnames(new_sums), colnames(label_sums))
     
     verboseRun(
       new_means <- anatGetAll(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "means")
     )
     
     expect_equal(new_means, label_means, check.attributes = FALSE, tolerance = 10e-4)
+    expect_equal(colnames(new_means), colnames(label_means))
     
   }, envir = test_env)
 })

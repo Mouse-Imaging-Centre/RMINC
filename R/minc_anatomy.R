@@ -286,8 +286,8 @@ create_labels_frame <-
                 ~ ifelse(both_sides
                          , Structure
                          , ifelse(hemisphere == "right.label"
-                                  , paste0("left ", Structure)
-                                  , paste0("right ", Structure))))
+                                  , paste0("right ", Structure)
+                                  , paste0("left ", Structure))))
     
     label_defs <-
       switch(side
