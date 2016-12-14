@@ -39,7 +39,7 @@ test_that("anatLmer works", {
         apply(jacobians, 2, function(col){
           gf2 <- gf %>% mutate(resp = col)
           mod <- lmer(resp ~ Pain.sensitivity + (1|Genotype), data = gf2)
-          RMINC:::mincLmerExtractVariables(mod)
+          RMINC:::fixef_summary(mod)
         }) %>%
         t
     })
