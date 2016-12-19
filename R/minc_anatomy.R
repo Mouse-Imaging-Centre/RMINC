@@ -767,12 +767,10 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' @details \code{anatLmer}, like its relative \link{mincLmer} provides an interface to running 
 #' linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
 #' in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
-#' more difficult to  determine. RMINC provides two alternatives: (1) estimating degrees of freedom using the
-#' \code{\link{mincLmerEstimateDF}} function, and (2) comparing two separate models using
-#' \code{\link{mincLogLikRatio}} (which in turn can be corrected using
-#' \code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
-#' models with a separate intercept or separate intercept and slope per subject - both of these
-#' approximations are likely correct. Be careful in using these approximations if
+#' more difficult to  determine. RMINC provides estimating degrees of freedom using the
+#' \code{\link{anatLmerEstimateDF}} function. For the most likely models - longitudinal
+#' models with a separate intercept or separate intercept and slope per subject - this
+#' approximation is likely correct. Be careful in using this approximations if
 #' using more complicated random effects structures.
 #' @export 
 anatLmer <-
