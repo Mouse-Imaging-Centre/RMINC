@@ -152,7 +152,7 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
   # if no DF set, exit with message
   df <- attr(buffer, "df")
   if (is.null(df)) {
-    stop("No degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
+    stop("No degrees of freedom for object. Needs to be explicitly assigned with {minc|anat|vertex}LmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
   }
   else {
     warning("Here be dragons! Hypothesis testing with mixed effects models is challenging, since nobody quite knows how to correctly estimate denominator degrees of freedom.")
@@ -458,6 +458,7 @@ vertexFDR.vertexMultiDim <- function(buffer, ...) {
 }
 
 #' @describeIn vertexFDR vertexLmer
+#' @export
 vertexFDR.vertexLmer <-
   function(buffer, ...){
     mincFDR.mincLmer(buffer, ...)
@@ -534,7 +535,12 @@ mincFDRMask <- function(mask = NULL, buffer) {
   if (is.null(mask)) {
     mask <- attr(buffer, "mask")
   }
-  cat("Using mask:", mask, "\n")
+  
+  if(is.numeric(mask)){
+    cat("Using mask: <numeric vector>")
+  } else {
+    cat("Using mask:", mask, "\n") 
+  }
   
   # if mask is still null, create a vector of ones with length of buffer
   if (is.null(mask)) {

@@ -317,12 +317,10 @@ vertexLm <- function(formula, data, subset=NULL) {
 #' @details \code{vertexLmer}, like its relative \link{mincLmer} provides an interface to running 
 #' linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
 #' in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
-#' more difficult to  determine. RMINC provides two alternatives: (1) estimating degrees of freedom using the
-#' \code{\link{mincLmerEstimateDF}} function, and (2) comparing two separate models using
-#' \code{\link{mincLogLikRatio}} (which in turn can be corrected using
-#' \code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
-#' models with a separate intercept or separate intercept and slope per subject - both of these
-#' approximations are likely correct. Be careful in using these approximations if
+#' more difficult to  determine. RMINC provides estimating degrees of freedom using the
+#' \code{\link{vertexLmerEstimateDF}} function. For the most likely models - longitudinal
+#' models with a separate intercept or separate intercept and slope per subject - this
+#' approximation is likely correct. Be careful in using this approximation if
 #' using more complicated random effects structures.
 #'
 #' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
@@ -393,10 +391,46 @@ vertexLmer <-
     return(out)
   }
 
+#' Estimate the degrees of freedom for parameters in a vertexLmer model
+#'
+#' There is much uncertainty in how to compute p-values for mixed-effects
+#' statistics, related to the correct calculation of the degrees of freedom
+#' of the model (see here \url{http://glmm.wikidot.com/faq#df}). mincLmer by
+#' default does not return the degrees of freedom as part of its model, instead
+#' requiring an explicit call to a separate function (such as this one).
+#' The implementation here is the Satterthwaite approximation. This approximation
+#' is computed from the data, to avoid the significant run-time requirement of computing
+#' it separate for every vertex, here it is only computed on a small number of vertices
+#' within the mask and the median DF returned for every variable.
+#' 
+#' @param model the output of mincLmer
+#'
+#' @return the same mincLmer model, now with degrees of freedom set
+#'
+#' @seealso \code{\link{mincLmer}} for mixed effects modelling, \code{\link{mincFDR}}
+#' for multiple comparisons corrections.
+#'
+#' @examples
+#' \dontrun{
+#' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
+#' vs <- mincLmerEstimateDF(vs)
+#' qvals <- mincFDR(vs, mask=attr(vs, "mask"))
+#' qvals
+#' }
+#' @export
 vertexLmerEstimateDF <-
   function(model){
     # set the DF based on the Satterthwaite approximation
     mincLmerList <- attr(model, "mincLmerList")
+    mask <- attr(model, "mask")
+    
+    if(is.null(mask)){
+      mask <- rep(1, nrow(model))
+    } else if(is.character(mask) && length(mask) == 1) {
+      mask <- as.numeric(readLines(mask))
+    } else if(! is.numeric(mask) || length(mask) != nrow(model)){
+      stop("There is a problem with your mask, please check that it fits your results")
+    }
     
     initial_frame <- #unpack the lmerList object to get the raw data
       attr(model, "mincLmerList")[[1]]$fr
@@ -406,8 +440,8 @@ vertexLmerEstimateDF <-
     # estimated DF depends on the input data. Rather than estimate separately at every structure,
     # instead select a small number of structures and estimate DF for those structures, then keep the
     # min
-    nvertices <- min(50, nrow(model))
-    rvertices <- sample(1:nrow(model), nvertices)
+    nvertices <- min(50, sum(mask > .5))
+    rvertices <- sample(which(mask > .5), nvertices)
     dfs <- matrix(nrow = nvertices, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
     
     for (i in 1:nvertices) {
