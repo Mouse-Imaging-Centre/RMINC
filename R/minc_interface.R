@@ -209,7 +209,7 @@ likeVolume <- function(x, strict = TRUE){
 #' @export
 maskFile <- function(x, strict = TRUE){
   maskFile <- attr(x, "mask")
-  if(is.null(maskFile) && strict) stop(deparse(substitute(x)), " does not have an associate mask file")
+  if(is.null(maskFile) && strict) stop(deparse(substitute(x)), " does not have an associated mask file")
   
   maskFile
 }
@@ -509,6 +509,7 @@ mincGetVolume <- function(filename) {
 print.mincMultiDim <- function(x, ...) {
   cat("Multidimensional MINC volume\n")
   cat("Columns:      ", colnames(x), "\n")
+  
   print(attr(x, "likeVolume"))
 }
 
@@ -522,7 +523,12 @@ print.mincLogLikRatio <- function(x, ...) {
     cat("  Formula:  ")
     print(mincLmerList[[i]][[1]]$formula)
   }
-  cat("\nMask used:", attr(x, "mask"), "\n")
+  
+  mask <- attr(x, "mask")
+  if(!is.null(mask) && is.numeric(mask)) 
+    mask <- "<numeric vector>"
+  
+  cat("\nMask used: ", mask, "\n")
   cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
 }
 
@@ -538,7 +544,12 @@ print.mincLmer <- function(x, ...) {
   else {
     cat("Fitted with ML\n")
   }
-  cat("Mask:         ", attr(x, "mask"), "\n")
+  
+  mask <- attr(x, "mask")
+  if(!is.null(mask) && is.numeric(mask)) 
+    mask <- "<numeric vector>"
+  
+  cat("Mask:         ", mask, "\n")
   cat("Columns:      ", colnames(x), "\n")
 }
       
