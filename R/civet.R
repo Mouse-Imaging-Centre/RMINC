@@ -1523,7 +1523,7 @@ civet.flattenForDplyr <-
 #' 
 #' After running the CIVET quality control pipeline, import the results
 #' 
-#' @param basedir The CIVET output directory
+#' @param dir The CIVET output directory
 #' @param civetVersion the version of CIVET used, currently only supports
 #' 1.1.12
 #' @return A table of QC results including whether or not the subjects passed
@@ -1531,14 +1531,25 @@ civet.flattenForDplyr <-
 #' for more details.
 #' @export
 civet.readQC <-
-  function(basedir, civetVersion="1.1.12"){
-    if(civetVersion != "1.1.12")
+  function(dir, civetVersion="1.1.12"){
+    
+    if(!civetVersion %in% c("1.1.12", "2.0.0")){
       warning("Unsure how to deal with QC results for civet version: ", civetVersion,
               "\n trying 1.1.12 approach")
+    }
     
+    qc_gatherer <-
+      switch(civetVersion
+             , "2.0.0" = civet_qc_2_0_0
+             , civet_qc_1_1_12)
+    
+    qc_gatherer(dir)
+  }
+
+civet_qc_1_1_12 <- 
+  function(dir){
     qc_file <- 
-      file.path(basedir, "QC") %>%
-      list.files(full.names = TRUE) %>%
+      list.files(dir, full.names = TRUE) %>%
       grep("\\.glm", ., value = TRUE)
     
     if(length(qc_file) == 0) stop("No QC data found")
@@ -1565,6 +1576,48 @@ civet.readQC <-
         SRRight_score  = ~ good_med_bad(SRRight, 250, 500),
         SSLeft_score   = ~ good_med_bad(SSLeft, 250, 500),
         SSRight_score  = ~ good_med_bad(SSRight, 250, 500)
+      ) %>%
+      cbind(
+        rowwise(.) %>% 
+          do(QC_PASS = 
+               as_data_frame(.) %>%
+               select(matches("_score")) %>% 
+               unlist %>%
+               `!=`("bad") %>%
+               all) %>%
+          mutate_(QC_PASS = ~ unlist(QC_PASS))
+      )
+  }
+
+civet_qc_2_0_0 <- 
+  function(dir){
+    
+    message("CIVET 2.0.0 QC facilities not full featured yet, take this with a grain of salt")
+    qc_file <- 
+      list.files(dir, full.names = TRUE) %>%
+      grep("civet.*\\.csv", ., value = TRUE)
+    
+    if(length(qc_file) == 0) stop("No QC data found")
+    if(length(qc_file) > 1) stop("More than one results table found, aborting")
+    
+    good_med_bad <- 
+      function(vec, mb, bb)  
+        ifelse(vec < mb, "good", ifelse(vec < bb, "med", "bad"))
+    
+    qc_res <- 
+      read.csv(qc_file, stringsAsFactors = FALSE, skip = 1, header = FALSE) %>%
+      .[,1:23] %>%
+      setNames(readLines(qc_file, n = 1) %>% strsplit(., ",") %>% first)
+    
+    qc_res %>%
+      mutate_(mask_score     = ~ ifelse(MASK_ERROR  > 15, "bad", "good")
+              , CSFcls_score   = ~ ifelse(CSF_PERCENT > 19, "bad", "good")
+              , GMcls_score    = ~ ifelse(GM_PERCENT  < 45, "bad", "good")
+              , WMcls_score    = ~ ifelse(WM_PERCENT  > 38, "bad", "good")
+              , SRLeft_score   = ~ good_med_bad(LEFT_INTER, 250, 500)
+              , SRRight_score  = ~ good_med_bad(RIGHT_INTER, 250, 500)
+              , SSLeft_score   = ~ good_med_bad(LEFT_SURF_SURF, 250, 500)
+              , SSRight_score  = ~ good_med_bad(RIGHT_SURF_SURF, 250, 500)
       ) %>%
       cbind(
         rowwise(.) %>% 

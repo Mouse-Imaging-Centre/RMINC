@@ -4,10 +4,10 @@
 \alias{civet.readQC}
 \title{Read CIVET QC data}
 \usage{
-civet.readQC(basedir, civetVersion = "1.1.12")
+civet.readQC(dir, civetVersion = "1.1.12")
 }
 \arguments{
-\item{basedir}{The CIVET output directory}
+\item{dir}{The CIVET output directory}
 
 \item{civetVersion}{the version of CIVET used, currently only supports
 1.1.12}
