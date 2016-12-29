@@ -263,11 +263,11 @@ mcMincApply <-
     mincApplyArguments$return_indices <- TRUE
     
     results <- 
-      mcmapply(mincApplyRCPP,
-               maskval = mask_vals,
-               MoreArgs = mincApplyArguments,
-               SIMPLIFY = FALSE,
-               mc.cores = cores)
+      quiet_mcmapply(mincApplyRCPP,
+                     maskval = mask_vals,
+                     MoreArgs = mincApplyArguments,
+                     SIMPLIFY = FALSE,
+                     mc.cores = cores)
     
     inds <- unlist(lapply(results, function(el) el$inds))
     vals <- unlist(lapply(results, function(el) el$vals), recursive = FALSE)
