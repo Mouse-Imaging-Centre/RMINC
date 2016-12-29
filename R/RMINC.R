@@ -23,6 +23,7 @@
 #'                   update vcov
 #' @importFrom utils download.file capture.output glob2rx read.csv read.table 
 #'                   untar write.table
+#' @importFrom parallel mclapply mcmapply
 #' @importFrom grid plotViewport popViewport pushViewport
 #' @importFrom gridBase baseViewports
 #' @useDynLib RMINC

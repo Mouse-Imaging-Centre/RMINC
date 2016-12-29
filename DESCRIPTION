@@ -19,6 +19,7 @@ Imports:
     dplyr,
     tidyr,
     lme4,
+    parallel,
     shiny,
     methods,
     grDevices,
