@@ -271,7 +271,7 @@ mincFileCheck <- function(filenames) {
   enoughAvailableFileDescriptors(length(filenames))
   
   for(i in 1:length(filenames) ) {
-    if(file.access(as.character(filenames[i]), 4) == -1 ){
+    if(is.na(filename) || file.access(as.character(filenames[i]), 4) == -1 ){
         stop("The following file could not be read (full filename is between the dashes): ---", filenames[i], "---")
     }
   }
