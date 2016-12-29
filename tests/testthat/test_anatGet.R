@@ -123,7 +123,7 @@ test_that("AnatGetAll Flags Garbage", {
   gf2 <- gf
   gf2[1,"jacobians_0.2"] <- NA
   expect_error(anatGetAll(gf2$jacobians_0.2, defs = labels, atlas = segmentation)
-               , regex = "do not exist")
+               , regex = "could not be read")
 })
 
 
