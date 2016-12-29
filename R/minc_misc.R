@@ -1,17 +1,3 @@
-quiet_mclapply <- function(...){
-  sink("/dev/null")
-  on.exit(sink())
-  
-  parallel::mclapply(...)
-}
-
-quiet_mcmapply <- function(...){
-  sink("/dev/null")
-  on.exit(sink())
-  
-  parallel::mcmapply(...)
-}
-
 # test to see whether files exist and are readable
 minc.isReadable <- function(filenames) {
   rValue <- TRUE
