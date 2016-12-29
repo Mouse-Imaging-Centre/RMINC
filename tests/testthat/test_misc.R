@@ -15,10 +15,10 @@ test_that("File checking code all fails", {
   frame <- 
     data_frame(
       files = rep("", cur_ulim + 1)
-      , group = c("a", "b"))
+      , group = rep(c("a", "b"), length.out = cur_ulim + 1))
   
-  expect_error(mincLmer(files ~ (1 | group), data = frame))
-  expect_error(mincMean(frame$files))
-  expect_error(anatGetAll(frame$files, method = "labels"))
-  expect_error(vertexLm(files ~ group, data = frame))
+  expect_error(mincLmer(files ~ (1 | group), data = frame), "file descriptors")
+  expect_error(mincMean(frame$files), "file descriptors")
+  expect_error(anatGetAll(frame$files, method = "labels"), "file descriptors")
+  expect_error(vertexLm(files ~ group, data = frame), "file descriptors")
 })
