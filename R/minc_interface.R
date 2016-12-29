@@ -268,6 +268,8 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
 #' @details Throws an error if a file is not found or not readable
 #' @return Returns NULL invisibly
 mincFileCheck <- function(filenames) {
+  enoughAvailableFileDescriptors(length(filenames))
+  
   for(i in 1:length(filenames) ) {
     if(file.access(as.character(filenames[i]), 4) == -1 ){
         stop("The following file could not be read (full filename is between the dashes): ---", filenames[i], "---")

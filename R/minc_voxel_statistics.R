@@ -34,7 +34,6 @@
 #' @export
 mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", maskval=NULL) {
   mincFileCheck(filenames)
-  enoughAvailableFileDescriptors(length(filenames))
   
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
@@ -150,7 +149,7 @@ mincApplyRCPP <-
            collate = simplify2minc){
     
     stopifnot(!is.null(filenames), !is.null(fun))
-    enoughAvailableFileDescriptors(length(filenames))
+    mincFileCheck(filenames)
     
     apply_fun <- 
       function(x, extra_arguments)
@@ -291,7 +290,7 @@ mincApplyRCPP <-
 mincApply <- 
   function(filenames, function.string, mask=NULL, maskval=NULL, reduce=FALSE) {
     
-    enoughAvailableFileDescriptors(length(filenames))
+    mincFileCheck(filenames)
     
     if (is.null(maskval)) {
       minmask = 1

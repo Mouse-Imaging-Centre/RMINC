@@ -239,7 +239,6 @@ vertexAnova <- function(formula, data, subset=NULL) {
 #' }
 #' @export
 vertexLm <- function(formula, data, subset=NULL) {
-  
   # Build model.frame
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
@@ -248,7 +247,7 @@ vertexLm <- function(formula, data, subset=NULL) {
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
-  
+  mincFileCheck(as.character(mf[,1]))
   
   
   if(length(grep("\\$",formula[[3]])) > 0) {
@@ -338,6 +337,7 @@ vertexLmer <-
     mc <- mc[!names(mc) %in% c("mask", "parallel", "safely")]
 
     lmod <- eval(mc, parent.frame(1L))
+    mincFileCheck(lmod$fr[,1])
 
     # code ripped from lme4:::mkLmerDevFun
     rho <- new.env(parent = parent.env(environment()))

@@ -158,9 +158,10 @@ anatGetAll <-
     
     method <- match.arg(method)
     
-    files_exist <- sapply(as.character(filenames), file.exists)
-    if(any(!files_exist))
-      stop("Files ", paste0(filenames[!files_exist], collapse = ", "), " do not exist")
+    if(method != "labels" && is.null(atlas))
+      stop("An atlas is required for all methods other than \"labels\" ")
+      
+    mincFileCheck(filenames)
     
     ## Handle dispatch of worker functions
     compute_summary <-

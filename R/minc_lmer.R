@@ -92,6 +92,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
   
   lmod <- eval(mc, parent.frame(1L))
+  mincFileCheck(lmod$fr[,1])
   
   # code ripped from lme4:::mkLmerDevFun
   rho <- new.env(parent = parent.env(environment()))
