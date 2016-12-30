@@ -359,7 +359,8 @@ create_anat_results <-
   }
 
 #' @export
-print.anatMatrix <- function(x, n = 6, width = 6, ...){
+print.anatMatrix <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...){
+  cat("anatMatrix, showing ", n, " of ", nrow(x), " rows, and ", width, " of ", ncol(x), "columns\nprint more by supplying n and width to the print function\n")
   sub_x <- x[seq_len(n), seq_len(width)]
   
   print(sub_x)
