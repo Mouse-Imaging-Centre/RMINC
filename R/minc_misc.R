@@ -12,6 +12,13 @@ quiet_mcmapply <- function(...){
   parallel::mcmapply(...)
 }
 
+fix_names <-
+  function(x){
+    x %>%
+      gsub("[^A-Za-z0-9_.]+", "_", .) %>%
+      gsub("^_|_$", "", .)
+  }
+
 # test to see whether files exist and are readable
 minc.isReadable <- function(filenames) {
   rValue <- TRUE
