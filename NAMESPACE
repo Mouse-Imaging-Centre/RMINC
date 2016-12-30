@@ -2,6 +2,7 @@
 
 S3method(anatFDR,anatLmer)
 S3method(anatFDR,anatModel)
+S3method(as.data.frame,anatMatrix)
 S3method(mincFDR,mincLmer)
 S3method(mincFDR,mincLogLikRatio)
 S3method(mincFDR,mincMultiDim)

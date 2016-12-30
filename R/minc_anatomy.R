@@ -367,6 +367,27 @@ print.anatMatrix <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ..
   invisible(x)
 }
 
+#' Create Anatomy data.frame
+#' 
+#' Convert an anatomy frame to data.frame for use with tidy tools
+#' 
+#' @param anat An \code{anatMatrix} object produced by \link{anatGetAll}
+#' @return A data.frame augmented with addition attributes from anat
+#' @details Note that structure names are munged such that each structure name has non-standard
+#' characters replaced by underscores
+#' @export
+as.data.frame.anatMatrix <- 
+  function(x, ...){
+    minc_attrs <- mincAttributes(x)
+    minc_attrs <- minc_attrs[! names(minc_attrs) %in% c("dimnames", "class") ]
+    
+    x %>%
+      unclass %>%
+      as.data.frame %>%
+      setNames(fix_names(names(.))) %>%
+      setMincAttributes(minc_attrs)
+  }
+
 anatomy_summary <- 
   function(filenames, atlas, 
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
