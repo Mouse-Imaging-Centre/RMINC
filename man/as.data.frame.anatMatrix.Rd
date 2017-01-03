@@ -7,7 +7,9 @@
 \method{as.data.frame}{anatMatrix}(x, ...)
 }
 \arguments{
-\item{anat}{An \code{anatMatrix} object produced by \link{anatGetAll}}
+\item{x}{An \code{anatMatrix} object produced by \link{anatGetAll}}
+
+\item{...}{additional parameters for methods}
 }
 \value{
 A data.frame augmented with addition attributes from anat

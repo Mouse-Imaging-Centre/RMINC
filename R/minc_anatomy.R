@@ -371,7 +371,8 @@ print.anatMatrix <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ..
 #' 
 #' Convert an anatomy frame to data.frame for use with tidy tools
 #' 
-#' @param anat An \code{anatMatrix} object produced by \link{anatGetAll}
+#' @param x An \code{anatMatrix} object produced by \link{anatGetAll}
+#' @param ... additional parameters for methods
 #' @return A data.frame augmented with addition attributes from anat
 #' @details Note that structure names are munged such that each structure name has non-standard
 #' characters replaced by underscores
