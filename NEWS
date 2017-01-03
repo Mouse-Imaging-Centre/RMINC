@@ -1,5 +1,14 @@
 New in Version 1.4.3.*
 ======================
+4
+--
+* Fix banding bug in mincLm parallel with >6 cores.
+* Improve file handle and file checks
+* Add as.data.frame for anatMatrix
+* Add print for anatModel.
+* Better error when atlas omitted in anatGetAll
+
+
 3
 --
 * Fix left|right lateralization bug in anatGetAll
