@@ -559,7 +559,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
                                           , n = n_groups)
     
     on.exit(try({if(cleanup) unlink(new_mask_file)}))
-    mask_vol <- as.integer(mincGetVolume(new_mask_file))
+    mask_vol <- as.integer(round(mincGetVolume(new_mask_file)))
     
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
