@@ -5,7 +5,7 @@
 \title{Linear model at Every Voxel}
 \usage{
 mincLm(formula, data = NULL, subset = NULL, mask = NULL, maskval = NULL,
-  parallel = NULL)
+  parallel = NULL, cleanup = TRUE)
 }
 \arguments{
 \item{formula}{The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.The RHS of the formula may contain one term with filenames. If so only the + operator may be used, and only two terms may appear on the RHS}
@@ -28,6 +28,8 @@ of processors to use. For local running set the first element to "local" or "sno
 for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
 and \link{configureMincParallel} for details.
 Leaving this argument NULL runs sequentially.}
+
+\item{cleanup}{Whether or not to remove parallelization files}
 }
 \value{
 mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first

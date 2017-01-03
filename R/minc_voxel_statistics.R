@@ -465,6 +465,7 @@ mincLm_c_wrapper <-
 #' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
+#' @param cleanup Whether or not to remove parallelization files
 #' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 #' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
 #' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
@@ -479,7 +480,7 @@ mincLm_c_wrapper <-
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, parallel = NULL) {
+mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE) {
   
   #INITIALIZATION
   method <- "lm"
@@ -556,7 +557,8 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     new_mask_file <- create_parallel_mask(sample_file = parseLmOutput$data.matrix.left[1]
                                           , mask = mask
                                           , n = n_groups)
-    on.exit(try(unlink(new_mask_file)))
+    
+    on.exit(try({if(cleanup) unlink(new_mask_file)}))
     mask_vol <- as.integer(mincGetVolume(new_mask_file))
     
     # a vector with two elements: the methods followed by the # of workers
@@ -570,7 +572,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     }
     else {
       reg <- makeRegistry("mincLm_registry")
-      on.exit( tenacious_remove_registry(reg), add = TRUE)
+      on.exit( if(cleanup) tenacious_remove_registry(reg), add = TRUE)
       
       batchMap(reg
                , parallel_mincLm_c
