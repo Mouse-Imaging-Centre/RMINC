@@ -306,7 +306,8 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
   # time it can stay outside the loop, but occasionally gives weird errors
   # if inside. So wrapped inside that reinit bit:
   if (reinit) {
-    lmod$reTrms <- mkReTrms(findbars(lme4:::RHSForm(mcout[[2]])), lmod$fr)
+    form <- mcout[[2]]
+    lmod$reTrms <- mkReTrms(findbars(form[[length(form)]]), lmod$fr)
     rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
                                                     "Lambdat", "Lind")],
                                       n = nrow(lmod$X), list(X = lmod$X)))
