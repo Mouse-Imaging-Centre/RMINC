@@ -367,6 +367,15 @@ print.anatMatrix <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ..
   invisible(x)
 }
 
+#' @export
+print.anatModel <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...){
+  cat("anatModel, showing ", n, " of ", nrow(x), " rows, and ", width, " of ", ncol(x), "columns\nprint more by supplying n and width to the print function\n")
+  sub_x <- x[seq_len(n), seq_len(width)]
+  
+  print(sub_x)
+  invisible(x)
+}
+
 #' Create Anatomy data.frame
 #' 
 #' Convert an anatomy frame to data.frame for use with tidy tools

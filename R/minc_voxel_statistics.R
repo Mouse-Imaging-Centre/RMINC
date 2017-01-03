@@ -625,7 +625,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   #            rownames(summary(lm(v.firstVoxel ~ mmatrix))$coefficients))
   betaNames = paste('beta-',parseLmOutput$rows, sep='')
   tnames = paste('tvalue-',parseLmOutput$rows, sep='')
-  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames, "logLik")
   class(result) <- c("mincLm", "mincMultiDim", "matrix")
   
   # run the garbage collector...

@@ -442,7 +442,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
         double *work, 
         double *qraux, double *v, int *pivot, double *se, double *t) {
  
-  double tol, rss, resvar, mss, mean_fitted, sum_fitted;
+  double tol, rss, resvar, mss, mean_fitted, sum_fitted, logLik;
   double *x, *y, *xoutput;
   int ny,ny1, rank, i, j, rdf, index;
   SEXP new_x, output;
@@ -457,9 +457,10 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   // f-statistic
   // p * t-statistic
   // r-squared
+  // logLik
   //
-  // which is a total of p+2 values
-  PROTECT(output=allocVector(REALSXP, p+2)); nprot++;
+  // which is a total of p+3 values
+  PROTECT(output=allocVector(REALSXP, p+3)); nprot++;
   xoutput = REAL(output);
 
   /* since x (the model matrix, input variable Sx) is destroyed in dqrls, 
@@ -492,6 +493,8 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
     rss += pow(residuals[i], 2);
     sum_fitted += (y[i] - residuals[i]);
   }
+  
+  logLik = -.5 * n * (log(2*M_PI) + 1 - log(n) + log(rss));
 
   mean_fitted = sum_fitted / n;
   for (i=0; i < n; i++) {
@@ -503,7 +506,6 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   //Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
   resvar = rss/rdf;
   //Rprintf("mss %f p %d resvar %f %\n", mss,p,resvar);
-
   /* first output is the f-stat of the whole model */
 
   
@@ -531,8 +533,9 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
     xoutput[i+1] = coefficients[i] / se[i];
   }
 
-  // last, but not least, the r-squared:
+  // the r-squared:
   xoutput[p+1] = mss / (mss + rss);
+  xoutput[p+2] = logLik;
   UNPROTECT(nprot);
   return(output);
 }
@@ -889,11 +892,11 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     
     Rprintf("N: %d P: %d\n", n,p);
 
-    PROTECT(t_sexp = allocVector(REALSXP, p + 2));
+    PROTECT(t_sexp = allocVector(REALSXP, p + 3));
     number_of_protects += 1;
 
     /* allocate the output buffer */
-    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p + 2));
+    PROTECT(output=allocMatrix(REALSXP, (sizes[0] * sizes[1] * sizes[2]), 2*p + 3));
     number_of_protects += 1;
 
   }
@@ -1132,6 +1135,8 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
               for(int k = 1; k < p + 1; k++) {
                 xoutput[output_index + (k + p + 1) * (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[k];
               }
+              
+              xoutput[output_index + (2*p + 2) *  (sizes[0]*sizes[1]*sizes[2])] = REAL(t_sexp)[p + 2];
             }
           }
         }
