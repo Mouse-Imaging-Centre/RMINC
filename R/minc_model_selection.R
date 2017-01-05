@@ -6,6 +6,10 @@ AIC.mincLm <- function(object, ..., k = 2){
   k * (dfs - object[,"logLik"])
 }
 
+#' @export
+AIC.vertexLm <- function(object, ..., k = 2)
+  AIC.mincLm(object, ..., k = k)
+
 #' Compute the Corrected AIC for an object
 #' 
 #'  Corrected AIC for finite sample sizes. Generally recommended
@@ -28,6 +32,10 @@ AICc.mincLm <- function(object, ...){
 }
 
 #' @export
+AICc.vertexLm <- function(object, ...)
+  AICc.mincLm(object, ...)
+
+#' @export
 BIC.mincLm <- function(object, ...){
   mod_mat <- attr(object, "model")
   n <- nrow(mod_mat)
@@ -35,3 +43,7 @@ BIC.mincLm <- function(object, ...){
   
   -2 * object[,"logLik"] + k * log(n) # omits the - k * log(2*pi) term to match stats::BIC
 }
+
+#' @export
+BIC.vertexLm <- function(object, ...)
+  BIC.mincLm(object, ...)
