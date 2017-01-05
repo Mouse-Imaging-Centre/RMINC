@@ -240,7 +240,7 @@ vertexAnova <- function(formula, data, subset=NULL) {
 #' @export
 vertexLm <- function(formula, data, subset=NULL) {
   # Build model.frame
-  m <- match.call()
+  m <- m_orig <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
   mf <- mf[c(1, m)]
@@ -281,9 +281,11 @@ vertexLm <- function(formula, data, subset=NULL) {
                   PACKAGE="RMINC") 
   
   attr(result, "likeVolume") <- as.character(mf[,1])[1]
-  attr(result, "model") <- as.matrix(parseLmOutput$mmatrix)
-  attr(result, "filenames") <- as.character(mf[,1])
-  attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
+  attr(result, "model")      <- as.matrix(parseLmOutput$mmatrix)
+  attr(result, "filenames")  <- as.character(mf[,1])
+  attr(result, "stat-type")  <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
+  attr(result, "data")       <- data 
+  attr(result, "call")       <- m_orig
   
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
@@ -297,7 +299,7 @@ vertexLm <- function(formula, data, subset=NULL) {
   betaNames = paste('beta-', parseLmOutput$rows, sep='')
   tnames = paste('tvalue-', parseLmOutput$rows, sep='')
   colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames, "logLik")
-  class(result) <- c("vertexMultiDim", "matrix")
+  class(result) <- c("vertexLm", "vertexMultiDim", "matrix")
   
   # run the garbage collector...
   gcout <- gc()
