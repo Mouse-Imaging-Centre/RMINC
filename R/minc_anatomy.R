@@ -774,7 +774,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   attr(result, "model")       <- as.matrix(mmatrix)
   attr(result, "data")        <- data 
   attr(result, "call")        <- m_orig
-  attr(result, "stat-type")   <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
+  attr(result, "stat-type")   <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2), "logLik")
   
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))

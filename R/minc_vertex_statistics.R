@@ -283,7 +283,7 @@ vertexLm <- function(formula, data, subset=NULL) {
   attr(result, "likeVolume") <- as.character(mf[,1])[1]
   attr(result, "model")      <- as.matrix(parseLmOutput$mmatrix)
   attr(result, "filenames")  <- as.character(mf[,1])
-  attr(result, "stat-type")  <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
+  attr(result, "stat-type")  <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2), "logLik")
   attr(result, "data")       <- data 
   attr(result, "call")       <- m_orig
   
