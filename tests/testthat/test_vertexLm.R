@@ -38,8 +38,8 @@ test_that("vertexLm Two Factors",{
 
 test_that("Likelihood and information criteria are computed correctly", {
   expect_equal(as.numeric(rmincLm[1,"logLik"]), as.numeric(logLik(rmod)))
-  expect_equal(as.numeric(RMINC:::AIC.mincLm(rmincLm)[1]), as.numeric(AIC(rmod)))
-  expect_equal(as.numeric(RMINC:::BIC.mincLm(rmincLm)[1]), as.numeric(BIC(rmod)))
+  expect_equal(as.numeric(AIC(rmincLm)[1]), as.numeric(AIC(rmod)))
+  expect_equal(as.numeric(BIC(rmincLm)[1]), as.numeric(BIC(rmod)))
 })
 
 rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age*Sex,gftest)",getOption("verbose"))
@@ -63,8 +63,8 @@ test_that("vertexLm Interaction",{
 
 test_that("Likelihood and information criteria are computed correctly", {
   expect_equal(as.numeric(rmincLm[1,"logLik"]), as.numeric(logLik(rmod)))
-  expect_equal(as.numeric(RMINC:::AIC.mincLm(rmincLm)[1]), as.numeric(AIC(rmod)))
-  expect_equal(as.numeric(RMINC:::BIC.mincLm(rmincLm)[1]), as.numeric(BIC(rmod)))
+  expect_equal(as.numeric(AIC(rmincLm)[1]), as.numeric(AIC(rmod)))
+  expect_equal(as.numeric(BIC(rmincLm)[1]), as.numeric(BIC(rmod)))
 })
 
 rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Group,gftest)",getOption("verbose"))

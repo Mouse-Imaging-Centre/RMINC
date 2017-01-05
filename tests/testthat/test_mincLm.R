@@ -35,8 +35,8 @@ test_that("mincLm Two Factors",{
 
 test_that("Likelihood and information criteria are computed correctly", {
   expect_equal(as.numeric(rmincLm[1,"logLik"]), as.numeric(logLik(rmod)))
-  expect_equal(as.numeric(RMINC:::AIC.mincLm(rmincLm)[1]), as.numeric(AIC(rmod)))
-  expect_equal(as.numeric(RMINC:::BIC.mincLm(rmincLm)[1]), as.numeric(BIC(rmod)))
+  expect_equal(as.numeric(AIC(rmincLm)[1]), as.numeric(AIC(rmod)))
+  expect_equal(as.numeric(BIC(rmincLm)[1]), as.numeric(BIC(rmod)))
 })
 
 # now test that findPeaks works
