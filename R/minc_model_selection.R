@@ -1,9 +1,9 @@
 #' @export
 AIC.mincLm <- function(object, ..., k = 2){
-  mod_mat <- attr(x, "model")
+  mod_mat <- attr(object, "model")
   dfs <- ncol(mod_mat) + 1 # extra 1 for estimating error scale
   
-  k * (dfs - x[,"logLik"])
+  k * (dfs - object[,"logLik"])
 }
 
 #' Compute the Corrected AIC for an object
@@ -20,18 +20,18 @@ AICc <- function(object, ...)
 
 #' @export
 AICc.mincLm <- function(object, ...){
-  mod_mat <- attr(x, "model")
+  mod_mat <- attr(object, "model")
   n <- nrow(mod_mat)
   k <- ncol(mod_mat) + 1 # extra 1 for estimating error scale
   
-  AIC(x) + 2 * (k + 1) * (k + 2) / (n - k - 2)
+  AIC(object) + 2 * (k + 1) * (k + 2) / (n - k - 2)
 }
 
 #' @export
 BIC.mincLm <- function(object, ...){
-  mod_mat <- attr(x, "model")
+  mod_mat <- attr(object, "model")
   n <- nrow(mod_mat)
   k <- ncol(mod_mat) + 1 # extra 1 for estimating error scale
   
-  -2 * x[,"logLik"] + k * log(n) # omits the - k * log(2*pi) term to match stats::BIC
+  -2 * object[,"logLik"] + k * log(n) # omits the - k * log(2*pi) term to match stats::BIC
 }

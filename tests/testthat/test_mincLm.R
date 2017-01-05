@@ -17,7 +17,8 @@ gftest <- gf[1:10,]
 gftest$voxel_right <- (gf$jacobians_fixed_2[11:20])
 gftest$voxel_left_file <- gf$jacobians_fixed_2[1:10]
 
-rLm = summary(lm(voxel_left  ~ Sex))
+rmod <- lm(voxel_left  ~ Sex)
+rLm = summary(rmod)
 # silence the output of mincLm, in order to make the test output information is more clear to read
 rmincLm = verboseRun("mincLm(voxel_left_file ~ Sex, gftest)",getOption("verbose"))
 
@@ -30,6 +31,12 @@ test_that("mincLm Two Factors",{
 	expect_that(rmincLm[1,5],is_equivalent_to(rLm$coefficients[1,3]))
 	expect_that(rmincLm[1,6],is_equivalent_to(rLm$coefficients[2,3]))
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
+})
+
+test_that("Likelihood and information criteria are computed correctly", {
+  expect_equal(as.numeric(rmincLm[1,"logLik"]), as.numeric(logLik(rmod)))
+  expect_equal(as.numeric(RMINC:::AIC.mincLm(rmincLm)[1]), as.numeric(AIC(rmod)))
+  expect_equal(as.numeric(RMINC:::BIC.mincLm(rmincLm)[1]), as.numeric(BIC(rmod)))
 })
 
 # now test that findPeaks works
