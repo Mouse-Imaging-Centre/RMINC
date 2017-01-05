@@ -635,29 +635,6 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
   
 }
 
-AIC.mincLm <- function(lmod){
-  mod_mat <- attr(lmod, "model")
-  n <- nrow(mod_mat)
-  
-  2 * (k - lmod[,"logLik"])
-}
-
-AICc.mincLm <- function(lmod){
-  mod_mat <- attr(lmod, "model")
-  n <- nrow(mod_mat)
-  k <- ncol(mod_mat)
-  
-  AIC(lmod) + 2 * (k + 1) * (k + 2) / (n - k - 2)
-}
-
-BIC.mincLm <- function(lmod){
-  mod_mat <- attr(lmod, "model")
-  n <- nrow(mod_mat)
-  k <- ncol(mod_mat)
-  
-  -2 * lmod[,"logLik"] + k * (log(n) - log(2 * pi))
-}
-
 #' Minc T-test
 #' 
 #' Perform an unpaired,unequal variance t-test across a set of minc volumes
