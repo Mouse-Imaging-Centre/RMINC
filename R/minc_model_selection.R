@@ -10,6 +10,10 @@ AIC.mincLm <- function(object, ..., k = 2){
 AIC.vertexLm <- function(object, ..., k = 2)
   AIC.mincLm(object, ..., k = k)
 
+#' @export
+AIC.anatModel <- function(object, ..., k = 2)
+  AIC.mincLm(object, ..., k = k)
+
 #' Compute the Corrected AIC for an object
 #' 
 #'  Corrected AIC for finite sample sizes. Generally recommended
@@ -36,6 +40,10 @@ AICc.vertexLm <- function(object, ...)
   AICc.mincLm(object, ...)
 
 #' @export
+AICc.anatModel <- function(object, ...)
+  AICc.mincLm(object, ...)
+
+#' @export
 BIC.mincLm <- function(object, ...){
   mod_mat <- attr(object, "model")
   n <- nrow(mod_mat)
@@ -46,4 +54,8 @@ BIC.mincLm <- function(object, ...){
 
 #' @export
 BIC.vertexLm <- function(object, ...)
+  BIC.mincLm(object, ...)
+
+#' @export
+BIC.anatModel <- function(object, ...)
   BIC.mincLm(object, ...)

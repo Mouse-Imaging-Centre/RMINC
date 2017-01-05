@@ -13,7 +13,8 @@ rmincLm = verboseRun("anatLm(~ Sex,gf,gf$lobeThickness)",getOption("verbose"))
 lobeThickness = gf$lobeThickness[,1]
 Age = gf$Age
 Sex = gf$Sex
-rLm = summary(lm(lobeThickness~Sex))
+rmod <- lm(lobeThickness~Sex)
+rLm = summary(rmod)
 
 test_that("anatLm Two Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
@@ -23,6 +24,12 @@ test_that("anatLm Two Factors",{
 	expect_that(rmincLm[1,5],is_equivalent_to(rLm$coefficients[1,3]))
 	expect_that(rmincLm[1,6],is_equivalent_to(rLm$coefficients[2,3]))
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
+})
+
+test_that("Likelihood and information criteria are computed correctly", {
+  expect_equal(as.numeric(rmincLm[1,"logLik"]), as.numeric(logLik(rmod)))
+  expect_equal(as.numeric(AIC(rmincLm)[1]), as.numeric(AIC(rmod)))
+  expect_equal(as.numeric(BIC(rmincLm)[1]), as.numeric(BIC(rmod)))
 })
 
 rmincLm = verboseRun("anatLm(~ Age*Sex,gf,gf$lobeThickness)",getOption("verbose"))
