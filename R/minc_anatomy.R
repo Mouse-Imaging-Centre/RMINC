@@ -688,7 +688,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   matrixName = '';
 
   # Build model.frame
-  m <- match.call()
+  m <- m_orig <- match.call()
   mf <- match.call(expand.dots=FALSE)
   # Add a row to keep track of what subsetting does
   mf$rowcount <- seq(1, nrow(data))
@@ -765,14 +765,16 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   # betas
   # t-stats
   #
-  betaNames = paste('beta-',rows, sep='')
-  tnames = paste('tvalue-',rows, sep='')
-  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
-  class(result) <- c("anatModel", "matrix")
-  attr(result, "atlas") <- attr(anat, "atlas")
+  betaNames                   <- paste('beta-',rows, sep='')
+  tnames                      <- paste('tvalue-',rows, sep='')
+  colnames(result)            <- c("F-statistic", "R-squared", betaNames, tnames, "logLik")
+  class(result)               <- c("anatModel", "matrix")
+  attr(result, "atlas")       <- attr(anat, "atlas")
   attr(result, "definitions") <- attr(anat, "definitions")
-  attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
+  attr(result, "model")       <- as.matrix(mmatrix)
+  attr(result, "data")        <- data 
+  attr(result, "call")        <- m_orig
+  attr(result, "stat-type")   <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
   
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
