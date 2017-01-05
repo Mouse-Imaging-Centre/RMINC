@@ -296,7 +296,7 @@ vertexLm <- function(formula, data, subset=NULL) {
   
   betaNames = paste('beta-', parseLmOutput$rows, sep='')
   tnames = paste('tvalue-', parseLmOutput$rows, sep='')
-  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
+  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames, "logLik")
   class(result) <- c("vertexMultiDim", "matrix")
   
   # run the garbage collector...
