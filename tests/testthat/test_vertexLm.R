@@ -61,12 +61,6 @@ test_that("vertexLm Interaction",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-test_that("Likelihood and information criteria are computed correctly", {
-  expect_equal(as.numeric(rmincLm[1,"logLik"]), as.numeric(logLik(rmod)))
-  expect_equal(as.numeric(AIC(rmincLm)[1]), as.numeric(AIC(rmod)))
-  expect_equal(as.numeric(BIC(rmincLm)[1]), as.numeric(BIC(rmod)))
-})
-
 rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Group,gftest)",getOption("verbose"))
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
