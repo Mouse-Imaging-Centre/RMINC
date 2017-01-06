@@ -1147,7 +1147,7 @@ enoughAvailableFileDescriptors <-
   }
 
 ## NA corrector
-setNA <- function(x, val){ x[is.na(x) <- val]; x}
+setNA <- function(x, val){ x[is.na(x)] <- val; x}
 
 ## NaN corrector
 setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
