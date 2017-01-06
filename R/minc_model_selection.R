@@ -16,13 +16,13 @@ AIC.anatModel <- function(object, ..., k = 2)
 
 #' Compute the Corrected AIC for an object
 #' 
-#'  Corrected AIC for finite sample sizes. Generally recommended
-#'  over AIC as it asymptotically approaches AIC as n->infinity.
+#' Corrected AIC for finite sample sizes. Generally recommended
+#' over AIC as it asymptotically approaches AIC as n->infinity.
 #'  
-#'  @param object An object with an AICc method
-#'  @param ... additional parameters for methods
-#'  @details For use with \link{mincLm} objects AICc produces a vector of AICc values, one per voxel.
-#'  @export
+#' @param object An object with an AICc method
+#' @param ... additional parameters for methods
+#' @details For use with \link{mincLm} objects AICc produces a vector of AICc values, one per voxel.
+#' @export
 AICc <- function(object, ...)
   UseMethod("AICc")
 

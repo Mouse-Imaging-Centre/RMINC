@@ -6,13 +6,16 @@
 \usage{
 AICc(object, ...)
 }
+\arguments{
+\item{object}{An object with an AICc method}
+
+\item{...}{additional parameters for methods}
+}
 \description{
 Corrected AIC for finite sample sizes. Generally recommended
- over AIC as it asymptotically approaches AIC as n->infinity.
- 
- @param object An object with an AICc method
- @param ... additional parameters for methods
- @details For use with \link{mincLm} objects AICc produces a vector of AICc values, one per voxel.
- @export
+over AIC as it asymptotically approaches AIC as n->infinity.
+}
+\details{
+For use with \link{mincLm} objects AICc produces a vector of AICc values, one per voxel.
 }
 
