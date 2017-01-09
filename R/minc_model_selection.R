@@ -87,7 +87,10 @@ check_model_list <- function(model_list, model_type){
 #' @param ... additional models
 #' @param metric A function to apply to the models that extracts a result
 #' for each independent sub-model. Typical choices are \link{AIC}, \link{AICc}, 
-#' and \link{BIC}
+#' and \link{BIC}. Please note that metrics are considered such that lower is 
+#' better (in following AIC). To use a positive metric create a wrapper function
+#' that performs the negation, for example, to use the un-modified log-likelihood 
+#' you could pass \code{ metric = function(minc_model){ -minc_model[,"logLik"]} }
 #' @return A sub-model x n models \code{model_comparison} matrix with the metric of interest.
 #' @export
 compare_models <- function(object, ..., metric = AICc)
