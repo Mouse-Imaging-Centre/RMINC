@@ -1158,3 +1158,29 @@ mincPlotPeak <- function(peak, anatomy, statistics, dim=2,
   }
   par(oldpar)
 }
+
+#' A tool that returns a color function/palette from color lookup files
+#'
+#' @param lookup_table Either a path to the lookup table file, or the table itself
+#' @param alpha A transparency value between 0 and 1 (inclusive)
+#' 
+#' @note For now, the first column of the lookup table (interval where the colour occurs) is ignored; i.e. equal spacing intervals are assumed
+#' 
+#' @return A function that takes in an integer specifying the number of colours required, and returns a vector of colours interpolated from the input colour lookup file
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' spectral.colors <- mincColorLookupToColorRampPalette("/micehome/jlerch/luts/spectral")
+#' spectral.colors(100)
+#' }
+mincColorLookupToColorRampPalette <- function(lookup_table="/micehome/jlerch/luts/spectral", alpha=1) {
+  tryCatch({
+    lut <- read.table(file=lookup_table, header=FALSE, sep = " ", fill = TRUE)
+  }, error = function(e) {
+    lut <- lookup_table
+  })
+  lut <- lut[,2:4]
+  crp <- colorRampPalette(apply(lut, 1, function(x) {rgb(x[1], x[2], x[3], alpha)}))
+  return(crp)
+}
