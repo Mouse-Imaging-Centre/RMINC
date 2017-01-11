@@ -371,9 +371,47 @@ print.anatMatrix <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ..
 print.anatModel <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...){
   cat("anatModel, showing ", n, " of ", nrow(x), " rows, and ", width, " of ", ncol(x), "columns\nprint more by supplying n and width to the print function\n")
   sub_x <- x[seq_len(n), seq_len(width)]
+  attributes(sub_x) <- attributes(sub_x) %>% { .[names(.) %in% c("dim", "dimnames")]}
   
-  print(sub_x)
+  print.default(sub_x)
   invisible(x)
+}
+
+#' @export
+`[.anatModel` <- function(x, i, j, drop = TRUE){
+  orig_x <- x
+  mdrop <- missing(drop)
+  n_args <- nargs() - !mdrop
+  model_attrs <- attributes(x) %>% { .[! names(.) %in% c(attributes_to_skip, "dimnames", "class")]}
+  class(x) <- "matrix"
+  
+  if(n_args == 2){
+    x <- x[i]
+  } else {
+    x <- x[i,j,drop = drop] 
+    if(!is.null(dim(x))) class(x) <- class(orig_x)
+  }
+  
+  attributes(x) <- c(attributes(x), model_attrs)
+  
+  x
+}
+
+#' @export
+rbind.anatModel <- function(..., deparse.level = 1){
+  args <- list(...)
+  attrs <- lapply(args, function(model) attributes(model) %>% { .[! names(.) %in% "call"]})
+  lapply(attrs, function(att){
+    if(! identical(att, attrs[[1]])) stop("Models aren't compatible, differ in some attributes")
+  })
+  
+  bound_models <- do.call(rbind, lapply(args, `class<-`, "matrix"))
+  final_attrs <- attrs[[1]] %>% { .[! names(.) %in% c("dimnames", "dim")]}
+  attributes(bound_models) <- c(attributes(bound_models), final_attrs)
+  rownames(bound_models) <- unlist(lapply(args, rownames))
+  colnames(bound_models) <- colnames(attrs[[1]]$colnames)
+
+  bound_models
 }
 
 #' Create Anatomy data.frame
