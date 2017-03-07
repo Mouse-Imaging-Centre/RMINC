@@ -989,24 +989,29 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' }
 #' @export
-civet.readAllCivetFiles = function(atlasFile,gf)
+civet.readAllCivetFiles = function(atlasFile,gf, civetVersion = "1.1.12")
 {
+  if(civetVersion == "2.0.0" || civetVersion == "2.1.0"){
+    civet_files <- gf
+  } else {
+    civet_files <- gf$CIVETFILES
+  }
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 	# Lobe Area, Lobe Thickness, Lobe Volume
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVETFILES$leftlobeArea40mmFiles, gf$CIVETFILES$rightlobeArea40mmFiles))
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(civet_files$leftlobeArea40mmFiles, civet_files$rightlobeArea40mmFiles), civetVersion = civetVersion)
 	gf$lobeArea40mm = t(roiTable)
 
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVETFILES$leftlobeThicknessFiles, gf$CIVETFILES$rightlobeThicknessFiles))
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(civet_files$leftlobeThicknessFiles, civet_files$rightlobeThicknessFiles), civetVersion = civetVersion)
 	gf$lobeThickness = t(roiTable)
 
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(gf$CIVETFILES$leftlobeVolumeFiles, gf$CIVETFILES$rightlobeVolumeFiles))
+	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(civet_files$leftlobeVolumeFiles, civet_files$rightlobeVolumeFiles), civetVersion = civetVersion)
 	gf$lobeVolume = t(roiTable)
 
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 	# GI
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	roiTable = civet.organizeCivetDatFilesMidWhiteGrey(c(gf$CIVETFILES$leftGIFiles, gf$CIVETFILES$rightGIFiles))	
+	roiTable = civet.organizeCivetDatFilesMidWhiteGrey(c(civet_files$leftGIFiles, civet_files$rightGIFiles))	
 	gf$GI = t(roiTable)
 	
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -1018,24 +1023,34 @@ civet.readAllCivetFiles = function(atlasFile,gf)
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =civet.readAllCivetFiles
 	# Brain Volume
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-	roiTable = civet.organizeCivetDatFilesWholeBrain(c(gf$CIVETFILES$brain_volume))  
+	roiTable = civet.organizeCivetDatFilesWholeBrain(c(civet_files$brain_volume), civetVersion = civetVersion)  
 	gf$BrainVolume = t(roiTable)
   
   
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 	# Vertex based Measures
 	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$midSurfaceleftNativeArea, gf$CIVETFILES$midSurfacerightNativeArea))
+	roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$midSurfaceleftNativeArea, civet_files$midSurfacerightNativeArea))
 	gf$midSurfaceNativeArea = t(roiTable)
 	
-	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$SurfaceleftNativeVolume, gf$CIVETFILES$SurfacerightNativeVolume))
+	roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$SurfaceleftNativeVolume, civet_files$SurfacerightNativeVolume))
 	gf$SurfaceNativeVolume = t(roiTable)
-
-	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$nativeRMS_RSLtlink20mmleft, gf$CIVETFILES$nativeRMS_RSLtlink20mmright))
-	gf$nativeRMS_RSLtlink20mm = t(roiTable)
-
-	roiTable = civet.organizeCivetTxtFilesVertex(c(gf$CIVETFILES$nativeRMStlink20mmleft, gf$CIVETFILES$nativeRMStlink20mmright))
-	gf$nativeRMStlink20mm= t(roiTable)
+	
+	if(civetVersion == "1.1.12"){
+	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMS_RSLtlink20mmleft, civet_files$nativeRMS_RSLtlink20mmright))
+	  gf$nativeRMS_RSLtlink20mm = t(roiTable)
+	} else {
+	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMS_RSLtlink_left, civet_files$nativeRMS_RSLtlink_right))
+	  gf$nativeRMS_RSLtlink20mm = t(roiTable)
+	}
+	
+	if(civetVersion == "1.1.12"){
+	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMStlink20mmleft, civet_files$nativeRMStlink20mmright))
+	  gf$nativeRMStlink20mm= t(roiTable)
+	} else {
+	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMStlink_left, civet_files$nativeRMStlink_right))
+	  gf$nativeRMStlink20mm= t(roiTable)
+	}
 
 	return(gf)
 }
