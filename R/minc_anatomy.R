@@ -508,6 +508,36 @@ label_counts <-
     results
   }
 
+anatSummarize <-
+  function(anat
+           , summarize_by = "hierarchy"
+           , defs = getOption("RMINC_LABEL_DEFINITIONS")
+           , discard_missing = FALSE){
+    
+    if(is.character(summarize_by) && length(summarize_by == 1)){
+      labels <- read.csv(defs, stringsAsFactors = FALSE)
+      summarize_by <- 
+        labels %>% 
+        select_("Structure", summarize_by) %>%
+        rename_("label" = "Structure", "group" = summarize_by)
+    }
+    
+    if(!discard_missing)
+      summarize_by <-
+        summarize_by %>%
+        mutate_(group = ~ifelse(is.na(group) | group == "", label, group))
+    
+    as.data.frame.matrix(anat) %>%
+      (tibble::rownames_to_column) %>%
+      gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
+      inner_join(summarize_by, by = "label") %>%
+      group_by_("group", "rowname") %>%
+      summarize_(value = ~ sum(value)) %>%
+      spread_("group", "value") %>%
+      as.matrix
+  }
+
+
 ###########################################################################################
 #' @description Computes volumes, means, sums, and similar values across a
 #' segmented atlas
