@@ -184,7 +184,7 @@ pMincApply <-
                             slab_sizes = slab_sizes,
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
-                            clobber = TRUE, queue = "sge", collate = collate,
+                            clobber = TRUE, collate = collate,
                             cleaup = cleanup) 
     }
 
