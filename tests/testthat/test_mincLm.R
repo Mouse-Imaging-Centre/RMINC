@@ -145,7 +145,7 @@ test_that("mincLm local multicore works", {
   
   verboseRun(prlm <- mincLm(voxel_left_file~Scale*Coil,gftest, parallel = c("local", 3)))
   
-  expect_equal(rmincLm, prlm, check.attributes = FALSE)
+  expect_equal(rmincLm4, prlm, check.attributes = FALSE)
 })
 
 # test_that("mincLm queue parallel works", {
