@@ -10,7 +10,7 @@ civet.readQC(dir, civetVersion = "1.1.12")
 \item{dir}{The CIVET output directory}
 
 \item{civetVersion}{the version of CIVET used, currently only supports
-1.1.12}
+1.1.12, 2.0.0, 2.1.0}
 }
 \value{
 A table of QC results including whether or not the subjects passed
