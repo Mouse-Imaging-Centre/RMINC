@@ -494,89 +494,159 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' }
 #' @export
-civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9") {
+civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9", cnf) {
 	# designed for use with CIVET 1.1.9 and CIVET 1.1.12
-	if ( civetVersion != "1.1.9"  && civetVersion != "1.1.12" ) {
-		warning("This function has only been tested with Civet version 1.1.9. and 1.1.12 Use at your own risk.", immediate.=TRUE)
-	}
+  if(!civetVersion %in% c("1.1.9", "1.1.12", "2.0.0", "2.1.0")){
+    warning("Unsure how to deal with directory structure for civet version: ", civetVersion,
+            "\n trying the 2.0.0 approach")
+  }
 	
-	# extract the scanIDs from the glim
-	ids <- gf[,idvar]
+	filename_generator <-
+	  switch(civetVersion
+	         , "1.1.9" = civet_filenames_1_1_9
+	         , "1.1.12" = civet_filenames_1_1_12
+	         , civet_filenames_2_0_0) #used for 2.0.0, 2.1.0, and unknowns
 	
-	# create the scan-level root dir names
-	b <- paste(basedir, "/", ids, "/", sep="")
+	mc <- match.call()
+	do.call(filename_generator, as.list(mc[-1]))
+}
 
-	# insert fully-qualified file names
-	filenames.df <- data.frame(leftGIFiles=rep(0,nrow(gf)))
-
-	if (civetVersion == "1.1.12")
-	{	
-  		filenames.df$leftGIFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_gi_left.dat",sep = "")
-  		filenames.df$rightGIFiles <- paste(b, "surfaces/", prefix, "_", ids, "_gi_right.dat",sep = "")
-  		filenames.df$leftlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_left.dat",sep = "")
-  		filenames.df$rightlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_right.dat",sep = "")
-  		filenames.df$leftlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat",sep = "")
-  		filenames.df$rightlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat",sep = "")
-  		filenames.df$leftlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_left.dat",sep = "")
-  		filenames.df$rightlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_right.dat",sep = "")
-		filenames.df$midSurfaceleftNativeArea = paste(b, "surfaces/", prefix, "_", ids, "_mid_surface_rsl_left_native_area_40mm.txt",sep = "")
-		filenames.df$midSurfacerightNativeArea = paste(b,"surfaces/", prefix, "_", ids, "_mid_surface_rsl_right_native_area_40mm.txt",sep = "")
-		filenames.df$SurfaceleftNativeVolume = paste(b, "surfaces/", prefix, "_", ids, "_surface_rsl_left_native_volume_40mm.txt",sep = "")
-		filenames.df$SurfacerightNativeVolume = paste(b,"surfaces/", prefix, "_", ids, "_surface_rsl_right_native_volume_40mm.txt",sep = "") 
- 
-  		filenames.df$brain_volume = paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat",sep = "")
-		filenames.df$cerebral_volume = paste(b, "thickness/", prefix, "_", ids, "_cerebral_volume.dat",sep = "")
-		filenames.df$nativeRMS_RSLtlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt",sep = "") 
-		filenames.df$nativeRMS_RSLtlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt",sep = "") 
-		filenames.df$nativeRMStlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_left.txt",sep = "") 
-		filenames.df$nativeRMStlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_right.txt",sep = "") 
-
-
-		gf$CIVETFILES = filenames.df
+civet_filenames_1_1_12 <-
+  function(gf, idvar, prefix, basedir, ...){
+    ids <- gf[,idvar]
+    
+    # create the scan-level root dir names
+    b <- paste(basedir, "/", ids, "/", sep="")
+    
+    # insert fully-qualified file names
+    filenames.df <- data.frame(leftGIFiles=rep(0,nrow(gf)))
+    
+    filenames.df$leftGIFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_gi_left.dat",sep = "")
+    filenames.df$rightGIFiles <- paste(b, "surfaces/", prefix, "_", ids, "_gi_right.dat",sep = "")
+    filenames.df$leftlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_left.dat",sep = "")
+    filenames.df$rightlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_right.dat",sep = "")
+    filenames.df$leftlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat",sep = "")
+    filenames.df$rightlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat",sep = "")
+    filenames.df$leftlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_left.dat",sep = "")
+    filenames.df$rightlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_right.dat",sep = "")
+    filenames.df$midSurfaceleftNativeArea = paste(b, "surfaces/", prefix, "_", ids, "_mid_surface_rsl_left_native_area_40mm.txt",sep = "")
+    filenames.df$midSurfacerightNativeArea = paste(b,"surfaces/", prefix, "_", ids, "_mid_surface_rsl_right_native_area_40mm.txt",sep = "")
+    filenames.df$SurfaceleftNativeVolume = paste(b, "surfaces/", prefix, "_", ids, "_surface_rsl_left_native_volume_40mm.txt",sep = "")
+    filenames.df$SurfacerightNativeVolume = paste(b,"surfaces/", prefix, "_", ids, "_surface_rsl_right_native_volume_40mm.txt",sep = "") 
+    
+    filenames.df$brain_volume = paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat",sep = "")
+    filenames.df$cerebral_volume = paste(b, "thickness/", prefix, "_", ids, "_cerebral_volume.dat",sep = "")
+    filenames.df$nativeRMS_RSLtlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt",sep = "") 
+    filenames.df$nativeRMS_RSLtlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt",sep = "") 
+    filenames.df$nativeRMStlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_left.txt",sep = "") 
+    filenames.df$nativeRMStlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_right.txt",sep = "") 
+    
+    
+    gf$CIVETFILES = filenames.df
     
     return(gf)
+  }
 
-	}
-	
-	else
+civet_filenames_1_1_9 <-
+  function(gf, idvar, prefix, basedir, append, ...){
+    ids <- gf[,idvar]
+    
+    # create the scan-level root dir names
+    b <- paste(basedir, "/", ids, "/", sep="")
+    
+    # insert fully-qualified file names
+    filenames.df <- data.frame(leftGIFiles=rep(0,nrow(gf)))
+    
+    filenames.df$tissue <- paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat", sep="")
+    filenames.df$structures <- paste(b, "segment/", prefix, "_", ids, "_masked.dat", sep="")
+    filenames.df$left.thickness <- paste(b, "thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt", sep="")
+    filenames.df$right.thickness <- paste(b, "thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt", sep="")
+    filenames.df$rightROIthickness <- paste(b, "segment/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat", sep="")
+    filenames.df$leftROIthickness <- paste(b, "segment/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat", sep="")
+    filenames.df$rightROIarea <- paste(b, "segment/", prefix, "_", ids, "_lobe_areas_right.dat", sep="")
+    filenames.df$leftROIarea <- paste(b, "segment/", prefix, "_", ids, "_lobe_areas_left.dat", sep="")
+    filenames.df$GMVBM <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_gm.mnc", sep="")
+    filenames.df$WMVBM <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_wm.mnc", sep="")
+    filenames.df$CSFVBM <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_csf.mnc", sep="")
+    filenames.df$GMVBMsym <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_gm_sym.mnc", sep="")
+    filenames.df$WMVBMsym <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_wm_sym.mnc", sep="")
+    filenames.df$CSFVBMsym <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_csf_sym.mnc", sep="")
+    
+    # append names to the input glim, if desired
+    if ( append == TRUE) {
+      filenames.df <- cbind(gf, filenames.df)
+    }
+    
+    return(filenames.df)
+  }
 
-	{
-		filenames.df$tissue <- paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat",
-		           sep="")
-		filenames.df$structures <- paste(b, "segment/", prefix, "_", ids, "_masked.dat",
-		               sep="")
-		filenames.df$left.thickness <- paste(b, "thickness/", prefix, "_", ids,
-		                   "_native_rms_rsl_tlink_20mm_left.txt", sep="")
-		filenames.df$right.thickness <- paste(b, "thickness/", prefix, "_", ids,
-		                   "_native_rms_rsl_tlink_20mm_right.txt", sep="")
-		filenames.df$rightROIthickness <- paste(b, "segment/", prefix, "_", ids,
-		                      "_lobe_thickness_tlink_20mm_right.dat", sep="")
-		filenames.df$leftROIthickness <- paste(b, "segment/", prefix, "_", ids,
-		                     "_lobe_thickness_tlink_20mm_left.dat", sep="")
-		filenames.df$rightROIarea <- paste(b, "segment/", prefix, "_", ids,
-		                 "_lobe_areas_right.dat", sep="")
-		filenames.df$leftROIarea <- paste(b, "segment/", prefix, "_", ids,
-		                "_lobe_areas_left.dat", sep="")
-		filenames.df$GMVBM <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_gm.mnc", sep="")
-		filenames.df$WMVBM <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_wm.mnc", sep="")
-		filenames.df$CSFVBM <- paste(b, "VBM/", prefix, "_", ids,
-		           "_smooth_8mm_csf.mnc", sep="")
-		filenames.df$GMVBMsym <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_gm_sym.mnc", sep="")
-		filenames.df$WMVBMsym <- paste(b, "VBM/", prefix, "_", ids,
-		          "_smooth_8mm_wm_sym.mnc", sep="")
-		filenames.df$CSFVBMsym <- paste(b, "VBM/", prefix, "_", ids,
-		             "_smooth_8mm_csf_sym.mnc", sep="")
-  	}
-	# append names to the input glim, if desired
-	if ( append == TRUE) {
-		filenames.df <- cbind(gf, filenames.df)
-	}
+civet_filenames_2_0_0 <-
+  function(gf, idvar, prefix, basedir, cnf, ...){
+    
+    # Read CBRAIN config, hackable as a list containing thickness_method (tlink or laplacian)
+    # thickness_kernel (in mm), and atlas as either AAL or DKT
+    thickness_method <- last(cnf$thickness_method) #not sure why config produces a vector of length two here
+    thickness_dist <- cnf$thickness_kernel
+    atlas <- cnf$atlas
+    
+    gf %>%
+      mutate(
+        subject_prefixed = paste0(prefix, gf[,idvar])
+        , subject_path = file.path(basedir, gf[,idvar])
+        , leftGIFiles  = sprintf("%s/surfaces/%s_gi_left.dat", subject_path, subject_prefixed)
+        , rightGIFiles = sprintf("%s/surfaces/%s_gi_right.dat", subject_path, subject_prefixed)
+        
+        , leftlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_left.dat", subject_path, subject_prefixed, atlas)
+        , rightlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_right.dat", subject_path, subject_prefixed, atlas)
+        
+        , leftlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_left.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
+        , rightlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_right.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
+        
+        , leftlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_left.dat", subject_path, subject_prefixed, atlas)
+        , rightlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_right.dat", subject_path, subject_prefixed, atlas)
+        
+        , midSurfaceleftNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_left_native_area_40mm.txt", subject_path, subject_prefixed)
+        , midSurfacerightNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_right_native_area_40mm.txt", subject_path, subject_prefixed)
+        
+        , SurfaceleftNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_left_native_volume_40mm.txt", subject_path, subject_prefixed)
+        , SurfacerightNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_right_native_volume_40mm.txt", subject_path, subject_prefixed)
+        
+        , brain_volume = sprintf("%s/classify/%s_cls_volumes.dat", subject_path , subject_prefixed)
+        , cerebral_volume = sprintf("%s/thickness/%s_cerebral_volume.dat", subject_path , subject_prefixed)
+        
+        , nativeRMS_RSLtlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path, subject_prefixed, thickness_method, thickness_dist) 
+        , nativeRMS_RSLtlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path, subject_prefixed,thickness_method, thickness_dist) 
+        
+        , nativeRMStlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path , subject_prefixed, thickness_method, thickness_dist) 
+        , nativeRMStlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path , subject_prefixed, thickness_method, thickness_dist)
+      )
+  }
 
-	return(filenames.df)
-}
+
+civet.readCBRAIN <-
+  function(path, prefix, civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE){
+    
+    ## Find a config file
+    cnf_file <- Sys.glob(paste0(path, "/*/*.yml"))[1]
+    cnf <- yaml.load_file(cnf_file)
+    
+    subject_frame <- data.frame(subject = subjects)
+    
+    files <-
+      civet.getAllFilenames(gf = subject_frame, idvar = subject, prefix = prefix, basedir = path, civetVersion = civetVersion, cnf = cnf)
+    
+    if(readFiles){
+      files <- civet.readAllCivetFiles()
+    }
+    
+    if(readQC){
+      qc <- civet.readQC(file.path(path))
+    }
+      
+    
+    subject_frame
+  }
+
 
 #' Assemble vertex files for a CIVET run
 #' 
