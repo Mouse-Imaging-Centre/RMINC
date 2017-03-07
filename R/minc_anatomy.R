@@ -382,17 +382,42 @@ print.anatModel <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...
   orig_x <- x
   mdrop <- missing(drop)
   n_args <- nargs() - !mdrop
-  model_attrs <- attributes(x) %>% { .[! names(.) %in% c(attributes_to_skip, "dimnames", "class")]}
+  model_attrs <- attributes(x) %>% { .[! names(.) %in% c(attributes_to_skip, "dimnames", "class", "df", "stat-type")]}
   class(x) <- "matrix"
   
   if(n_args == 2){
     x <- x[i]
   } else {
     x <- x[i,j,drop = drop] 
-    if(!is.null(dim(x))) class(x) <- class(orig_x)
   }
   
-  attributes(x) <- c(attributes(x), model_attrs)
+  if(!is.null(dim(x))){
+    if(missing(j))
+      j <- seq_len(ncol(x))
+    
+    if(is.character(j))
+      j <- match(j, colnames(orig_x))
+    
+    if( is.logical(j))
+      j <- which(j)
+    
+    class(x) <- class(orig_x)
+    attributes(x) <- c(attributes(x), model_attrs)
+    
+    ## Deal with stats and dfs
+    orig_stats <- attr(orig_x, "stat-type")
+    orig_dfs <- attr(orig_x, "df")
+    
+    knownStats <- c("t", "F", "u", "chisq", "tlmer")
+    if(length(orig_stats) == 1) orig_stats <- rep(orig_stats, ncol(orig_x))
+    stat_columns <- which(orig_stats %in% knownStats)
+    selected_stat_columns <- match(j, stat_columns, 0)
+    
+    if(length(orig_dfs) == 1) orig_dfs <- rep(orig_dfs, length(stat_columns))
+
+    attr(x, "stat-type") <- orig_stats[j]
+    attr(x, "df") <- orig_dfs[selected_stat_columns]
+  }
   
   x
 }
@@ -409,7 +434,7 @@ rbind.anatModel <- function(..., deparse.level = 1){
   final_attrs <- attrs[[1]] %>% { .[! names(.) %in% c("dimnames", "dim")]}
   attributes(bound_models) <- c(attributes(bound_models), final_attrs)
   rownames(bound_models) <- unlist(lapply(args, rownames))
-  colnames(bound_models) <- colnames(attrs[[1]]$colnames)
+  colnames(bound_models) <- colnames(args[[1]])
 
   bound_models
 }
