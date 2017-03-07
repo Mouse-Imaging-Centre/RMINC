@@ -133,7 +133,7 @@ test_that("Model Selection Works", {
   aicc_corr_mat <- t(matrix(rep(aicc_corr, nrow(comp1)), ncol = nrow(comp1)))
   
   expect_equal(unclass(comp2), unclass(comp1 + aicc_corr_mat), check.attributes = FALSE)
-  expect_equal(summary(comp2)$wins, c(100, 100, 119, 981))
+  expect_equal(as.numeric(summary(comp2)$wins), c(100, 100, 119, 981))
 })
 
 test_that("mincLm local multicore works", {
