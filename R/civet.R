@@ -1612,7 +1612,12 @@ civet.flattenForDplyr <-
     normalized_frame <-
       normalized_frame %>%
       bind_cols(lobeArea40mm, lobeVolume, lobeThickness, GI, BrainVolume) %>%
-      mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
+      mutate(midSurfaceNativeArea = midSurfaceNativeArea
+             , nativeRMS_RSLtlink20mm = nativeRMS_RSLtlink20mm
+             , nativeRMStlink20mm = nativeRMStlink20mm)
+      #mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
+    
+    normalized_frame
   }
 
 #' Read CIVET QC data
