@@ -796,8 +796,13 @@ civet.AllROIs <- function(gf, defprefix) {
 civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="1.1.12") {
 	
 	#Initializaion
+  if(civetVersion == "1.1.12" || civetVersion == "1.1.9"){
+    gf <- read.csv(atlasFile)
+  } else {
+    gf <- read.table(atlasFile, header = TRUE)
+  }
+  
 	numberOfFiles = length(dataFiles)
-	gf = read.csv(atlasFile)
 	roiTable = matrix(data=NA,nrow=length(gf[,1]),ncol=numberOfFiles/2)
 	roiLabels = c()
 
@@ -827,7 +832,7 @@ civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="
 			value = as.numeric(as.character(value))
 			for (i in 1:length(labels)) 
 			{ 
-				roiName = as.character( gf[which(gf == labels[i],arr.ind=FALSE),3])
+				roiName = as.character( gf[which(gf[,1] == labels[i],arr.ind=FALSE),3])
 				tableIndex = which(rownames(roiTable) == roiName)
 				roiTable[tableIndex,columnIndex] = value[i]
 			}
@@ -846,9 +851,15 @@ civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="
 # =============================================================================
 civet.organizeCivetDatFilesWholeBrain<- function(dataFiles, civetVersion="1.1.12") {
   
+  if(civetVersion == "2.0.0" || civetVersion == "2.1.0"){
+    measure_names <- c("CSF", "GM", "WM", "scGM")
+  } else {
+    measure_names <- c("CSF", "GM", "WM")
+  }
+  
   numberOfFiles = length(dataFiles)
-  roiTable = matrix(data=NA,nrow=3,ncol=numberOfFiles)
-  rownames(roiTable) = c("CSF","GM","WM")
+  roiTable = matrix(data = NA, nrow = length(measure_names), ncol = numberOfFiles)
+  rownames(roiTable) = measure_names
   for (j in 1:numberOfFiles)
   {
     
@@ -856,7 +867,7 @@ civet.organizeCivetDatFilesWholeBrain<- function(dataFiles, civetVersion="1.1.12
     {
       value = read.table(dataFiles[j])[,2]
       value = as.numeric(as.character(value))
-      roiTable[1:3,j] = value
+      roiTable[,j] = value
     }	
     
   }
