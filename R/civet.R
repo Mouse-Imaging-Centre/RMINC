@@ -1601,6 +1601,10 @@ civet.flattenForDplyr <-
     midSurfaceNativeArea <- 
       lapply(1:nrow(midSurfaceNativeArea), function(i) midSurfaceNativeArea[i,])
     
+    surfaceNativeVolume <- civetResults$SurfaceNativeVolume
+    surfaceNativeVolume <-
+      lapply(1:nrow(surfaceNativeVolume), function(i) surfaceNativeVolume[i,])
+    
     nativeRMS_RSLtlink20mm <- civetResults$nativeRMS_RSLtlink20mm
     nativeRMS_RSLtlink20mm <-
       lapply(1:nrow(nativeRMS_RSLtlink20mm), function(i) nativeRMS_RSLtlink20mm[i,])
@@ -1613,6 +1617,7 @@ civet.flattenForDplyr <-
       normalized_frame %>%
       bind_cols(lobeArea40mm, lobeVolume, lobeThickness, GI, BrainVolume) %>%
       mutate(midSurfaceNativeArea = midSurfaceNativeArea
+             , surfaceNativeVolume = surfaceNativeVolume
              , nativeRMS_RSLtlink20mm = nativeRMS_RSLtlink20mm
              , nativeRMStlink20mm = nativeRMStlink20mm)
       #mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
