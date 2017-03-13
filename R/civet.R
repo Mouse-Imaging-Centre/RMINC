@@ -1646,7 +1646,7 @@ civet.readQC <-
     qc_gatherer <-
       switch(civetVersion
              , "2.0.0" = civet_qc_2_0_0
-             , "2.1.0" = civet_qc_2_0_0
+             , "2.1.0" = civet_qc_2_1_0
              , civet_qc_1_1_12)
     
     qc_gatherer(dir)
@@ -1696,7 +1696,6 @@ civet_qc_1_1_12 <-
 civet_qc_2_0_0 <- 
   function(dir){
     
-    message("CIVET 2.0.0 QC facilities not full featured yet, take this with a grain of salt")
     qc_file <- 
       list.files(dir, full.names = TRUE) %>%
       grep("civet.*\\.csv", ., value = TRUE)
@@ -1759,4 +1758,47 @@ civet_qc_2_0_0 <-
     #            all) %>%
     #       mutate_(QC_PASS = ~ unlist(QC_PASS))
     #   )
+  }
+
+civet_qc_2_1_0 <- 
+  function(dir){
+
+    qc_file <- 
+      list.files(dir, full.names = TRUE) %>%
+      grep("civet.*\\.csv", ., value = TRUE)
+    
+    if(length(qc_file) == 0) stop("No QC data found")
+    if(length(qc_file) > 1) stop("More than one results table found, aborting")
+    
+    rate_by_sd <-
+      function(x){
+        abs_z_score <- abs(scale(x))
+        case_when(abs_z_score > 2 ~ "bad"
+                  , abs_z_score > 1 ~ "medium"
+                  , TRUE ~ "good")
+      }
+    
+    qc_res <- 
+      read.csv(qc_file, stringsAsFactors = FALSE)
+    
+    qc_res %>%
+      mutate_(mask_score     = ~ rate_by_sd(MASK_ERROR)
+              , CSFcls_score   = ~ rate_by_sd(CSF_PERCENT)
+              , GMcls_score    = ~ rate_by_sd(GM_PERCENT)
+              , WMcls_score    = ~ rate_by_sd(WM_PERCENT)
+              , SRLeft_score   = ~ rate_by_sd(LEFT_INTER)
+              , SRRight_score  = ~ rate_by_sd(RIGHT_INTER)
+              , SSLeft_score   = ~ rate_by_sd(LEFT_SURF_SURF)
+              , SSRight_score  = ~ rate_by_sd(RIGHT_SURF_SURF)
+      ) %>%
+      cbind(
+        rowwise(.) %>%
+          do(QC_PASS =
+               as_data_frame(.) %>%
+               select(matches("_score")) %>%
+               unlist %>%
+               `!=`("bad") %>%
+               all) %>%
+          mutate_(QC_PASS = ~ unlist(QC_PASS))
+      )
   }
