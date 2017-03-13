@@ -622,28 +622,62 @@ civet_filenames_2_0_0 <-
   }
 
 
+#' Read a CBRAIN project in R
+#' 
+#' Simplified file input for CBRAIN projects. Attempts to use as much information as possible from the directory structure
+#' and internal CBRAIN config files to find and read the correct CIVET results for CIVET 2.0.0 and 2.1.0
+#' 
+#' @param path Path to the civet project
+#' @param prefix The prefix used to create the subject names
+#' @param atlas Either AAL (default), DKT, or a path to the specific atlas used
+#' @param civetVersion the version of CIVET used, either 2.1.0 (default) or 2.0.0
+#' @param readFiles logical whether or not to read the files into R or just generate the file names
+#' @param readQC logical whether to read and merge the QC results (must be used with \code{flatten})
+#' @param flatten logical whether to convert the CIVET results into a \code{dplyr} compatible data frame or leave
+#' it in the legacy format
+#' @return A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
+#' the format of \link{civet.readAllCivetFiles} if \code{readFiles} is TRUE and \code{flatten} is FALSE. And a data.frame in
+#' the format of \link{civet.flattenForDplyr} if \code{readQC}, \code{readFiles}, and \code{flatten} are all TRUE (default)
+#' @seealso \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr} 
+#' @export
 civet.readCBRAIN <-
-  function(path, prefix, civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE){
+  function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE, flatten = TRUE){
+    ## Check bad arguments
+    if(readQC && readFiles && !flatten) stop("Can't merge QC when readFiles is TRUE and flatten is FALSE")
     
     ## Find a config file
     cnf_file <- Sys.glob(paste0(path, "/*/*.yml"))[1]
     cnf <- yaml.load_file(cnf_file)
     
+    if(is.null(subjects)){
+      subjects <- list.files(path) %>% setdiff(c("QC", "scripts", "stats", "analysis"))
+    }
+    
     subject_frame <- data.frame(subject = subjects)
     
-    files <-
-      civet.getAllFilenames(gf = subject_frame, idvar = subject, prefix = prefix, basedir = path, civetVersion = civetVersion, cnf = cnf)
+    results <-
+      civet.getAllFilenames(gf = subject_frame, idvar = "subject", prefix = prefix, basedir = path, civetVersion = civetVersion, cnf = cnf)
+    
+    if(atlas %in% c("AAL", "DKT") & civetVersion %in% c("2.0.0", "2.1.0")){
+      cversion <- sub("\\.[^.]$", "", civetVersion) #trim the final digit
+      atlas <- 
+        sprintf("civet_extras/CIVET_%s_%s_labels.txt", cversion, atlas) %>%
+        system.file(package = "RMINC")
+    }
     
     if(readFiles){
-      files <- civet.readAllCivetFiles()
+      results <- civet.readAllCivetFiles(atlas, results, civetVersion)
+      if(flatten)
+        results <- civet.flattenForDplyr(results, "subject")
     }
     
     if(readQC){
-      qc <- civet.readQC(file.path(path))
+      qc <- civet.readQC(file.path(path, "QC"), civetVersion)
+      results <- full_join(results, qc, by = c("subject" = "ID"))
     }
       
     
-    subject_frame
+    results
   }
 
 
