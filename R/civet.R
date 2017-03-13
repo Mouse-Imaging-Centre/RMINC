@@ -494,7 +494,7 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' }
 #' @export
-civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9", cnf) {
+civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9", cnf=NULL) {
 	# designed for use with CIVET 1.1.9 and CIVET 1.1.12
   if(!civetVersion %in% c("1.1.9", "1.1.12", "2.0.0", "2.1.0")){
     warning("Unsure how to deal with directory structure for civet version: ", civetVersion,
@@ -507,8 +507,7 @@ civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civet
 	         , "1.1.12" = civet_filenames_1_1_12
 	         , civet_filenames_2_0_0) #used for 2.0.0, 2.1.0, and unknowns
 	
-	mc <- match.call()
-	do.call(filename_generator, as.list(mc[-1]))
+	filename_generator(gf = gf, idvar = idvar, prefix = prefix, basedir = basedir, append = append, civetVersion = civetVersion, cnf = cnf)
 }
 
 civet_filenames_1_1_12 <-
