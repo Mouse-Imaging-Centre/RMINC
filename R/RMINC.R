@@ -25,6 +25,7 @@
 #'                   untar write.table
 #' @importFrom grid plotViewport popViewport pushViewport
 #' @importFrom gridBase baseViewports
+#' @importFrom yaml yaml.load_file
 #' @useDynLib RMINC
 #' @docType package
 #' @name RMINC

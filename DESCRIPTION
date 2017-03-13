@@ -30,7 +30,8 @@ Imports:
     Rcpp,
     parallel,
     Matrix,
-    tibble
+    tibble,
+    yaml
 Suggests:
     rgl,
     plotrix,
