@@ -1727,6 +1727,27 @@ civet_qc_1_1_12 <-
       )
   }
 
+## CIVET QC helpers
+rate_cutoffs <- 
+  function(x, med, bad){
+    case_when(x > bad ~ "bad"
+              , x > med ~ "medium"
+              , TRUE ~ "good")
+  }
+
+rate_symmetric <-
+  function(x){
+    abs_diff_score <- abs(x - median(x)) / sd(x)
+    rate_cutoffs(abs_diff_score, 1, 2)
+  }
+
+rate_one_sided <-
+  function(x){
+    diff_score <- (x - median(x)) / sd(x)
+    rate_cutoffs(diff_score, 2, 3)
+  }
+
+
 civet_qc_2_0_0 <- 
   function(dir){
     
@@ -1736,14 +1757,7 @@ civet_qc_2_0_0 <-
     
     if(length(qc_file) == 0) stop("No QC data found")
     if(length(qc_file) > 1) stop("More than one results table found, aborting")
-    
-    rate_by_sd <-
-      function(x){
-        abs_z_score <- abs(scale(x))
-        case_when(abs_z_score > 2 ~ "bad"
-                  , abs_z_score > 1 ~ "medium"
-                  , TRUE ~ "good")
-      }
+  
     
     qc_res <- 
       read.csv(qc_file, stringsAsFactors = FALSE, skip = 1, header = FALSE) %>%
@@ -1751,14 +1765,14 @@ civet_qc_2_0_0 <-
       setNames(readLines(qc_file, n = 1) %>% strsplit(., ",") %>% first)
 
     qc_res %>%
-      mutate_(mask_score     = ~ rate_by_sd(MASK_ERROR)
-              , CSFcls_score   = ~ rate_by_sd(CSF_PERCENT)
-              , GMcls_score    = ~ rate_by_sd(GM_PERCENT)
-              , WMcls_score    = ~ rate_by_sd(WM_PERCENT)
-              , SRLeft_score   = ~ rate_by_sd(LEFT_INTER)
-              , SRRight_score  = ~ rate_by_sd(RIGHT_INTER)
-              , SSLeft_score   = ~ rate_by_sd(LEFT_SURF_SURF)
-              , SSRight_score  = ~ rate_by_sd(RIGHT_SURF_SURF)
+      mutate_(mask_score     = ~ rate_one_sided(MASK_ERROR)
+              , CSFcls_score   = ~ rate_symmetric(CSF_PERCENT)
+              , GMcls_score    = ~ rate_symmetric(GM_PERCENT)
+              , WMcls_score    = ~ rate_symmetric(WM_PERCENT)
+              , SRLeft_score   = ~ rate_cutoffs(LEFT_INTER, 50, 100)
+              , SRRight_score  = ~ rate_cutoffs(RIGHT_INTER, 50, 100)
+              , SSLeft_score   = ~ rate_cutoffs(LEFT_SURF_SURF, 50, 100)
+              , SSRight_score  = ~ rate_cutoffs(RIGHT_SURF_SURF, 50, 100)
       ) %>%
       cbind(
         rowwise(.) %>%
@@ -1816,14 +1830,14 @@ civet_qc_2_1_0 <-
       read.csv(qc_file, stringsAsFactors = FALSE)
     
     qc_res %>%
-      mutate_(mask_score     = ~ rate_by_sd(MASK_ERROR)
-              , CSFcls_score   = ~ rate_by_sd(CSF_PERCENT)
-              , GMcls_score    = ~ rate_by_sd(GM_PERCENT)
-              , WMcls_score    = ~ rate_by_sd(WM_PERCENT)
-              , SRLeft_score   = ~ rate_by_sd(LEFT_INTER)
-              , SRRight_score  = ~ rate_by_sd(RIGHT_INTER)
-              , SSLeft_score   = ~ rate_by_sd(LEFT_SURF_SURF)
-              , SSRight_score  = ~ rate_by_sd(RIGHT_SURF_SURF)
+      mutate_(mask_score     = ~ rate_one_sided(MASK_ERROR)
+              , CSFcls_score   = ~ rate_symmetric(CSF_PERCENT)
+              , GMcls_score    = ~ rate_symmetric(GM_PERCENT)
+              , WMcls_score    = ~ rate_symmetric(WM_PERCENT)
+              , SRLeft_score   = ~ rate_cutoffs(LEFT_INTER, 50, 100)
+              , SRRight_score  = ~ rate_cutoffs(RIGHT_INTER, 50, 100)
+              , SSLeft_score   = ~ rate_cutoffs(LEFT_SURF_SURF, 50, 100)
+              , SSRight_score  = ~ rate_cutoffs(RIGHT_SURF_SURF, 50, 100)
       ) %>%
       cbind(
         rowwise(.) %>%
