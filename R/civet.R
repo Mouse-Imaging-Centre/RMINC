@@ -1738,7 +1738,7 @@ rate_cutoffs <-
 rate_symmetric <-
   function(x){
     abs_diff_score <- abs(x - median(x)) / sd(x)
-    rate_cutoffs(abs_diff_score, 1, 2)
+    rate_cutoffs(abs_diff_score, 2, 3)
   }
 
 rate_one_sided <-
