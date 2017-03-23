@@ -339,6 +339,18 @@ mincApply <-
     return(results)
   }
 
+voxel_anova_wrapper <- function(filenames, model_matrix, mask, mask_min, mask_max){
+  .Call("per_voxel_anova",
+        as.character(filenames),
+        as.matrix(model_matrix),
+        attr(model_matrix, "assign"),
+        as.double(! is.null(mask)),
+        as.character(mask),
+        as.numeric(mask_min),
+        as.numeric(mask_max),
+        PACKAGE="RMINC")
+}
+
 #' Voxel-wise ANOVA
 #'  
 #' Compute a sequential ANOVA at each voxel
@@ -349,6 +361,17 @@ mincApply <-
 #' @param mask Either a filename or a vector of values of the same 
 #' length as the input files. ANOVA will only be computed
 #' inside the mask.
+#' @param maskval the value in the mask used to select unmasked voxels, defaults to any positive intensity
+#' from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities 
+#' within 0.5 of the chosen value are considered selected. 
+#' @param parallel how many processors to run on (default=single processor).
+#' Specified as a two element vector, with the first element corresponding to
+#' the type of parallelization, and the second to the number
+#' of processors to use. For local running set the first element to "local" or "snowfall"
+#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' and \link{configureMincParallel} for details.
+#' Leaving this argument NULL runs sequentially.
+#' @param cleanup Whether or not to remove parallelization files
 #' @details This function computes a sequential ANOVA over a set of files.
 #' @return Returns an array with the F-statistic for each model specified by 
 #' formula with the following attributes: 
@@ -370,7 +393,13 @@ mincApply <-
 #' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
+mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE) {
+  
+  #Don't move this otherwise the closure gets big
+  parallel_mincAnova <- function(group, filenames, model_matrix, mask, mask_vol){
+    voxel_anova_wrapper(filenames, model_matrix, mask, mask_min = group, mask_max = group)[mask_vol == group, , drop = FALSE]
+  }
+  
   m <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -387,6 +416,13 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   
   mincFileCheck(filenames)
   
+  if(is.null(maskval)){
+    minmask <- 1
+    maxmask <- 99999999
+  } else {
+    minmask <- maxmask <- maskval
+  }
+  
   v.firstVoxel <- mincGetVoxel(filenames, 0,0,0)
   #l <- lm(formula, mf)
   
@@ -398,12 +434,83 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL) {
   ###                   as.character(mask),
   ###                   NULL, NULL,
   ###                   as.character(method), PACKAGE="RMINC")
-  result <- .Call("per_voxel_anova",
-                  as.character(filenames),
-                  as.matrix(mmatrix),
-                  attr(mmatrix, "assign"),
-                  as.double(! is.null(mask)),
-                  as.character(mask), PACKAGE="RMINC")
+  
+  
+  # result <- .Call("per_voxel_anova",
+  #                 as.character(filenames),
+  #                 as.matrix(mmatrix),
+  #                 attr(mmatrix, "assign"),
+  #                 as.double(! is.null(mask)),
+  #                 as.character(mask),
+  #                 as.numeric(minmask),
+  #                 as.numeric(maxmask), 
+  #                 PACKAGE="RMINC")
+  
+  
+  if(!is.null(mask)) {
+    maskDim = minc.dimensions.sizes(mask)
+    volumeDim = minc.dimensions.sizes(filenames)
+    # Case 1: Mask has one or more dimensions less than volume
+    if(maskDim[1] != volumeDim[1] || maskDim[2] != volumeDim[2] || maskDim[3] != volumeDim[3]) {
+      cat(paste("Mask Volume",as.character(maskDim[1]),as.character(maskDim[2]),as.character(maskDim[3]),
+                "Input Volume",as.character(volumeDim[1]),as.character(volumeDim[2]),as.character(volumeDim[3]),'\n'))
+      stop("Mask Volume input volume dimension mismatch.") }
+  }
+  
+  if(is.null(parallel)){
+    result <- voxel_anova_wrapper(filenames, mmatrix, mask, mask_min = minmask, mask_max = maxmask)
+  } else {
+    #Setup shared parallel mask and grouping
+    n_groups <- as.numeric(parallel[2])
+    groups <- seq_len(n_groups)
+    new_mask_file <- create_parallel_mask(sample_file = filenames[1]
+                                          , mask = mask
+                                          , n = n_groups)
+    
+    on.exit(try({if(cleanup) unlink(new_mask_file)}))
+    mask_vol <- as.integer(round(mincGetVolume(new_mask_file)))
+    
+    # a vector with two elements: the methods followed by the # of workers
+    if (parallel[1] %in% c("local", "snowfall")) {
+      result <- 
+        quiet_mclapply(groups
+                       , parallel_mincAnova
+                       , filenames = filenames
+                       , model_matrix = mmatrix
+                       , mask = new_mask_file
+                       , mask_vol = mask_vol
+                       , mc.cores = n_groups) %>%
+        Reduce(rbind, ., NULL) 
+    }
+    else {
+      reg <- makeRegistry("mincAnova_registry")
+      on.exit( if(cleanup) tenacious_remove_registry(reg), add = TRUE)
+      
+      batchMap(reg
+               , parallel_mincAnova
+               , group = groups
+               , more.args = list(filenames = filenames
+                                  , model_matrix = mmatrix
+                                  , mask = new_mask_file
+                                  , mask_vol = mask_vol))
+      
+      submitJobs(reg)
+      waitForJobs(reg)
+      
+      result <-
+        loadResults(reg, use.names = FALSE) %>%
+        Reduce(rbind, ., NULL) 
+    } 
+    
+    result_fleshed_out <- matrix(0
+                                 , nrow = prod(minc.dimensions.sizes(new_mask_file))
+                                 , ncol = ncol(result))
+    
+    result_fleshed_out[mask_vol > .5,] <- result 
+    result <- result_fleshed_out
+  }
+    
+  
   attr(result, "likeVolume") <- filenames[1]
   attr(result, "model") <- as.matrix(mmatrix)
   attr(result, "filenames") <- filenames
