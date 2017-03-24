@@ -591,35 +591,35 @@ civet_filenames_2_0_0 <-
     atlas <- cnf$atlas
     
     gf %>%
-      mutate(
-        subject_prefixed = paste0(prefix, gf[,idvar])
-        , subject_path = file.path(basedir, gf[,idvar])
-        , leftGIFiles  = sprintf("%s/surfaces/%s_gi_left.dat", subject_path, subject_prefixed)
-        , rightGIFiles = sprintf("%s/surfaces/%s_gi_right.dat", subject_path, subject_prefixed)
+      mutate_( #very iritating R CMD check can't handle dplyr code...
+        subject_prefixed = ~paste0(prefix, gf[,idvar])
+        , subject_path = ~file.path(basedir, gf[,idvar])
+        , leftGIFiles  = ~sprintf("%s/surfaces/%s_gi_left.dat", subject_path, subject_prefixed)
+        , rightGIFiles = ~sprintf("%s/surfaces/%s_gi_right.dat", subject_path, subject_prefixed)
         
-        , leftlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_left.dat", subject_path, subject_prefixed, atlas)
-        , rightlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_right.dat", subject_path, subject_prefixed, atlas)
+        , leftlobeArea40mmFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_left.dat", subject_path, subject_prefixed, atlas)
+        , rightlobeArea40mmFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_right.dat", subject_path, subject_prefixed, atlas)
         
-        , leftlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_left.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
-        , rightlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_right.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
+        , leftlobeThicknessFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_left.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
+        , rightlobeThicknessFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_right.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
         
-        , leftlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_left.dat", subject_path, subject_prefixed, atlas)
-        , rightlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_right.dat", subject_path, subject_prefixed, atlas)
+        , leftlobeVolumeFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_left.dat", subject_path, subject_prefixed, atlas)
+        , rightlobeVolumeFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_right.dat", subject_path, subject_prefixed, atlas)
         
-        , midSurfaceleftNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_left_native_area_40mm.txt", subject_path, subject_prefixed)
-        , midSurfacerightNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_right_native_area_40mm.txt", subject_path, subject_prefixed)
+        , midSurfaceleftNativeArea = ~sprintf("%s/surfaces/%s_mid_surface_rsl_left_native_area_40mm.txt", subject_path, subject_prefixed)
+        , midSurfacerightNativeArea = ~sprintf("%s/surfaces/%s_mid_surface_rsl_right_native_area_40mm.txt", subject_path, subject_prefixed)
         
-        , SurfaceleftNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_left_native_volume_40mm.txt", subject_path, subject_prefixed)
-        , SurfacerightNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_right_native_volume_40mm.txt", subject_path, subject_prefixed)
+        , SurfaceleftNativeVolume = ~sprintf("%s/surfaces/%s_surface_rsl_left_native_volume_40mm.txt", subject_path, subject_prefixed)
+        , SurfacerightNativeVolume = ~sprintf("%s/surfaces/%s_surface_rsl_right_native_volume_40mm.txt", subject_path, subject_prefixed)
         
-        , brain_volume = sprintf("%s/classify/%s_cls_volumes.dat", subject_path , subject_prefixed)
-        , cerebral_volume = sprintf("%s/thickness/%s_cerebral_volume.dat", subject_path , subject_prefixed)
+        , brain_volume = ~sprintf("%s/classify/%s_cls_volumes.dat", subject_path , subject_prefixed)
+        , cerebral_volume = ~sprintf("%s/thickness/%s_cerebral_volume.dat", subject_path , subject_prefixed)
         
-        , nativeRMS_RSLtlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path, subject_prefixed, thickness_method, thickness_dist) 
-        , nativeRMS_RSLtlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path, subject_prefixed,thickness_method, thickness_dist) 
+        , nativeRMS_RSLtlink_left = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path, subject_prefixed, thickness_method, thickness_dist) 
+        , nativeRMS_RSLtlink_right = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path, subject_prefixed,thickness_method, thickness_dist) 
         
-        , nativeRMStlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path , subject_prefixed, thickness_method, thickness_dist) 
-        , nativeRMStlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path , subject_prefixed, thickness_method, thickness_dist)
+        , nativeRMStlink_left = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path , subject_prefixed, thickness_method, thickness_dist) 
+        , nativeRMStlink_right = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path , subject_prefixed, thickness_method, thickness_dist)
       )
   }
 
