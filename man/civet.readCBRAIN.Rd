@@ -13,6 +13,9 @@ civet.readCBRAIN(path, prefix, subjects = NULL, atlas = "AAL",
 
 \item{prefix}{The prefix used to create the subject names}
 
+\item{subjects}{A character vector specifying which subjects to read in. If not specified, All files within
+\code{path} that don't match QC, scripts, stats, or analysis will be read in.}
+
 \item{atlas}{Either AAL (default), DKT, or a path to the specific atlas used}
 
 \item{civetVersion}{the version of CIVET used, either 2.1.0 (default) or 2.0.0}

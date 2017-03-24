@@ -475,13 +475,15 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 #' @description Generates list of filenames output by CIVET
 #' @name civet.getAllFilenames
 #' @title civet.getAllFilenames
-#' @usage civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE, civetVersion = "1.1.9")
 #' @param gf Data Frame with subject information
 #' @param idvar column name in gf with subject IDs
 #' @param prefix Prefix specified when CIVET was run
 #' @param basedir directory where all CIVET output was stored
 #' @param append Whether to append the results to the input gf
 #' @param civetVersion Version of CIVET 
+#' @param cnf A list of configuration information used to parse CIVET files produced by CBRAIN. Unnecessary for
+#' CIVETs < 2. Should be read from CBRAIN yaml config file, but can be input manually as a list containing
+#' thickness_method (tlink or laplacian), thickness_kernel (in mm), and atlas as either AAL or DKT
 #' @details Prior to running, read.csv  may be called to generate the input argument gf. 
 #' The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf. 
 #' Currently only CIVET versions 1.1.9 and 1.1.12 are supported.
@@ -630,6 +632,8 @@ civet_filenames_2_0_0 <-
 #' @param path Path to the civet project
 #' @param prefix The prefix used to create the subject names
 #' @param atlas Either AAL (default), DKT, or a path to the specific atlas used
+#' @param subjects A character vector specifying which subjects to read in. If not specified, All files within
+#' \code{path} that don't match QC, scripts, stats, or analysis will be read in.
 #' @param civetVersion the version of CIVET used, either 2.1.0 (default) or 2.0.0
 #' @param readFiles logical whether or not to read the files into R or just generate the file names
 #' @param readQC logical whether to read and merge the QC results (must be used with \code{flatten})
@@ -988,7 +992,6 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' @description Parses outputs from CIVET pipeline 
 #' @name civet.readAllCivetFiles
 #' @title Read all CIVET files into R
-#' @usage civet.readAllCivetFiles(atlasFile, gf)
 #' @param gf Data Frame containing list of all CIVET file names, and where results will be stored
 #' requires gf to have an element (column) called CIVETFILES which is a data.frame containing
 #' paths to the civetFiles, typically generated with \link{civet.getAllFilenames}
@@ -996,6 +999,7 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' the key should be a comma separated file with a header and the following form \cr
 #' Column 1: Numeric label \cr
 #' Column 3: Corresponding structure
+#' @param civetVersion The version of CIVET that produced the files.
 #' @details Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
 #' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
 #' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Brain Volume Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
