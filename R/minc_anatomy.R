@@ -904,7 +904,8 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 anatLmer <-
   function(formula, data, anat, REML = TRUE,
            control = lmerControl(), verbose = FALSE, 
-           start = NULL, parallel = NULL, safely = FALSE){
+           start = NULL, parallel = NULL, safely = FALSE, 
+           summary_type = c("fixef", "ranef", "both", "anova")){
     
     mc <- mcout <- match.call()
     
@@ -934,9 +935,16 @@ anatLmer <-
     
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
+    summary_type <- match.arg(summary_type)
+    summary_fun <- switch(summary_type
+                          , fixef = fixef_summary
+                          , ranef = ranef_summary
+                          , both = effect_summary
+                          , anova = anova_summary)
+    
     mincLmerOptimizeAndExtractSafely <-
-      function(x, mincLmerList){
-        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+      function(x, mincLmerList, summary_fun){
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
                  error = function(e){warning(e); return(NA)})
       }
     
@@ -947,6 +955,7 @@ anatLmer <-
       matrixApply(t(anat)
                   , optimizer_fun
                   , mincLmerList = mincLmerList
+                  , summary_fun = summary_fun
                   , parallel = parallel)
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov

@@ -5,7 +5,8 @@
 \title{Anatomy Linear Mixed Effects Model}
 \usage{
 anatLmer(formula, data, anat, REML = TRUE, control = lmerControl(),
-  verbose = FALSE, start = NULL, parallel = NULL, safely = FALSE)
+  verbose = FALSE, start = NULL, parallel = NULL, safely = FALSE,
+  summary_type = c("fixef", "ranef", "both", "anova"))
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
