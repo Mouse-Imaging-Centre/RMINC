@@ -329,7 +329,7 @@ vertexLm <- function(formula, data, subset=NULL) {
 vertexLmer <-
   function(formula, data, mask=NULL, parallel=NULL,
            REML=TRUE, control=lmerControl(), start=NULL,
-           verbose=0L, safely = FALSE) {
+           verbose=0L, safely = FALSE, summary_type = c("fixef", "ranef", "both", "anova")) {
 
     mc <- mcout <- match.call()
     mc[[1]] <- quote(lme4::lFormula)
@@ -353,10 +353,16 @@ vertexLmer <-
 
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
 
+    summary_type <- match.arg(summary_type)
+    summary_fun <- switch(summary_type
+                          , fixef = fixef_summary
+                          , ranef = ranef_summary
+                          , both = effect_summary
+                          , anova = anova_summary)
 
     mincLmerOptimizeAndExtractSafely <-
-      function(x, mincLmerList){
-        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+      function(x, mincLmerList, summary_fun){
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
                  error = function(e){warning(e); return(NA)})
       }
 
@@ -368,6 +374,7 @@ vertexLmer <-
                   , optimizer_fun
                   , mincLmerList = mincLmerList
                   , mask = mask
+                  , summary_fun = summary_fun
                   , parallel = parallel)
 
     ## Result post processing
