@@ -43,7 +43,7 @@ NA for the result.}
 \item{cleanup}{Whether or not to cleanup registry files after a queue parallelized 
 run}
 
-\item{summary_fun}{One of
+\item{summary_type}{One of
 \itemize{
   \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
   \item{ranef: returns random effect coefficients and t-values}

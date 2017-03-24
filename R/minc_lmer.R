@@ -26,7 +26,7 @@
 #' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
 #' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 #' NA for the result.
-#' @param summary_fun One of
+#' @param summary_type One of
 #' \itemize{
 #'   \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
 #'   \item{ranef: returns random effect coefficients and t-values}

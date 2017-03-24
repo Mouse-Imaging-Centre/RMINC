@@ -34,6 +34,14 @@ Leaving this argument NULL runs sequentially and may take a long time.}
 \item{safely}{whether or not to wrap the per-voxel lmer code in an exception catching
 block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 NA for the result.}
+
+\item{summary_type}{One of
+\itemize{
+  \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
+  \item{ranef: returns random effect coefficients and t-values}
+  \item{both: both fixed and random effects}
+  \item{anova: return the F-statistic for each fixed effect}
+}}
 }
 \description{
 Perform linear mixed effects model fitting for vertex data.
