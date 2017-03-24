@@ -16,4 +16,3 @@ a numeric mask vector
 Either create a mask from a file name (by reading the volume)
 or pass the vector along undisturbed.
 }
-

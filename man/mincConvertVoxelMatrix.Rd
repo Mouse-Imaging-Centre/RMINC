@@ -18,4 +18,3 @@ a 3xN matrix of world coordinates
 Convert a 3xN matrix of voxel coordinates to world coordinates
 with respect to a given minc file.
 }
-

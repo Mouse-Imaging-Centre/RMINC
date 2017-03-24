@@ -18,4 +18,3 @@ Download the example data needed to run our examples in your /tmp directory
 The data can be downloaded manually from 
 \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
 }
-

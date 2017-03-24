@@ -13,4 +13,3 @@ to be returned.}
 \description{
 Returns the dimension sizes of a MINC2 volume
 }
-

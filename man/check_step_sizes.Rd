@@ -22,4 +22,3 @@ A 3-component vector of step sizes.
 \description{
 Check if a collection of minc files all have the same step size.
 }
-

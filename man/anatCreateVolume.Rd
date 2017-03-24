@@ -20,4 +20,3 @@ Invisibly returns the created volume
 Convert an anatomy volume into a statistic volume
 with the results of an \link{anatLm}
 }
-

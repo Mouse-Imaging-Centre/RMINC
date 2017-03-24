@@ -25,4 +25,3 @@ index <- mincVectorToVoxelCoordinates("filename.mnc", 345322)
 voxel <- mincGetVoxel(gf$filenames, index)
 }
 }
-

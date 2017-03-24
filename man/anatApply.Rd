@@ -29,4 +29,3 @@ gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
 }
 }
-

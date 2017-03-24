@@ -27,4 +27,3 @@ For each response (voxel, vertex, or structure) compare
 a set of linear model formulations with the criterion of your
 choice (e.g. AIC, AICc, BIC).
 }
-

@@ -27,4 +27,3 @@ plotted alone or subsequently colourized with \link{colour_mesh}
 \description{
 Turn the bic_obj object into an rgl tmesh ready for visualization
 }
-

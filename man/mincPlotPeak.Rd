@@ -43,4 +43,3 @@ mincPlotPeak(peaks[1,], anatVol, -log10(mincArray(qvs, "Neonatal:time.to.sac")),
              crossCol = "blue", crossSize = 3, plotFunction = p)
 }
 }
-

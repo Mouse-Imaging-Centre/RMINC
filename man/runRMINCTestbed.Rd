@@ -25,4 +25,3 @@ invisibly return the test results
 Run the test bed to ensure all RMINC functions
 work on your system
 }
-

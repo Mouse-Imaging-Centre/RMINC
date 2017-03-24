@@ -2,8 +2,8 @@
 % Please edit documentation in R/minc_FDR.R
 \name{anatFDR}
 \alias{anatFDR}
-\alias{anatFDR.anatLmer}
 \alias{anatFDR.anatModel}
+\alias{anatFDR.anatLmer}
 \title{Anatomy False Discovery Rates}
 \usage{
 anatFDR(buffer, ...)

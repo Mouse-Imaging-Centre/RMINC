@@ -28,4 +28,3 @@ spectral.colors <- mincColorLookupToColorRampPalette("/micehome/jlerch/luts/spec
 spectral.colors(100)
 }
 }
-

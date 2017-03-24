@@ -40,4 +40,3 @@ gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft, mean)
 }
 }
-

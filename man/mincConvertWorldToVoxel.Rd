@@ -24,4 +24,3 @@ a 3-component numeric vector of voxel coordinates
 Convert coordinates in the volumes world space (a continuous coordinate space)
 to a discrete set of voxel coordinates
 }
-

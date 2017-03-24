@@ -74,4 +74,3 @@ computed depends on the methods argument:
   }
 }
 }
-

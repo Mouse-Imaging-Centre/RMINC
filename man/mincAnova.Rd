@@ -67,4 +67,3 @@ vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 \seealso{
 mincWriteVolume,mincFDR,mincMean, mincSd
 }
-

@@ -33,4 +33,3 @@ vs <- mincLm(jacobians ~ genotype, gf)
 tvol <- mincArray(vs, 6)
 }
 }
-

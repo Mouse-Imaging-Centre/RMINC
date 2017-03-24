@@ -2,10 +2,10 @@
 % Please edit documentation in R/minc_FDR.R
 \name{mincFDR}
 \alias{mincFDR}
-\alias{mincFDR.mincLmer}
-\alias{mincFDR.mincLogLikRatio}
-\alias{mincFDR.mincMultiDim}
 \alias{mincFDR.mincSingleDim}
+\alias{mincFDR.mincLogLikRatio}
+\alias{mincFDR.mincLmer}
+\alias{mincFDR.mincMultiDim}
 \title{False Discovery Rates}
 \usage{
 mincFDR(buffer, ...)
@@ -85,6 +85,7 @@ This function uses the \code{qvalue} package to compute the
 
 \item \code{mincMultiDim}: mincMultiDim
 }}
+
 \examples{
 \dontrun{
 getRMINCTestData() 
@@ -99,4 +100,3 @@ qvals <- mincFDR(vs)
 \seealso{
 mincWriteVolume,mincLm,mincWilcoxon or mincTtest
 }
-

@@ -49,4 +49,3 @@ models with a separate intercept or separate intercept and slope per subject - t
 approximation is likely correct. Be careful in using this approximations if
 using more complicated random effects structures.
 }
-

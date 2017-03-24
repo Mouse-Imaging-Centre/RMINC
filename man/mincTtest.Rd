@@ -30,4 +30,3 @@ gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
 mtt <- mincTtest(gf$jacobians_0.2,gf$Strain)
 } 
 }
-

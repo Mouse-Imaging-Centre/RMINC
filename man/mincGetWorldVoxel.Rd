@@ -22,4 +22,3 @@ a vector of values
 Given a set of world coordinates return the value at those coordinates
 from a set of minc files as a numeric vector
 }
-

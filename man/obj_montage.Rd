@@ -64,4 +64,3 @@ take a snapshot after tweaking the angles, or changing the colour bar with \link
 Its other mode is to take a snapshot after it has finished adding the 3d objects to the scene,
 in this mode, whether or not to keep the window open can be configured with close_on_output.
 }
-

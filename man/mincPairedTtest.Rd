@@ -32,4 +32,3 @@ gf = gf[1:20,]
 mptt <- mincPairedTtest(gf$jacobians_0.2,gf$Strain)
 }
 }
-

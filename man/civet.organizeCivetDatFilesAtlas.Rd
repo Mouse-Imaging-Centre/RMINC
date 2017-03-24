@@ -23,4 +23,3 @@ the data files}
 Uses an atlas to associate the measurement results in
 the CIVET .dat output files with particular structures
 }
-

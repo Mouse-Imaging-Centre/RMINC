@@ -46,4 +46,3 @@ volumes_combined <-
 \seealso{
 anatLm,anatGetAll
 }
-

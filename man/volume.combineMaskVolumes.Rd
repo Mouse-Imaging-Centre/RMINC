@@ -20,4 +20,3 @@ volumes, creating an aggregate mask volume.
 \author{
 Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}
 }
-

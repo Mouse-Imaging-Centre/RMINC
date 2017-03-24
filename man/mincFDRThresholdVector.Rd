@@ -23,4 +23,3 @@ tfunc <- function(x) { qchisq(max(x), df[[i]], lower.tail=FALSE) }}
 \description{
 a utility function to compute thresholds
 }
-

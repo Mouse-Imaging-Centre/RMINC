@@ -17,4 +17,3 @@ Estimate the degrees of freedom for an \code{anatLmerModel} object
 produced by \link{anatLmer}. See \link{anatLmer} for more details
 on degrees of freedom estimation for linear mixed effects models
 }
-

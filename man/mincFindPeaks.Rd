@@ -35,4 +35,3 @@ Inputs a MINC file or RMINC output and identifies peak voxels (given some constr
 \details{
 Provides an interface to find_peaks, a command line program that comes with the MINC library.
 }
-

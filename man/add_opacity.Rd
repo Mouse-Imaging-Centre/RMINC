@@ -23,4 +23,3 @@ The original mesh with the alpha levels set
 Set the opacity for a brain mesh from a vector of values that correspond
 to the vertices in the mesh.
 }
-

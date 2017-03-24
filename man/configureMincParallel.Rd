@@ -37,4 +37,3 @@ function(...)
   configureMincParallel("custom", "<your-config-file.R>"))
 } to set your configuration whenever \code{RMINC} is loaded
 }
-

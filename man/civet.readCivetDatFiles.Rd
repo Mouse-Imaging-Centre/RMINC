@@ -79,4 +79,3 @@ print(native_space_cortical_gray_volume)
 \author{
 Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}
 }
-

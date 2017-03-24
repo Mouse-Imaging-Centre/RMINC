@@ -54,4 +54,3 @@ vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 \seealso{
 mincWriteVolume,mincFDR,mincMean, mincSd
 }
-

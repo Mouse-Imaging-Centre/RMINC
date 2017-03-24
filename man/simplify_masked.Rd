@@ -21,4 +21,3 @@ and coerce it to the appropriate result. Scalar elements are converted to a vect
 Vector elements are converted to an array, data.frame elements are row-bound, 
 and more complex objects are converted to a list.
 }
-

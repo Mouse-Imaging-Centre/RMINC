@@ -17,4 +17,3 @@ A \code{bic_lines} object in voxel coordinates
 \description{
 Convert a \code{bic_lines} object to world coordinates for plotting
 }
-

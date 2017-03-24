@@ -18,4 +18,3 @@ of world coordinates.
 Parse the BIC obj format for when the object contains
 lines instead of a mesh.
 }
-

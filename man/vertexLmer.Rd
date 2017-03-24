@@ -53,4 +53,3 @@ using more complicated random effects structures.
 \seealso{
 \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
 }
-

@@ -32,4 +32,3 @@ it will return the same type as data_map. If data_map is unspecified, it acts li
 Find the vertices closest one or more targets, potentially returning the values
 for the vertices from a data map.
 }
-

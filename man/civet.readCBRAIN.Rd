@@ -36,4 +36,3 @@ and internal CBRAIN config files to find and read the correct CIVET results for 
 \seealso{
 \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr}
 }
-

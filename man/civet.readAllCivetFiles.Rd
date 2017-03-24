@@ -51,4 +51,3 @@ gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 \seealso{
 civet.getAllFilenames
 }
-

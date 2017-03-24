@@ -28,4 +28,3 @@ peaks <- mincLabelPeaks(peaks,
                          defs="Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv")
 }
 }
-

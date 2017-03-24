@@ -16,4 +16,3 @@ data corresponding to a single file
 \description{
 Read files containing vertex data into a matrix
 }
-

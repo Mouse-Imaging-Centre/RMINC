@@ -17,4 +17,3 @@ tags as a ntags by 4 matrix
 \description{
 convert tags from world coordinates to mincArray coordinates
 }
-

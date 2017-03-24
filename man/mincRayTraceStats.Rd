@@ -101,4 +101,3 @@ mincRayTraceStats(v,"/some/path/anatomical.mnc", vs, column = 3)
 \seealso{
 mincLm, mincFDR, mincMean, mincSd
 }
-

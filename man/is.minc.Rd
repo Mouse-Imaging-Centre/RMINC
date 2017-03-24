@@ -16,4 +16,3 @@ logical whether or not the object is an RMINC object
 Checks if the current object is one produced by RMINC
 (currently \code{mincList}, \code{mincSingleDim}, \code{mincMultiDim})
 }
-

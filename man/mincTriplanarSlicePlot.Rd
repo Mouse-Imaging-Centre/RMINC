@@ -25,4 +25,3 @@ invisible NULL
 \description{
 Show a slice from each axis of minc volume
 }
-

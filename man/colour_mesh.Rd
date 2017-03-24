@@ -33,4 +33,3 @@ and an additional \code{legend} element to be used in building a colour bar
 Add colour information to your mesh, either from a vertex atlas like AAL
 or from a statistic/measurement map like those produced by CIVET
 }
-

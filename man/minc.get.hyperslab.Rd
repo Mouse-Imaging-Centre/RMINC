@@ -28,4 +28,3 @@ This function allows for the extraction of an arbitrary contiguous chunk of
 data from a MINC2 volume. The coordinates are voxel coordinates, given in
 the volume dimension order.
 }
-

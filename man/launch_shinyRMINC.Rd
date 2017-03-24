@@ -34,4 +34,3 @@ launch_shinyRMINC(vs, anatVol, volumes=gfs$vols,
                   plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
 }
 }
-

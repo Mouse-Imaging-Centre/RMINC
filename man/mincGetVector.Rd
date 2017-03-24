@@ -21,4 +21,3 @@ mincGetVector(filenames, v1, v2, v3, v.length = NULL)
 Given a voxel coordinate, return the value at those coordinates
 from a set of minc files as a numeric vector
 }
-

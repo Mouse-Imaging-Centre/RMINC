@@ -22,4 +22,3 @@ zero, or the size/label from the connected components calculation
 Convert a \link{connected_components} data.frame into a vertex map
 for visualizing the results.
 }
-

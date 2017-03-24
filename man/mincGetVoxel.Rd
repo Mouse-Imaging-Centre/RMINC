@@ -23,4 +23,3 @@ of the values.
 \description{
 Return the intensity of a given voxel in a set of minc files
 }
-

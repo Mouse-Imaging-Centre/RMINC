@@ -33,4 +33,3 @@ result = vertexLm(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf)
 \seealso{
 mincLm,anatLm,vertexFDR
 }
-

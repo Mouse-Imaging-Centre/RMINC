@@ -84,4 +84,3 @@ these functions divides all of the voxels that are masked by \code{mask} into
 of potential partial matches. When in doubt, partially apply your function before
 hand, and do not rely on positional matching.
 }
-

@@ -29,4 +29,3 @@ returns a list() containing a mask volume for each of the labels.
 \author{
 Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}
 }
-

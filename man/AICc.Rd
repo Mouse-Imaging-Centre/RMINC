@@ -18,4 +18,3 @@ over AIC as it asymptotically approaches AIC as n->infinity.
 \details{
 For use with \link{mincLm} objects AICc produces a vector of AICc values, one per voxel.
 }
-

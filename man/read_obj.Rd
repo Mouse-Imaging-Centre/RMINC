@@ -29,4 +29,3 @@ space from a block of colour information (which is ignored), a space separated b
 of metadata and a space seperated block of multiples of 3, followed finally by a block
 of triangle membership. Only the vertex and triangle blocks are read in.
 }
-

@@ -39,4 +39,3 @@ result = vertexAnova(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf)
 \seealso{
 mincAnova,anatAnova
 }
-

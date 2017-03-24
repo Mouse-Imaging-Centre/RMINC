@@ -20,4 +20,3 @@ returns x invisibly
 Create a plot of BIC obj_mesh, potentially colourized by \link{colour_mesh}
 and potentially including a colour bar
 }
-

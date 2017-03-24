@@ -36,4 +36,3 @@ mincWriteVolume(llr, "m2vsm3.mnc", "m3")
 \code{\link{mincFDR}} for using the False Discovery Rate to correct for multiple comparisons,
 and \code{\link{mincWriteVolume}} for outputting the values to MINC files.
 }
-

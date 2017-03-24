@@ -25,4 +25,3 @@ testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc")
 \seealso{
 mincWriteVolume
 }
-

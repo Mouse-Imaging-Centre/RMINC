@@ -22,4 +22,3 @@ vertex id, the cluster it's a member of, and the size of its cluster
 Given vertex data and a threshold, find the connected
 component of a graph representing a \code{bic_obj}
 }
-

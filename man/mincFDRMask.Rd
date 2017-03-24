@@ -20,4 +20,3 @@ a numeric mask vector
 Returns either the specified mask, the mask associated with the buffer, 
 or a vector of ones to be used as a mask.
 }
-

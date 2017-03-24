@@ -20,4 +20,3 @@ a 3xN matrix of voxel coordinates
 Convert a 3xN matrix of world coordinates to voxel coordinates
 with respect to a given minc file.
 }
-

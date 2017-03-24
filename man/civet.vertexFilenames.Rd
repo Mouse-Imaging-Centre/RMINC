@@ -26,4 +26,3 @@ A data.frame containing left and right thickness, area, and volume files.
 \description{
 Locate the vertex thickness, area, and volume files for a CIVET run
 }
-

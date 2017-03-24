@@ -40,4 +40,3 @@ gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1
 \seealso{
 civet.readAllCivetFiles
 }
-

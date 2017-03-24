@@ -42,4 +42,3 @@ invisible NULL
 Plot a given slice through a MINC volume and superimpose statistics
 on the slice.
 }
-

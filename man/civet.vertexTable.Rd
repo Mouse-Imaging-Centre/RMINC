@@ -19,4 +19,3 @@ A 6-element list of matrices:
 \description{
 Read in the vertex data results of a CIVET run
 }
-

@@ -2,9 +2,9 @@
 % Please edit documentation in R/minc_parallel.R
 \name{qMincApply}
 \alias{qMincApply}
+\alias{qMincRegistry}
 \alias{qMincMap}
 \alias{qMincReduce}
-\alias{qMincRegistry}
 \title{True cluster mincApply}
 \usage{
 qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
@@ -124,7 +124,7 @@ Controlling how and where to execute the parallel jobs is now handled by
 
 \item \code{qMincReduce}: reduce
 }}
+
 \seealso{
 \url{https://www.jstatsoft.org/article/view/v064i11} \link{pMincApply} \link{mcMincApply}
 }
-

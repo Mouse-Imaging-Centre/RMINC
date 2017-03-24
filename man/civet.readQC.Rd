@@ -20,4 +20,3 @@ for more details.
 \description{
 After running the CIVET quality control pipeline, import the results
 }
-

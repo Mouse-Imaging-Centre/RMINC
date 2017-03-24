@@ -20,4 +20,3 @@ Helper function to collate the results of a \link{mincApplyRCPP} family
 Internally it calls \link{simplify_masked} and then coerces the result
 to the appropriate volumetric class (e.g \code{mincMultiDim})
 }
-

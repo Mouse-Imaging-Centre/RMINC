@@ -52,4 +52,3 @@ mincImage(mincArray(vs, 6), slice=100, col=rainbow(255),
           underTransparent = T, low=2, high=6, add=T)
 }
 }
-

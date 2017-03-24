@@ -15,4 +15,3 @@ an \code{igraph} object representing the object's mesh
 \description{
 Convert a bic_obj object to a graph for handy graph algorithms
 }
-

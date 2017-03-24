@@ -33,4 +33,3 @@ civet.checkVersion(civetVersion)
 \author{
 Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}
 }
-

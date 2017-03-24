@@ -2,8 +2,8 @@
 % Please edit documentation in R/minc_voxel_statistics.R
 \name{mincTFCE}
 \alias{mincTFCE}
-\alias{mincTFCE.matrix}
 \alias{mincTFCE.mincSingleDim}
+\alias{mincTFCE.matrix}
 \title{Threshold Free Cluster Enhancement}
 \usage{
 mincTFCE(x, ...)

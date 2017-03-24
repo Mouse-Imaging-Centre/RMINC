@@ -52,7 +52,6 @@ SystemRequirements:
 License: BSD_3_clause + file LICENSE
 LazyLoad: yes
 OS_type: unix
-SystemRequirements: 
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

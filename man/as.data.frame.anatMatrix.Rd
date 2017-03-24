@@ -21,4 +21,3 @@ Convert an anatomy frame to data.frame for use with tidy tools
 Note that structure names are munged such that each structure name has non-standard
 characters replaced by underscores
 }
-

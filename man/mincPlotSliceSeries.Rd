@@ -77,4 +77,3 @@ mincPlotSliceSeries(mincArray(anatVol),           # the anatomical volume
                     legend="t-statistics")
 }
 }
-

@@ -16,4 +16,3 @@ A matrix of thresholds, accessible with standard matrix indexing
 \description{
 Get FDR Thresholds
 }
-

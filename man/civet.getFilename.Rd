@@ -2,22 +2,22 @@
 % Please edit documentation in R/civet.R
 \name{civet.getFilename}
 \alias{civet.getFilename}
-\alias{civet.getFilenameCerebrumMask}
 \alias{civet.getFilenameClassify}
-\alias{civet.getFilenameCsfPve}
 \alias{civet.getFilenameGrayMatterPve}
-\alias{civet.getFilenameGrayMatterSurfaces}
-\alias{civet.getFilenameLinearTransform}
-\alias{civet.getFilenameMeanSurfaceCurvature}
-\alias{civet.getFilenameMidSurfaces}
-\alias{civet.getFilenameNonlinearTransform}
-\alias{civet.getFilenameSkullMask}
-\alias{civet.getFilenameStxT1}
 \alias{civet.getFilenameWhiteMatterPve}
+\alias{civet.getFilenameCsfPve}
+\alias{civet.getFilenameStxT1}
+\alias{civet.getFilenameCerebrumMask}
+\alias{civet.getFilenameSkullMask}
+\alias{civet.getFilenameGrayMatterSurfaces}
 \alias{civet.getFilenameWhiteMatterSurfaces}
-\alias{civet.getFilenamesCorticalArea}
+\alias{civet.getFilenameMidSurfaces}
 \alias{civet.getFilenamesCorticalThickness}
+\alias{civet.getFilenamesCorticalArea}
 \alias{civet.getFilenamesCorticalVolume}
+\alias{civet.getFilenameMeanSurfaceCurvature}
+\alias{civet.getFilenameLinearTransform}
+\alias{civet.getFilenameNonlinearTransform}
 \title{Get Selected Civet Filenames}
 \usage{
 civet.getFilenameClassify(scanID, baseDir, civetVersion = "1.1.9",
@@ -135,6 +135,7 @@ filename(s).
 
 \item \code{civet.getFilenameNonlinearTransform}: non-linear transform
 }}
+
 \examples{
 
 \dontrun{
@@ -166,4 +167,3 @@ print(nlin.xfmNames$grid)		# name of the nlin grid file
 \author{
 Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}
 }
-

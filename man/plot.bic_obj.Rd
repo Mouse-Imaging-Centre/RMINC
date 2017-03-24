@@ -42,4 +42,3 @@ invisibly returns the mesh object
 Create a basic plot of a BIC obj in the current rgl device, opening a 
 new one if necessary. If colour_map is supplied, an overlay is added to the mesh
 }
-

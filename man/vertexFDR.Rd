@@ -2,8 +2,8 @@
 % Please edit documentation in R/minc_FDR.R
 \name{vertexFDR}
 \alias{vertexFDR}
-\alias{vertexFDR.vertexLmer}
 \alias{vertexFDR.vertexMultiDim}
+\alias{vertexFDR.vertexLmer}
 \title{Vertex False Discovery Rates}
 \usage{
 vertexFDR(buffer, ...)

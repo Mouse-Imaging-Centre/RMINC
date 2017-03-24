@@ -79,4 +79,3 @@ volumes <- anatGetAll(filenames=filenames$absolute_jacobian,
 \seealso{
 anatLm,anatCombineStructures
 }
-
