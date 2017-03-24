@@ -26,6 +26,13 @@
 #' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
 #' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 #' NA for the result.
+#' @param summary_fun One of
+#' \itemize{
+#'   \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
+#'   \item{ranef: returns random effect coefficients and t-values}
+#'   \item{both: both fixed and random effects}
+#'   \item{anova: return the F-statistic for each fixed effect}
+#'}
 #' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
 #' run
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
@@ -77,7 +84,7 @@
 mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
-                     cleanup = TRUE) {
+                     cleanup = TRUE, summary_type = c("fixef", "ranef", "both", "anova")) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -117,9 +124,16 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   slab_dims <- minc.dimensions.sizes(lmod$fr[1,1])
   slab_dims[1] <- 1
   
+  summary_type <- match.arg(summary_type)
+  summary_fun <- switch(summary_type
+                        , fixef = fixef_summary
+                        , ranef = ranef_summary
+                        , both = effect_summary
+                        , anova = anova_summary)
+  
   mincLmerOptimizeAndExtractSafely <-
-    function(x, mincLmerList){
-      tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+    function(x, mincLmerList, summary_fun){
+      tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
                error = function(e){warning(e); return(NA)})
     }
   
@@ -136,6 +150,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          mask = mask,
                          cores = as.numeric(parallel[2]),
                          slab_sizes = slab_dims,
+                         summary_fun = summary_fun,
                          cleanup = cleanup)
     }
     else {
@@ -148,6 +163,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                         mask = mask,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
+                        summary_fun = summary_fun,
                         cleanup = cleanup)
     } 
   }
@@ -156,6 +172,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          optimizer_fun,
                          mincLmerList = mincLmerList,
                          mask = mask,
+                         summary_fun = summary_fun,
                          slab_sizes = slab_dims)
   }
   

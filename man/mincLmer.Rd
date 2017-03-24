@@ -6,7 +6,8 @@
 \usage{
 mincLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L,
-  temp_dir = getwd(), safely = FALSE, cleanup = TRUE)
+  temp_dir = getwd(), safely = FALSE, cleanup = TRUE,
+  summary_type = c("fixef", "ranef", "both", "anova"))
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -41,6 +42,14 @@ NA for the result.}
 
 \item{cleanup}{Whether or not to cleanup registry files after a queue parallelized 
 run}
+
+\item{summary_fun}{One of
+\itemize{
+  \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
+  \item{ranef: returns random effect coefficients and t-values}
+  \item{both: both fixed and random effects}
+  \item{anova: return the F-statistic for each fixed effect}
+}}
 }
 \value{
 a matrix where rows correspond to number of voxels in the file and columns to
@@ -97,4 +106,3 @@ mincFDR(modelCompare)
 \seealso{
 \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
 }
-
