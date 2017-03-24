@@ -13,6 +13,7 @@
 #' @import methods
 #' @importFrom Matrix diag
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
+#'                       rgb
 #' @importFrom graphics abline contour hist layout mtext par plot.default
 #'                      plot.new rasterImage text segments points
 #' @importFrom stats anova df.residual formula lm lm.fit
@@ -20,7 +21,7 @@
 #'                   pf predict pt pwilcox qchisq qf qt
 #'                   quantile qwilcox rnorm runif sd setNames
 #'                   simulate smooth.spline t.test terms var
-#'                   update vcov
+#'                   update vcov AIC BIC
 #' @importFrom utils download.file capture.output glob2rx read.csv read.table 
 #'                   untar write.table
 #' @importFrom grid plotViewport popViewport pushViewport
