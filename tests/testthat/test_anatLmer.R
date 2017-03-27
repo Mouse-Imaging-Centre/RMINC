@@ -1,7 +1,7 @@
 suppressPackageStartupMessages({
   library(testthat)
   library(dplyr)
-  library(lmerTest)
+  library(lme4)
 })
 
 context("anatLmer")
