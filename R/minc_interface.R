@@ -1251,7 +1251,7 @@ verboseRun <- function(expr,verbose = getOption("verbose", FALSE),env = parent.f
 	  on.exit(sink())
 	}
 	
-	if(is.character(expr)){
+	if(!is.language(substitute(expr))){
 	  output <- eval(parse(text=expr), envir = env) 
 	} else {
 	  output <- eval(expr, envir = env)
