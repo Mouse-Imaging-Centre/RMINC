@@ -96,7 +96,7 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   
   # remove lme4 unknown arguments, since lmer does not know about them and keeping them
   # generates obscure warning messages
-  mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
+  mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup", "summary_type")]
   
   lmod <- eval(mc, parent.frame(1L))
   mincFileCheck(lmod$fr[,1])
@@ -179,16 +179,28 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   ## Result post processing
   out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
   
-  termnames <- colnames(lmod$X)
-  betaNames <- paste("beta-", termnames, sep="")
-  tnames <- paste("tvalue-", termnames, sep="")
-  colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+  #termnames <- colnames(lmod$X)
+  #betaNames <- paste("beta-", termnames, sep="")
+  #tnames <- paste("tvalue-", termnames, sep="")
+  #colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+  
   
   # generate some random numbers for a single fit in order to extract some extra info
   mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
   
-  attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                              "logLik", "converged")
+  res_cols <- colnames(out)
+  attr(out, "stat-type") <- ## Handle all possible output types
+    case_when(res_cols == "logLik" ~ "logLik"
+              , res_cols == "converged" ~ "converged"
+              , summary_type == "anova" ~ "flmer"
+              , grepl("^tvalue-", res_cols) & summary_type == "ranef" ~ "rand-tlmer"
+              , grepl("^beta-", res_cols) & summary_type == "ranef" ~ "rand-beta"
+              , grepl("^tvalue-", res_cols) ~ "tlmer"
+              , grepl("^beta-", res_cols) ~ "beta"
+              , grepl("^rand-beta-", res_cols) ~ "rand-beta"
+              , grepl("^rand-tvalue-", res_cols) ~ "rand-tlmer")
+  
+
   # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
   attr(out, "REML") <- REML
@@ -398,7 +410,14 @@ ranef_summary <-
     betas_and_ts <-
       mapply(function(e, group_name){
         condVar <- attr(e, "postVar")
-        group_se <- t(apply(condVar, 3, function(v) sqrt(diag(v))))
+        group_se <- apply(condVar, 3, function(v) sqrt(diag(as.matrix(v))))
+        
+        if(is.null(dim(group_se))){ #deal with the dropped dimension in case of two group ranef 
+          group_se <- matrix(group_se, nrow = length(group_se))
+        } else {
+          group_se <- t(group_se)
+        }
+        
         dimnames(group_se) <- dimnames(e)
         group_se <- 
           gather_matrix(group_se, "se")
@@ -442,8 +461,8 @@ anova_summary <-
     
     anova(mmod) %>% 
       t %>% 
-      .["F value", ] %>%
-      setNames(paste0("F-", names(.))) %>%
+      .["F value", , drop = FALSE] %>%
+      setNames(paste0("F-", colnames(.))) %>%
       c(logLik = logLik(mmod), converged = converged)
   }
 
