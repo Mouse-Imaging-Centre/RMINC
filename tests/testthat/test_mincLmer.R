@@ -32,6 +32,34 @@ test_that("mincLmer basics", {
   expect_that(vsml[voxelIndex,2], is_equivalent_to(fixef(l)[2]))
 })
 
+context("mincLmer - alternative summaries")
+test_that("ranef works", {
+  verboseRun({
+    vs_ranef <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, REML=F, mask=maskfile, summary_type = "ranef")
+    expect_equal(as.numeric(vs_ranef[voxelIndex, 1:3]), ranef(l)$coil[,1], ignore.attributes = TRUE)
+  })
+})
+
+test_that("anova works", {
+  verboseRun({
+    vs_anova <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, REML=F, mask=maskfile, summary_type = "anova")
+    expect_equal(as.numeric(vs_anova[voxelIndex, "F-Sex"]), anova(l)[, "F value"])
+    #expect_equal(anova(l)[,"F value"], as.numeric(vs_anova[voxelIndex, "F-Sex"]))
+  })
+})
+
+test_that("'both' returns the right stat-types", {
+  verboseRun({
+    vs_both <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf, REML=F, mask=maskfile, summary_type = "both")
+    expect_equal(attr(vs_both, "stat-type")
+                 , c(rep("beta",2)
+                     , rep("tlmer", 2)
+                     , rep("rand-beta", 3)
+                     , rep("rand-tlmer", 3)
+                     , "logLik", "converged"))
+  })
+})
+
 context("mincLmer - log likelihood ratios")
 
 vsml2 <-  verboseRun("mincLmer(jacobians_fixed_2 ~ 1 + (1|coil), gf, REML=F, mask=maskfile)",getOption("verbose"))
@@ -40,7 +68,7 @@ l2 <- lmer(v ~ 1 + (1|coil), gf, REML=F)
 
 test_that("logLikRatio", {
   expect_that( mincLogLikRatio(vsreml, vsml), throws_error() )
-  expect_that( mincLogLikRatio(vsml, vsml2)[voxelIndex],
+  expect_that( mincLogLikRatio(vsml, vsml2)[voxelIndex,],
               is_equivalent_to(anova(l,l2)[2,6]) )
 })
 
