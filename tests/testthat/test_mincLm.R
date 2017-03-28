@@ -154,3 +154,12 @@ test_that("mincLm local multicore works", {
 #   expect_equal(rmincLm, qrlm, check.attributes = FALSE)
 # })
 
+## Need a much better test here.
+test_that("mincLm randomize works", {
+  verboseRun(rlm <- mincLm(voxel_left_file~Sex, gftest))
+  verboseRun(rand <- RMINC:::mincRandomize.mincLm(rlm, R = 10))
+  
+  thresh <- thresholds(rand)
+  expect_equal(dim(thresholds(rand)), c(4,2))
+})
+

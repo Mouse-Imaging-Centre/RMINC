@@ -4,6 +4,8 @@
 \alias{mincTFCE}
 \alias{mincTFCE.mincSingleDim}
 \alias{mincTFCE.matrix}
+\alias{mincTFCE.mincMultiDim}
+\alias{mincTFCE.mincLm}
 \title{Threshold Free Cluster Enhancement}
 \usage{
 mincTFCE(x, ...)
@@ -13,7 +15,15 @@ mincTFCE(x, ...)
   keep = is.null(output_file), ...)
 
 \method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2, side = c("both",
-  "positive", "negative"), likeVolume, ...)
+  "positive", "negative"), like_volume, ...)
+
+\method{mincTFCE}{mincMultiDim}(x, d = 0.1, E = 0.5, H = 2,
+  side = c("both", "positive", "negative"), like_volume = likeVolume(x),
+  ...)
+
+\method{mincTFCE}{mincLm}(x, R = 500, alternative = c("two.sided",
+  "greater"), d = 0.1, E = 0.5, H = 2, side = c("both", "positive",
+  "negative"), replace = FALSE, parallel = NULL, ...)
 }
 \arguments{
 \item{x}{Either a character vector with a single filename, a \code{mincSingleDim} object,
@@ -34,7 +44,7 @@ or a \code{matrix} object, or \code{mincLm} object.}
 \item{keep}{Whether or not to keep the enhanced volume, defaults to whether or not 
 a \code{output_file} was specified.}
 
-\item{likeVolume}{A path to a like volume specifying the dimensions of the output volumes}
+\item{like_volume}{A path to a like volume specifying the dimensions of the output volumes}
 }
 \value{
 The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
@@ -58,5 +68,9 @@ to allow a hybrid cluster/voxel analysis to be performed.
 \item \code{mincSingleDim}: mincSingleDim
 
 \item \code{matrix}: matrix
+
+\item \code{mincMultiDim}: mincMultiDim
+
+\item \code{mincLm}: mincLm
 }}
 

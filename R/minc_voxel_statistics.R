@@ -902,7 +902,7 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @param output_file A filename for the enhanced volume.
 #' @param keep Whether or not to keep the enhanced volume, defaults to whether or not 
 #' a \code{output_file} was specified.
-#' @param likeVolume A path to a like volume specifying the dimensions of the output volumes
+#' @param like_volume A path to a like volume specifying the dimensions of the output volumes
 #' @param ... additional arguments for methods
 #' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
 #' in the single dimensional case, a string denoting a minc file or a \code{mincSingleDim} object
@@ -969,51 +969,115 @@ mincTFCE.mincSingleDim <-
 mincTFCE.matrix <- 
   function(x, d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
-           , likeVolume
+           , like_volume
            , ...){
     mapply(function(col_ind, d){
       x[,col_ind] %>%
         `class<-`(c("mincSingleDim", "numeric")) %>%
-        `likeVolume<-`(likeVolume) %>%
+        `likeVolume<-`(like_volume) %>%
         setNA(0) %>%
         setNaN(0) %>% 
         mincTFCE(d = d, E = E, H = H, side = side)
-    }, col_ind = seq_len(ncol(x)), d = d)
+    }, col_ind = seq_len(ncol(x)), d = d) %>%
+      `colnames<-`(colnames(x))
   }
 
+#' @describeIn mincTFCE mincMultiDim
+#' @export
+mincTFCE.mincMultiDim <-
+  function(x, d = 0.1, E = .5, H = 2.0
+           , side = c("both", "positive", "negative")
+           , like_volume = likeVolume(x)
+           , ...){
+  side <- match.arg(side)
+  mincTFCE.matrix(x, d = d, E = E, H = H, side = side, like_volume = like_volume, ...)
+}
+
+#' @export
 getCall.mincLm <-
   function(x, ...) attributes(x)$call
 
-# @describeIn mincTFCE mincLm
-# @export
+
+mincRandomize.mincLm <- 
+  function(x
+           , R = 500
+           , alternative = c("two.sided", "greater")
+           , replace = FALSE, parallel = NULL
+           , columns = grep("tvalue-", colnames(x))){
+    lmod          <- x
+    alternative   <- match.arg(alternative)
+    original_stats <- lmod[,columns]
+    lmod_call   <- attr(lmod, "call")
+    
+    randomization_dist <-
+      mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
+                         , alternative = alternative)
+    
+    output <- list(stats = original_stats, randomization_dist = randomization_dist
+                   , args = c(call = lmod_call, alternative = alternative))
+    class(output) <- c("mincLm_randomization", "minc_randomization")
+    
+    output
+  }
+
+#' @describeIn mincTFCE mincLm
+#' @export
 mincTFCE.mincLm <- 
-  function(x, alternative = c("two.sided", "greater")
+  function(x
+           , R = 500
+           , alternative = c("two.sided", "greater")
            , d = 0.1, E = .5, H = 2.0
            , side = c("both", "positive", "negative")
-           , R = 500
            , replace = FALSE
            , parallel = NULL
+           , ...){
+    
+    lmod          <- x
+    alternative   <- match.arg(alternative)
+    side          <- match.arg(side)
+    columns       <- grep("tvalue-", colnames(lmod))
+    lmod_call     <- attr(lmod, "call")
+    like_vol      <- likeVolume(lmod) 
+    
+    original_tfce <-
+      mincTFCE.matrix(lmod[,columns], d = d, E = E, H = H, side = side, like_volume = like_vol) 
+    
+    randomization_dist <-
+      mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
+                         , alternative = alternative
+                         , post_proc = mincTFCE.matrix
+                         , like_volume = like_vol
+                         , side = side, d = d, E = E, H = H)
+
+    output <- list(tfce = original_tfce, randomization_dist = randomization_dist
+                   , args = list(call = lmod_call,
+                                 side = side
+                                 , alternative = alternative))
+    class(output) <- c("mincTFCE_randomization", "minc_randomization")
+    output
+  }
+
+mincRandomize_core <-
+  function(x
+           , R = 500, replace = FALSE, parallel = NULL
+           , columns = grep("tvalue-", colnames(x))
+           , alternative = c("two.sided", "greater")
+           , post_proc = identity
            , ...){
     
     # Setup useful local variables
     lmod        <- x
     alternative <- match.arg(alternative)
-    side        <- match.arg(side)
     lmod_data   <- attr(lmod, "data")
     lmod_call   <- attr(lmod, "call")
     lmod_lhs    <- as.character(lmod_call[["formula"]][[2]])
     pred_cols   <- names(lmod_data)[names(lmod_data) != lmod_lhs]
-    t_columns   <- colnames(lmod)[grepl("tvalue-", colnames(lmod))]
     like_vol    <- likeVolume(lmod)
-    
-    # Compute the TFCE statistic for the t-stat columns of mincLm
-    lmod_tfce <- 
-      mincTFCE.matrix(lmod[,t_columns], d = d, E = E, H = H, side = side, likeVolume = like_vol)
     
     # Helper function to compute for each of n randomizations, how many times the observed statistic
     # is exceeded by the randomized value
     boot_model <- function(n){
-      Reduce(function(acc, i){
+      Reduce(function(max_val_matrix, i){
         # Permute the filenames
         shuf_data <- lmod_data
         shuf_data[,pred_cols] <- 
@@ -1021,24 +1085,27 @@ mincTFCE.mincLm <-
         
         # relies on RMINC:::getCall.mincLm to get update to do its magic
         new_mod   <- update(lmod, data = shuf_data)
+        new_mod[!is.finite(new_mod)] <- 0
         
-        # Compute the TFCE stats for the randomized model
-        new_tfce <-
-          mincTFCE.matrix(new_mod[,t_columns], d = d, E = E, H = H, side = side, likeVolume = like_vol)
+        # Post process the values of interest (here's where TFCE or smoothing could be applied for example)
+        post_procd <-
+          post_proc(new_mod[,columns], ...)
         
         if(alternative == "two.sided"){
-          acc <- acc + (abs(new_tfce) > abs(lmod_tfce)) 
-        } else {
-          acc <- acc + (new_tfce > lmod_tfce)
-        }
-         
-        acc
-      }, seq_len(n), 0)
+          post_procd <- abs(post_procd)
+        } 
+        
+        biggest_stats <- apply(post_procd, 2, max)
+        
+        rbind(max_val_matrix, biggest_stats) %>%
+          `colnames<-`(colnames(lmod)[columns]) %>%
+          `rownames<-`(NULL)
+      }, seq_len(n), NULL)
     }
     
     # Handle dispatching of parallelization
     if(is.null(parallel)){
-      result <- boot_model(R) / R
+      result <- boot_model(R) 
     } else {
       
       n_groups <- as.numeric(parallel[2])
@@ -1047,11 +1114,10 @@ mincTFCE.mincLm <-
       if (parallel[1] %in% c("local", "snowfall")) {
         result <- 
           quiet_mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
-          Reduce(`+`, ., 0) %>%
-          `/`(R)
+          Reduce(rbind, ., NULL) 
       }
       else {
-        reg <- makeRegistry("mincTFCE_registry")
+        reg <- makeRegistry("mincRandomize_registry")
         on.exit( tenacious_remove_registry(reg), add = TRUE)
         
         suppressWarnings( #Warning suppression for large env for bootmodel (>10mb)
@@ -1062,15 +1128,54 @@ mincTFCE.mincLm <-
         waitForJobs(reg)
         
         result <-
-          reduceResults(reg, fun = `+`, init = 0) %>%
-          `/`(R)
+          reduceResults(reg, fun = rbind, init = NULL)
       } 
     }
     
-    result <- setMincAttributes(result, mincLm)
+    return(result)
+  }
+
+
+#' @export
+print.mincLm_randomization <-
+  function(x, probs = c(.01,.05,.1,.2)){
+    cat("mincLm_randomization results for call:\n", 
+        deparse(x$args$call), "\n"
+        , "The thresholds provided are for the "
+        , switch(x$args$alternative
+                 , "two.sided" = "absolute value of the original statistics"
+                 , "greater" = "orginal statistics")
+        , " with family-wise error rate control at each respective threshold\n")
     
-    result
-}
+    print(thresholds(x))
+  }
+
+
+#' @export
+print.mincTFCE_randomization <-
+  function(x, probs = c(.01,.05,.1,.2)){
+    cat("mincTFCE_randomization results for call:\n", 
+        deparse(x$args$call), "\n"
+        , "TFCE was run on "
+        , switch(x$args$side, "both" = "both positive and negative", x$args$call)
+        , " values. The thresholds provided are for the "
+        , switch(x$args$alternative
+                 , "two.sided" = "absolute value of the original data after TFCE"
+                 , "greater" = "orginal data after TFCE")
+        , " with family-wise error rate control at each respective threshold\n")
+    
+    print(thresholds(x))
+  }
+
+#' @describeIn thresholds minc_randomization
+#' @export
+thresholds.minc_randomization <-
+  function(x, probs = c(.01, .05, .1, .2), ...){
+    apply(x$randomization_dist, 2, quantile, probs = 1-probs) %>%
+      `rownames<-`(paste0(probs * 100, "%"))
+  }
+
+  
 
 
 
