@@ -552,15 +552,23 @@ mincFDRMask <- function(mask = NULL, buffer) {
   return(mask)
 }
 
-#' Get FDR Thresholds
+#' Get Probability Thresholds
 #' 
-#' @param qvals A \code{mincQvals} object, typically computed with \code{mincFDR}
+#' @param x A \code{mincQvals} object, typically computed with \code{mincFDR} or a 
+#' \code{minc*_randomzation} type object.
 #' methods
+#' @param probs What probabilities to compute thresholds for (only applicable with randomization objects)
+#' @param ... extra arguments for methods
 #' @return A matrix of thresholds, accessible with standard matrix indexing
 #' @export 
-thresholds <- 
-  function(qvals){
-    if(!inherits(qvals, "mincQvals")) stop("Input is not a mincQvals object")
-    
-    attr(qvals, "thresholds")
+thresholds <-
+  function(x, ...){
+    UseMethod("thresholds")
+  }
+
+#' @describeIn thresholds mincQvals
+#' @export
+thresholds.mincQvals <- 
+  function(x, ...){
+    attr(x, "thresholds")
   }
