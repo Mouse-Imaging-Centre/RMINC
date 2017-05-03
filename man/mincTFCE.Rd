@@ -45,6 +45,19 @@ or a \code{matrix} object, or \code{mincLm} object.}
 a \code{output_file} was specified.}
 
 \item{like_volume}{A path to a like volume specifying the dimensions of the output volumes}
+
+\item{R}{number of randomizations to perform}
+
+\item{alternative}{Whether to consider a one-sided or two-sided alternative hypothesis. Default
+"two-sided", use "greater" for a one sided test.}
+
+\item{replace}{Sample with or without replacement for the randomization, defaults to FALSE (no
+replacement)}
+
+\item{parallel}{A two component vector indicating how to parallelize the computation. If the 
+first element is "local" the computation will be run via the parallel package, otherwise it will
+be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+indicating the number of jobs to split the computation into.}
 }
 \value{
 The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,

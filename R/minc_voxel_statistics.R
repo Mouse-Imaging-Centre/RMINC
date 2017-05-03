@@ -903,6 +903,15 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' @param keep Whether or not to keep the enhanced volume, defaults to whether or not 
 #' a \code{output_file} was specified.
 #' @param like_volume A path to a like volume specifying the dimensions of the output volumes
+#' @param R number of randomizations to perform
+#' @param alternative Whether to consider a one-sided or two-sided alternative hypothesis. Default
+#' "two-sided", use "greater" for a one sided test.
+#' @param replace Sample with or without replacement for the randomization, defaults to FALSE (no
+#' replacement)
+#' @param parallel A two component vector indicating how to parallelize the computation. If the 
+#' first element is "local" the computation will be run via the parallel package, otherwise it will
+#' be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+#' indicating the number of jobs to split the computation into.
 #' @param ... additional arguments for methods
 #' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
 #' in the single dimensional case, a string denoting a minc file or a \code{mincSingleDim} object
@@ -1138,7 +1147,7 @@ mincRandomize_core <-
 
 #' @export
 print.mincLm_randomization <-
-  function(x, probs = c(.01,.05,.1,.2)){
+  function(x, probs = c(.01,.05,.1,.2), ...){
     cat("mincLm_randomization results for call:\n", 
         deparse(x$args$call), "\n"
         , "The thresholds provided are for the "
@@ -1153,7 +1162,7 @@ print.mincLm_randomization <-
 
 #' @export
 print.mincTFCE_randomization <-
-  function(x, probs = c(.01,.05,.1,.2)){
+  function(x, probs = c(.01,.05,.1,.2), ...){
     cat("mincTFCE_randomization results for call:\n", 
         deparse(x$args$call), "\n"
         , "TFCE was run on "
