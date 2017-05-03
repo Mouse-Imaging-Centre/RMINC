@@ -620,6 +620,11 @@ civet_filenames_2_0_0 <-
         
         , nativeRMStlink_left = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path , subject_prefixed, thickness_method, thickness_dist) 
         , nativeRMStlink_right = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path , subject_prefixed, thickness_method, thickness_dist)
+        
+        , RSL_mean_curvature_left = ~sprintf("%s/curvature/%s_mid_surface_rsl_left_mean_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
+        , RSL_mean_curvature_right = ~sprintf("%s/curvature/%s_mid_surface_rsl_right_mean_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
+        , RSL_gaus_curvature_left = ~sprintf("%s/curvature/%s_mid_surface_rsl_left_gaus_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
+        , RSL_gaus_curvature_right = ~sprintf("%s/curvature/%s_mid_surface_rsl_right_gaus_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
       )
   }
 
