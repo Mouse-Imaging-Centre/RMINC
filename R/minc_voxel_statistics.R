@@ -1137,7 +1137,7 @@ mincRandomize_core <-
         waitForJobs(reg)
         
         result <-
-          reduceResults(reg, fun = rbind, init = NULL)
+          reduceResultsMatrix(reg, fun = function(job, res) res, rows = TRUE)
       } 
     }
     
