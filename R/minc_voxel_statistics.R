@@ -1130,7 +1130,7 @@ mincRandomize_core <-
         on.exit( tenacious_remove_registry(reg), add = TRUE)
         
         suppressWarnings( #Warning suppression for large env for bootmodel (>10mb)
-          batchMap(reg, boot_model, group = group_sizes)
+          batchMap(reg, boot_model, n = group_sizes)
         )
         
         submitJobs(reg)
