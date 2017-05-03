@@ -21,7 +21,7 @@
 #'                   pf predict pt pwilcox qchisq qf qt
 #'                   quantile qwilcox rnorm runif sd setNames
 #'                   simulate smooth.spline t.test terms var
-#'                   update vcov AIC BIC
+#'                   update vcov AIC BIC getCall
 #' @importFrom utils download.file capture.output glob2rx read.csv read.table 
 #'                   untar write.table
 #' @importFrom grid plotViewport popViewport pushViewport
