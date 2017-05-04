@@ -11,6 +11,8 @@
 #' @param keepBetas whether to include the beta coefficients
 #' @param plotcolumns extra data to be used for plotting
 #' @param modelfunc optional modelling function
+#' @param anatLow The lower threshold value for displaying the underlying anatomy
+#' @param anatHigh The upper threshold value for displaying the underlying anatomy
 #' @examples
 #' \dontrun{
 #' vs <- mincLm(reljacobians02 ~ sex*treatment, subset(gfs, treatment != "None"))
@@ -19,7 +21,8 @@
 #'                   plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
 #' }
 #' @export
-launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL) {
+launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL
+                              , anatLow = 700, anatHigh = 1400) {
   gfs <- data.frame(filenames = attributes(statsoutput)$filenames)
   if (!is.null(plotcolumns)) {
     gfs <- cbind(gfs, plotcolumns)

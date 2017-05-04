@@ -20,6 +20,8 @@ gfs <- get("gfs", sys.frame(1))
 m <- get("m", sys.frame(1))
 modelfunc <- get("modelfunc", sys.frame(1))
 vols <- get("volumes", sys.frame(1))
+anatLow <- get("anatLow", sys.frame(1))
+anatHigh <- get("anatHigh", sys.frame(1))
 cat(names(statsList))
 
 shinyServer(function(input, output, clientData, session) {
@@ -138,7 +140,7 @@ shinyServer(function(input, output, clientData, session) {
   output$seriesPlot <- renderPlot({
     cat("Low", input$low, "High", input$high, "sym", statsList[[input$statistic]]$symmetric, "\n")
     mincPlotSliceSeries(anatVol, statsList[[input$statistic]]$data,
-                        anatLow=700, anatHigh=1400, low=input$low, high=input$high,
+                        anatLow=anatLow, anatHigh=anatHigh, low=input$low, high=input$high,
                         begin=input$begin, end=input$end, plottitle = input$statistic,
                         dim=as.integer(input$dimension), symmetric=statsList[[input$statistic]]$symmetric,
                         legend=statsList[[input$statistic]]$legendTitle, mfrow=c(input$rows, input$columns))
@@ -150,7 +152,7 @@ shinyServer(function(input, output, clientData, session) {
 
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
-                              anatLow=700, anatHigh=1400,
+                              anatLow=anatLow, anatHigh=anatHigh,
                               low=input$low, high=input$high,
                               slice=v$loc2, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=2)
@@ -163,7 +165,7 @@ shinyServer(function(input, output, clientData, session) {
   output$sagittalPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
-                              anatLow=700, anatHigh=1400,
+                              anatLow=anatLow, anatHigh=anatHigh,
                               low=input$low, high=input$high,
                               slice=v$loc3, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=1, legend="F-statistic")
@@ -175,7 +177,7 @@ shinyServer(function(input, output, clientData, session) {
   output$axialPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
-                              anatLow=700, anatHigh=1400,
+                              anatLow=anatLow, anatHigh=anatHigh,
                               low=input$low, high=input$high,
                               slice=v$loc1, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=3)
