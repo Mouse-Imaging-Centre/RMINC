@@ -129,6 +129,7 @@ shinyServer(function(input, output, clientData, session) {
   })
   observe({
     currentStat <- input$statistic
+    currentStat[!is.finite(currentStat)] <- 0 # Maybe not the right thing to do?
     maxstat <- round(max(abs(range(statsList[[currentStat]]$data))), 1)
     cat("in observe ", maxstat, "\n")
     if (!is.infinite(maxstat)) {
@@ -189,7 +190,8 @@ shinyServer(function(input, output, clientData, session) {
 
   output$graphPlot <- renderPlot({
     gfs$voxel <- v$voxel
-    graphData(exp(v$voxel), "jacobians", gfs)
+    if(!is.null(gfs$voxel))
+      graphData(exp(v$voxel), "jacobians", gfs)
 
     #qplot(xvar, exp(voxel), data=gfs, geom=input$graphType, colour=colour, fill=fill)
   })
@@ -198,7 +200,8 @@ shinyServer(function(input, output, clientData, session) {
     #location <- c(input$plot_click$x, input$plot_click$y)
     #location <- ceiling(location * c(d[1], d[3]))
     gfs$voxel <- v$voxel #mincGetVoxel(gfs$filenames, location[2], input$slice, location[1])
-    modelfunc(gfs$voxel)
+    if(!is.null(gfs$voxel))
+      modelfunc(gfs$voxel)
     #anova(lm(voxel ~ mouse.gender + Neonatal, gfs))
     #statsList[[input$statistic]]$modelfunc(gfs)
   })
