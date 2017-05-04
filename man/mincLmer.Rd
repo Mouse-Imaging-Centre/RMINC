@@ -4,7 +4,7 @@
 \alias{mincLmer}
 \title{mincified version of lmer from lme4}
 \usage{
-mincLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
+mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L,
   temp_dir = getwd(), safely = FALSE, cleanup = TRUE,
   summary_type = c("fixef", "ranef", "both", "anova"))

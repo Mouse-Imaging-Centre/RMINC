@@ -81,14 +81,14 @@
 #' mincFDR(modelCompare)
 #' }
 #' @export
-mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
+mincLmer <- function(formula, data, mask, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
                      cleanup = TRUE, summary_type = c("fixef", "ranef", "both", "anova")) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
-  
+  if(!is.character(mask)) stop("A character mask must be provided to run mincLmer")
   # code ripped straight from lme4::lmer
   mc <- mcout <- match.call()
   #mc$control <- lmerControl() #overrides user input control
