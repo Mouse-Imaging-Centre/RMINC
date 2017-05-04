@@ -200,6 +200,7 @@ shinyServer(function(input, output, clientData, session) {
     #location <- c(input$plot_click$x, input$plot_click$y)
     #location <- ceiling(location * c(d[1], d[3]))
     gfs$voxel <- v$voxel #mincGetVoxel(gfs$filenames, location[2], input$slice, location[1])
+    cat("The current coordinates are: ", v$loc1, ",", v$loc2, ",", v$loc3, "\n")
     if(!is.null(gfs$voxel))
       modelfunc(gfs$voxel)
     #anova(lm(voxel ~ mouse.gender + Neonatal, gfs))
