@@ -279,8 +279,16 @@ create_labels_frame <-
     }
     
     label_defs <- 
-      read.csv(defs, stringsAsFactors = FALSE) %>%
-      select_( ~ Structure, ~ left.label, ~ right.label) %>%
+      read.csv(defs, stringsAsFactors = FALSE)
+    
+    if("hierarchy" %in% names(label_defs)){
+      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label, ~ hierarchy)
+    } else {
+      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label)
+    }
+    
+    label_defs <- 
+      label_defs %>%
       mutate_(both_sides = ~ right.label == left.label) %>%
       gather_("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
@@ -289,6 +297,16 @@ create_labels_frame <-
                          , ifelse(hemisphere == "right.label"
                                   , paste0("right ", Structure)
                                   , paste0("left ", Structure))))
+    
+    if("hierarchy" %in% names(label_defs))
+      label_defs <-
+      label_defs %>%
+      mutate_(hierarchy = 
+                ~ with(.
+                       , case_when(is.na(hierarchy) | hierarchy == "" ~ ""
+                                 , both_sides ~ hierarchy
+                                 , hemisphere == "right.label" ~ paste0("right ", hierarchy)
+                                 , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
     
     label_defs <-
       switch(side
@@ -515,25 +533,30 @@ anatSummarize <-
            , discard_missing = FALSE){
     
     if(is.character(summarize_by) && length(summarize_by == 1)){
-      labels <- read.csv(defs, stringsAsFactors = FALSE)
       summarize_by <- 
-        labels %>% 
-        select_("Structure", summarize_by) %>%
-        rename_("label" = "Structure", "group" = summarize_by)
+        create_labels_frame(defs) %>%
+        select_(~ -label) %>%
+        rename_(label = "Structure", group = summarize_by)
     }
     
-    if(!discard_missing)
+    if(!discard_missing){
       summarize_by <-
         summarize_by %>%
         mutate_(group = ~ifelse(is.na(group) | group == "", label, group))
+    } else {
+      summarize_by <- summarize_by %>% filter_(~ group != "")
+    }
     
-    as.data.frame.matrix(anat) %>%
+    anat %>%
+      as.data.frame.matrix %>%
       (tibble::rownames_to_column) %>%
       gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
       inner_join(summarize_by, by = "label") %>%
       group_by_("group", "rowname") %>%
       summarize_(value = ~ sum(value)) %>%
       spread_("group", "value") %>%
+      arrange_(~ as.numeric(rowname)) %>%
+      select_(~ -rowname) %>%
       as.matrix
   }
 
