@@ -17,7 +17,7 @@ test_that("File checking code all fails", {
       files = rep("", cur_ulim + 1)
       , group = rep(c("a", "b"), length.out = cur_ulim + 1))
   
-  expect_error(mincLmer(files ~ (1 | group), data = frame), "file descriptors")
+  expect_error(mincLmer(files ~ (1 | group), mask = frame$files[1], data = frame), "file descriptors")
   expect_error(mincMean(frame$files), "file descriptors")
   expect_error(anatGetAll(frame$files, method = "labels"), "file descriptors")
   expect_error(vertexLm(files ~ group, data = frame), "file descriptors")
