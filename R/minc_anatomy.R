@@ -1,3 +1,4 @@
+
 anatGetFile <- function(filename, 
                         atlas, 
                         method = "jacobians", 
@@ -569,7 +570,14 @@ anatSummarize <-
       gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
       inner_join(summarize_by, by = "label") %>%
       group_by_("group", "rowname") %>%
-      summarize_(value = ~ sum(value)) %>%
+      #summarize_(value = ~ sum(value)) %>%
+      do({
+          out <- .[1,]
+          out$value <- sum(.$value)
+          out$label <- NULL
+          out
+      }) %>%
+      ungroup %>%
       spread_("group", "value") %>%
       arrange_(~ as.numeric(rowname)) %>%
       select_(~ -rowname) %>%
