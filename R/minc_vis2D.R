@@ -1171,10 +1171,11 @@ mincPlotPeak <- function(peak, anatomy, statistics, dim=2,
 #'
 #' @examples
 #' \dontrun{
-#' spectral.colors <- mincColorLookupToColorRampPalette("/micehome/jlerch/luts/spectral")
+#' spectral.colors <- lut_to_palette(system.file("luts/spectral", package = "RMINC"))
 #' spectral.colors(100)
 #' }
-mincColorLookupToColorRampPalette <- function(lookup_table="/micehome/jlerch/luts/spectral", alpha=1) {
+lut_to_palette <- function(lookup_table= system.file("luts/spectral", package = "RMINC")
+                                              , alpha=1) {
   tryCatch({
     lut <- read.table(file=lookup_table, header=FALSE, sep = " ", fill = TRUE)
   }, error = function(e) {
