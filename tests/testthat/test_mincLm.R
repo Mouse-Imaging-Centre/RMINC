@@ -65,6 +65,24 @@ test_that("mincFindPeaks min and max", {
   expect_that(minPeak[3],is_equivalent_to(minPeakFromPeaks[3]))
 })
 
+context("vertexFindPeaks - ensure matches mincFindPeaks")
+test_that("vertexFindPeaks matches mincFindPeaks", {
+  adj <- RMINC:::neighbour_list(10,10,10, 6)
+  g <- graph.adjlist(lapply(adj, function(nebs) nebs + 1))
+  pos_peaks <- 
+    vertexFindPeaks(rmincLm[,"tvalue-SexM"], g, direction = "positive", mindist = 1, output = "indices") 
+  
+  pos_peak <- arrayInd(pos_peaks[which.max(rmincLm[pos_peaks,"tvalue-SexM"])], .dim = rep(10,3))
+  
+  neg_peaks <- 
+    vertexFindPeaks(rmincLm[,"tvalue-SexM"], g, direction = "negative", mindist = 1, output = "indices") 
+  
+  neg_peak <- arrayInd(neg_peaks[which.min(rmincLm[neg_peaks,"tvalue-SexM"])], .dim = rep(10,3))
+  
+  expect_equal(pos_peak[1:3], maxPeak[1:3])
+  expect_equal(neg_peak[1:3], minPeak[1:3])
+})
+
 context("mincLm - two group test with interaction")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
