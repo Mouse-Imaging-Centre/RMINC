@@ -920,8 +920,7 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' accordance with the \code{likeVolume}, this is then cluster enhanced and recomposed into a matrix.
 #' In the mincLm case a randomization test is performed with the t-stats enhanced computing the proportion
 #' of random values that exceed the value originally observed in the \code{mincLm} object, a matrix
-#' or these proportions is returned.
-#' @return A minc volume with the results of the enhancement
+#' of these extreme values is returned.
 #' @export  
 mincTFCE <-
   function(x, ...) {
