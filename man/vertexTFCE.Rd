@@ -3,6 +3,7 @@
 \name{vertexTFCE}
 \alias{vertexTFCE}
 \alias{vertexTFCE.numeric}
+\alias{vertexTFCE.matrix}
 \title{Threshold Free Cluster Enhancement}
 \usage{
 vertexTFCE(x, ...)
@@ -10,6 +11,9 @@ vertexTFCE(x, ...)
 \method{vertexTFCE}{numeric}(x, surface, d = 0.1, E = 0.5, H = 2,
   nsteps = 100, side = c("both", "positive", "negative"), weights = NULL,
   ...)
+
+\method{vertexTFCE}{matrix}(x, surface, E = 0.5, H = 2, nsteps = 100,
+  side = c("both", "positive", "negative"), weights = NULL, ...)
 }
 \arguments{
 \item{x}{A numeric vector, a filepath to a set of values,
@@ -17,9 +21,10 @@ or a \code{matrix} object, or \code{vertexLm} object.}
 
 \item{...}{additional arguments for methods}
 
-\item{surface}{Either a mesh object corresponding to the surface, or
-an igraph graph object representing the surface.
-\link{obj_to_graph}}
+\item{surface}{Either a mesh object corresponding to the surface,
+an igraph graph object of surface created by \link{obj_to_graph}, or an adjacency list (see details). 
+For the \code{matrix} and \link{vertexLm} cases, either a single surface object may be passed and
+used for each individual, or a vector of file names}
 
 \item{d}{The discretization step-size for approximating the threshold integral (default .1)}
 
@@ -27,13 +32,14 @@ an igraph graph object representing the surface.
 
 \item{H}{The exponent by which to raise the height (default 2)}
 
-\item{nsteps}{The number of steps to discrete}
+\item{nsteps}{The number of steps to discretize the TFCE computation over}
 
 \item{side}{Whether to consider positive and negative statistics or both (default both)}
 
-\item{weights}{A weighting vector assigning area to vertices, by default area is computed as
-the 1/3 the sum of the areas of each triangle the vertex is a member of. Another reasonable option
-is 1, corresponding to an unweighted TFCE.}
+\item{weights}{A weighting vector assigning area to vertices. The default varies by 
+\code{surface} object type. If \code{surface} is an \code{bic_obj} the area of each
+vertex is equal to 1/3 the sum of the areas of the triangles it is a member of. If \code{surface}
+is an \code{igraph} or adjacency list the default is a vector of ones.}
 }
 \value{
 The behaviour of \code{vertexTFCE} is to perform cluster free enhancement on a object,
@@ -49,8 +55,16 @@ Perform threshold free cluster enhancement as described in
 Smith and Nichols (2008). Cluster-like structures are enhanced
 to allow a hybrid cluster/voxel analysis to be performed.
 }
+\details{
+Passing an adjacency list will save some compute time
+but is not recommended for general use. If an adjacency list is passed should index starting from 0 for compatibility with c++
+code. Adjacency lists of this kind can be generated from graphs with \code{lapply(as_adj_list(graph), `-`, 1)}
+using the \link{as_adj_list} from the igraph library.
+}
 \section{Methods (by class)}{
 \itemize{
 \item \code{numeric}: numeric
+
+\item \code{matrix}: matrix
 }}
 

@@ -496,14 +496,20 @@ vertexLmerEstimateDF <-
 #' to allow a hybrid cluster/voxel analysis to be performed.
 #' @param x A numeric vector, a filepath to a set of values,
 #' or a \code{matrix} object, or \code{vertexLm} object.
-#' @param surface Either a mesh object corresponding to the surface, or
-#' an igraph graph object representing the surface.
-#' \link{obj_to_graph}
-#' @param nsteps The number of steps to discrete
+#' @param surface Either a mesh object corresponding to the surface,
+#' an igraph graph object of surface created by \link{obj_to_graph}, or an adjacency list (see details). 
+#' For the \code{matrix} and \link{vertexLm} cases, either a single surface object may be passed and
+#' used for each individual, or a vector of file names
+#' @param nsteps The number of steps to discretize the TFCE computation over
 #' @inheritParams mincTFCE
-#' @param weights A weighting vector assigning area to vertices, by default area is computed as
-#' the 1/3 the sum of the areas of each triangle the vertex is a member of. Another reasonable option
-#' is 1, corresponding to an unweighted TFCE.
+#' @param weights A weighting vector assigning area to vertices. The default varies by 
+#' \code{surface} object type. If \code{surface} is an \code{bic_obj} the area of each
+#' vertex is equal to 1/3 the sum of the areas of the triangles it is a member of. If \code{surface}
+#' is an \code{igraph} or adjacency list the default is a vector of ones.
+#' @details Passing an adjacency list will save some compute time
+#' but is not recommended for general use. If an adjacency list is passed should index starting from 0 for compatibility with c++
+#' code. Adjacency lists of this kind can be generated from graphs with \code{lapply(as_adj_list(graph), `-`, 1)}
+#' using the \link{as_adj_list} from the igraph library. 
 #' @return The behaviour of \code{vertexTFCE} is to perform cluster free enhancement on a object,
 #' in the single dimensional case, a string denoting a vertex file or a numeric vector
 #' it returns a numeric vector with the result. In the matrix case each column is cluster enhanced and 
@@ -529,22 +535,33 @@ vertexTFCE.numeric <-
      side <- match.arg(side)
      
      if(is.null(weights)){
-       if(!inherits(surface, "bic_obj")) stop("To compute default weights vertexTFCE requires the surface object")
-       weights <- mesh_area(surface$vertex_matrix, surface$triangle_matrix)
+       if(inherits(surface, "bic_obj")){
+         weights <- mesh_area(surface$vertex_matrix, surface$triangle_matrix)
+       } else {
+         weights <- rep(1, length(x))
+       }
+     }
+     
+     if(inherits(surface, "character")){
+       if(length(surface) != 1) stop("Only one file can be passed for the surface")
+       surface <- read_obj(surface)
      }
      
      if(inherits(surface, "bic_obj")){
        surface <- obj_to_graph(surface)
      }
      
-     if(!inherits(surface, "igraph"))
-       stop("An invalid surface was passed, please pass an igraph or bic_obj")
+     if(inherits(surface, "igraph")){
+       on.exit(.Call("R_igraph_finalizer", PACKAGE = "igraph"))
+       adjacencies <- .Call("R_igraph_get_adjlist", surface, 3, PACKAGE = "igraph")
+     } else {
+       adjacencies <- surface
+     }
+       
      
      if(length(weights) == 1)
-       weights <- rep(weights, length(igraph::V(surface)))
+       weights <- rep(weights, length(adjacencies))
      
-     on.exit(.Call("R_igraph_finalizer", PACKAGE = "igraph"))
-     adjacencies <- .Call("R_igraph_get_adjlist", surface, 3, PACKAGE = "igraph")
      
      tfce <-
        switch(side
@@ -553,6 +570,63 @@ vertexTFCE.numeric <-
               , "both" = graph_tfce(x, adjacencies, E, H, nsteps, weights))
      
      return(tfce)
+  }
+
+#'@describeIn vertexTFCE matrix
+#'@export
+vertexTFCE.matrix <-
+  function(x, surface, E = .5, H = 2.0
+           , nsteps = 100
+           , side = c("both", "positive", "negative")
+           , weights = NULL
+           , ...){
+    
+    side <- match.arg(side)
+    length_err <- "You must pass either a single surface or one per column of the input matrix"
+    
+    ## Irritating case analysis - handle lists of object,graphs, adjacency lists, or character vectors,
+    ## or singletons of each of those.
+    if(is.list(surface) && inherits(surface[[1]], c("bic_obj", "igraph"))){
+      ## Case: list of objects or graphs
+      if(length(surface) != ncol(x))  stop(length_err)
+      surface_inds <- seq_along(surface)
+      
+    } else if(is.list(surface) && !inherits(surface, c("bic_obj", "igraph")) && !inherits(surface[[1]], c("bic_obj", "igraph", "numeric"))){
+      ## Case list of adjacency lists
+      if(length(surface) != ncol(x)) stop(length_err)
+      surface_inds <- seq_along(surface)
+      
+    } else if(is.character(surface)){
+      ## Case: vector or string of filenames
+      if(length(surface) == 1){ 
+        surface_inds <- rep(1, ncol(x))
+      } else if(length(surface) == ncol(x)){
+        surface_inds <- seq_along(surface)
+      } else {
+        stop(length_err)
+      }
+      
+    } else {
+      ## Case: single surface, graph, or adjacency list (convert to an adjacency list to save computation)
+      if(is.list(surface) && !inherits(surface, c("bic_obj", "igraph"))) 
+        surface <- list(surface)
+      
+      if(inherits(surface, "bic_obj")) 
+        surface <- obj_to_graph(surface)
+      
+      if(inherits(surface, "igraph")){
+        on.exit(.Call("R_igraph_finalizer", PACKAGE = "igraph"))
+        surface <- .Call("R_igraph_get_adjlist", surface, 3, PACKAGE = "igraph")
+        surface <- list(surface)
+      }
+      
+      surface_inds <- rep(1, ncol(x))
+    }
+    
+    ## Finally, the TFCE part, passes off most of the work to vertexTFCE.numeric
+    mapply(function(col_ind, surface_ind){
+      vertexTFCE.numeric(x[,col_ind], surface[[surface_ind]], E = E, H = H, nsteps = nsteps, weights = weights)
+    }, seq_len(ncol(x)), surface_inds)
   }
 
 # vertexLmer <-
