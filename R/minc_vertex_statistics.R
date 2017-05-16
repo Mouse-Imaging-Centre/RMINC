@@ -489,6 +489,72 @@ vertexLmerEstimateDF <-
     return(model)
   }
 
+#' Threshold Free Cluster Enhancement
+#' 
+#' Perform threshold free cluster enhancement as described in 
+#' Smith and Nichols (2008). Cluster-like structures are enhanced
+#' to allow a hybrid cluster/voxel analysis to be performed.
+#' @param x A numeric vector, a filepath to a set of values,
+#' or a \code{matrix} object, or \code{vertexLm} object.
+#' @param surface Either a mesh object corresponding to the surface, or
+#' an igraph graph object representing the surface.
+#' \link{obj_to_graph}
+#' @param nsteps The number of steps to discrete
+#' @inheritParams mincTFCE
+#' @param weights A weighting vector assigning area to vertices, by default area is computed as
+#' the 1/3 the sum of the areas of each triangle the vertex is a member of. Another reasonable option
+#' is 1, corresponding to an unweighted TFCE.
+#' @return The behaviour of \code{vertexTFCE} is to perform cluster free enhancement on a object,
+#' in the single dimensional case, a string denoting a vertex file or a numeric vector
+#' it returns a numeric vector with the result. In the matrix case each column is cluster enhanced and 
+#' recomposed into a matrix.
+#' In the \link{vertexLm} case a randomization test is performed with the t-stats enhanced computing the maximal
+#' value after enhancement. A vector of maxima is returned to compute exceedence probabilities, along with
+#' the original statistic after cluster enhancement.
+#' @export  
+vertexTFCE <-
+  function(x, ...) {
+    
+    UseMethod("vertexTFCE")
+  }
+
+#' @describeIn vertexTFCE numeric
+#' @export 
+vertexTFCE.numeric <-
+  function(x, surface, d = 0.1, E = .5, H = 2.0
+           , nsteps = 100
+           , side = c("both", "positive", "negative")
+           , weights = NULL
+           , ...){
+     side <- match.arg(side)
+     
+     if(is.null(weights)){
+       if(!inherits(surface, "bic_obj")) stop("To compute default weights vertexTFCE requires the surface object")
+       weights <- mesh_area(surface$vertex_matrix, surface$triangle_matrix)
+     }
+     
+     if(inherits(surface, "bic_obj")){
+       surface <- obj_to_graph(surface)
+     }
+     
+     if(!inherits(surface, "igraph"))
+       stop("An invalid surface was passed, please pass an igraph or bic_obj")
+     
+     if(length(weights) == 1)
+       weights <- rep(weights, length(igraph::V(surface)))
+     
+     on.exit(.Call("R_igraph_finalizer", PACKAGE = "igraph"))
+     adjacencies <- .Call("R_igraph_get_adjlist", surface, 3, PACKAGE = "igraph")
+     
+     tfce <-
+       switch(side
+              , "positive" = graph_tfce_wqu(x, adjacencies, E, H, nsteps, weights)
+              , "negative" = graph_tfce_wqu(-x, adjacencies, E, H, nsteps, weights)
+              , "both" = graph_tfce(x, adjacencies, E, H, nsteps, weights))
+     
+     return(tfce)
+  }
+
 # vertexLmer <-
 #   function(formula, data, mask=NULL, parallel=NULL,
 #            REML=TRUE, control=lmerControl(), start=NULL, 

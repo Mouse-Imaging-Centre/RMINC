@@ -12,21 +12,23 @@ class WeightedQuickUnion
 private:
   std::vector<int> id; 
   std::vector<int> sz;
+  std::vector<double> mass;
   int root(int p);
   
 public:
-  WeightedQuickUnion(int N);
-  WeightedQuickUnion(std::vector<int> inds);
+  WeightedQuickUnion(int N, std::vector<double> mass);
   bool find(int p, int q);
   void unite(int p, int q);
   int get_root(int p);
   std::vector<int> sizes();
   int sizes(int p);
+  double cluster_mass(int p);
 };
 
-WeightedQuickUnion::WeightedQuickUnion(int N){
+WeightedQuickUnion::WeightedQuickUnion(int N, std::vector<double> M){
   id = std::vector<int>(N);
   sz = std::vector<int>(N,1);
+  mass = M;
   std::iota(id.begin(), id.end(), 0);
 }
 
@@ -51,9 +53,9 @@ void WeightedQuickUnion::unite(int p, int q){
   
   if(i != j){
     if(sz[i] < sz[j]){
-      id[i] = j; sz[j] += sz[i];
+      id[i] = j; sz[j] += sz[i]; mass[j] += mass[i];
     } else {
-      id[j] = i; sz[i] += sz[j];
+      id[j] = i; sz[i] += sz[j]; mass[i] += mass[j];
     }
   }
 }
@@ -68,6 +70,7 @@ int WeightedQuickUnion::get_root(int p){
 
 // Get the size of the subtree rooted at node p
 int WeightedQuickUnion::sizes(int p){ return sz[p]; }
+double WeightedQuickUnion::cluster_mass(int p){ return mass[p]; }
 
 //Sorter, thanks stack overflow
 template <typename T>
@@ -87,14 +90,15 @@ std::vector<int> sort_indexes_desc(const std::vector<T> &v) {
 // One sided tfce on arbitrary adjacency lists
 // [[Rcpp::export]]
 std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vector<int> > adjacencies
-                                  , double E, double H, int nsteps){
+                                  , double E, double H, int nsteps
+                                  , std::vector<double> weights){
   //, double nsteps){
   if(map.size() != adjacencies.size()) stop("Mismatch between adjacency list and data");
   
   int nverts = map.size(); 
   std::vector<int> indices = sort_indexes_desc(map);
   //WeightedQuickUnion sets(indices);
-  WeightedQuickUnion sets(nverts);
+  WeightedQuickUnion sets(nverts, weights);
   
   double hmin = 0; //map[indices.back()];
   double hmax = map[indices.front()];
@@ -126,7 +130,7 @@ std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vec
     for(std::list<int>::iterator it = visited.begin(); it != visited.end(); ++it){
       int ind = *it;
       int root = sets.get_root(ind);
-      int tree_size = sets.sizes(root); //size of root nodes are cluster sizes
+      int tree_size = sets.cluster_mass(root); //mass of root nodes are cluster sizes
       tfce[ind] += (height_mul * pow(tree_size, E));
     }
     
@@ -139,10 +143,11 @@ std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vec
 // Two sided tfce on arbitrary adjacency graphs
 // [[Rcpp::export]]
 std::vector<double> graph_tfce(std::vector<double> map, std::vector<std::vector<int> > adjacencies
-                                     , double E, double H, int nsteps){
- std::vector<double> pos = graph_tfce_wqu(map, adjacencies, E, H, nsteps);
+                                     , double E, double H, int nsteps
+                                     , std::vector<double> weights){
+ std::vector<double> pos = graph_tfce_wqu(map, adjacencies, E, H, nsteps, weights);
  std::transform(map.begin(), map.end(), map.begin(), std::bind1st(std::multiplies<double>(), -1));
- std::vector<double> neg = graph_tfce_wqu(map, adjacencies, E, H, nsteps);
+ std::vector<double> neg = graph_tfce_wqu(map, adjacencies, E, H, nsteps, weights);
  for(int i = 0; i < pos.size(); ++i) pos[i] -= neg[i];
  return pos;
 }
@@ -207,5 +212,42 @@ std::vector<std::vector<int> > neighbour_list(double x, double y, double z, int 
   }
   
   return nlist;
+}
+
+// [[Rcpp::export]]
+std::vector<double> mesh_area(std::vector<double> vertices, std::vector<double> triangles){
+  std::vector<double> areas(vertices.size()/3, 0);
+  
+  int linear_ind = 0;
+  int v1_ind, v2_ind, v3_ind;
+  double d1x, d1y, d1z;
+  double d2x, d2y, d2z;
+  double area;
+
+  for(int i = 0; i < (triangles.size() / 3); ++i){
+    linear_ind = 3 * i;
+    v1_ind = 3 * (triangles[linear_ind] - 1);
+    v2_ind = 3 * (triangles[linear_ind + 1] - 1);
+    v3_ind = 3 * (triangles[linear_ind + 2] - 1);
+    
+    d1x = vertices[v2_ind] - vertices[v1_ind];
+    d1y = vertices[v2_ind + 1] - vertices[v1_ind + 1];
+    d1z = vertices[v2_ind + 2] - vertices[v1_ind + 2];
+    
+    d2x = vertices[v3_ind] - vertices[v1_ind];
+    d2y = vertices[v3_ind + 1] - vertices[v1_ind + 1];
+    d2z = vertices[v3_ind + 2] - vertices[v1_ind + 2];
+    
+    area = .5 * sqrt(
+      pow(d1y*d2z - d1z*d2x, 2) +
+        pow(d1z*d2x - d1x*d2z, 2) +
+        pow(d1x*d2y - d1y*d2x, 2));
+    
+    areas[v1_ind/3] += (1/3.0) * area;
+    areas[v2_ind/3] += (1/3.0) * area;
+    areas[v3_ind/3] += (1/3.0) * area;
+  }
+  
+  return areas;
 }
 

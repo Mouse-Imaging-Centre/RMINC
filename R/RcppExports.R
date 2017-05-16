@@ -13,12 +13,12 @@ rcpp_minc_apply <- function(filenames, use_mask, mask, mask_lower_val, mask_uppe
     .Call('RMINC_rcpp_minc_apply', PACKAGE = 'RMINC', filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args)
 }
 
-graph_tfce_wqu <- function(map, adjacencies, E, H, nsteps) {
-    .Call('RMINC_graph_tfce_wqu', PACKAGE = 'RMINC', map, adjacencies, E, H, nsteps)
+graph_tfce_wqu <- function(map, adjacencies, E, H, nsteps, weights) {
+    .Call('RMINC_graph_tfce_wqu', PACKAGE = 'RMINC', map, adjacencies, E, H, nsteps, weights)
 }
 
-graph_tfce <- function(map, adjacencies, E, H, nsteps) {
-    .Call('RMINC_graph_tfce', PACKAGE = 'RMINC', map, adjacencies, E, H, nsteps)
+graph_tfce <- function(map, adjacencies, E, H, nsteps, weights) {
+    .Call('RMINC_graph_tfce', PACKAGE = 'RMINC', map, adjacencies, E, H, nsteps, weights)
 }
 
 coords2ind <- function(i, j, k, d1, d2, d3) {
@@ -31,5 +31,9 @@ ind2coords <- function(v, d1, d2, d3) {
 
 neighbour_list <- function(x, y, z, n) {
     .Call('RMINC_neighbour_list', PACKAGE = 'RMINC', x, y, z, n)
+}
+
+mesh_area <- function(vertices, triangles) {
+    .Call('RMINC_mesh_area', PACKAGE = 'RMINC', vertices, triangles)
 }
 

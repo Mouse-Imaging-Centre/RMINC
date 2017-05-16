@@ -50,8 +50,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // graph_tfce_wqu
-std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vector<int> > adjacencies, double E, double H, int nsteps);
-RcppExport SEXP RMINC_graph_tfce_wqu(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP) {
+std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vector<int> > adjacencies, double E, double H, int nsteps, std::vector<double> weights);
+RcppExport SEXP RMINC_graph_tfce_wqu(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -60,13 +60,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type E(ESEXP);
     Rcpp::traits::input_parameter< double >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type nsteps(nstepsSEXP);
-    rcpp_result_gen = Rcpp::wrap(graph_tfce_wqu(map, adjacencies, E, H, nsteps));
+    Rcpp::traits::input_parameter< std::vector<double> >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(graph_tfce_wqu(map, adjacencies, E, H, nsteps, weights));
     return rcpp_result_gen;
 END_RCPP
 }
 // graph_tfce
-std::vector<double> graph_tfce(std::vector<double> map, std::vector<std::vector<int> > adjacencies, double E, double H, int nsteps);
-RcppExport SEXP RMINC_graph_tfce(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP) {
+std::vector<double> graph_tfce(std::vector<double> map, std::vector<std::vector<int> > adjacencies, double E, double H, int nsteps, std::vector<double> weights);
+RcppExport SEXP RMINC_graph_tfce(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -75,7 +76,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type E(ESEXP);
     Rcpp::traits::input_parameter< double >::type H(HSEXP);
     Rcpp::traits::input_parameter< int >::type nsteps(nstepsSEXP);
-    rcpp_result_gen = Rcpp::wrap(graph_tfce(map, adjacencies, E, H, nsteps));
+    Rcpp::traits::input_parameter< std::vector<double> >::type weights(weightsSEXP);
+    rcpp_result_gen = Rcpp::wrap(graph_tfce(map, adjacencies, E, H, nsteps, weights));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -120,6 +122,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type z(zSEXP);
     Rcpp::traits::input_parameter< int >::type n(nSEXP);
     rcpp_result_gen = Rcpp::wrap(neighbour_list(x, y, z, n));
+    return rcpp_result_gen;
+END_RCPP
+}
+// mesh_area
+std::vector<double> mesh_area(std::vector<double> vertices, std::vector<double> triangles);
+RcppExport SEXP RMINC_mesh_area(SEXP verticesSEXP, SEXP trianglesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double> >::type vertices(verticesSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type triangles(trianglesSEXP);
+    rcpp_result_gen = Rcpp::wrap(mesh_area(vertices, triangles));
     return rcpp_result_gen;
 END_RCPP
 }
