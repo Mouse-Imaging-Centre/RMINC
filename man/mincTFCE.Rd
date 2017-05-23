@@ -65,9 +65,12 @@ in the single dimensional case, a string denoting a minc file or a \code{mincSin
 it returns a \code{mincSingleDim} object with the result, optionally saving the file if
 keep is set to true. In the matrix case each column is converted to a \code{mincSingleDim} in
 accordance with the \code{likeVolume}, this is then cluster enhanced and recomposed into a matrix.
-In the mincLm case a randomization test is performed with the t-stats enhanced computing the proportion
-of random values that exceed the value originally observed in the \code{mincLm} object, a matrix
-of these extreme values is returned.
+In the mincLm case a randomization test is performed with the t-stats enhanced. The return is \itemize{
+\item{TFCE: A matrix of the tvalue columns after randomization}
+\item{randomization_dist: An RxT matrix where R is the number of randomizations and T is the number of t-statistic,
+elements are the largest value obtained by the randomized TFCE}
+\item{args: Arguments passed to the internal randomzations and TFCE code}
+}
 }
 \description{
 Perform threshold free cluster enhancement as described in 

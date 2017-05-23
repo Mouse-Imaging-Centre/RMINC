@@ -514,9 +514,13 @@ vertexLmerEstimateDF <-
 #' in the single dimensional case, a string denoting a vertex file or a numeric vector
 #' it returns a numeric vector with the result. In the matrix case each column is cluster enhanced and 
 #' recomposed into a matrix.
-#' In the \link{vertexLm} case a randomization test is performed with the t-stats enhanced computing the maximal
-#' value after enhancement. A vector of maxima is returned to compute exceedence probabilities, along with
-#' the original statistic after cluster enhancement.
+#' In the \link{vertexLm} case a randomization test is performed on each t-tstatistic column. The results is
+#' a list with 3 elements \itemize{
+#' \item{TFCE: A matrix of the tvalue columns after randomization}
+#' \item{randomization_dist: An RxT matrix where R is the number of randomizations and T is the number of t-statistics,
+#' elements are the largest value obtained by the randomized TFCE}
+#' \item{args: Arguments passed to the internal randomzations and TFCE code}
+#' }
 #' @export  
 vertexTFCE <-
   function(x, ...) {
@@ -591,7 +595,9 @@ vertexTFCE.matrix <-
       if(length(surface) != ncol(x))  stop(length_err)
       surface_inds <- seq_along(surface)
       
-    } else if(is.list(surface) && !inherits(surface, c("bic_obj", "igraph")) && !inherits(surface[[1]], c("bic_obj", "igraph", "numeric"))){
+    } else if(is.list(surface) && 
+              !inherits(surface, c("bic_obj", "igraph")) && 
+              !inherits(surface[[1]], c("bic_obj", "igraph", "numeric", "integer"))){
       ## Case list of adjacency lists
       if(length(surface) != ncol(x)) stop(length_err)
       surface_inds <- seq_along(surface)
@@ -624,10 +630,101 @@ vertexTFCE.matrix <-
     }
     
     ## Finally, the TFCE part, passes off most of the work to vertexTFCE.numeric
-    mapply(function(col_ind, surface_ind){
-      vertexTFCE.numeric(x[,col_ind], surface[[surface_ind]], E = E, H = H, nsteps = nsteps, weights = weights)
-    }, seq_len(ncol(x)), surface_inds)
+    tf_res <- 
+      mapply(function(col_ind, surface_ind){
+        vertexTFCE.numeric(x[,col_ind], surface[[surface_ind]], E = E, H = H, nsteps = nsteps, weights = weights)
+      }, seq_len(ncol(x)), surface_inds)
+    
+    colnames(tf_res) <- colnames(x)
+    tf_res
   }
+
+#' @export
+getCall.vertexLm <-
+  function(x, ...) attributes(x)$call
+
+#'@describeIn vertexTFCE vertexLm
+#'@export
+vertexTFCE.vertexLm <- 
+  function(x
+           , surface
+           , R = 500
+           , alternative = c("two.sided", "greater")
+           , d = 0.1, E = .5, H = 2.0
+           , weights = NULL
+           , side = c("both", "positive", "negative")
+           , replace = FALSE
+           , parallel = NULL
+           , ...){
+    
+    lmod          <- x
+    alternative   <- match.arg(alternative)
+    side          <- match.arg(side)
+    columns       <- grep("tvalue-", colnames(lmod))
+    lmod_call     <- attr(lmod, "call")
+    like_vol      <- likeVolume(lmod) 
+    
+    original_tfce <-
+      vertexTFCE.matrix(lmod[,columns], surface = surface, weights = weights
+                        , d = d, E = E, H = H, side = side, like_volume = like_vol) 
+    
+    randomization_dist <-
+      mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
+                         , alternative = alternative
+                         , post_proc = vertexTFCE.matrix
+                         , surface = surface
+                         , weights = weights
+                         , side = side, d = d, E = E, H = H)
+    
+    output <- list(tfce = original_tfce, randomization_dist = randomization_dist
+                   , args = list(call = lmod_call,
+                                 side = side
+                                 , alternative = alternative))
+    class(output) <- c("vertexTFCE_randomization", "vertex_randomization")
+    output
+  }
+
+#'@describeIn vertexTFCE character
+#'@export
+vertexTFCE.character <-
+  function(x, surface, d = 0.1, E = .5, H = 2.0
+           , nsteps = 100
+           , side = c("both", "positive", "negative")
+           , weights = NULL
+           , ...){
+    if(length(x) == 1){
+      x <- as.numeric(readLines(x))
+      vertexTFCE.numeric(x, surface, d = d, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
+    } else {
+      x <- vertexTable(x)
+      vertexTFCE.matrix(x, surface, d = d, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
+    }
+  }
+
+vertexRandomize.vertexLm <-
+  function(x
+           , R = 500
+           , alternative = c("two.sided", "greater")
+           , replace = FALSE
+           , parallel = NULL
+           , columns = grep("tvalue-", colnames(x))){
+    lmod          <- x
+    alternative   <- match.arg(alternative)
+    original_stats <- lmod[,columns]
+    lmod_call   <- attr(lmod, "call")
+    
+    randomization_dist <-
+      mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
+                         , alternative = alternative)
+    
+    output <- list(stats = original_stats, randomization_dist = randomization_dist
+                   , args = c(call = lmod_call, alternative = alternative))
+    class(output) <- c("vertexLm_randomization", "vertex_randomization")
+    
+    output
+  
+  }
+
 
 # vertexLmer <-
 #   function(formula, data, mask=NULL, parallel=NULL,

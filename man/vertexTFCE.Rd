@@ -4,6 +4,8 @@
 \alias{vertexTFCE}
 \alias{vertexTFCE.numeric}
 \alias{vertexTFCE.matrix}
+\alias{vertexTFCE.vertexLm}
+\alias{vertexTFCE.character}
 \title{Threshold Free Cluster Enhancement}
 \usage{
 vertexTFCE(x, ...)
@@ -14,6 +16,15 @@ vertexTFCE(x, ...)
 
 \method{vertexTFCE}{matrix}(x, surface, E = 0.5, H = 2, nsteps = 100,
   side = c("both", "positive", "negative"), weights = NULL, ...)
+
+\method{vertexTFCE}{vertexLm}(x, surface, R = 500,
+  alternative = c("two.sided", "greater"), d = 0.1, E = 0.5, H = 2,
+  weights = NULL, side = c("both", "positive", "negative"),
+  replace = FALSE, parallel = NULL, ...)
+
+\method{vertexTFCE}{character}(x, surface, d = 0.1, E = 0.5, H = 2,
+  nsteps = 100, side = c("both", "positive", "negative"), weights = NULL,
+  ...)
 }
 \arguments{
 \item{x}{A numeric vector, a filepath to a set of values,
@@ -40,15 +51,32 @@ used for each individual, or a vector of file names}
 \code{surface} object type. If \code{surface} is an \code{bic_obj} the area of each
 vertex is equal to 1/3 the sum of the areas of the triangles it is a member of. If \code{surface}
 is an \code{igraph} or adjacency list the default is a vector of ones.}
+
+\item{R}{number of randomizations to perform}
+
+\item{alternative}{Whether to consider a one-sided or two-sided alternative hypothesis. Default
+"two-sided", use "greater" for a one sided test.}
+
+\item{replace}{Sample with or without replacement for the randomization, defaults to FALSE (no
+replacement)}
+
+\item{parallel}{A two component vector indicating how to parallelize the computation. If the 
+first element is "local" the computation will be run via the parallel package, otherwise it will
+be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+indicating the number of jobs to split the computation into.}
 }
 \value{
 The behaviour of \code{vertexTFCE} is to perform cluster free enhancement on a object,
 in the single dimensional case, a string denoting a vertex file or a numeric vector
 it returns a numeric vector with the result. In the matrix case each column is cluster enhanced and 
 recomposed into a matrix.
-In the \link{vertexLm} case a randomization test is performed with the t-stats enhanced computing the maximal
-value after enhancement. A vector of maxima is returned to compute exceedence probabilities, along with
-the original statistic after cluster enhancement.
+In the \link{vertexLm} case a randomization test is performed on each t-tstatistic column. The results is
+a list with 3 elements \itemize{
+\item{TFCE: A matrix of the tvalue columns after randomization}
+\item{randomization_dist: An RxT matrix where R is the number of randomizations and T is the number of t-statistics,
+elements are the largest value obtained by the randomized TFCE}
+\item{args: Arguments passed to the internal randomzations and TFCE code}
+}
 }
 \description{
 Perform threshold free cluster enhancement as described in 
@@ -66,5 +94,9 @@ using the \link{as_adj_list} from the igraph library.
 \item \code{numeric}: numeric
 
 \item \code{matrix}: matrix
+
+\item \code{vertexLm}: vertexLm
+
+\item \code{character}: character
 }}
 
