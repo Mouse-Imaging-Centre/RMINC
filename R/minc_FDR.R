@@ -461,7 +461,14 @@ vertexFDR.vertexMultiDim <- function(buffer, ...) {
 #' @export
 vertexFDR.vertexLmer <-
   function(buffer, ...){
-    mincFDR.mincLmer(buffer, ...)
+    arglist <- list(...)
+    if(! "mask" %in% names(arglist))
+      arglist$mask <- maskFile(buffer, strict = FALSE)
+    
+    if(!is.null(arglist$mask) & is.character(arglist$mask))
+      arglist$mask <- as.numeric(readLines(arglist$mask))
+    
+    do.call(mincFDR.mincLmer, c(buffer, arglist))
   }
 
 #' Anatomy False Discovery Rates

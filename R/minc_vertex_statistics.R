@@ -340,6 +340,8 @@ vertexLmer <-
 
     lmod <- eval(mc, parent.frame(1L))
     mincFileCheck(lmod$fr[,1])
+    if(!is.null(mask) & (!(is.character(mask) & length(mask) == 1)) & !is.numeric(mask))
+      stop("A numeric vector or file name must be supplied for the mask argument")
 
     # code ripped from lme4:::mkLmerDevFun
     rho <- new.env(parent = parent.env(environment()))
