@@ -68,7 +68,7 @@ test_that("mincFindPeaks min and max", {
 context("vertexFindPeaks - ensure matches mincFindPeaks")
 test_that("vertexFindPeaks matches mincFindPeaks", {
   adj <- RMINC:::neighbour_list(10,10,10, 6)
-  g <- graph.adjlist(lapply(adj, function(nebs) nebs + 1))
+  g <- igraph::graph.adjlist(lapply(adj, function(nebs) nebs + 1))
   pos_peaks <- 
     vertexFindPeaks(rmincLm[,"tvalue-SexM"], g, direction = "positive", mindist = 1, output = "indices") 
   
