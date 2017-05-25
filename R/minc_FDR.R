@@ -468,7 +468,7 @@ vertexFDR.vertexLmer <-
     if(!is.null(arglist$mask) & is.character(arglist$mask))
       arglist$mask <- as.numeric(readLines(arglist$mask))
     
-    do.call(mincFDR.mincLmer, c(buffer, arglist))
+    do.call(mincFDR.mincLmer, c(list(buffer), arglist))
   }
 
 #' Anatomy False Discovery Rates
