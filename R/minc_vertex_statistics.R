@@ -439,7 +439,7 @@ vertexLmerEstimateDF <-
       mask <- rep(1, nrow(model))
     } else if(is.character(mask) && length(mask) == 1) {
       mask <- as.numeric(readLines(mask))
-    } else if(! is.numeric(mask) || length(mask) != nrow(model)){
+    } else if(! (is.numeric(mask) || is.logical(mask)) || length(mask) != nrow(model)){
       stop("There is a problem with your mask, please check that it fits your results")
     }
     
