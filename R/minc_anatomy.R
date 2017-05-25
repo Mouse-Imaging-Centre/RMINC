@@ -267,7 +267,7 @@ anatGetAll <-
 
 # Convert an RMINC style atlas label set to a nice data.frame
 create_labels_frame <-
-  function(defs, side = c("both", "left", "right")){
+  function(defs, side = c("both", "left", "right"), keep_hierarchy = FALSE){
     side <- match.arg(side)
     
     # if the definitions are given, check to see that we can read the 
@@ -550,7 +550,7 @@ anatSummarize <-
     
     if(is.character(summarize_by) && length(summarize_by == 1)){
       summarize_by <- 
-        create_labels_frame(defs) %>%
+        create_labels_frame(defs, keep_hierarchy = TRUE) %>%
         select_(~ -label) %>%
         rename_(label = "Structure", group = summarize_by)
     }
