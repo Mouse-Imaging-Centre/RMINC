@@ -101,6 +101,7 @@ components_to_map <-
 #' @details Note that if coordinates of peaks are desired, they can be accessed from the parent \code{bic_obj}
 #' by \code{obj$vertex_matrix[,peaks]} 
 #' @return Either a logical vector indicating peaks or a vector of peak indices determined by \code{output}
+#' @export
 vertexFindPeaks <- function(data_map, graph
                             , mindist = 1
                             , direction = c("both", "positive", "negative")
@@ -121,7 +122,7 @@ vertexFindPeaks <- function(data_map, graph
       if(!comparator(cur_val, thresh))
         return(FALSE)
       
-      nebs <- unlist(ego(graph, mindist, i))
+      nebs <- unlist(igraph::ego(graph, mindist, i))
       nebs <- nebs[nebs != i]
       nebs_vals <- data_map[nebs]
       
