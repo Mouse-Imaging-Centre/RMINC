@@ -333,15 +333,17 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     warning("Warning: computing p-values from a mincLmer call. Mixed-effects models are notoriously difficult to correctly obtain p-values from, so this is based on an approximation and might be incorrect. Read the documentation and, if in doubt, use log likelihood testing for a more correct approach.")
   }
   
+  new_dfs <- list()
   for (i in 1:n.cols) {
     cat("  Computing threshold for ", columns[i], "\n")
     pvals <- 0
     qobj <- vector("list", length(pvals))
+    new_dfs[[i]] <- df[[i]]
     
     # convert statistics to p-values
     if (statType[i] %in% c("t", "tlmer")) {
       if (is.matrix(buffer)) {
-        pvals <- pt2(buffer[mask>0.5, i], df[[i]])
+        pvals <- pt2(buffer[mask>0.5, columns[i]], df[[i]])
       }
       
       else {
@@ -350,7 +352,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
     else if (statType[i] == "F") {
       if (is.matrix(buffer)) {
-        pvals <- pf(buffer[mask>0.5, i], df[[i]][1], df[[i]][2],
+        pvals <- pf(buffer[mask>0.5, columns[i]], df[[i]][1], df[[i]][2],
                     lower.tail=FALSE)
       }
       
@@ -361,11 +363,11 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       
     }
     else if (statType[i] == "u") {
-      pvals <- 1 - pwilcox(buffer[mask>0.5,i],m,n,lower.tail = FALSE)
+      pvals <- 1 - pwilcox(buffer[mask>0.5,columns[i]],m,n,lower.tail = FALSE)
     }
     else if (statType[i] == "chisq") {
       if (is.matrix(buffer)) {
-        pvals <- pchisq(buffer[mask>0.5, i], df[[i]], lower.tail=F)
+        pvals <- pchisq(buffer[mask>0.5, columns[i]], df[[i]], lower.tail=F)
       }
       else {
         pvals <- pchisq(buffer[mask>0.5], df[[i]], lower.tail=F)
@@ -426,7 +428,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   attr(output, "thresholds") <- thresholds
   colnames(output) <- columns
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
-  attr(output, "DF") <- df
+  attr(output, "DF") <- new_dfs
   class(output) <- c("mincQvals", "mincMultiDim", "matrix")
   
   # run the garbage collector...
