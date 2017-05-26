@@ -9,7 +9,9 @@ first_file <- gf$jacobians_0.2[1]
 first_vol <- mincGetVolume(first_file)
 
 tfce_vol <- mincTFCE(first_vol)
-mincPlotSliceSeries(mincArray(tfce_vol))
+
+#mincPlotSliceSeries(mincArray(tfce_vol))
+#mincPlotSliceSeries(mincArray(`likeVolume<-`(vtfce, first_file)))
 
 test_voxels <-
   c(604L, 1188L, 488L, 262L, 1778L, 979L, 1399L, 1421L, 263L, 1434L, 
@@ -61,3 +63,14 @@ test_that("lm randomization works", {
   expect_gt(maxes[2], thresh[2])
 })
 
+context("VertexTFCE numeric")
+
+test_that("Vertex TFCE approximately matches mincTFCE", {
+  tfce_vol <- mincTFCE(first_vol, d = .0027)
+  vtfce <- vertexTFCE(first_vol, RMINC:::neighbour_list(15,15,15,6), weights = .001)
+  expect_false(any(abs(vtfce - tfce_vol) > 1e-4))
+})
+
+
+# mincPlotSliceSeries(mincArray(tfce_vol))
+# mincPlotSliceSeries(mincArray(`likeVolume<-`(vtfce, first_file)))
