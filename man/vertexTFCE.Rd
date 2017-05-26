@@ -10,9 +10,8 @@
 \usage{
 vertexTFCE(x, ...)
 
-\method{vertexTFCE}{numeric}(x, surface, d = 0.1, E = 0.5, H = 2,
-  nsteps = 100, side = c("both", "positive", "negative"), weights = NULL,
-  ...)
+\method{vertexTFCE}{numeric}(x, surface, E = 0.5, H = 2, nsteps = 100,
+  side = c("both", "positive", "negative"), weights = NULL, ...)
 
 \method{vertexTFCE}{matrix}(x, surface, E = 0.5, H = 2, nsteps = 100,
   side = c("both", "positive", "negative"), weights = NULL, ...)
@@ -37,8 +36,6 @@ an igraph graph object of surface created by \link{obj_to_graph}, or an adjacenc
 For the \code{matrix} and \link{vertexLm} cases, either a single surface object may be passed and
 used for each individual, or a vector of file names}
 
-\item{d}{The discretization step-size for approximating the threshold integral (default .1)}
-
 \item{E}{The exponent by which to raise the extent statistic (default .5)}
 
 \item{H}{The exponent by which to raise the height (default 2)}
@@ -56,6 +53,8 @@ is an \code{igraph} or adjacency list the default is a vector of ones.}
 
 \item{alternative}{Whether to consider a one-sided or two-sided alternative hypothesis. Default
 "two-sided", use "greater" for a one sided test.}
+
+\item{d}{The discretization step-size for approximating the threshold integral (default .1)}
 
 \item{replace}{Sample with or without replacement for the randomization, defaults to FALSE (no
 replacement)}

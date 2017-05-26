@@ -101,7 +101,7 @@ std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vec
   WeightedQuickUnion sets(nverts, weights);
   
   double hmin = 0; //map[indices.back()];
-  double hmax = map[indices.front()];
+  double hmax = map[indices[0]];
   double dh = (hmax - hmin)/ static_cast<double>(nsteps); //stepsize;
   std::vector<double> tfce = std::vector<double>(nverts, 0);
   if(hmax <= hmin) return tfce;
@@ -110,10 +110,12 @@ std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vec
     //Optional threshold tracker
     //Rcout << t << "\n";
     checkUserInterrupt();
-    std::list<int> visited;
+    //std::list<int> visited;
+    int nvisited = 0;
     for(int sort_ord = 0; sort_ord < nverts && map[indices[sort_ord]] >= t; ++sort_ord){
       int ind = indices[sort_ord];
-      visited.push_back(ind); //.insert(ind);
+      // visited.push_back(ind); //.insert(ind);
+      ++nvisited;
       for(int neb = 0; neb < adjacencies[ind].size(); ++neb){
         int neighbour = adjacencies[ind][neb]; 
         double neighbour_val = map[neighbour];
@@ -127,11 +129,13 @@ std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vec
     }
     
     double height_mul = pow(t,H);
-    for(std::list<int>::iterator it = visited.begin(); it != visited.end(); ++it){
-      int ind = *it;
+    //for(std::list<int>::iterator it = visited.begin(); it != visited.end(); ++it){
+    for(int i = 0; i <= nvisited; ++i){
+      //int ind = *it;
+      int ind = indices[i];
       int root = sets.get_root(ind);
-      int tree_size = sets.cluster_mass(root); //mass of root nodes are cluster sizes
-      tfce[ind] += (height_mul * pow(tree_size, E));
+      double tree_size = sets.cluster_mass(root); //mass of root nodes are cluster sizes
+      tfce[ind] += (height_mul * pow(tree_size, E) * dh);
     }
     
     

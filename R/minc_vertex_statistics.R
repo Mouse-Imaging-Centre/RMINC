@@ -533,7 +533,7 @@ vertexTFCE <-
 #' @describeIn vertexTFCE numeric
 #' @export 
 vertexTFCE.numeric <-
-  function(x, surface, d = 0.1, E = .5, H = 2.0
+  function(x, surface, E = .5, H = 2.0
            , nsteps = 100
            , side = c("both", "positive", "negative")
            , weights = NULL
@@ -546,6 +546,9 @@ vertexTFCE.numeric <-
        } else {
          weights <- rep(1, length(x))
        }
+     } else {
+       if(length(weights) == 1) weights <- rep(weights, length(x))
+       if(length(weights) != length(x)) stop("Please supply 1 or enough weights for each element of x")
      }
      
      if(inherits(surface, "character")){
@@ -572,7 +575,7 @@ vertexTFCE.numeric <-
      tfce <-
        switch(side
               , "positive" = graph_tfce_wqu(x, adjacencies, E, H, nsteps, weights)
-              , "negative" = graph_tfce_wqu(-x, adjacencies, E, H, nsteps, weights)
+              , "negative" = -graph_tfce_wqu(-x, adjacencies, E, H, nsteps, weights)
               , "both" = graph_tfce(x, adjacencies, E, H, nsteps, weights))
      
      return(tfce)
