@@ -1,41 +1,63 @@
+dnl Search for the minc-toolkit
 AC_DEFUN([MINC_SEARCH], [
-        AC_MSG_NOTICE([Searching for libminc])
-	AC_MSG_CHECKING([Can we find a minc tool (mincinfo) on the search path]) 
-        MINC_INFO_PATH=$(which mincinfo)
-	AS_IF([test x$MINC_INFO_PATH == "x"], [
-               AC_MSG_RESULT(no)], [
-               MINC_FOUND="yes"
-               MINC_PATH=${MINC_INFO_PATH%/bin*}
-               AC_MSG_RESULT(yes)
-             ])
+  AC_MSG_NOTICE([Searching for libminc])
+  
+dnl Otherwise check if a minc-tool can be found on the path
+  AC_MSG_NOTICE(Mincfound = $MINC_FOUND)
+  AS_IF([test "x$MINC_FOUND" != "xyes"], [
+    AS_IF([test x$MINC_PATH != "x"], [
+      AC_MSG_NOTICE(MINC_PATH was specified)
+      MINC_FOUND="yes"
+    ])
+  ])
 
-        AS_IF([test x$MINC_FOUND != "xyes"], [
-               AC_MSG_CHECKING([Can we find libminc in common locations])
-               AS_IF([test -d /opt/minc/], [MINC_PATH="/opt/minc"])
-               AS_IF([test -d /opt/minc-itk4/], [MINC_PATH="/opt/minc-itk4/"])
-               AS_IF([test x$HOME != "x"],
-                     AS_IF([test -d $HOME/local/minc-itk4/], 
-                           [MINC_PATH="$HOME/local/minc-itk4/"]))
-               AS_IF([test x$MINC_BUILD_PATH != "x"],
-                     AS_IF([test -d $MINC_BUILD_PATH],  
-                           [MINC_PATH="$MINC_BUILD_PATH"]))
-               AS_IF([test x$MINC_PATH != "x"], [
-                      MINC_FOUND="yes"
-                      AC_MSG_RESULT(yes)
-                      AC_MSG_NOTICE([found libminc in $MINC_PATH])
-                      AC_MSG_NOTICE([override by setting the environment variable MINC_BUILD_PATH])
-                      AC_MSG_NOTICE([or by setting --with-build-path as a configure argument])
-                      ], [ 
-                      AC_MSG_RESULT(no) 
-                     ])
-              ])
+  AS_IF([test "x$MINC_FOUND" != "xyes"], [
+    AC_MSG_CHECKING("Checking for $MINC_BUILD_PATH (MINC_BUILD_PATH)")
+    AS_IF([test "x$MINC_BUILD_PATH" != "x" && test -d "$MINC_BUILD_PATH"], [
+      AC_MSG_NOTICE(MINC_PATH was set to $MINC_BUILD_PATH)
+      AC_MSG_RESULT(yes)
+      MINC_FOUND="yes"
+      ], [ AC_MSG_RESULT(no) ])
+  ])
 
-	  AS_IF([test x$MINC_FOUND == "xyes"], [
-                  LDFLAGS="$LDFLAGS -L${MINC_PATH}/lib -Wl,-rpath,${MINC_PATH}/lib"
-                  CPPFLAGS="$CPPFLAGS -I${MINC_PATH}/include"
-                ])
+  AS_IF([test "x$MINC_FOUND" != "xyes"], [
+    AC_MSG_CHECKING(Checking for /opt/minc-itk4/)
+    AS_IF([test -d "/opt/minc-itk4"], [
+      AC_MSG_NOTICE(MINC_PATH was set to /opt/minc-itk4)
+      AC_MSG_RESULT(yes)
+      MINC_FOUND="yes"
+      ], [ AC_MSG_RESULT(no) ])
+  ])
+
+  AS_IF([test "x$MINC_FOUND" != "xyes"], [
+    AC_MSG_CHECKING(Checking for /opt/minc/)
+    AS_IF([test -d "/opt/minc/"], [
+      AC_MSG_NOTICE(MINC_PATH was set to /opt/minc)
+      AC_MSG_RESULT(yes)  
+      MINC_FOUND="yes"
+      ], [ AC_MSG_RESULT(no) ])
+  ])
+
+  AS_IF([test x$MINC_FOUND != "xyes"], [
+    AC_MSG_CHECKING([Can we find a minc tool (mincinfo) on the search path]) 
+    MINC_INFO_PATH=$(which mincinfo)
+    AS_IF([test x$MINC_INFO_PATH == "x"], [
+      AC_MSG_RESULT(no)], [
+      MINC_FOUND="yes"
+      MINC_PATH=${MINC_INFO_PATH%/bin*}
+      AC_MSG_RESULT(yes)
+    ])
+  ])
+
+  AS_IF([test "x$MINC_FOUND" == "xyes"], [
+    AC_MSG_NOTICE([MINC_PATH set to $MINC_PATH])
+    AC_MSG_NOTICE([override by setting the environment variable MINC_PATH])
+    AC_MSG_NOTICE([or by setting --with-build-path as a configure argument])
+
+    LDFLAGS="$LDFLAGS -L${MINC_PATH}/lib -Wl,-rpath,${MINC_PATH}/lib"
+    CPPFLAGS="$CPPFLAGS -I${MINC_PATH}/include"
+  ])
 ])
-
 
 
 dnl This macro builds libminc if it's not found

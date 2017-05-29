@@ -3300,22 +3300,22 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-
 MINC_FOUND=""
 
 
 # Check whether --with-build-path was given.
 if test "${with_build_path+set}" = set; then :
   withval=$with_build_path;
-		#Build-path code taken from Steve Robbins m4 macro
-    		for d in `echo $withval | tr : ' '`; do
-       		    test -d $d || as_fn_error $? "build path $d not found." "$LINENO" 5
-       		    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include/"
-       		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib/ -Wl,-rpath,$d/lib/"
-   		done
+          #Build-path code taken from Steve Robbins m4 macro
+    	  for d in `echo $withval | tr : ' '`; do
+       	    test -d $d || as_fn_error $? "build path $d not found." "$LINENO" 5
+       	    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include/"
+       	    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib/ -Wl,-rpath,$d/lib/"
+   	  done
+	  MINC_PATH=$withval
+   	  MINC_FOUND="yes"
 
 fi
-
 
 
 
@@ -4179,69 +4179,111 @@ fi
         LIBS="$LIBS $HDF5_LIBS"
 
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for libminc" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for libminc" >&5
 $as_echo "$as_me: Searching for libminc" >&6;}
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
-$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
-        MINC_INFO_PATH=$(which mincinfo)
-	if test x$MINC_INFO_PATH == "x"; then :
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: Mincfound = $MINC_FOUND" >&5
+$as_echo "$as_me: Mincfound = $MINC_FOUND" >&6;}
+  if test "x$MINC_FOUND" != "xyes"; then :
+
+    if test x$MINC_PATH != "x"; then :
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH was specified" >&5
+$as_echo "$as_me: MINC_PATH was specified" >&6;}
+      MINC_FOUND="yes"
+
+fi
+
+fi
+
+  if test "x$MINC_FOUND" != "xyes"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking \"Checking for $MINC_BUILD_PATH (MINC_BUILD_PATH)\"" >&5
+$as_echo_n "checking \"Checking for $MINC_BUILD_PATH (MINC_BUILD_PATH)\"... " >&6; }
+    if test "x$MINC_BUILD_PATH" != "x" && test -d "$MINC_BUILD_PATH"; then :
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH was set to $MINC_BUILD_PATH" >&5
+$as_echo "$as_me: MINC_PATH was set to $MINC_BUILD_PATH" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      MINC_FOUND="yes"
+
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+fi
+
+  if test "x$MINC_FOUND" != "xyes"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Checking for /opt/minc-itk4/" >&5
+$as_echo_n "checking Checking for /opt/minc-itk4/... " >&6; }
+    if test -d "/opt/minc-itk4"; then :
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH was set to /opt/minc-itk4" >&5
+$as_echo "$as_me: MINC_PATH was set to /opt/minc-itk4" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      MINC_FOUND="yes"
+
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+fi
+
+  if test "x$MINC_FOUND" != "xyes"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Checking for /opt/minc/" >&5
+$as_echo_n "checking Checking for /opt/minc/... " >&6; }
+    if test -d "/opt/minc/"; then :
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH was set to /opt/minc" >&5
+$as_echo "$as_me: MINC_PATH was set to /opt/minc" >&6;}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      MINC_FOUND="yes"
+
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+fi
+
+  if test x$MINC_FOUND != "xyes"; then :
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find a minc tool (mincinfo) on the search path" >&5
+$as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " >&6; }
+    MINC_INFO_PATH=$(which mincinfo)
+    if test x$MINC_INFO_PATH == "x"; then :
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 else
 
-               MINC_FOUND="yes"
-               MINC_PATH=${MINC_INFO_PATH%/bin*}
-               { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+      MINC_FOUND="yes"
+      MINC_PATH=${MINC_INFO_PATH%/bin*}
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
 fi
 
-        if test x$MINC_FOUND != "xyes"; then :
+fi
 
-               { $as_echo "$as_me:${as_lineno-$LINENO}: checking Can we find libminc in common locations" >&5
-$as_echo_n "checking Can we find libminc in common locations... " >&6; }
-               if test -d /opt/minc/; then :
-  MINC_PATH="/opt/minc"
-fi
-               if test -d /opt/minc-itk4/; then :
-  MINC_PATH="/opt/minc-itk4/"
-fi
-               if test x$HOME != "x"; then :
-  if test -d $HOME/local/minc-itk4/; then :
-  MINC_PATH="$HOME/local/minc-itk4/"
-fi
-fi
-               if test x$MINC_BUILD_PATH != "x"; then :
-  if test -d $MINC_BUILD_PATH; then :
-  MINC_PATH="$MINC_BUILD_PATH"
-fi
-fi
-               if test x$MINC_PATH != "x"; then :
+  if test "x$MINC_FOUND" == "xyes"; then :
 
-                      MINC_FOUND="yes"
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: found libminc in $MINC_PATH" >&5
-$as_echo "$as_me: found libminc in $MINC_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_BUILD_PATH" >&5
-$as_echo "$as_me: override by setting the environment variable MINC_BUILD_PATH" >&6;}
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
+    { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH set to $MINC_PATH" >&5
+$as_echo "$as_me: MINC_PATH set to $MINC_PATH" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: override by setting the environment variable MINC_PATH" >&5
+$as_echo "$as_me: override by setting the environment variable MINC_PATH" >&6;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: or by setting --with-build-path as a configure argument" >&5
 $as_echo "$as_me: or by setting --with-build-path as a configure argument" >&6;}
 
-else
-
-                      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-fi
-
-fi
-
-	  if test x$MINC_FOUND == "xyes"; then :
-
-                  LDFLAGS="$LDFLAGS -L${MINC_PATH}/lib -Wl,-rpath,${MINC_PATH}/lib"
-                  CPPFLAGS="$CPPFLAGS -I${MINC_PATH}/include"
+    LDFLAGS="$LDFLAGS -L${MINC_PATH}/lib -Wl,-rpath,${MINC_PATH}/lib"
+    CPPFLAGS="$CPPFLAGS -I${MINC_PATH}/include"
 
 fi
 
