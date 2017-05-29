@@ -655,7 +655,7 @@ vertexTFCE.vertexLm <-
            , surface
            , R = 500
            , alternative = c("two.sided", "greater")
-           , d = 0.1, E = .5, H = 2.0
+           , E = .5, H = 2.0, nsteps = 100
            , weights = NULL
            , side = c("both", "positive", "negative")
            , replace = FALSE
@@ -671,7 +671,7 @@ vertexTFCE.vertexLm <-
     
     original_tfce <-
       vertexTFCE.matrix(lmod[,columns], surface = surface, weights = weights
-                        , d = d, E = E, H = H, side = side, like_volume = like_vol) 
+                        , nsteps = nsteps, E = E, H = H, side = side) 
     
     randomization_dist <-
       mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
@@ -679,7 +679,7 @@ vertexTFCE.vertexLm <-
                          , post_proc = vertexTFCE.matrix
                          , surface = surface
                          , weights = weights
-                         , side = side, d = d, E = E, H = H)
+                         , side = side, E = E, H = H, nsteps = nsteps)
     
     output <- list(tfce = original_tfce, randomization_dist = randomization_dist
                    , args = list(call = lmod_call,
@@ -692,17 +692,17 @@ vertexTFCE.vertexLm <-
 #'@describeIn vertexTFCE character
 #'@export
 vertexTFCE.character <-
-  function(x, surface, d = 0.1, E = .5, H = 2.0
+  function(x, surface, E = .5, H = 2.0
            , nsteps = 100
            , side = c("both", "positive", "negative")
            , weights = NULL
            , ...){
     if(length(x) == 1){
       x <- as.numeric(readLines(x))
-      vertexTFCE.numeric(x, surface, d = d, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
+      vertexTFCE.numeric(x, surface, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
     } else {
       x <- vertexTable(x)
-      vertexTFCE.matrix(x, surface, d = d, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
+      vertexTFCE.matrix(x, surface, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
     }
   }
 
