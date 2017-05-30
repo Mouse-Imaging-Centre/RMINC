@@ -365,9 +365,9 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
                       start = start, 
                       calc.derivs = control$calc.derivs,
                       use.last.params = control$use.last.params)
-  cc <- lme4:::checkConv(attr(opt, "derivs"), opt$par,
-                         ctrl = control$checkConv, 
-                         lbound = environment(devfun)$lower)
+  cc <- checkConv(attr(opt, "derivs"), opt$par,
+                   ctrl = control$checkConv, 
+                  lbound = environment(devfun)$lower)
   mmod <- mkMerMod(environment(devfun), opt, lmod$reTrms,
                    fr = lmod$fr, mcout, lme4conv = cc)
   return(mmod)
