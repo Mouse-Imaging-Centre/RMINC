@@ -511,7 +511,7 @@ vertexLmerEstimateDF <-
 #' @details Passing an adjacency list will save some compute time
 #' but is not recommended for general use. If an adjacency list is passed should index starting from 0 for compatibility with c++
 #' code. Adjacency lists of this kind can be generated from graphs with \code{lapply(as_adj_list(graph), `-`, 1)}
-#' using the \link{as_adj_list} from the igraph library. 
+#' using the \link[igraph]{as_adj_list} from the igraph library. 
 #' @return The behaviour of \code{vertexTFCE} is to perform cluster free enhancement on a object,
 #' in the single dimensional case, a string denoting a vertex file or a numeric vector
 #' it returns a numeric vector with the result. In the matrix case each column is cluster enhanced and 

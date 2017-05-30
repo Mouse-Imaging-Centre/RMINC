@@ -83,7 +83,7 @@ to allow a hybrid cluster/voxel analysis to be performed.
 Passing an adjacency list will save some compute time
 but is not recommended for general use. If an adjacency list is passed should index starting from 0 for compatibility with c++
 code. Adjacency lists of this kind can be generated from graphs with \code{lapply(as_adj_list(graph), `-`, 1)}
-using the \link{as_adj_list} from the igraph library.
+using the \link[igraph]{as_adj_list} from the igraph library.
 }
 \section{Methods (by class)}{
 \itemize{
