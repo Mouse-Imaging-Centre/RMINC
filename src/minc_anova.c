@@ -210,7 +210,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   t = malloc(sizeof(double) * p);
   
   comp = malloc(sizeof(double) * p);
-  ss = malloc(sizeof(double) * maxasgn);
+  ss = (double *) calloc(maxasgn, sizeof(double));
   df = malloc(sizeof(int) * maxasgn);
   
   /* get the value at which the mask is to be evaluated */
