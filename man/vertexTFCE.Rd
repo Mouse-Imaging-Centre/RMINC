@@ -17,13 +17,12 @@ vertexTFCE(x, ...)
   side = c("both", "positive", "negative"), weights = NULL, ...)
 
 \method{vertexTFCE}{vertexLm}(x, surface, R = 500,
-  alternative = c("two.sided", "greater"), d = 0.1, E = 0.5, H = 2,
+  alternative = c("two.sided", "greater"), E = 0.5, H = 2, nsteps = 100,
   weights = NULL, side = c("both", "positive", "negative"),
   replace = FALSE, parallel = NULL, ...)
 
-\method{vertexTFCE}{character}(x, surface, d = 0.1, E = 0.5, H = 2,
-  nsteps = 100, side = c("both", "positive", "negative"), weights = NULL,
-  ...)
+\method{vertexTFCE}{character}(x, surface, E = 0.5, H = 2, nsteps = 100,
+  side = c("both", "positive", "negative"), weights = NULL, ...)
 }
 \arguments{
 \item{x}{A numeric vector, a filepath to a set of values,
@@ -53,8 +52,6 @@ is an \code{igraph} or adjacency list the default is a vector of ones.}
 
 \item{alternative}{Whether to consider a one-sided or two-sided alternative hypothesis. Default
 "two-sided", use "greater" for a one sided test.}
-
-\item{d}{The discretization step-size for approximating the threshold integral (default .1)}
 
 \item{replace}{Sample with or without replacement for the randomization, defaults to FALSE (no
 replacement)}
