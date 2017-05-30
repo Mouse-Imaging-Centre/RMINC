@@ -15,6 +15,8 @@ If a data frame is passed it must have two columns: "label" containing the struc
 name (see \code{colnames(anat)} to check the relevant labels) and "grouping" containg the name 
 of the group each structure belongs to.}
 
+\item{defs}{A text file containing the label definitions if \code{summarize_by} is a string}
+
 \item{discard_missing}{logical controlling how to handle structures with no ("") group information.
 If TRUE filter these structures, if FALSE give each structure a group label to match their structure
 name.}
