@@ -710,7 +710,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
 		 SEXP mask_upper_value, SEXP rho, SEXP nresults, SEXP method) {
   int                result;
   mihandle_t         *hvol, *hvol_left,*hvol_right,hmask;
-  char               *method_name;
+  const char         *method_name;
   int                i, v0, v1, v2, output_index, buffer_index;
   misize_t           start[3], count[3];
   unsigned long      location[3];
@@ -742,11 +742,11 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
   Rprintf("Method: %s\n", method_name);
 
   /* allocate memory for the volume handles */
-  hvol = malloc(num_files * sizeof(mihandle_t));
+  hvol = (mihandle_t *) malloc(num_files * sizeof(mihandle_t));
   
   if(!isLogical(filenames_right)) {
  	  Rprintf("Number of volumes: %i\n", num_files);
-	  hvol_right = malloc(num_files_left * sizeof(mihandle_t));
+	  hvol_right = (mihandle_t *) malloc(num_files_left * sizeof(mihandle_t));
 }
 
 

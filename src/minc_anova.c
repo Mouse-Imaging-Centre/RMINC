@@ -81,7 +81,7 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
 
 SEXP test_slice_loop(SEXP filenames) {
   misize_t sizes[3];
-  double *buffer = NULL;
+  double **buffer = NULL;
   mihandle_t *hvol = NULL;
   int i, v0, v1, v2;
   misize_t buffer_index, output_index;
