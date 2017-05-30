@@ -130,7 +130,7 @@ std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vec
     
     double height_mul = pow(t,H);
     //for(std::list<int>::iterator it = visited.begin(); it != visited.end(); ++it){
-    for(int i = 0; i <= nvisited; ++i){
+    for(int i = 0; i < nvisited; ++i){
       //int ind = *it;
       int ind = indices[i];
       int root = sets.get_root(ind);
