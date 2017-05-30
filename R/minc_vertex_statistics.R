@@ -561,8 +561,10 @@ vertexTFCE.numeric <-
      }
      
      if(inherits(surface, "igraph")){
-       on.exit(.Call("R_igraph_finalizer", PACKAGE = "igraph"))
-       adjacencies <- .Call("R_igraph_get_adjlist", surface, 3, PACKAGE = "igraph")
+       igraph_return_vs_old <- igraph::igraph_opt("return.vs.es")
+       on.exit(igraph::igraph_options(return.vs.es = igraph_return_vs_old))
+       igraph_options(return.vs.es = FALSE)
+       adjacencies <- lapply(igraph::as_adj_list(surface), `-`, 1)
      } else {
        adjacencies <- surface
      }
@@ -626,8 +628,10 @@ vertexTFCE.matrix <-
         surface <- obj_to_graph(surface)
       
       if(inherits(surface, "igraph")){
-        on.exit(.Call("R_igraph_finalizer", PACKAGE = "igraph"))
-        surface <- .Call("R_igraph_get_adjlist", surface, 3, PACKAGE = "igraph")
+        igraph_return_vs_old <- igraph::igraph_opt("return.vs.es")
+        on.exit(igraph::igraph_options(return.vs.es = igraph_return_vs_old))
+        igraph_options(return.vs.es = FALSE)
+        adjacencies <- lapply(igraph::as_adj_list(surface), `-`, 1)
         surface <- list(surface)
       }
       
