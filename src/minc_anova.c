@@ -198,20 +198,20 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   }
   maxasgn++;
   
-  coefficients = malloc(sizeof(double) * p);
-  residuals = malloc(sizeof(double) * n);
-  effects = malloc(sizeof(double) * n);
-  pivot = malloc(sizeof(int) * p);
-  work = malloc(sizeof(double) * (2*p));
-  qraux = malloc(sizeof(double) * p);
-  v = malloc(sizeof(double) * p * p);
-  diag = malloc(sizeof(double) * p);
-  se = malloc(sizeof(double) * p);
-  t = malloc(sizeof(double) * p);
+  coefficients = (double *) malloc(sizeof(double) * p);
+  residuals = (double *) malloc(sizeof(double) * n);
+  effects = (double *) malloc(sizeof(double) * n);
+  pivot = (int *) malloc(sizeof(int) * p);
+  work = (double *) malloc(sizeof(double) * (2*p));
+  qraux = (double *) malloc(sizeof(double) * p);
+  v = (double *) malloc(sizeof(double) * p * p);
+  diag = (double *) malloc(sizeof(double) * p);
+  se = (double *) malloc(sizeof(double) * p);
+  t = (double *) malloc(sizeof(double) * p);
   
-  comp = malloc(sizeof(double) * p);
+  comp = (double *) malloc(sizeof(double) * p);
   ss = (double *) calloc(maxasgn, sizeof(double));
-  df = malloc(sizeof(int) * maxasgn);
+  df = (int *) malloc(sizeof(int) * maxasgn);
   
   /* get the value at which the mask is to be evaluated */
   xmask_lower_value = REAL(mask_lower_value)[0];
