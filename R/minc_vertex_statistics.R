@@ -563,7 +563,7 @@ vertexTFCE.numeric <-
      if(inherits(surface, "igraph")){
        igraph_return_vs_old <- igraph::igraph_opt("return.vs.es")
        on.exit(igraph::igraph_options(return.vs.es = igraph_return_vs_old))
-       igraph_options(return.vs.es = FALSE)
+       igraph::igraph_options(return.vs.es = FALSE)
        adjacencies <- lapply(igraph::as_adj_list(surface), `-`, 1)
      } else {
        adjacencies <- surface
@@ -630,7 +630,7 @@ vertexTFCE.matrix <-
       if(inherits(surface, "igraph")){
         igraph_return_vs_old <- igraph::igraph_opt("return.vs.es")
         on.exit(igraph::igraph_options(return.vs.es = igraph_return_vs_old))
-        igraph_options(return.vs.es = FALSE)
+        igraph::igraph_options(return.vs.es = FALSE)
         adjacencies <- lapply(igraph::as_adj_list(surface), `-`, 1)
         surface <- list(surface)
       }
