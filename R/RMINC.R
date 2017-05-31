@@ -27,7 +27,7 @@
 #' @importFrom grid plotViewport popViewport pushViewport
 #' @importFrom gridBase baseViewports
 #' @importFrom yaml yaml.load_file
-#' @useDynLib RMINC
+#' @useDynLib RMINC, .registration = TRUE 
 #' @docType package
 #' @name RMINC
 NULL
