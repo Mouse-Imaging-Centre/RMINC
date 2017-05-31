@@ -4182,8 +4182,6 @@ fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: Searching for libminc" >&5
 $as_echo "$as_me: Searching for libminc" >&6;}
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: Mincfound = $MINC_FOUND" >&5
-$as_echo "$as_me: Mincfound = $MINC_FOUND" >&6;}
   if test "x$MINC_FOUND" != "xyes"; then :
 
     if test x$MINC_PATH != "x"; then :
@@ -4202,10 +4200,9 @@ fi
 $as_echo_n "checking \"Checking for $MINC_BUILD_PATH (MINC_BUILD_PATH)\"... " >&6; }
     if test "x$MINC_BUILD_PATH" != "x" && test -d "$MINC_BUILD_PATH"; then :
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH was set to $MINC_BUILD_PATH" >&5
-$as_echo "$as_me: MINC_PATH was set to $MINC_BUILD_PATH" >&6;}
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+      MINC_PATH="$MINC_BUILD_PATH"
       MINC_FOUND="yes"
 
 else
@@ -4221,11 +4218,10 @@ fi
 $as_echo_n "checking Checking for /opt/minc-itk4/... " >&6; }
     if test -d "/opt/minc-itk4"; then :
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH was set to /opt/minc-itk4" >&5
-$as_echo "$as_me: MINC_PATH was set to /opt/minc-itk4" >&6;}
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
       MINC_FOUND="yes"
+      MINC_PATH="/opt/minc-itk4"
 
 else
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -4240,11 +4236,10 @@ fi
 $as_echo_n "checking Checking for /opt/minc/... " >&6; }
     if test -d "/opt/minc/"; then :
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: MINC_PATH was set to /opt/minc" >&5
-$as_echo "$as_me: MINC_PATH was set to /opt/minc" >&6;}
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
       MINC_FOUND="yes"
+      MINC_PATH="/opt/minc"
 
 else
    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -4264,10 +4259,10 @@ $as_echo_n "checking Can we find a minc tool (mincinfo) on the search path... " 
 $as_echo "no" >&6; }
 else
 
-      MINC_FOUND="yes"
-      MINC_PATH=${MINC_INFO_PATH%/bin*}
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+      MINC_FOUND="yes"
+      MINC_PATH=${MINC_INFO_PATH%/bin*}
 
 fi
 
