@@ -1,3 +1,25 @@
+New in Version 1.4.4.*
+=======================
+0
+--
+* Adds printer for anatModel
+* Adds Model comparison with AIC, BIC, and AICc for lm/lmer models
+* Lm/Lmer models now report their instance-wise log-likelihoods
+* Adds colour lookup tables and interface function (thanks Yohan)
+* Adds civet 2.0 and 2.1 reading support (from cbrain projects)
+* Adds civet QC reading support
+* Adds attribute preserving subsetting and merging for anatModels
+* Adds hierarchy summarization for anatModels (anatSummarize)
+* Adds Parallel mincAnova
+* Adds adjustable output types for lmers so that lmer Anovas can
+  be run (or random effects retrieved)
+* Adds Minc and vertex TFCEs
+* Adds randomization tests for vertex/mincLms
+* Adds randomization tests for vertex/mincTFCEs
+* Masks for mincLmer are now manadatory
+* Adds vertexFindPeaks
+* Fixes broken column selection in mincFDR
+
 New in Version 1.4.3.*
 ======================
 4
