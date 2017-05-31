@@ -163,7 +163,6 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   double *output, *data;
 
   use_mask = REAL(have_mask);
-  mask_buffer = (double *) calloc(sizes[1]*sizes[2], sizeof(double));
   //Rprintf("Use mask: %f\n", use_mask[0]);
   
   num_files = LENGTH(filenames);
@@ -173,8 +172,11 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   if (use_mask[0] == 1) {
     Rprintf("Getting mask\n");
     //get_mask(mask, hmask, mask_buffer, sizes);
-    miopen_volume(CHAR(STRING_ELT(mask, 0)),
+    int suc = miopen_volume(CHAR(STRING_ELT(mask, 0)),
 		  MI2_OPEN_READ, &hmask);
+    
+    mask_buffer = (double *) malloc(sizes[1]*sizes[2]*sizeof(double));
+    if(suc == MI_ERROR) error("Error opening mask");
   }
   
   //Rprintf("Before creating slice buffer\n");
@@ -291,6 +293,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   free(se);
   free(t);
   
+  if(use_mask[0] == 1) free(mask_buffer);
   free(comp);
   free(ss);
   free(df);
