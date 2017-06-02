@@ -4,7 +4,8 @@
 \alias{mincLm}
 \title{Linear model at Every Voxel}
 \usage{
-mincLm(formula, data = NULL, subset = NULL, mask = NULL, maskval = NULL)
+mincLm(formula, data = NULL, subset = NULL, mask = NULL, maskval = NULL,
+  parallel = NULL, cleanup = TRUE)
 }
 \arguments{
 \item{formula}{The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.The RHS of the formula may contain one term with filenames. If so only the + operator may be used, and only two terms may appear on the RHS}
@@ -19,6 +20,16 @@ inside the mask.}
 \item{maskval}{the value in the mask used to select unmasked voxels, defaults to any positive intensity
 from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities 
 within 0.5 of the chosen value are considered selected.}
+
+\item{parallel}{how many processors to run on (default=single processor).
+Specified as a two element vector, with the first element corresponding to
+the type of parallelization, and the second to the number
+of processors to use. For local running set the first element to "local" or "snowfall"
+for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+and \link{configureMincParallel} for details.
+Leaving this argument NULL runs sequentially.}
+
+\item{cleanup}{Whether or not to remove parallelization files}
 }
 \value{
 mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
@@ -43,4 +54,3 @@ vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 \seealso{
 mincWriteVolume,mincFDR,mincMean, mincSd
 }
-

@@ -2,7 +2,7 @@
 % Please edit documentation in R/minc_lmer.R
 \name{mincLmerEstimateDF}
 \alias{mincLmerEstimateDF}
-\title{estimate the degrees of freedom for parameters in a mincLmer model}
+\title{Estimate the degrees of freedom for parameters in a mincLmer model}
 \usage{
 mincLmerEstimateDF(model)
 }
@@ -35,4 +35,3 @@ qvals
 \code{\link{mincLmer}} for mixed effects modelling, \code{\link{mincFDR}}
 for multiple comparisons corrections.
 }
-

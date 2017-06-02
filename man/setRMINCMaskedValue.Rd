@@ -13,4 +13,3 @@ the masked value to NA}
 \description{
 Use this function to configure how masked values should be treated
 }
-

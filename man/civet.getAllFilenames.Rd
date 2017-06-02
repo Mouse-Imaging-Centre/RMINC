@@ -4,7 +4,8 @@
 \alias{civet.getAllFilenames}
 \title{civet.getAllFilenames}
 \usage{
-civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE, civetVersion = "1.1.9")
+civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE,
+  civetVersion = "1.1.9", cnf = NULL)
 }
 \arguments{
 \item{gf}{Data Frame with subject information}
@@ -18,6 +19,10 @@ civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE, civetVersion = 
 \item{append}{Whether to append the results to the input gf}
 
 \item{civetVersion}{Version of CIVET}
+
+\item{cnf}{A list of configuration information used to parse CIVET files produced by CBRAIN. Unnecessary for
+CIVETs < 2. Should be read from CBRAIN yaml config file, but can be input manually as a list containing
+thickness_method (tlink or laplacian), thickness_kernel (in mm), and atlas as either AAL or DKT}
 }
 \value{
 gf is returned with CIVET filenames
@@ -40,4 +45,3 @@ gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1
 \seealso{
 civet.readAllCivetFiles
 }
-

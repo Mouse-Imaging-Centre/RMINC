@@ -24,4 +24,3 @@ three columns above must by present with names spelling/case
 sensitive. Additional columns may include a tissue.type
 column which is used in some functions.
 }
-

@@ -1,8 +1,6 @@
-#' Minc False Discovery Rates
+#' False Discovery Rates
 #' 
-#' Takes the output of a mincLm type run and computes the False Discovery Rate on the results.
-#' @name mincFDR
-#' @aliases vertexFDR anatFDR
+#' Takes the output of a minc modelling function and computes False Discovery Rate thresholds.
 #' @param buffer The results of a mincLm type run.
 #' @param columns A vector of column names. By default the threshold will
 #' be computed for all columns; with this argument the computation can
@@ -58,14 +56,6 @@
 mincFDR <- function(buffer, ...) {
   UseMethod("mincFDR")
 }
-
-
-#' @export
-vertexFDR <- function(buffer, method = "FDR", mask = NULL) {
-  mincFDR.mincMultiDim(buffer, columns = NULL, mask = mask, df = NULL,
-                       method = method)
-}
-
 #' @describeIn mincFDR mincSingleDim
 #' @export
 mincFDR.mincSingleDim <- function(buffer, df, mask = NULL, method = "qvalue", ...) {
@@ -80,32 +70,6 @@ mincFDR.mincSingleDim <- function(buffer, df, mask = NULL, method = "qvalue", ..
   mincFDR.mincMultiDim(buffer, columns=1, mask=mask, df=df, method=method, ...)
 }
 
-#' mincFDRMask
-#'
-#' Returns either the specified mask, the mask associated with the buffer, 
-#' or a vector of ones to be used as a mask.
-#' 
-#' @param mask a mask file or vector to be passed to mincGetMask
-#' if left null, the buffer is checked for a mask attribute, if no mask
-#' is found, a vector of ones is used
-#' @param buffer a buffer describing a minc volume  
-#' @return a numeric mask vector
-#' @export
-mincFDRMask <- function(mask = NULL, buffer) {
-  if (is.null(mask)) {
-    mask <- attr(buffer, "mask")
-  }
-  cat("Using mask:", mask, "\n")
-  
-  # if mask is still null, create a vector of ones with length of buffer
-  if (is.null(mask)) {
-    mask <- vector(length=nrow(buffer)) + 1
-  }
-  else {
-    mask <- mincGetMask(mask)
-  }
-  return(mask)
-}
 
 #' @describeIn mincFDR mincLogLikRatio
 #' @export
@@ -181,44 +145,14 @@ mincFDR.mincLogLikRatio <- function(buffer, mask=NULL, ...) {
   return(output)
 }
 
-#' a utility function to compute thresholds
-#'
-#' @param pvals a vector of pvalues
-#' @param qvals a vector of corrected qvalues (such as returend by p.adjust)
-#' @param thresholdFunc a function that returns the threshold given a vector of pvalues
-#' @param p.thresholds the pvalues at which to compute the threshold
-#'
-#' The function should be the quantile function for the distribution being tested. For example,
-#' for the chi squared distribution the function would be:
-#' tfunc <- function(x) { qchisq(max(x), df[[i]], lower.tail=FALSE) }
-mincFDRThresholdVector <- function(pvals, qvals, thresholdFunc=NULL,
-                                   p.thresholds = c(0.01, 0.05, 0.10, 0.15, 0.20)) {
-  
-  thresholds <- vector("numeric", length=length(p.thresholds))
-  for (j in 1:length(p.thresholds)) {
-    # compute thresholds; to be honest, not quite sure what the NA checking is about
-    subTholdPvalues <- pvals[qvals <= p.thresholds[j]]
-    subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
-    
-    if ( length(subTholdPvaluesNumbers) >= 1 ) {
-      thresholds[j] <- thresholdFunc(subTholdPvaluesNumbers)
-      #qchisq(max(subTholdPvaluesNumbers), df[[i]], lower.tail=FALSE)
-    }
-    else { thresholds[j] <- NA }
-  }
-  return(thresholds)
-}
-
-
 #' @describeIn mincFDR mincLmer
 #' @export
 mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
-  cat("In mincFDR.mincLmer\n")
   
   # if no DF set, exit with message
   df <- attr(buffer, "df")
   if (is.null(df)) {
-    stop("No degrees of freedom for mincLmer object. Needs to be explicitly assigned with mincLmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
+    stop("No degrees of freedom for object. Needs to be explicitly assigned with {minc|anat|vertex}LmerEstimateDF (and read the documentation of that function to learn about the dragons that be living there!).")
   }
   else {
     warning("Here be dragons! Hypothesis testing with mixed effects models is challenging, since nobody quite knows how to correctly estimate denominator degrees of freedom.")
@@ -277,13 +211,6 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
   
   return(output)
 }
-
-#' @describeIn mincFDR anatLmerModel
-#' @export 
-mincFDR.anatLmerMod <-
-  function(buffer, ...){
-    mincFDR.mincLmer(buffer)
-  }
 
 #' @describeIn mincFDR mincMultiDim
 #' @export
@@ -406,15 +333,17 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     warning("Warning: computing p-values from a mincLmer call. Mixed-effects models are notoriously difficult to correctly obtain p-values from, so this is based on an approximation and might be incorrect. Read the documentation and, if in doubt, use log likelihood testing for a more correct approach.")
   }
   
+  new_dfs <- list()
   for (i in 1:n.cols) {
     cat("  Computing threshold for ", columns[i], "\n")
     pvals <- 0
     qobj <- vector("list", length(pvals))
+    new_dfs[[i]] <- df[[i]]
     
     # convert statistics to p-values
     if (statType[i] %in% c("t", "tlmer")) {
       if (is.matrix(buffer)) {
-        pvals <- pt2(buffer[mask>0.5, i], df[[i]])
+        pvals <- pt2(buffer[mask>0.5, columns[i]], df[[i]])
       }
       
       else {
@@ -423,7 +352,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
     else if (statType[i] == "F") {
       if (is.matrix(buffer)) {
-        pvals <- pf(buffer[mask>0.5, i], df[[i]][1], df[[i]][2],
+        pvals <- pf(buffer[mask>0.5, columns[i]], df[[i]][1], df[[i]][2],
                     lower.tail=FALSE)
       }
       
@@ -434,11 +363,11 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       
     }
     else if (statType[i] == "u") {
-      pvals <- 1 - pwilcox(buffer[mask>0.5,i],m,n,lower.tail = FALSE)
+      pvals <- 1 - pwilcox(buffer[mask>0.5,columns[i]],m,n,lower.tail = FALSE)
     }
     else if (statType[i] == "chisq") {
       if (is.matrix(buffer)) {
-        pvals <- pchisq(buffer[mask>0.5, i], df[[i]], lower.tail=F)
+        pvals <- pchisq(buffer[mask>0.5, columns[i]], df[[i]], lower.tail=F)
       }
       else {
         pvals <- pchisq(buffer[mask>0.5], df[[i]], lower.tail=F)
@@ -499,7 +428,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   attr(output, "thresholds") <- thresholds
   colnames(output) <- columns
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
-  attr(output, "DF") <- df
+  attr(output, "DF") <- new_dfs
   class(output) <- c("mincQvals", "mincMultiDim", "matrix")
   
   # run the garbage collector...
@@ -507,3 +436,148 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   
   return(output)
 }
+
+#' Vertex False Discovery Rates
+#' 
+#' Takes the output of a minc modelling function and computes False Discovery Rate thresholds.
+#' @param buffer The results of a vertexLm type run.
+#' @param ... additional parameters to \link{mincFDR} like method
+#' @return A object of type \code{mincQvals} with the same number of columns
+#' as the input. Each column now contains the qvalues for each vertex. Areas
+#' outside the mask (if a mask was specified) will be represented by a
+#' value of 1. The result also has an attribute called "thresholds"
+#' which contains the 1, 5, 10, 15, and 20 percent false discovery rate
+#' thresholds.
+#' @export
+vertexFDR <- function(buffer, ...){
+  UseMethod("vertexFDR")
+}
+
+#' @describeIn vertexFDR vertexMultiDim
+#' @export
+vertexFDR.vertexMultiDim <- function(buffer, ...) {
+  mincFDR.mincMultiDim(buffer, ...)
+}
+
+#' @describeIn vertexFDR vertexLmer
+#' @export
+vertexFDR.vertexLmer <-
+  function(buffer, ...){
+    arglist <- list(...)
+    if(! "mask" %in% names(arglist))
+      arglist$mask <- maskFile(buffer, strict = FALSE)
+    
+    if(!is.null(arglist$mask) & is.character(arglist$mask))
+      arglist$mask <- as.numeric(readLines(arglist$mask))
+    
+    do.call(mincFDR.mincLmer, c(list(buffer), arglist))
+  }
+
+#' Anatomy False Discovery Rates
+#' @param buffer the result of an \link{anatLm} type call
+#' @param ... additional parameters to \code{mincLmer} like method
+#' @inheritParams mincLmer
+#' @return A object of type \code{mincQvals} with the same number of columns
+#' as the input. Each column now contains the qvalues for each structure. Areas
+#' outside the mask (if a mask was specified) will be represented by a
+#' value of 1. The result also has an attribute called "thresholds"
+#' which contains the 1, 5, 10, 15, and 20 percent false discovery rate
+#' @export
+anatFDR <- function(buffer, ...){
+  UseMethod("anatFDR")
+}
+
+#' @describeIn anatFDR anatModel
+#' @export
+anatFDR.anatModel <- function(buffer, ...) {
+  vertexFDR.vertexMultiDim(buffer, ...)
+}
+
+#' @describeIn anatFDR anatLmerModel
+#' @export 
+anatFDR.anatLmer <-
+  function(buffer, ...){
+    mincFDR.mincLmer(buffer, ...)
+  }
+
+
+#' a utility function to compute thresholds
+#'
+#' @param pvals a vector of pvalues
+#' @param qvals a vector of corrected qvalues (such as returend by p.adjust)
+#' @param thresholdFunc a function that returns the threshold given a vector of pvalues
+#' @param p.thresholds the pvalues at which to compute the threshold
+#'
+#' The function should be the quantile function for the distribution being tested. For example,
+#' for the chi squared distribution the function would be:
+#' tfunc <- function(x) { qchisq(max(x), df[[i]], lower.tail=FALSE) }
+mincFDRThresholdVector <- function(pvals, qvals, thresholdFunc=NULL,
+                                   p.thresholds = c(0.01, 0.05, 0.10, 0.15, 0.20)) {
+  
+  thresholds <- vector("numeric", length=length(p.thresholds))
+  for (j in 1:length(p.thresholds)) {
+    # compute thresholds; to be honest, not quite sure what the NA checking is about
+    subTholdPvalues <- pvals[qvals <= p.thresholds[j]]
+    subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
+    
+    if ( length(subTholdPvaluesNumbers) >= 1 ) {
+      thresholds[j] <- thresholdFunc(subTholdPvaluesNumbers)
+      #qchisq(max(subTholdPvaluesNumbers), df[[i]], lower.tail=FALSE)
+    }
+    else { thresholds[j] <- NA }
+  }
+  return(thresholds)
+}
+
+#' mincFDRMask
+#'
+#' Returns either the specified mask, the mask associated with the buffer, 
+#' or a vector of ones to be used as a mask.
+#' 
+#' @param mask a mask file or vector to be passed to mincGetMask
+#' if left null, the buffer is checked for a mask attribute, if no mask
+#' is found, a vector of ones is used
+#' @param buffer a buffer describing a minc volume  
+#' @return a numeric mask vector
+#' @export
+mincFDRMask <- function(mask = NULL, buffer) {
+  if (is.null(mask)) {
+    mask <- attr(buffer, "mask")
+  }
+  
+  if(is.numeric(mask)){
+    cat("Using mask: <numeric vector>")
+  } else {
+    cat("Using mask:", mask, "\n") 
+  }
+  
+  # if mask is still null, create a vector of ones with length of buffer
+  if (is.null(mask)) {
+    mask <- vector(length=nrow(buffer)) + 1
+  }
+  else {
+    mask <- mincGetMask(mask)
+  }
+  return(mask)
+}
+
+#' Get Probability Thresholds
+#' 
+#' @param x A \code{mincQvals} object, typically computed with \code{mincFDR} or a 
+#' \code{minc*_randomzation} type object.
+#' methods
+#' @param probs What probabilities to compute thresholds for (only applicable with randomization objects)
+#' @param ... extra arguments for methods
+#' @return A matrix of thresholds, accessible with standard matrix indexing
+#' @export 
+thresholds <-
+  function(x, ...){
+    UseMethod("thresholds")
+  }
+
+#' @describeIn thresholds mincQvals
+#' @export
+thresholds.mincQvals <- 
+  function(x, ...){
+    attr(x, "thresholds")
+  }

@@ -1,3 +1,23 @@
+quiet_mclapply <- function(...){
+  sink("/dev/null")
+  on.exit(sink())
+  
+  parallel::mclapply(...)
+}
+
+quiet_mcmapply <- function(...){
+  sink("/dev/null")
+  on.exit(sink())
+  
+  parallel::mcmapply(...)
+}
+
+fix_names <-
+  function(x){
+    x %>%
+      gsub("[^A-Za-z0-9_.]+", "_", .) %>%
+      gsub("^_|_$", "", .)
+  }
 
 # test to see whether files exist and are readable
 minc.isReadable <- function(filenames) {

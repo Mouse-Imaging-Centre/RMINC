@@ -55,4 +55,3 @@ semi-transparently on top of the background.
 Note that cropping in ray_trace is on by default, so the output image size
 will not necessarily be the same as the size argument to minc.ray.trace.
 }
-

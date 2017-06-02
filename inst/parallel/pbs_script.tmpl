@@ -1,7 +1,5 @@
 ## Job Resource Interface Definition
 ##
-## modules       [character]:  Extra modules you would like to load on slaves. 
-## module_paths  [character]:  Extra paths to add to $MODULEPATHS by `module use -a`
 ## nodes [integer|character]:  Argument to PBS -l nodes, may be an integer number of nodes, or a character vector
 ##                             of a colon separated list of node arguments e.g "1:ppn=8" for a scinet node
 ## walltime   [character(1)]:  Walltime for this job e.g. "01:00:00" for 1 hour
@@ -19,24 +17,11 @@
 ## direct streams to our logfile
 #PBS -o <%= log.file %>
 
-<%# 
-## Setup the resources variables
-modules_paths <- resources$module_paths
-resources$module_paths <- NULL
-
-modules < resources$modules
-resources$modules <- NULL
--%>
-
 #PBS -l nodes=<%= resources$nodes %>,walltime=<%= resources$walltime %>,vmem=<%= resources$vmem %>
 ## remove this line if your cluster does not support arrayjobs
-#PBS -t 1-<%= arrayjobs %>
+## Disable array jobs: #PBS -t 1-<%= arrayjobs %>
 #PBS -V  
 ## Run R:
 ## we merge R output with stdout from PBS, which gets then logged via -o option
-<%#= if(!is.null(resources$module_paths)) sprintf("module use %s %s",
-                                                  `if`(!is.null(resources$site) && resources$site == " 
-                                                  resources$module_paths) %>
-<%#= if(!is.null(resources$modules)) paste("module load ", paste0(resources$modules, collapse = " ")) %>
-<%= if(!is.null(resources$extra)) resources$extra %>
+<% if(!is.null(resources$extra)) cat(paste0(resources$extra, collapse = NULL)) %>
 R CMD BATCH --no-save --no-restore "<%= rscript %>" /dev/stdout

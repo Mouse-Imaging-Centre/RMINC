@@ -50,4 +50,3 @@ the higher the magnification the more accurate the vertex selection becomes. Add
 indicate = TRUE, this will place indicator points on the identified vertices, they will allow you
 to ensure your coordinates are accurate, and can always be removed with \link[rgl]{pop3d}()
 }
-

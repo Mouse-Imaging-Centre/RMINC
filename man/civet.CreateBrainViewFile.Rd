@@ -39,4 +39,3 @@ civet.CreateBrainViewFile(gf$lobeThickness[1,],
                           "leftLobeThickness.txt")
 }
 }
-

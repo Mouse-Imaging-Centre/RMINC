@@ -20,15 +20,8 @@ a related class}
 the updated object
 }
 \description{
-Manage auxillary information contained in RMINC objects. Currently recognizes:
-\itemize{
-\item{filenames: filenames of minc files used to create an object}
-\item{likeVolume: a minc file to use a structural template when writing out
-data}
-\item{mask: a mask file associated with the object}
-\item{mincLmerList: extra information used in fitting \link{mincLmer}s}
-\item{mincLmerLists: collections of mincLmerLists used to compare \link{mincLmer} fits}
-}
+Manage auxillary information contained in RMINC objects. Currently returns all attributes
+except dimension information
 }
 \section{Functions}{
 \itemize{

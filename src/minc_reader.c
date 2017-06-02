@@ -217,6 +217,7 @@ SEXP get_minc_history(SEXP filename) {
                          MI2_OPEN_READ, &hvol);
 
   if (result != MI_NOERROR) {
+    miclose_volume(hvol);
     error("Error opening input file: %s.\n", filepath);
   }
   
@@ -225,6 +226,38 @@ SEXP get_minc_history(SEXP filename) {
   
   SEXP output = PROTECT(mkString(history));
   free(history);
+  UNPROTECT(1);
+  
+  return(output);
+}
+
+SEXP get_minc_separations(SEXP filename) {
+  int                result;
+  mihandle_t         hvol;
+  const char *filepath = CHAR(asChar(filename));
+  midimhandle_t dimensions[3];
+  double* voxel_separations = malloc(3 * sizeof(double));
+  SEXP output = PROTECT(allocVector(REALSXP, 3));
+  
+  result = miopen_volume(filepath,
+                         MI2_OPEN_READ, &hvol);
+  
+  if (result != MI_NOERROR) {
+    miclose_volume(hvol);
+    error("Error opening input file: %s.\n", filepath);
+  }
+  
+  result =
+    miget_volume_dimensions(hvol, MI_DIMCLASS_SPATIAL, MI_DIMATTR_ALL,
+                            MI_DIMORDER_FILE, 3, dimensions);
+  
+  result =
+    miget_dimension_separations(dimensions, MI_ORDER_FILE, 
+                                3, voxel_separations);
+    
+  
+  miclose_volume(hvol);
+  for(int i = 0; i < 3; ++i) REAL(output)[i] = voxel_separations[i];
   UNPROTECT(1);
   
   return(output);
@@ -277,8 +310,8 @@ void get_hyperslab(char **filename, int *start, int *count, double *slab) {
   }
 
   /* get the hyperslab */
-  Rprintf("Start: %i %i %i\n", start[0], start[1], start[2]);
-  Rprintf("Count: %i %i %i\n", count[0], count[1], count[2]);
+  //Rprintf("Start: %i %i %i\n", start[0], start[1], start[2]);
+  //Rprintf("Count: %i %i %i\n", count[0], count[1], count[2]);
   if (miget_real_value_hyperslab(hvol, 
 				 MI_TYPE_DOUBLE, 
 				 (misize_t *) tmp_start, 

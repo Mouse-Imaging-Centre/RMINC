@@ -5,7 +5,7 @@
 \title{launch a shiny based inspector}
 \usage{
 launch_shinyRMINC(statsoutput, anatVol, volumes = NULL, keepBetas = FALSE,
-  plotcolumns = NULL, modelfunc = NULL)
+  plotcolumns = NULL, modelfunc = NULL, anatLow = 700, anatHigh = 1400)
 }
 \arguments{
 \item{statsoutput}{the output of mincLm or mincAnova}
@@ -20,6 +20,10 @@ be passed a filename, a MINC volume (from mincGetVol), or a mincArray.}
 \item{plotcolumns}{extra data to be used for plotting}
 
 \item{modelfunc}{optional modelling function}
+
+\item{anatLow}{The lower threshold value for displaying the underlying anatomy}
+
+\item{anatHigh}{The upper threshold value for displaying the underlying anatomy}
 }
 \description{
 This uses shiny to inspect the output of mincLm or mincAnova. Produces
@@ -34,4 +38,3 @@ launch_shinyRMINC(vs, anatVol, volumes=gfs$vols,
                   plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
 }
 }
-

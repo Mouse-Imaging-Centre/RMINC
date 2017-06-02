@@ -2,20 +2,22 @@
 % Please edit documentation in R/civet.R
 \name{civet.getFilename}
 \alias{civet.getFilename}
-\alias{civet.getFilenameCerebrumMask}
 \alias{civet.getFilenameClassify}
-\alias{civet.getFilenameCorticalThickness}
-\alias{civet.getFilenameCsfPve}
 \alias{civet.getFilenameGrayMatterPve}
-\alias{civet.getFilenameGrayMatterSurfaces}
-\alias{civet.getFilenameLinearTransform}
-\alias{civet.getFilenameMeanSurfaceCurvature}
-\alias{civet.getFilenameMidSurfaces}
-\alias{civet.getFilenameNonlinearTransform}
-\alias{civet.getFilenameSkullMask}
-\alias{civet.getFilenameStxT1}
 \alias{civet.getFilenameWhiteMatterPve}
+\alias{civet.getFilenameCsfPve}
+\alias{civet.getFilenameStxT1}
+\alias{civet.getFilenameCerebrumMask}
+\alias{civet.getFilenameSkullMask}
+\alias{civet.getFilenameGrayMatterSurfaces}
 \alias{civet.getFilenameWhiteMatterSurfaces}
+\alias{civet.getFilenameMidSurfaces}
+\alias{civet.getFilenamesCorticalThickness}
+\alias{civet.getFilenamesCorticalArea}
+\alias{civet.getFilenamesCorticalVolume}
+\alias{civet.getFilenameMeanSurfaceCurvature}
+\alias{civet.getFilenameLinearTransform}
+\alias{civet.getFilenameNonlinearTransform}
 \title{Get Selected Civet Filenames}
 \usage{
 civet.getFilenameClassify(scanID, baseDir, civetVersion = "1.1.9",
@@ -48,8 +50,14 @@ civet.getFilenameWhiteMatterSurfaces(scanID, baseDir, civetVersion = "1.1.9",
 civet.getFilenameMidSurfaces(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
 
-civet.getFilenameCorticalThickness(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenamesCorticalThickness(scanID, baseDir, civetVersion = "1.1.9",
+  smoothing = "20mm", fullPath = TRUE)
+
+civet.getFilenamesCorticalArea(scanID, baseDir, civetVersion = "1.1.9",
+  smoothing = "40mm", fullPath = TRUE)
+
+civet.getFilenamesCorticalVolume(scanID, baseDir, civetVersion = "1.1.9",
+  smoothing = "40mm", fullPath = TRUE)
 
 civet.getFilenameMeanSurfaceCurvature(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
@@ -74,6 +82,9 @@ structures may change across difference versions of Civet.}
 \item{fullPath}{A boolean specifying whether the function is to return
 either a fully-qualified path (TRUE) or just the filename without path
 (FALSE).}
+
+\item{smoothing}{A character code indicating the smoothing level used in
+computing thickness, area, or volume e.g. "20mm"}
 }
 \value{
 Either a string or a list is returned, depending on the number of
@@ -112,7 +123,11 @@ filename(s).
 
 \item \code{civet.getFilenameMidSurfaces}: mid surfaces
 
-\item \code{civet.getFilenameCorticalThickness}: cortical thickness
+\item \code{civet.getFilenamesCorticalThickness}: cortical thickness
+
+\item \code{civet.getFilenamesCorticalArea}: cortical area
+
+\item \code{civet.getFilenamesCorticalVolume}: cortical volume
 
 \item \code{civet.getFilenameMeanSurfaceCurvature}: surface curvature
 
@@ -120,6 +135,7 @@ filename(s).
 
 \item \code{civet.getFilenameNonlinearTransform}: non-linear transform
 }}
+
 \examples{
 
 \dontrun{
@@ -151,4 +167,3 @@ print(nlin.xfmNames$grid)		# name of the nlin grid file
 \author{
 Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}
 }
-

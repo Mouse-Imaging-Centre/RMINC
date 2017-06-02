@@ -20,20 +20,18 @@ subjectFile[10,1] = file.path(dataPath, "vertex1.txt")
 gftest$testFilesLeft <- (subjectFile)
 
 mm <- verboseRun("vertexMean(gftest$testFilesLeft)",getOption("verbose"))
-ma <- verboseRun("vertexApply(gftest$testFilesLeft,quote(mean(x)))",getOption("verbose"))
+ma <- verboseRun("vertexApply(gftest$testFilesLeft,mean)",getOption("verbose"))
 
 test_that("vertexApply one output",{
-     for (nVox in 1:length(mm)) {
-           expect_equal(ma[nVox], mm[nVox]) }
- })
+  expect_equal(ma, mm, check.attributes = FALSE) 
+})
  
 # Need to define global variable when running tests, but normally do not...
-testFunc <<- function (x) { return(c(1,2))}
-ma <- verboseRun("vertexApply(gftest$testFilesLeft,quote(testFunc(x)))",getOption("verbose"))
+testFunc <- function (x) { return(c(1,2))}
+ma <- verboseRun("vertexApply(gftest$testFilesLeft, testFunc)", getOption("verbose"))
 
 test_that("vertexApply two output",{
-    for (nVox in 1:dim(ma)[1]) {
- 	   expect_equal(ma[nVox,1], 1) 
-	   expect_equal(ma[nVox,2], 2)}
+  expect_equal(ma[,1], rep(1, nrow(ma))) 
+  expect_equal(ma[,2], rep(2, nrow(ma)))
 })
 

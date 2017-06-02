@@ -4,17 +4,29 @@
 \alias{vertexApply}
 \title{Apply function over vertex Files}
 \usage{
-vertexApply(filenames, function.string)
+vertexApply(filenames, fun, ..., mask = NULL, parallel = NULL,
+  collate = simplify_masked)
 }
 \arguments{
 \item{filenames}{vertex file names}
 
-\item{function.string}{The function which to apply. Can only take a single
-argument, which has to be 'x'.}
+\item{fun}{A function to be applied to each vertex}
+
+\item{...}{additional arguments to \code{fun}}
+
+\item{mask}{A vector of filename indicating a vertex mask (\code{fun} is applied to all vertices
+where mask is greater than .5)}
+
+\item{parallel}{A two component vector indicating how to parallelize the computation. If the 
+first element is "local" the computation will be run via the parallel package, otherwise it will
+be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+indicating the number of jobs to split the computation into.}
+
+\item{collate}{A function to reduce the (potentially masked) list of results into a nice
+structure. Defaults to \link{simplify_masked}}
 }
 \value{
-out: The output will be a single vector containing as many
-         elements as there are vertices in the input variable.
+The a matrix with a row of results for each vertex
 }
 \description{
 This function is used to compute an arbitrary function of every region in a set of vertex files.
@@ -25,7 +37,6 @@ getRMINCTestData()
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
-vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft,quote(mean(x)))
+vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft, mean)
 }
 }
-

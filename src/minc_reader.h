@@ -1,6 +1,11 @@
 #ifndef __MINC_READER_H__
 #define __MINC_READER_H__
 
+//make C functions available from c++
+#ifdef __cplusplus 
+extern "C" {
+#endif
+
 #include <minc2.h>
 #include <stdio.h>
 
@@ -16,7 +21,11 @@ extern void get_voxel_from_files(char **filenames, int *num_files,
 extern void get_hyperslab(char **filename, int *start, int *count, 
 			  double *slab);
 
+extern SEXP get_minc_separations(SEXP filename);
 
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

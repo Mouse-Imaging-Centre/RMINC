@@ -5,6 +5,7 @@
 #' statistics, perform FDR correction, rapidly visualize 
 #' results, and much more.
 #' @import dplyr
+#' @import tidyr
 #' @import shiny
 #' @import Rcpp
 #' @import lme4
@@ -12,16 +13,21 @@
 #' @import methods
 #' @importFrom Matrix diag
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
+#'                       rgb
 #' @importFrom graphics abline contour hist layout mtext par plot.default
-#'                      plot.new rasterImage text segments
+#'                      plot.new rasterImage text segments points
 #' @importFrom stats anova df.residual formula lm lm.fit
 #'                   logLik median model.matrix p.adjust pchisq
 #'                   pf predict pt pwilcox qchisq qf qt
 #'                   quantile qwilcox rnorm runif sd setNames
 #'                   simulate smooth.spline t.test terms var
-#'                   vcov
-#' @importFrom utils download.file glob2rx read.csv read.table untar write.table
-#' @useDynLib RMINC
+#'                   update vcov AIC BIC getCall
+#' @importFrom utils download.file capture.output glob2rx read.csv read.table 
+#'                   untar write.table
+#' @importFrom grid plotViewport popViewport pushViewport
+#' @importFrom gridBase baseViewports
+#' @importFrom yaml yaml.load_file
+#' @useDynLib RMINC, .registration = TRUE 
 #' @docType package
 #' @name RMINC
 NULL

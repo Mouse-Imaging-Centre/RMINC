@@ -81,7 +81,7 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
 
 SEXP test_slice_loop(SEXP filenames) {
   misize_t sizes[3];
-  double *buffer = NULL;
+  double **buffer = NULL;
   mihandle_t *hvol = NULL;
   int i, v0, v1, v2;
   misize_t buffer_index, output_index;
@@ -140,7 +140,7 @@ SEXP test_slice_loop(SEXP filenames) {
     
 
 SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn, 
-		     SEXP have_mask, SEXP mask) {
+		     SEXP have_mask, SEXP mask, SEXP mask_lower_value, SEXP mask_upper_value) {
 
   /* generic items for all slice_loop functions */
   misize_t sizes[3];
@@ -149,6 +149,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   mihandle_t *hvol, hmask;
   double *use_mask;
   int v0, v1, v2;
+  double xmask_lower_value, xmask_upper_value;
   int num_files, i;
   misize_t buffer_index, output_index;
 
@@ -171,9 +172,11 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   if (use_mask[0] == 1) {
     Rprintf("Getting mask\n");
     //get_mask(mask, hmask, mask_buffer, sizes);
-    miopen_volume(CHAR(STRING_ELT(mask, 0)),
+    int suc = miopen_volume(CHAR(STRING_ELT(mask, 0)),
 		  MI2_OPEN_READ, &hmask);
-    mask_buffer = malloc(sizes[1]*sizes[2]*sizeof(double));
+    
+    mask_buffer = (double *) malloc(sizes[1]*sizes[2]*sizeof(double));
+    if(suc == MI_ERROR) error("Error opening mask");
   }
   
   //Rprintf("Before creating slice buffer\n");
@@ -197,20 +200,24 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   }
   maxasgn++;
   
-  coefficients = malloc(sizeof(double) * p);
-  residuals = malloc(sizeof(double) * n);
-  effects = malloc(sizeof(double) * n);
-  pivot = malloc(sizeof(int) * p);
-  work = malloc(sizeof(double) * (2*p));
-  qraux = malloc(sizeof(double) * p);
-  v = malloc(sizeof(double) * p * p);
-  diag = malloc(sizeof(double) * p);
-  se = malloc(sizeof(double) * p);
-  t = malloc(sizeof(double) * p);
+  coefficients = (double *) malloc(sizeof(double) * p);
+  residuals = (double *) malloc(sizeof(double) * n);
+  effects = (double *) malloc(sizeof(double) * n);
+  pivot = (int *) malloc(sizeof(int) * p);
+  work = (double *) malloc(sizeof(double) * (2*p));
+  qraux = (double *) malloc(sizeof(double) * p);
+  v = (double *) malloc(sizeof(double) * p * p);
+  diag = (double *) malloc(sizeof(double) * p);
+  se = (double *) malloc(sizeof(double) * p);
+  t = (double *) malloc(sizeof(double) * p);
   
-  comp = malloc(sizeof(double) * p);
-  ss = malloc(sizeof(double) * maxasgn);
-  df = malloc(sizeof(int) * maxasgn);
+  comp = (double *) malloc(sizeof(double) * p);
+  ss = (double *) calloc(maxasgn, sizeof(double));
+  df = (int *) malloc(sizeof(int) * maxasgn);
+  
+  /* get the value at which the mask is to be evaluated */
+  xmask_lower_value = REAL(mask_lower_value)[0];
+  xmask_upper_value = REAL(mask_upper_value)[0];
   
   Rprintf("N: %d P: %d\n", n,p);
     
@@ -242,7 +249,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
 	
 	/* only perform operation if not masked */
 	if (use_mask[0] == 0 ||
-	    (use_mask[0] == 1 && mask_buffer[buffer_index] > 0.5)) {
+	    (use_mask[0] == 1 && mask_buffer[buffer_index] > (xmask_lower_value - 0.5) && mask_buffer[buffer_index] < (xmask_upper_value + .5))) {
 	  /* fill data buffer */
 	  for (i=0; i< num_files; i++) {
 	    data[i] = full_buffer[i][buffer_index];
@@ -286,6 +293,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   free(se);
   free(t);
   
+  if(use_mask[0] == 1) free(mask_buffer);
   free(comp);
   free(ss);
   free(df);

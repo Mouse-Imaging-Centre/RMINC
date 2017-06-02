@@ -6,7 +6,7 @@
 \usage{
 \method{plot}{bic_obj}(x, colour_map = NULL, colour_range = NULL,
   colour_default = "grey", reverse = NULL, palette = heat.colors(255),
-  colour_bar = TRUE, add = FALSE, ...)
+  labels = FALSE, colour_bar = TRUE, add = FALSE, ...)
 }
 \arguments{
 \item{x}{A \code{bic_obj} probably created by \link{read_obj}}
@@ -25,6 +25,8 @@ allowable labels/measures/statistics to be includedon the surface}
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}
 
+\item{labels}{whether the statistic map should be treated as discrete labels.}
+
 \item{colour_bar}{whether to draw a colour bar}
 
 \item{add}{whether or not to add this object to the current rgl device (if possible)
@@ -40,4 +42,3 @@ invisibly returns the mesh object
 Create a basic plot of a BIC obj in the current rgl device, opening a 
 new one if necessary. If colour_map is supplied, an overlay is added to the mesh
 }
-

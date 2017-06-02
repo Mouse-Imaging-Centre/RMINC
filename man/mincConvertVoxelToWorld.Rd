@@ -22,4 +22,3 @@ a 3-component numeric vector of world coordinates
 Convert a discrete set of voxel coordinates into the volumes
 continous world coordinate space
 }
-

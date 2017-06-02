@@ -89,6 +89,16 @@ create_mesh <-
     mesh
   }
 
+vals_to_numeric <- function(map){
+  if(is.character(map) && length(map) == 1){
+    map <- readLines(map) %>% as.numeric
+  } else if(!is.numeric(map) && !is.factor(map)){
+    stop(substitute(map), " must either be a factor vector, numeric vector or a text file path")
+  }
+  
+  map
+}
+
 #' Colourize a mesh
 #' 
 #' Add colour information to your mesh, either from a vertex atlas like AAL
@@ -101,6 +111,7 @@ create_mesh <-
 #' allowable labels/measures/statistics to be includedon the surface
 #' @param colour_default The colour given to vertices excluded by colour_range
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
+#' @param labels Whether or not the colour_map is a set of discrete labels
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
 #' @return an \code{obj_mesh} object descended from \link[rgl]{mesh3d}, with added colour information
@@ -111,25 +122,30 @@ colour_mesh <- function(mesh,
                         colour_range = NULL,
                         colour_default = "grey",
                         reverse = NULL,
+                        labels = FALSE,
                         palette = heat.colors(255)){
   
   #Check colour_map is a numeric vector of colours per vertex or file name
   #Of a file containing such a vector spread over lines
-  if(is.character(colour_map)){
-    colour_map <- readLines(colour_map) %>% as.numeric
-  } else if(!is.numeric(colour_map)){
-    stop("Colour_map must either be a vector or a text file path")
-  }
+  colour_map <- vals_to_numeric(colour_map)
   
-  if(is.null(colour_range)) colour_range <- range(colour_map)
+  
+  if(is.null(colour_range)) colour_range <- range(colour_map, na.rm = TRUE)
   colour_map[!between(colour_map, colour_range[1], colour_range[2])] <- NA
   
   colour_depth <- length(palette)
   
-  colour_indices <- 
-    floor(
-      (colour_map - colour_range[1]) / 
-        diff(colour_range) * (colour_depth - 1)) + 1
+  ## Deal with numeric vs label colours
+  if(!labels){
+    colour_indices <- 
+      floor(
+        (colour_map - colour_range[1]) / 
+          diff(colour_range) * (colour_depth - 1)) + 1
+  } else {
+    colour_indices <- factor(colour_map)
+    levels(colour_indices) <- sort(levels(colour_indices))
+    colour_indices <- as.numeric(colour_indices)
+  }
   
   #Internally in tmesh3d, the vertex matrix is expanded
   #Such that the vertices for each triangle appear sequentially
@@ -137,6 +153,7 @@ colour_mesh <- function(mesh,
   #and reordered to match, this is acheived by using the polygon matrix 
   #as an index to the colours
   colours <- palette[colour_indices][mesh$it]
+  colours[is.na(colours)] <- colour_default
   
   mesh$legend <- list(colour_range = colour_range, 
                       palette = palette)
@@ -144,6 +161,38 @@ colour_mesh <- function(mesh,
   mesh$material$color <- colours
   
   class(mesh) <- c("obj_mesh", class(mesh))
+  
+  mesh
+}
+
+#' Add opacity to a mesh
+#' 
+#' Set the opacity for a brain mesh from a vector of values that correspond
+#' to the vertices in the mesh.
+#' 
+#' @param mesh The brain mesh of interest
+#' @param a_map The vector of values to be used to set alpha (opacity)
+#' @param a_range The range of alpha values to be used in the image (after rescaling),
+#' must be between 0 and 1.
+#' @param a_default the default alpha value for missing values in a_map
+#' @return The original mesh with the alpha levels set
+#' @export
+add_opacity <- function(mesh, a_map, a_range = c(.5,1), a_default = 1){
+  
+  a_map <- vals_to_numeric(a_map)
+  
+  stopifnot(
+    length(a_range) == 2,
+    all(between(a_range, 0, 1)),
+    is.numeric(a_default)
+  )
+  
+  mesh$material$alpha <-
+    a_map %>%
+    { (. - min(., na.rm = TRUE)) / diff(range(., na.rm = TRUE)) } %>%    #scale 0-1
+    { . * diff(a_range) + min(a_range) } %>% #scale to a_range
+    { .[is.na(.)] <- a_default; . } %>%      #set NAs to default
+    .[mesh$it]                               #convert vertex to triangle alphas
   
   mesh
 }
@@ -164,6 +213,7 @@ colour_mesh <- function(mesh,
 #' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
+#' @param labels whether the statistic map should be treated as discrete labels.
 #' @param colour_bar whether to draw a colour bar
 #' @param add whether or not to add this object to the current rgl device (if possible)
 #' defaults to opening a new device
@@ -179,6 +229,7 @@ plot.bic_obj <-
            colour_default = "grey",
            reverse = NULL,
            palette = heat.colors(255),
+           labels = FALSE,
            colour_bar = TRUE,
            add = FALSE,
            ...){
@@ -203,11 +254,12 @@ plot.bic_obj <-
       create_mesh(...)
     
     if(!is.null(colour_map))
-      mesh <- mesh %>% colour_mesh(colour_map, 
-                                   colour_range, 
-                                   colour_default, 
-                                   reverse, 
-                                   palette)
+      mesh <- mesh %>% colour_mesh(colour_map = colour_map, 
+                                   colour_range = colour_range, 
+                                   colour_default = colour_default,
+                                   labels = labels,
+                                   reverse = reverse, 
+                                   palette = palette)
     
     mesh %>% rgl::shade3d(override = FALSE)
     if(colour_bar && !is.null(colour_map)) mesh %>% add_colour_bar
@@ -292,6 +344,8 @@ add_colour_bar <- function(mesh,
 #' @param left_map a colour map to apply to the left hemisphere see \link{colour_mesh} for details
 #' @param right_map a colour map to apply to the right hemisphere see \link{colour_mesh} for details
 #' @param output Either NULL or a file path to write the snapshot.
+#' @inheritParams colour_mesh
+#' @param colour_bar Whether or not to draw a colour bar in the figure
 #' @param ... additonal parameters to be passed to \link{create_mesh}
 #' @param add_normals Whether or not to add normals to the surface objects, see \link{create_mesh} for
 #' details
@@ -311,17 +365,42 @@ obj_montage <- function(left_obj,
                         left_map, 
                         right_map,
                         output = NULL,
+                        colour_map,
+                        colour_range = NULL,
+                        colour_default = "grey",
+                        colour_bar = TRUE,
+                        reverse = NULL,
+                        labels = FALSE,
+                        palette = heat.colors(255),
                         ...,
                         add_normals = TRUE,
                         colour_title = "",
                         close_on_output = TRUE){
+  
+  left_map <- vals_to_numeric(left_map)
+  right_map <- vals_to_numeric(right_map)
+  
+  if(is.null(colour_range)){
+    colour_range <- range(c(left_map, right_map), na.rm = TRUE)
+  }
+  
   left_mesh <- 
     create_mesh(left_obj, add_normals = TRUE, ...) %>% 
-    colour_mesh(left_map)
+    colour_mesh(left_map,
+                colour_range = colour_range,
+                colour_default = colour_default,
+                reverse = reverse,
+                labels = labels,
+                palette = palette)
   
   right_mesh <- 
     create_mesh(right_obj, add_normals = TRUE, ...) %>% 
-    colour_mesh(right_map)
+    colour_mesh(right_map,
+                colour_range = colour_range,
+                colour_default = colour_default,
+                reverse = reverse,
+                labels = labels,
+                palette = palette)
   
   rgl::open3d(windowRect = c(100,100, 900, 900))
   #This isn't my fault I swear, see the ?bgplot3d examples, weird bugs happen
@@ -347,11 +426,13 @@ obj_montage <- function(left_obj,
 
   rgl::useSubscene3d(parent_scene)
   
-  left_mesh %>% add_colour_bar(title = colour_title, 
-                               column_widths = c(6,2,6), 
-                               which_col = 2, 
-                               cex.axis = 2, 
-                               cex.lab = 2)
+  if(colour_bar){
+    left_mesh %>% add_colour_bar(title = colour_title, 
+                                 column_widths = c(6,2,6), 
+                                 which_col = 2, 
+                                 cex.axis = 2, 
+                                 cex.lab = 2)
+  }
   
   if(!is.null(output)) rgl::snapshot3d(output)
   if(!is.null(output) && close_on_output) rgl::rgl.close()
@@ -692,9 +773,3 @@ plot.bic_lines <-
     
     return(invisible(NULL))
   }
-
-
-
-
-
-

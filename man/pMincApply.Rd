@@ -5,11 +5,10 @@
 \title{Parallel MincApply}
 \usage{
 pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
-  batches = 4, method = c("local", "snowfall", "pbs", "sge", "none"),
-  cores = getOption("mc.cores", parallel::detectCores() - 1),
-  resources = list(), packages = NULL, vmem = NULL, walltime = NULL,
-  workers = batches, temp_dir = tempdir(), cleanup = TRUE,
-  collate = simplify2minc)
+  batches = 4, slab_sizes = NULL, method = NULL, local = FALSE,
+  cores = NULL, resources = list(), packages = NULL, vmem = NULL,
+  walltime = NULL, workers = batches, temp_dir = tempdir(),
+  cleanup = TRUE, collate = simplify2minc)
 }
 \arguments{
 \item{filenames}{Paths to the minc files to be applied accross}
@@ -26,13 +25,16 @@ notes for a warnings}
 \item{batches}{The number of jobs to break the computation into, ignored for
 snowfall/local mode}
 
-\item{method}{The parallelization method, local and snowfall perform 
-computations on multiple cores (snowfall is an alias to local for backcompatibility)
-pbs refers to a torque queueing system, and sge refers to the
-sge queueing system.}
+\item{slab_sizes}{A 3 element vector indicating how large a chunk of data to read from each minc file 
+at a time defaults to one slice along the first dimension.}
 
-\item{cores}{defaults to 1 in the case of PBS or SGE jobs, and 
-\code{max(getOption("mc.cores"), parallel::detectCores() - 1)} for local/snowfall
+\item{method}{A deprecated argument formerly used to configure how to parallelize the jobs
+now this is handled with \link{configureMincParallel} or by setting \code{local = TRUE}}
+
+\item{local}{boolean whether to run the jobs locally (with the parallel package) or with BatchJovs}
+
+\item{cores}{defaults to 1 or
+\code{max(getOption("mc.cores"), parallel::detectCores() - 1)} if running locally
 see \link{qMincApply} for details.}
 
 \item{resources}{A list of resources to request from the queueing system
@@ -82,4 +84,3 @@ these functions divides all of the voxels that are masked by \code{mask} into
 of potential partial matches. When in doubt, partially apply your function before
 hand, and do not rely on positional matching.
 }
-

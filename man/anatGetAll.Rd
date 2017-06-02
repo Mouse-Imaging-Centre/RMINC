@@ -2,11 +2,12 @@
 % Please edit documentation in R/minc_anatomy.R
 \name{anatGetAll}
 \alias{anatGetAll}
-\title{Get values given a set of files and an atlas}
+\title{Faster AnatGet}
 \usage{
-anatGetAll(filenames, atlas, method = "jacobians",
-  defs = getOption("RMINC_LABEL_DEFINITIONS"), dropLabels = TRUE,
-  side = "both")
+anatGetAll(filenames, atlas = NULL,
+  defs = getOption("RMINC_LABEL_DEFINITIONS"), method = c("jacobians",
+  "labels", "sums", "means", "text"), side = c("both", "left", "right"),
+  parallel = NULL, strict = TRUE)
 }
 \arguments{
 \item{filenames}{A vector of filenames (strings) which contain the
@@ -17,21 +18,28 @@ volume has to be of the same sampling (sizes and dimension
 order) as the filenames specified in the first argument and
 use a separate integer for each atlas label.}
 
-\item{method}{A string specifying the way information is to be computed at
-every voxel. See the details section for the possible options
-and what they mean.}
-
 \item{defs}{A string pointing to the filename containing the label
 definitions. Used to map the integers in the atlas to a
 proper name for the structure and contains additional
 information for laterality of each structure. See \link{voxel_atlas_defs}
 for details.}
 
-\item{dropLabels}{Whether to return a value for every structure in the defs
-or just for the ones actually contained in each file.}
+\item{method}{A string specifying the way information is to be computed at
+every voxel. See the details section for the possible options
+and what they mean.}
 
 \item{side}{Three choices, "right", "left", and "both" (the default)
 which specify what labels to obtain.}
+
+\item{parallel}{how many processors to run on (default=single processor).
+Specified as a two element vector, with the first element corresponding to
+the type of parallelization, and the second to the number
+of processors to use. For local running set the first element to "local" or "snowfall"
+for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+and \link{configureMincParallel} for details.
+Leaving this argument NULL runs sequentially.}
+
+\item{strict}{check if any files differ in step sizes}
 }
 \value{
 A matrix with ncols equal to the number of labels in the atlas and
@@ -66,17 +74,3 @@ computed depends on the methods argument:
   }
 }
 }
-\examples{
-\dontrun{
-getRMINCTestData()
-filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
-volumes <- anatGetAll(filenames=filenames$absolute_jacobian, 
-                      atlas="/tmp/rminctestdata/test_segmentation.mnc", 
-                      method="jacobians",
-                      defs="/tmp/rminctestdata/test_defs.csv")
-}
-}
-\seealso{
-anatLm,anatCombineStructures
-}
-

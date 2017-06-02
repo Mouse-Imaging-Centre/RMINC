@@ -20,6 +20,8 @@ gfs <- get("gfs", sys.frame(1))
 m <- get("m", sys.frame(1))
 modelfunc <- get("modelfunc", sys.frame(1))
 vols <- get("volumes", sys.frame(1))
+anatLow <- get("anatLow", sys.frame(1))
+anatHigh <- get("anatHigh", sys.frame(1))
 cat(names(statsList))
 
 shinyServer(function(input, output, clientData, session) {
@@ -127,6 +129,7 @@ shinyServer(function(input, output, clientData, session) {
   })
   observe({
     currentStat <- input$statistic
+    currentStat[!is.finite(currentStat)] <- 0 # Maybe not the right thing to do?
     maxstat <- round(max(abs(range(statsList[[currentStat]]$data))), 1)
     cat("in observe ", maxstat, "\n")
     if (!is.infinite(maxstat)) {
@@ -138,7 +141,7 @@ shinyServer(function(input, output, clientData, session) {
   output$seriesPlot <- renderPlot({
     cat("Low", input$low, "High", input$high, "sym", statsList[[input$statistic]]$symmetric, "\n")
     mincPlotSliceSeries(anatVol, statsList[[input$statistic]]$data,
-                        anatLow=700, anatHigh=1400, low=input$low, high=input$high,
+                        anatLow=anatLow, anatHigh=anatHigh, low=input$low, high=input$high,
                         begin=input$begin, end=input$end, plottitle = input$statistic,
                         dim=as.integer(input$dimension), symmetric=statsList[[input$statistic]]$symmetric,
                         legend=statsList[[input$statistic]]$legendTitle, mfrow=c(input$rows, input$columns))
@@ -150,7 +153,7 @@ shinyServer(function(input, output, clientData, session) {
 
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
-                              anatLow=700, anatHigh=1400,
+                              anatLow=anatLow, anatHigh=anatHigh,
                               low=input$low, high=input$high,
                               slice=v$loc2, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=2)
@@ -163,7 +166,7 @@ shinyServer(function(input, output, clientData, session) {
   output$sagittalPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
-                              anatLow=700, anatHigh=1400,
+                              anatLow=anatLow, anatHigh=anatHigh,
                               low=input$low, high=input$high,
                               slice=v$loc3, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=1, legend="F-statistic")
@@ -175,7 +178,7 @@ shinyServer(function(input, output, clientData, session) {
   output$axialPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
-                              anatLow=700, anatHigh=1400,
+                              anatLow=anatLow, anatHigh=anatHigh,
                               low=input$low, high=input$high,
                               slice=v$loc1, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=3)
@@ -187,7 +190,8 @@ shinyServer(function(input, output, clientData, session) {
 
   output$graphPlot <- renderPlot({
     gfs$voxel <- v$voxel
-    graphData(exp(v$voxel), "jacobians", gfs)
+    if(!is.null(gfs$voxel))
+      graphData(exp(v$voxel), "jacobians", gfs)
 
     #qplot(xvar, exp(voxel), data=gfs, geom=input$graphType, colour=colour, fill=fill)
   })
@@ -196,7 +200,9 @@ shinyServer(function(input, output, clientData, session) {
     #location <- c(input$plot_click$x, input$plot_click$y)
     #location <- ceiling(location * c(d[1], d[3]))
     gfs$voxel <- v$voxel #mincGetVoxel(gfs$filenames, location[2], input$slice, location[1])
-    modelfunc(gfs$voxel)
+    cat("The current coordinates are: ", v$loc1, ",", v$loc2, ",", v$loc3, "\n")
+    if(!is.null(gfs$voxel))
+      modelfunc(gfs$voxel)
     #anova(lm(voxel ~ mouse.gender + Neonatal, gfs))
     #statsList[[input$statistic]]$modelfunc(gfs)
   })

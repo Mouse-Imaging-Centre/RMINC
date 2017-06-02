@@ -33,4 +33,3 @@ gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 writeVertex(gf$nativeRMStlink20mm,"~/RMStlink20mm.txt",FALSE,NULL,NULL)
 }
 }
-

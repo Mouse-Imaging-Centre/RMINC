@@ -80,7 +80,7 @@ SEXP vertex_lm_loop(SEXP data_left, SEXP data_right,SEXP mmatrix)  {
   // r-squared
   // 
   //Rprintf("size of t_sexp: %d\n", p+2);
-  PROTECT(t_sexp = allocVector(REALSXP, p + 2));
+  PROTECT(t_sexp = allocVector(REALSXP, p + 3));
   //Rprintf("output 0: %f\n", REAL(t_sexp)[0]);
   // allocate data for output, will contain:
   // 
@@ -89,7 +89,7 @@ SEXP vertex_lm_loop(SEXP data_left, SEXP data_right,SEXP mmatrix)  {
   // betas
   // t-stats
   // 
-  PROTECT(output=allocMatrix(REALSXP, nVertices, 2*p + 2));
+  PROTECT(output=allocMatrix(REALSXP, nVertices, 2*p + 3));
   xoutput=REAL(output);
 
   // allocate data for the buffer (each vertex for all subjects)
@@ -152,6 +152,9 @@ SEXP vertex_lm_loop(SEXP data_left, SEXP data_right,SEXP mmatrix)  {
     for(int k = 1; k < p + 1; k++) {
       xoutput[i + (k + p + 1) * nVertices] = REAL(t_sexp)[k];
     }
+    
+    //logLik
+    xoutput[i + (2 * p + 2) * nVertices] = REAL(t_sexp)[p+2];
   }
 
   Rprintf("Done with vertex loop\n");

@@ -56,4 +56,3 @@ print(rescale)
 \author{
 Jim Nikelski \email{nikelski@bic.mni.mcgill.ca}
 }
-

@@ -23,7 +23,8 @@ rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age,gftest)",getOption("verbose"
 
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
-rLm = summary(lm(testLeft[,1]~Age,gftest))
+rmod <- lm(testLeft[,1]~Age,gftest)
+rLm = summary(rmod)
 
 test_that("vertexLm Two Factors",{
 	expect_that(rmincLm[1,1],is_equivalent_to(rLm$fstatistic[1]))
@@ -33,6 +34,12 @@ test_that("vertexLm Two Factors",{
 	expect_that(rmincLm[1,5],is_equivalent_to(rLm$coefficients[1,3]))
 	expect_that(rmincLm[1,6],is_equivalent_to(rLm$coefficients[2,3]))
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
+})
+
+test_that("Likelihood and information criteria are computed correctly", {
+  expect_equal(as.numeric(rmincLm[1,"logLik"]), as.numeric(logLik(rmod)))
+  expect_equal(as.numeric(AIC(rmincLm)[1]), as.numeric(AIC(rmod)))
+  expect_equal(as.numeric(BIC(rmincLm)[1]), as.numeric(BIC(rmod)))
 })
 
 rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Age*Sex,gftest)",getOption("verbose"))

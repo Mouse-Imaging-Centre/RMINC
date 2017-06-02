@@ -11,4 +11,3 @@ analyses on MINC volumes. With facilities to calculate voxel-wise
 statistics, perform FDR correction, rapidly visualize 
 results, and much more.
 }
-

@@ -18,4 +18,3 @@ test to see whether files exist and are readable
 \details{
 Throws an error if a file is not found or not readable
 }
-

@@ -23,4 +23,3 @@ a matrix containing the x-y-z coordinates of the selected voxels.
 Given a filename, select a few random indices using the uniform distribution
 from voxels that have a value of 1 (i.e. from a mask volume)
 }
-

@@ -46,4 +46,3 @@ An RCPP variant of \link{mincApply}, the primary advantage being
 that functions of an arbitrary number of arguments can be passed
 to mincApplyRCPP.
 }
-

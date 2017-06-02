@@ -19,4 +19,3 @@ reclass it as a \code{mincSingleDim}
 Coerce a relatively simple object to an RMINC known object
 (currently \code{mincList}, \code{mincSingleDim}, \code{mincMultiDim})
 }
-

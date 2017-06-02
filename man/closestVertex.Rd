@@ -28,4 +28,3 @@ target vertices (either a 3 element vector, or x-y-z table like structure)
 Vertices are matched to the target by finding the vertex with the minimum euclidean
 distance from the target.
 }
-

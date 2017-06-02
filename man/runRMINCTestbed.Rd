@@ -4,13 +4,16 @@
 \alias{runRMINCTestbed}
 \title{Run Testbed}
 \usage{
-runRMINCTestbed(..., dataPath = tempdir(), verboseTest = FALSE)
+runRMINCTestbed(..., dataPath = tempdir(), method = "libcurl",
+  verboseTest = FALSE)
 }
 \arguments{
 \item{...}{additional parameter for \link[testthat]{test_dir}}
 
 \item{dataPath}{The directory to download and unpack the test data 
 (unpacks in dataPath/rminctestdata)}
+
+\item{method}{Argument to pass to \link{download.file} typical options are \code{libcurl}}
 
 \item{verboseTest}{Whether or not to verbosely print test output, default is
 to print simplified results}
@@ -22,4 +25,3 @@ invisibly return the test results
 Run the test bed to ensure all RMINC functions
 work on your system
 }
-

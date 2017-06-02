@@ -24,4 +24,3 @@ a given number of degrees of freedom.
 \seealso{
 pt
 }
-

@@ -29,4 +29,3 @@ Here we compute the parametric boostrap on a small number of randomly chosen
 voxels to get a sense of biased the estimated p-values from the log likelihood
 ratio test really were.
 }
-

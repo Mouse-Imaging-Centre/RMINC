@@ -24,4 +24,3 @@ mincImage(mincArray(anatVol), slice=100, col=gray.colors(255))
 mincContour(mincArray(anatVol), slice=100, add=T, col=rainbow(2), levels=c(1000, 1400))
 }
 }
-

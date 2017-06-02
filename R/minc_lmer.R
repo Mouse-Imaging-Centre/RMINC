@@ -10,8 +10,12 @@
 #' @param mask the mask within which lmer is solved
 #' @param parallel how many processors to run on (default=single processor).
 #' Specified as a two element vector, with the first element corresponding to
-#' the type of parallelization (sge or snowfall), and the second to the number
-#' of processors to use. 
+#' the type of parallelization, and the second to the number
+#' of processors to use. For local running set the first element to "local" or "snowfall"
+#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' and \link{configureMincParallel} for details.
+#' Leaving this argument NULL runs sequentially and may take a long time. 
+
 #' @param REML whether to use use Restricted Maximum Likelihood or Maximum Likelihood
 #' @param control lmer control function
 #' @param start lmer start function
@@ -22,6 +26,13 @@
 #' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
 #' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 #' NA for the result.
+#' @param summary_type One of
+#' \itemize{
+#'   \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
+#'   \item{ranef: returns random effect coefficients and t-values}
+#'   \item{both: both fixed and random effects}
+#'   \item{anova: return the F-statistic for each fixed effect}
+#'}
 #' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
 #' run
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
@@ -70,14 +81,14 @@
 #' mincFDR(modelCompare)
 #' }
 #' @export
-mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
+mincLmer <- function(formula, data, mask, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
-                     cleanup = TRUE) {
+                     cleanup = TRUE, summary_type = c("fixef", "ranef", "both", "anova")) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
-  
+  if(!is.character(mask)) stop("A character mask must be provided to run mincLmer")
   # code ripped straight from lme4::lmer
   mc <- mcout <- match.call()
   #mc$control <- lmerControl() #overrides user input control
@@ -85,9 +96,10 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   
   # remove lme4 unknown arguments, since lmer does not know about them and keeping them
   # generates obscure warning messages
-  mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup")]
+  mc <- mc[!names(mc) %in% c("mask", "parallel", "temp_dir", "safely", "cleanup", "summary_type")]
   
   lmod <- eval(mc, parent.frame(1L))
+  mincFileCheck(lmod$fr[,1])
   
   # code ripped from lme4:::mkLmerDevFun
   rho <- new.env(parent = parent.env(environment()))
@@ -112,9 +124,16 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
   slab_dims <- minc.dimensions.sizes(lmod$fr[1,1])
   slab_dims[1] <- 1
   
+  summary_type <- match.arg(summary_type)
+  summary_fun <- switch(summary_type
+                        , fixef = fixef_summary
+                        , ranef = ranef_summary
+                        , both = effect_summary
+                        , anova = anova_summary)
+  
   mincLmerOptimizeAndExtractSafely <-
-    function(x, mincLmerList){
-      tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList),
+    function(x, mincLmerList, summary_fun){
+      tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
                error = function(e){warning(e); return(NA)})
     }
   
@@ -129,58 +148,71 @@ mincLmer <- function(formula, data, mask=NULL, parallel=NULL,
                          mincLmerList = mincLmerList,
                          filter_masked = TRUE,
                          mask = mask,
-                         batches = as.numeric(parallel[2]),
+                         cores = as.numeric(parallel[2]),
                          slab_sizes = slab_dims,
+                         summary_fun = summary_fun,
                          cleanup = cleanup)
     }
-    else if(parallel[1] %in% c("sge", "pbs")){
+    else {
       out <- qMincApply(lmod$fr[,1],
                         optimizer_fun,
                         mincLmerList = mincLmerList,
                         filter_masked = TRUE,
-                        parallel_method = parallel[1],
                         temp_dir = temp_dir,
                         cores = 1,
                         mask = mask,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
+                        summary_fun = summary_fun,
                         cleanup = cleanup)
-    } else {
-      stop("Error: unknown parallelization method")
-    }
+    } 
   }
   else {
     out <- mincApplyRCPP(lmod$fr[,1], # assumes that the formula was e.g. filenames ~ effects
                          optimizer_fun,
                          mincLmerList = mincLmerList,
                          mask = mask,
+                         summary_fun = summary_fun,
                          slab_sizes = slab_dims)
   }
   
   ## Result post processing
   out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
   
-  termnames <- colnames(lmod$X)
-  betaNames <- paste("beta-", termnames, sep="")
-  tnames <- paste("tvalue-", termnames, sep="")
-  colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+  #termnames <- colnames(lmod$X)
+  #betaNames <- paste("beta-", termnames, sep="")
+  #tnames <- paste("tvalue-", termnames, sep="")
+  #colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+  
   
   # generate some random numbers for a single fit in order to extract some extra info
   mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
   
-  attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                              "logLik", "converged")
+  res_cols <- colnames(out)
+  attr(out, "stat-type") <- ## Handle all possible output types
+    case_when(res_cols == "logLik" ~ "logLik"
+              , res_cols == "converged" ~ "converged"
+              , summary_type == "anova" ~ "flmer"
+              , grepl("^tvalue-", res_cols) & summary_type == "ranef" ~ "rand-tlmer"
+              , grepl("^beta-", res_cols) & summary_type == "ranef" ~ "rand-beta"
+              , grepl("^tvalue-", res_cols) ~ "tlmer"
+              , grepl("^beta-", res_cols) ~ "beta"
+              , grepl("^rand-beta-", res_cols) ~ "rand-beta"
+              , grepl("^rand-tvalue-", res_cols) ~ "rand-tlmer")
+  
+
   # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
   attr(out, "REML") <- REML
   attr(out, "mask") <- mask
+  attr(out, "data") <- data
   attr(out, "mincLmerList") <- mincLmerList
   class(out) <- c("mincLmer", "mincMultiDim", "matrix")
   
   return(out)
 }
 
-#' estimate the degrees of freedom for parameters in a mincLmer model
+#' Estimate the degrees of freedom for parameters in a mincLmer model
 #'
 #' There is much uncertainty in how to compute p-values for mixed-effects
 #' statistics, related to the correct calculation of the degrees of freedom
@@ -221,35 +253,44 @@ mincLmerEstimateDF <- function(model) {
   dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
   
   for (i in 1:nvoxels) {
-    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rvoxels[i,])
+    rand_inds <- rvoxels[i,]
+    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rand_inds)
+    RMINC_DUMMY_LHS <- voxelData
     
     ## It seems LmerTest cannot compute the deviance function for mincLmers
     ## in the current version, instead extract the model components from
-    ## the mincLmerList and re-fit the lmers directly at each voxel,
+    ## the mincLmerList and re-fit the lmers directly at each structure,
     ## Slower but yeilds the correct result
+    original_data <- attr(model, "data")
     lmod <- mincLmerList[[1]]
-    lmod$fr[,1] <- voxelData
     
     # Rebuild the environment of the formula, otherwise updating does not
-    # work in the lmerTest code
-    environment(lmod$formula)$lmod <- lmod
-    environment(lmod$formula)$mincLmerList <- mincLmerList
+    # ensuring it can find both RMINC_DUMMY_LHS and original_data
+    lmod$formula <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
+    environment(lmod$formula) <- environment()
     
     mmod <-
-      lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
-      lmerTest::summary(mmod)$coefficients[,"df"]
+      suppressMessages(
+        tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+                 , error = function(e){ 
+                   warning("Unable to estimate DFs for voxel ("
+                           , paste0(rand_inds, collapse = ", ")
+                           , ")"
+                           , call. = FALSE)
+                   NA}))
   }
   
-  df <- apply(dfs, 2, median)
-  cat("Mean df: ", apply(dfs, 2, mean), "\n")
-  cat("Median df: ", apply(dfs, 2, median), "\n")
-  cat("Min df: ", apply(dfs, 2, min), "\n")
-  cat("Max df: ", apply(dfs, 2, max), "\n")
-  cat("Sd df: ", apply(dfs, 2, sd), "\n")
+  df <- apply(dfs, 2, median, na.rm = TRUE)
+  cat("Mean df: ", apply(dfs, 2, mean, na.rm = TRUE), "\n")
+  cat("Median df: ", apply(dfs, 2, median, na.rm = TRUE), "\n")
+  cat("Min df: ", apply(dfs, 2, min, na.rm = TRUE), "\n")
+  cat("Max df: ", apply(dfs, 2, max, na.rm = TRUE), "\n")
+  cat("Sd df: ", apply(dfs, 2, sd, na.rm = TRUE), "\n")
   
   attr(model, "df") <- df
 
@@ -294,7 +335,8 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
   # time it can stay outside the loop, but occasionally gives weird errors
   # if inside. So wrapped inside that reinit bit:
   if (reinit) {
-    lmod$reTrms <- mkReTrms(findbars(lme4:::RHSForm(mcout[[2]])), lmod$fr)
+    form <- mcout[[2]]
+    lmod$reTrms <- mkReTrms(findbars(form[[length(form)]]), lmod$fr)
     rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
                                                     "Lambdat", "Lind")],
                                       n = nrow(lmod$X), list(X = lmod$X)))
@@ -323,9 +365,9 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
                       start = start, 
                       calc.derivs = control$calc.derivs,
                       use.last.params = control$use.last.params)
-  cc <- lme4:::checkConv(attr(opt, "derivs"), opt$par,
-                         ctrl = control$checkConv, 
-                         lbound = environment(devfun)$lower)
+  cc <- checkConv(attr(opt, "derivs"), opt$par,
+                   ctrl = control$checkConv, 
+                  lbound = environment(devfun)$lower)
   mmod <- mkMerMod(environment(devfun), opt, lmod$reTrms,
                    fr = lmod$fr, mcout, lme4conv = cc)
   return(mmod)
@@ -333,25 +375,100 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
 
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector
-mincLmerExtractVariables <- function(mmod) {
+fixef_summary <- function(mmod) {
   se <- tryCatch({ # vcov sometimes complains that matrix is not positive definite
-    sqrt(Matrix::diag(vcov(mmod, T)))
+    sqrt(Matrix::diag(vcov(mmod)))
   }, warning=function(w) {
     return(0)
   }, error=function(e) {
     return(0)
   })
-  fe <- mmod@beta
+  fe <- fixef(mmod)
+  effects <- names(fe)
   t <- fe / se # returns Inf if se=0 (see error handling above); mincLmer removes Inf
   ll <- logLik(mmod)
+  names(fe) <- paste0("beta-", effects)
+  names(t) <- paste0("tvalue-", effects)
   # the convergence return value (I think; need to verify) - should be 0 if it converged
   converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
-  return(c(fe,t, ll, converged))
+  return(c(fe,t, logLik = logLik(mmod), converged = converged))
 }
 
-mincLmerOptimizeAndExtract <- function(x, mincLmerList) {
+ranef_summary <- 
+  function(mmod){
+    
+    gather_matrix <- 
+      function(m, val_name){
+        as.data.frame(m) %>%
+          mutate(group = rownames(m)) %>%
+          gather_("effect", val_name, colnames(m))  
+      }
+    
+    
+    eff <- ranef(mmod, condVar = TRUE)
+    
+    betas_and_ts <-
+      mapply(function(e, group_name){
+        condVar <- attr(e, "postVar")
+        group_se <- apply(condVar, 3, function(v) sqrt(diag(as.matrix(v))))
+        
+        if(is.null(dim(group_se))){ #deal with the dropped dimension in case of two group ranef 
+          group_se <- matrix(group_se, nrow = length(group_se))
+        } else {
+          group_se <- t(group_se)
+        }
+        
+        dimnames(group_se) <- dimnames(e)
+        group_se <- 
+          gather_matrix(group_se, "se")
+        
+        e <- 
+          gather_matrix(e, "beta")
+        
+        t_mat <- 
+          inner_join(group_se, e, by = c("group", "effect")) %>%
+          mutate_(tvalue = ~ beta / se
+                  , grouping = ~ group_name
+                  , se = ~ NULL) %>%
+          gather_("var", "value", c("tvalue", "beta")) %>%
+          unite_("groupingXgroup", c("grouping", "group"), sep = "") %>%
+          unite_("varXeffectXgroupingXgroup", c("var", "effect", "groupingXgroup"), sep = "-") %>%
+          spread_("varXeffectXgroupingXgroup", "value") %>%
+          as.matrix %>%
+          .[1,]
+      }, e = eff, group_name = names(eff), SIMPLIFY = FALSE) %>%
+      Reduce(c, ., NULL)
+    
+    converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
+    c(betas_and_ts, logLik = logLik(mmod), converged = converged)
+  }
+
+effect_summary <-
+  function(mmod){
+    fix <- fixef_summary(mmod)
+    #remove converged and logLik, these will come from the random effects
+    fix <- fix[! names(fix) %in% c("converged", "logLik")] 
+    
+    ran <- ranef_summary(mmod)
+    names(ran) <- names(ran) %>% sub("beta", "rand-beta", .) %>% sub("tvalue", "rand-tvalue", .)
+    
+    c(fix, ran)
+  }
+
+anova_summary <-
+  function(mmod){
+    converged <- length(attr(mmod,"optinfo")$conv$lme4$code) == 0
+    
+    anova(mmod) %>% 
+      t %>% 
+      .["F value", , drop = FALSE] %>%
+      setNames(paste0("F-", colnames(.))) %>%
+      c(logLik = logLik(mmod), converged = converged)
+  }
+
+mincLmerOptimizeAndExtract <- function(x, mincLmerList, summary_function = fixef_summary) {
   mmod <- mincLmerOptimize(x, mincLmerList)
-  return(mincLmerExtractVariables(mmod))
+  return(summary_function(mmod))
 }
 
 #' run log likelihood ratio tests for different mincLmer objects

@@ -27,4 +27,3 @@ The columnsToKeep vector needs to include the subject identifier or it will be
 dropped. Ideally other columns in the vector should be proper vector/list columns compatible
 with dplyr
 }
-

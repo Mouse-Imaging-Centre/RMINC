@@ -40,4 +40,3 @@ rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
 \seealso{
 mincAnova,vertexAnova
 }
-

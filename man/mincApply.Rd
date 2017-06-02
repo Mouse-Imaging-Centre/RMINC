@@ -97,4 +97,3 @@ pout <- pMincApply(gf$jacobians_fixed_2,
 \seealso{
 mincWriteVolume,mincMean,mincSd,mincLm,mincAnova
 }
-

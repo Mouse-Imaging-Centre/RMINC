@@ -332,6 +332,18 @@ getRangeFromHistogram <- function (volume, low = NULL, high = NULL) {
   return(c(low, high))
 }
 
+#' Plot Slice Along Each Axis
+#' 
+#' Show a slice from each axis of minc volume
+#' 
+#' @param anatomy a \link{mincArray} object containing the source anatomy
+#' @param statistics a \link{mincArray} object containing a statistic to overlay
+#' @param slice 3-component vector indicating which slice along each axis
+#' @param layoutMatrix A matrix describing the layout for the plots typically
+#' produced by \link{layout}
+#' @param ... extra parameters to be passed to \link{mincPlotAnatAndStatsSlice}
+#' @return invisible NULL 
+#' @export 
 mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL, 
                                    layoutMatrix=NULL, ...) {
   opar <- par(no.readonly = TRUE)
@@ -362,6 +374,7 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
   mincPlotAnatAndStatsSlice(anatomy, statistics, slice = slice[1], dimension = 1, ...)
   par(opar)
 
+  invisible(NULL)
 }
 
 # note - works, but is extremely slow. In profiling it appears to spend almost all
@@ -1076,4 +1089,99 @@ mincRayTraceStats <- function(v, anatomy.volume,
   system(paste("rm -f",
                paste(tmpdir, "/R-wrapper-ray-trace-stats.mnc", sep="")))
   
+}
+
+
+#' Plotting of peaks
+#'
+#' Plots a slice containing a peak. Optionally plots a graph of
+#' that peak alongside.
+#'
+#' @param peak a row from \code{\link{mincFindPeaks}}
+#' @param anatomy a mincArray for the underlying anatomy
+#' @param statistics a mincArray for the stats volume
+#' @param dim the dimension (1:3)
+#' @param crossCol the colour for the cross-hair
+#' @param crossSize the size (cex) of the cross-hair
+#' @param plotFunction a function which will produce a graph
+#' @param ... other details to pass on to \code{\link{mincPlotAnatAndStatsSlice}}
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' peaks <- mincFindPeaks(-log10(qvs), "Neonatal:time.to.sac", "pos",
+#' posThreshold=1.3, minDistance=1)
+#' p <- function(peak) {
+#'   gfTiming$voxel <- mincGetWorldVoxel(gfTiming$reljacobians02,
+#'                                       peak["x"], peak["y"], peak["z"])
+#'   qplot(time.to.sac, exp(voxel), data=gfTiming, colour=Neonatal,
+#'         geom="boxplot") + theme_classic()
+#' }
+#' mincPlotPeak(peaks[1,], anatVol, -log10(mincArray(qvs, "Neonatal:time.to.sac")), 
+#'              anatLow=700, anatHigh=1400, low=1, high=4, col=heat.colors(244), 
+#'              crossCol = "blue", crossSize = 3, plotFunction = p)
+#' }
+mincPlotPeak <- function(peak, anatomy, statistics, dim=2, 
+                         crossCol = "green", crossSize=4,
+                         plotFunction=NULL, ...) {
+  
+  # get rid of margins
+  oldpar <- par(mar=c(0,0,0,0))
+  # if we have a plotFunction, divide plot into two
+  if (!is.null(plotFunction)) {
+    oldpar <- par(mfrow=c(1,2))
+  }
+  # at it's most basic, show the slice with a cross-hair
+  mincPlotAnatAndStatsSlice(anatomy, statistics, dimension = dim, 
+                            slice = as.numeric(peak[dim]), ...)
+  if (dim == 1) {
+    points(peak$d2, peak$d3, col=crossCol, pch="+", cex=crossSize)
+  } else if (dim == 2) {
+    points(peak$d1, peak$d3, col=crossCol, pch="+", cex=crossSize)
+  }
+  else {
+    points(peak$d1, peak$d2, col=crossCol, pch="+", cex=crossSize)
+  }
+  # add the plot 
+  if (!is.null(plotFunction)) {
+    pp <- plotFunction(peak)
+    # if the plot is grid (ggplot2), then need to play with viewports
+    if( any(class(pp) %in% "gg") ) {
+      plot.new()
+      vps <- baseViewports()
+      pushViewport(vps$figure)
+      vp1 <- plotViewport(c(1,1,1,1))
+      print(pp, vp=vp1)
+      popViewport()
+    }
+  }
+  par(oldpar)
+}
+
+#' A tool that returns a color function/palette from color lookup files
+#'
+#' @param lookup_table Either a path to the lookup table file, or the table itself
+#' @param alpha A transparency value between 0 and 1 (inclusive)
+#' 
+#' @note For now, the first column of the lookup table (interval where the colour occurs) is ignored; i.e. equal spacing intervals are assumed
+#' 
+#' @return A function that takes in an integer specifying the number of colours required, and returns a vector of colours interpolated from the input colour lookup file
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' spectral.colors <- lut_to_palette(system.file("luts/spectral", package = "RMINC"))
+#' spectral.colors(100)
+#' }
+lut_to_palette <- function(lookup_table= system.file("luts/spectral", package = "RMINC")
+                                              , alpha=1) {
+  tryCatch({
+    lut <- read.table(file=lookup_table, header=FALSE, sep = " ", fill = TRUE)
+  }, error = function(e) {
+    lut <- lookup_table
+  })
+  lut <- lut[,2:4]
+  crp <- colorRampPalette(apply(lut, 1, function(x) {rgb(x[1], x[2], x[3], alpha)}))
+  return(crp)
 }

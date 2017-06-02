@@ -72,3 +72,15 @@ test_that("mincAnova Three Factors Interaction",{
          expect_that(attr(rmincAnova,"df")[[3]][1],is_equivalent_to(rAnova$Df[3]))
          expect_that(attr(rmincAnova,"df")[[3]][2],is_equivalent_to(rAnova$Df[4])) 
 })
+
+test_that("mincAnova local multicore works", {
+  skip_on_cran()
+  skip_on_travis()
+  
+  if(Sys.getenv("TEST_Q_MINC") != "yes") 
+    skip("qMinc tests disabled")
+  
+  verboseRun(pra <- mincAnova(voxel_left_file~Scale*Coil,gftest, parallel = c("local", 3)))
+  
+  expect_equal(rmincAnova, pra, check.attributes = FALSE)
+})

@@ -36,4 +36,3 @@ rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
 \seealso{
 mincLm,anatLm,anatFDR
 }
-

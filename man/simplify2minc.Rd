@@ -10,11 +10,13 @@ simplify2minc(result_list)
 \item{result_list}{The mincApply results to collate.}
 }
 \value{
-a matrix like object of class \code{mincSingleDim}, code{mincMultiDim},
-or code{mincList} depending on the dimensions of the input object
+an object of class \code{mincSingleDim}, code{mincMultiDim},
+or code{mincList} depending on the dimensions of elements of the input
+list, see \link{simplify_masked} for details.
 }
 \description{
 Helper function to collate the results of a \link{mincApplyRCPP} family 
-(\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function
+(\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function.
+Internally it calls \link{simplify_masked} and then coerces the result
+to the appropriate volumetric class (e.g \code{mincMultiDim})
 }
-

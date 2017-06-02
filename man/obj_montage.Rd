@@ -4,8 +4,11 @@
 \alias{obj_montage}
 \title{Brain Montage}
 \usage{
-obj_montage(left_obj, right_obj, left_map, right_map, output = NULL, ...,
-  add_normals = TRUE, colour_title = "", close_on_output = TRUE)
+obj_montage(left_obj, right_obj, left_map, right_map, output = NULL,
+  colour_map, colour_range = NULL, colour_default = "grey",
+  colour_bar = TRUE, reverse = NULL, labels = FALSE,
+  palette = heat.colors(255), ..., add_normals = TRUE, colour_title = "",
+  close_on_output = TRUE)
 }
 \arguments{
 \item{left_obj}{A \code{bic_obj} probably created by \link{read_obj} with the left hemisphere
@@ -19,6 +22,23 @@ of a subject's brain}
 \item{right_map}{a colour map to apply to the right hemisphere see \link{colour_mesh} for details}
 
 \item{output}{Either NULL or a file path to write the snapshot.}
+
+\item{colour_map}{either a vector with a label/measure/statistic for every vertex
+or a character file path pointing to a file with such a vector in a rowwise format.}
+
+\item{colour_range}{a two element numeric vector indicating the min and max values of 
+allowable labels/measures/statistics to be includedon the surface}
+
+\item{colour_default}{The colour given to vertices excluded by colour_range}
+
+\item{colour_bar}{Whether or not to draw a colour bar in the figure}
+
+\item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
+
+\item{labels}{Whether or not the colour_map is a set of discrete labels}
+
+\item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
+\code{colour_map}}
 
 \item{...}{additonal parameters to be passed to \link{create_mesh}}
 
@@ -44,4 +64,3 @@ take a snapshot after tweaking the angles, or changing the colour bar with \link
 Its other mode is to take a snapshot after it has finished adding the 3d objects to the scene,
 in this mode, whether or not to keep the window open can be configured with close_on_output.
 }
-

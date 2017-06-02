@@ -4,7 +4,7 @@
 \alias{civet.readAllCivetFiles}
 \title{Read all CIVET files into R}
 \usage{
-civet.readAllCivetFiles(atlasFile, gf)
+civet.readAllCivetFiles(atlasFile, gf, civetVersion = "1.1.12")
 }
 \arguments{
 \item{atlasFile}{Character path to a key to the atlas used when running civet.
@@ -15,6 +15,8 @@ Column 3: Corresponding structure}
 \item{gf}{Data Frame containing list of all CIVET file names, and where results will be stored
 requires gf to have an element (column) called CIVETFILES which is a data.frame containing
 paths to the civetFiles, typically generated with \link{civet.getAllFilenames}}
+
+\item{civetVersion}{The version of CIVET that produced the files.}
 }
 \value{
 Returns gf augmented with additional columns containing 
@@ -51,4 +53,3 @@ gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 \seealso{
 civet.getAllFilenames
 }
-

@@ -6,7 +6,8 @@
  
 Compute a sequential ANOVA at each voxel}
 \usage{
-mincAnova(formula, data = NULL, subset = NULL, mask = NULL)
+mincAnova(formula, data = NULL, subset = NULL, mask = NULL,
+  maskval = NULL, parallel = NULL, cleanup = TRUE)
 }
 \arguments{
 \item{formula}{The anova formula. The left-hand term consists of the 
@@ -19,6 +20,20 @@ MINC filenames over which to compute the models at every voxel.}
 \item{mask}{Either a filename or a vector of values of the same 
 length as the input files. ANOVA will only be computed
 inside the mask.}
+
+\item{maskval}{the value in the mask used to select unmasked voxels, defaults to any positive intensity
+from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities 
+within 0.5 of the chosen value are considered selected.}
+
+\item{parallel}{how many processors to run on (default=single processor).
+Specified as a two element vector, with the first element corresponding to
+the type of parallelization, and the second to the number
+of processors to use. For local running set the first element to "local" or "snowfall"
+for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+and \link{configureMincParallel} for details.
+Leaving this argument NULL runs sequentially.}
+
+\item{cleanup}{Whether or not to remove parallelization files}
 }
 \value{
 Returns an array with the F-statistic for each model specified by 
@@ -52,4 +67,3 @@ vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 \seealso{
 mincWriteVolume,mincFDR,mincMean, mincSd
 }
-

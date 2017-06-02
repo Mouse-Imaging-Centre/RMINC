@@ -22,4 +22,3 @@ object to a figure. Only draws the projection of the lines
 on a single dimension, no regard is given for whether the
 lines are near the slice of interest.
 }
-

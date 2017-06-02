@@ -13,10 +13,10 @@
 #$ -V
 # use bash
 #$ -S /bin/bash
-##### use correct queue 
-#####$ -q <%= resources$queue %>
-##### use job arrays
-#####$ -t 1-<%= arrayjobs %>
+# set resources
+#$ -l h_vmem=<%= resources$vmem %> 
+#$ -l s_rt=<%= resources$walltime %>
+#$ -l h_rt=<%= resources$walltime %>
 
 # we merge R output with stdout from SGE, which gets then logged via -o option
 R CMD BATCH --no-save --no-restore "<%= rscript %>" /dev/stdout

@@ -2,9 +2,9 @@
 % Please edit documentation in R/minc_interface.R
 \name{mincWriteVolume}
 \alias{mincWriteVolume}
-\alias{mincWriteVolume.default}
-\alias{mincWriteVolume.mincMultiDim}
 \alias{mincWriteVolume.mincSingleDim}
+\alias{mincWriteVolume.mincMultiDim}
+\alias{mincWriteVolume.default}
 \title{Write a MINC volume to file}
 \usage{
 mincWriteVolume(buffer, ...)
@@ -57,6 +57,7 @@ can be viewed or manipulated with the standard MINC tools
 
 \item \code{default}: default
 }}
+
 \examples{
 \dontrun{
 getRMINCTestData()
@@ -71,4 +72,3 @@ mincWriteVolume(vs, "Fstat.mnc", "F-statistic")
 \seealso{
 mincWriteVolume,mincLm,mincFDR,mincMean,mincSd
 }
-

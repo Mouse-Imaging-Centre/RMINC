@@ -107,14 +107,480 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
   return(anat)
 }
 
-# both unilateral and bilateral matrices can be printed the same way
-print.anatMatrix <- function(x, ...) {
-  print.table(x)
+#' Faster AnatGet
+#' 
+#' Computes volumes, means, sums, and similar values across a
+#' segmented atlas
+#' @inheritParams anatGetAll_old
+#' @param strict check if any files differ in step sizes
+#' @param parallel how many processors to run on (default=single processor).
+#' Specified as a two element vector, with the first element corresponding to
+#' the type of parallelization, and the second to the number
+#' of processors to use. For local running set the first element to "local" or "snowfall"
+#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' and \link{configureMincParallel} for details.
+#' Leaving this argument NULL runs sequentially.
+
+#' @details 
+#' anatGetAll needs a set of files along with an atlas and a set of
+#' atlas definitions. In the end it will produce one value per label
+#' in the atlas for each of the input files. How that value is
+#' computed depends on the methods argument:
+#' \itemize{
+#'   \item{jacobians -}{ Each file contains log jacobians, and the volume for
+#'   each atlas label is computed by multiplying the jacobian with
+#'   the voxel volume at each voxel.
+#'   }
+#'   \item{labels -}{ Each file contains integer labels (i.e. same as the atlas).
+#'   The volume is computed by counting the number of voxels with
+#'   each label and multiplying by the voxel volume.
+#'   }
+#'   \item{means -}{ Each file contains an arbitrary number and the mean of all
+#'   voxels inside each label is computed.
+#'   }
+#'   \item{sums -}{ Each file contains an aribtrary number and the sum of all
+#'   voxels inside each label is computed.
+#'   }
+#'   \item{text -}{ Each file is a comma separated values text file and is simply
+#'   read in.
+#'   }
+#' }
+#' @return A matrix with ncols equal to the number of labels in the atlas and
+#' nrows equal to the number of files.
+#' @export
+anatGetAll <-
+  function(filenames, atlas = NULL, 
+           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+           method = c("jacobians", "labels", "sums", "means", "text"), 
+           side = c("both", "left", "right"),
+           parallel = NULL, 
+           strict = TRUE){
+    
+    method <- match.arg(method)
+    
+    if(method != "labels" && is.null(atlas))
+      stop("An atlas is required for all methods other than \"labels\" ")
+      
+    mincFileCheck(filenames)
+    
+    ## Handle dispatch of worker functions
+    compute_summary <-
+      function(filenames){
+        switch(method
+               , labels =
+                   return(
+                     label_counts(filenames = filenames
+                                , defs = defs
+                                , side = side
+                                , strict = strict))
+               , test = 
+                   return(
+                     Reduce(function(acc, file){ cbind(acc, read.csv(file, header = FALSE)) }
+                            , filenames
+                            , NULL))
+               , #default
+                   return(
+                     anatomy_summary(filenames = filenames
+                                     , atlas = atlas
+                                     , method = method
+                                     , defs = defs
+                                     , side = side
+                                     , strict= strict)))
+        }
+    
+    ## Special matrix reducer to ensure rows are bound by index
+    reduce_matrices <- 
+      function(mat_list){
+        mat_list %>%
+          lapply(function(m) tibble::rownames_to_column(as.data.frame(m))) %>%
+          Reduce(function(df, acc) full_join(df, acc, by = "rowname")
+                 , ., data_frame(rowname = character())) %>%
+          select_(~ -rowname) %>%
+          as.matrix
+      }
+    
+    ## Handle parallelism choices
+    if (is.null(parallel)) {
+      out <- compute_summary(filenames)
+    }
+    else {
+      n_groups <- as.numeric(parallel[2])
+      groups <- split(seq_along(filenames), groupingVector(length(filenames), n_groups))
+      # a vector with two elements: the methods followed by the # of workers
+      if (parallel[1] %in% c("local", "snowfall")) {
+        out <- 
+          parallel::mclapply(groups, function(group){
+            compute_summary(filenames[group])
+          }, mc.cores = n_groups) %>%
+          reduce_matrices %>%
+          `colnames<-`(filenames) %>%
+          setNA(0)
+      }
+      else {
+        reg <- makeRegistry("anatGet_registry")
+        on.exit( tenacious_remove_registry(reg) )
+        
+        suppressWarnings( #Warning suppression for large env for function (>10mb)
+          batchMap(reg, function(group){
+            compute_summary(filenames[group])
+          }, group = groups)
+        )
+        
+        submitJobs(reg)
+        waitForJobs(reg)
+        
+        out <-
+          loadResults(reg, use.names = FALSE) %>%
+          reduce_matrices %>%
+          `colnames<-`(filenames) %>%
+          setNA(0)
+      } 
+    }
+    
+    missing_labels <- abs(rowSums(out)) == 0
+    
+    ## Handle creating the label frame
+    if(!is.null(defs)){
+      label_frame <- create_labels_frame(defs, side = side)
+    } else if(!is.null(atlas)) {
+      warning("No definitions provided, using indices from atlas \n",
+              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
+              " or set it as an environment variable")
+      atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
+      uniq_labels <- unique(atlas_vol)
+      label_frame <-
+        data_frame(Structure = as.character(uniq_labels)
+                   , label   = uniq_labels) 
+    } else {
+      warning("No definitions provided, using observed labels \n",
+              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
+              " or set it as an environment variable")
+      uniq_labels <- which(!missing_labels)
+      label_frame <-
+        data_frame(Structure = as.character(uniq_labels)
+                   , label   = uniq_labels) 
+    }
+    
+    ## Dress up the results and do label error checking
+    create_anat_results(out, label_frame, filenames = filenames, atlas = atlas)
+  }
+
+# Convert an RMINC style atlas label set to a nice data.frame
+create_labels_frame <-
+  function(defs, side = c("both", "left", "right"), keep_hierarchy = FALSE){
+    side <- match.arg(side)
+    
+    # if the definitions are given, check to see that we can read the 
+    # specified file
+    if(file.access(as.character(defs), 4) == -1){
+      stop("The specified label definitions can not be read: "
+           , defs
+           , "\nUse the defs argument or the $RMINC_LABEL_DEFINITIONS variable to change.")
+    }
+    
+    label_defs <- 
+      read.csv(defs, stringsAsFactors = FALSE)
+    
+    if("hierarchy" %in% names(label_defs) & keep_hierarchy){
+      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label, ~ hierarchy)
+    } else {
+      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label)
+    }
+    
+    label_defs <- 
+      label_defs %>%
+      mutate_(both_sides = ~ right.label == left.label) %>%
+      gather_("hemisphere", "label", c("right.label", "left.label")) %>%
+      mutate_(Structure =
+                ~ ifelse(both_sides
+                         , Structure
+                         , ifelse(hemisphere == "right.label"
+                                  , paste0("right ", Structure)
+                                  , paste0("left ", Structure))))
+    
+    if("hierarchy" %in% names(label_defs))
+      label_defs <-
+      label_defs %>%
+      mutate_(hierarchy = 
+                ~ with(.
+                       , case_when(is.na(hierarchy) | hierarchy == "" ~ ""
+                                 , both_sides ~ hierarchy
+                                 , hemisphere == "right.label" ~ paste0("right ", hierarchy)
+                                 , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
+    
+    label_defs <-
+      switch(side
+             , left  = filter_(label_defs, ~ both_sides | hemisphere == "left.label")
+             , right = filter_(label_defs, ~ both_sides | hemisphere == "right.label")
+             , both  = label_defs)
+    
+    label_defs <-
+      label_defs %>%
+      select_(~ -c(hemisphere, both_sides)) %>%
+      filter_(~ ! duplicated(label))
+    
+    label_defs
+  }
+
+# create the results matrix from the c++ results and a label frame 
+create_anat_results <-
+  function(results, label_frame, filenames = NULL, atlas = NULL){
+    
+    missing_labels <- abs(rowSums(results)) == 0
+    if(nrow(results) == 1) stop("No structures found, check your atlas or label volumes")
+    
+    results <- 
+      as.data.frame(results) %>%
+      slice(-1) %>% #removes the zero label
+      mutate(indices = 1:n()) %>%
+      filter_(~ ! missing_labels[-1]) %>%
+      left_join(label_frame, by = c("indices" = "label"))
+    
+    extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
+    if(length(extra_structures) != 0)
+      message("Extra Structures  found in files but not in labels: "
+              , paste0(extra_structures, collapse = ", "))
+    
+    missing_structures <- 
+      with(label_frame, Structure[! label %in% results$indices])
+    if(length(missing_structures) != 0)
+      message("Missing Structures found in labels but not in any files: "
+              , paste0(missing_structures, collapse = ", "))
+    
+    results <- 
+      results %>%
+      filter_(~ !is.na(Structure))
+    
+    label_inds <- results$indices
+    structures <- results$Structure
+    
+    results <-
+      results %>%
+      select_(~ -c(indices,Structure)) %>% 
+      t %>%
+      `colnames<-`(structures) %>%
+      `rownames<-`(NULL)
+    
+    sapply(colnames(results), function(cn){
+      missings <- which(results[,cn] == 0)
+      
+      if(length(missings) != 0)
+        message("Files ", paste0(missings, sep = ", "), " are missing label ", cn)
+    })
+    
+    attr(results, "anatIDs") <- label_inds
+    if(!is.null(atlas))     attr(results, "atlas") <- atlas
+    if(!is.null(filenames)) attr(results, "input") <- filenames
+    class(results) <- c("anatUnilateral", "anatMatrix", "matrix")
+    
+    results
+  }
+
+#' @export
+print.anatMatrix <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...){
+  cat("anatMatrix, showing ", n, " of ", nrow(x), " rows, and ", width, " of ", ncol(x), "columns\nprint more by supplying n and width to the print function\n")
+  sub_x <- x[seq_len(n), seq_len(width)]
+  
+  print(sub_x)
+  invisible(x)
 }
+
+#' @export
+print.anatModel <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...){
+  cat("anatModel, showing ", n, " of ", nrow(x), " rows, and ", width, " of ", ncol(x), "columns\nprint more by supplying n and width to the print function\n")
+  sub_x <- x[seq_len(n), seq_len(width)]
+  attributes(sub_x) <- attributes(sub_x) %>% { .[names(.) %in% c("dim", "dimnames")]}
+  
+  print.default(sub_x)
+  invisible(x)
+}
+
+#' @export
+`[.anatModel` <- function(x, i, j, drop = TRUE){
+  orig_x <- x
+  mdrop <- missing(drop)
+  n_args <- nargs() - !mdrop
+  model_attrs <- attributes(x) %>% { .[! names(.) %in% c(attributes_to_skip, "dimnames", "class", "df", "stat-type")]}
+  class(x) <- "matrix"
+  
+  if(n_args == 2){
+    x <- x[i]
+  } else {
+    x <- x[i,j,drop = drop] 
+  }
+  
+  if(!is.null(dim(x))){
+    if(missing(j))
+      j <- seq_len(ncol(x))
+    
+    if(is.character(j))
+      j <- match(j, colnames(orig_x))
+    
+    if( is.logical(j))
+      j <- which(j)
+    
+    class(x) <- class(orig_x)
+    attributes(x) <- c(attributes(x), model_attrs)
+    
+    ## Deal with stats and dfs
+    orig_stats <- attr(orig_x, "stat-type")
+    orig_dfs <- attr(orig_x, "df")
+    
+    knownStats <- c("t", "F", "u", "chisq", "tlmer")
+    if(length(orig_stats) == 1) orig_stats <- rep(orig_stats, ncol(orig_x))
+    stat_columns <- which(orig_stats %in% knownStats)
+    selected_stat_columns <- match(j, stat_columns, 0)
+    
+    if(length(orig_dfs) == 1) orig_dfs <- rep(orig_dfs, length(stat_columns))
+
+    attr(x, "stat-type") <- orig_stats[j]
+    attr(x, "df") <- orig_dfs[selected_stat_columns]
+  }
+  
+  x
+}
+
+#' @export
+rbind.anatModel <- function(..., deparse.level = 1){
+  args <- list(...)
+  attrs <- lapply(args, function(model) attributes(model) %>% { .[! names(.) %in% "call"]})
+  lapply(attrs, function(att){
+    if(! identical(att, attrs[[1]])) stop("Models aren't compatible, differ in some attributes")
+  })
+  
+  bound_models <- do.call(rbind, lapply(args, `class<-`, "matrix"))
+  final_attrs <- attrs[[1]] %>% { .[! names(.) %in% c("dimnames", "dim")]}
+  attributes(bound_models) <- c(attributes(bound_models), final_attrs)
+  rownames(bound_models) <- unlist(lapply(args, rownames))
+  colnames(bound_models) <- colnames(args[[1]])
+
+  bound_models
+}
+
+#' Create Anatomy data.frame
+#' 
+#' Convert an anatomy frame to data.frame for use with tidy tools
+#' 
+#' @param x An \code{anatMatrix} object produced by \link{anatGetAll}
+#' @param ... additional parameters for methods
+#' @return A data.frame augmented with addition attributes from anat
+#' @details Note that structure names are munged such that each structure name has non-standard
+#' characters replaced by underscores
+#' @export
+as.data.frame.anatMatrix <- 
+  function(x, ...){
+    minc_attrs <- mincAttributes(x)
+    minc_attrs <- minc_attrs[! names(minc_attrs) %in% c("dimnames", "class") ]
+    
+    x %>%
+      unclass %>%
+      as.data.frame %>%
+      setNames(fix_names(names(.))) %>%
+      setMincAttributes(minc_attrs)
+  }
+
+anatomy_summary <- 
+  function(filenames, atlas, 
+           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+           method = c("jacobians", "labels", "sums", "means"), 
+           side = c("both", "left", "right"),
+           strict = TRUE){
+    
+    method <- match.arg(method)
+    side <- match.arg(side)
+    atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
+    
+    check_step_sizes(filenames, atlas, strict)
+
+    cpp_res <- anat_summary(filenames, atlas_vol, method)
+    cpp_res$counts <- cpp_res$counts
+    cpp_res$values <- cpp_res$values
+    
+    results <-
+      switch(method
+             , jacobians = cpp_res$value
+             , means     = cpp_res$value / cpp_res$counts
+             , sums      = cpp_res$value)
+    
+    results[!is.finite(results)] <- 0
+    
+    results
+  }
+
+label_counts <- 
+  function(filenames,
+           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+           method = c("jacobians", "labels", "sums", "means"), 
+           side = c("both", "left", "right"),
+           strict = TRUE){
+    
+    method <- match.arg(method)
+    side <- match.arg(side)
+
+    check_step_sizes(filenames, strict = strict)
+    
+    cpp_res <- count_labels(filenames)
+    missing_labels <- abs(rowSums(cpp_res)) == 0
+    results <- cpp_res
+    
+    results
+  }
+
+#' Summarize anatGetAll results by hierarchy
+#' 
+#' Take the results of \link{anatGetAll} and summarize a grouping label, typically the structures
+#' group in the anatomical hierarchy. 
+#' 
+#' @param anat The results of a call to \link{anatGetAll}
+#' @param summarize_by either a data frame with grouping information or a path to label definitions. 
+#' If a data frame is passed it must have two columns: "label" containing the structure
+#' name (see \code{colnames(anat)} to check the relevant labels) and "grouping" containg the name 
+#' of the group each structure belongs to.
+#' @param defs A text file containing the label definitions if \code{summarize_by} is a string
+#' @param discard_missing logical controlling how to handle structures with no ("") group information.
+#' If TRUE filter these structures, if FALSE give each structure a group label to match their structure
+#' name.
+#' @return A matrix with columns representing groups from the hierarchy and rows representing individuals
+#' with values equal to the sum of the individual members of each group.
+#' @export 
+anatSummarize <-
+  function(anat
+           , summarize_by = "hierarchy"
+           , defs = getOption("RMINC_LABEL_DEFINITIONS")
+           , discard_missing = FALSE){
+    
+    if(is.character(summarize_by) && length(summarize_by == 1)){
+      summarize_by <- 
+        create_labels_frame(defs, keep_hierarchy = TRUE) %>%
+        select_(~ -label) %>%
+        rename_(label = "Structure", group = summarize_by)
+    }
+    
+    if(!discard_missing){
+      summarize_by <-
+        summarize_by %>%
+        mutate_(group = ~ifelse(is.na(group) | group == "", label, group))
+    } else {
+      summarize_by <- summarize_by %>% filter_(~ group != "")
+    }
+    
+    anat %>%
+      as.data.frame.matrix %>%
+      (tibble::rownames_to_column) %>%
+      gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
+      inner_join(summarize_by, by = "label") %>%
+      group_by_("group", "rowname") %>%
+      summarize_(value = ~ sum(value)) %>%
+      spread_("group", "value") %>%
+      arrange_(~ as.numeric(rowname)) %>%
+      select_(~ -rowname) %>%
+      as.matrix
+  }
+
+
 ###########################################################################################
 #' @description Computes volumes, means, sums, and similar values across a
 #' segmented atlas
-#' @name anatGetAll
 #' @title Get values given a set of files and an atlas
 #' @param filenames A vector of filenames (strings) which contain the
 #' information to be extracted at every structure in the atlas.
@@ -172,7 +638,7 @@ print.anatMatrix <- function(x, ...) {
 #'                       defs="/tmp/rminctestdata/test_defs.csv")
 #'}
 #'@export
-anatGetAll <- function(filenames, atlas, method="jacobians", 
+anatGetAll_old <- function(filenames, atlas, method="jacobians", 
                        defs = getOption("RMINC_LABEL_DEFINITIONS"), 
                        dropLabels = TRUE, 
                        side="both") {
@@ -355,7 +821,7 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   matrixName = '';
 
   # Build model.frame
-  m <- match.call()
+  m <- m_orig <- match.call()
   mf <- match.call(expand.dots=FALSE)
   # Add a row to keep track of what subsetting does
   mf$rowcount <- seq(1, nrow(data))
@@ -432,14 +898,16 @@ anatLm <- function(formula, data, anat, subset=NULL) {
   # betas
   # t-stats
   #
-  betaNames = paste('beta-',rows, sep='')
-  tnames = paste('tvalue-',rows, sep='')
-  colnames(result) <- c("F-statistic", "R-squared", betaNames, tnames)
-  class(result) <- c("anatModel", "matrix")
-  attr(result, "atlas") <- attr(anat, "atlas")
+  betaNames                   <- paste('beta-',rows, sep='')
+  tnames                      <- paste('tvalue-',rows, sep='')
+  colnames(result)            <- c("F-statistic", "R-squared", betaNames, tnames, "logLik")
+  class(result)               <- c("anatModel", "matrix")
+  attr(result, "atlas")       <- attr(anat, "atlas")
   attr(result, "definitions") <- attr(anat, "definitions")
-  attr(result, "model") <- as.matrix(mmatrix)
-  attr(result, "stat-type") <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2))
+  attr(result, "model")       <- as.matrix(mmatrix)
+  attr(result, "data")        <- data 
+  attr(result, "call")        <- m_orig
+  attr(result, "stat-type")   <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2), "logLik")
   
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
@@ -458,27 +926,42 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 
 #' Anatomy Linear Mixed Effects Model
 #' 
-#' Apply a linear mixed effects model to the results of
+#' Fit a linear mixed effects model for each structure in the results of
 #' \link{anatGetAll}.
 #' 
-#' @param formula the model formula
-#' @param data the predictor variables
 #' @param anat a subject by label matrix of anatomical 
 #' summaries typically produced by \link{anatGetAll}
-#' @param subset rows to subset
-#' @return an \code{anatModel} object of statistical results
+#' @inheritParams mincLmer
+#' @details \code{anatLmer}, like its relative \link{mincLmer} provides an interface to running 
+#' linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
+#' in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
+#' more difficult to  determine. RMINC provides estimating degrees of freedom using the
+#' \code{\link{anatLmerEstimateDF}} function. For the most likely models - longitudinal
+#' models with a separate intercept or separate intercept and slope per subject - this
+#' approximation is likely correct. Be careful in using this approximations if
+#' using more complicated random effects structures.
+#' @export 
 anatLmer <-
-  function(formula, data, anat, subset = NULL, REML = TRUE, 
-           control = lmerControl(), verbose = FALSE, start = NULL){
+  function(formula, data, anat, REML = TRUE,
+           control = lmerControl(), verbose = FALSE, 
+           start = NULL, parallel = NULL, safely = FALSE, 
+           summary_type = c("fixef", "ranef", "both", "anova")){
+    
     mc <- mcout <- match.call()
-    #mc$control <- lmerControl() #overrides user input control
+    
+    # Allow the user to omit the LHS by inserting a normal random variable
+    mc$formula <- update(formula, RMINC_DUMMY_LHS ~ .)
+    environment(mc$formula) <- environment()
+    RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    
     mc[[1]] <- quote(lme4::lFormula)
+    mc$data <- as.symbol("data")
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("anat", "subset")]
+    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely")]
     
-    lmod <- eval(mc, parent.frame(1L))
+    lmod <- eval(mc)
     
     # code ripped from lme4:::mkLmerDevFun
     rho <- new.env(parent = parent.env(environment()))
@@ -492,7 +975,28 @@ anatLmer <-
     
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
-    out <- t(apply(anat, 2, RMINC:::mincLmerOptimizeAndExtract, mincLmerList = mincLmerList))
+    summary_type <- match.arg(summary_type)
+    summary_fun <- switch(summary_type
+                          , fixef = fixef_summary
+                          , ranef = ranef_summary
+                          , both = effect_summary
+                          , anova = anova_summary)
+    
+    mincLmerOptimizeAndExtractSafely <-
+      function(x, mincLmerList, summary_fun){
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
+                 error = function(e){warning(e); return(NA)})
+      }
+    
+    optimizer_fun <-
+      `if`(safely, mincLmerOptimizeAndExtractSafely, mincLmerOptimizeAndExtract)
+    
+    out <- 
+      matrixApply(t(anat)
+                  , optimizer_fun
+                  , mincLmerList = mincLmerList
+                  , summary_fun = summary_fun
+                  , parallel = parallel)
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
     
@@ -500,6 +1004,7 @@ anatLmer <-
     betaNames <- paste("beta-", termnames, sep="")
     tnames <- paste("tvalue-", termnames, sep="")
     colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+    rownames(out) <- colnames(anat)
     
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
@@ -512,9 +1017,10 @@ anatLmer <-
     attr(out, "mincLmerList") <- mincLmerList
     attr(out, "atlas") <- attr(anat, "atlas")
     attr(out, "definitions") <- attr(anat, "definitions")
+    attr(out, "data") <- data
     attr(out, "anat") <- anat
     
-    class(out) <- c("anatLmerModel", "anatModel", "matrix")
+    class(out) <- c("anatLmer", "anatModel", "matrix")
     
     return(out)
   }
@@ -531,44 +1037,52 @@ anatLmerEstimateDF <- function(model) {
   # set the DF based on the Satterthwaite approximation
   
   mincLmerList <- attr(model, "mincLmerList")
+  anat <- attr(model, "anat")
   
   # estimated DF depends on the input data. Rather than estimate separately at every structure,
   # instead select a small number of structures and estimate DF for those structures, then keep the
   # min
   nstructures <- min(50, nrow(model))
-  rstructures <- sample(1:nrow(model), nstructures)
+  rstructures <- sample(seq_len(nrow(model)), nstructures)
   dfs <- matrix(nrow = nstructures, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
   
-  for (i in 1:nstructures) {
-    structureData <- attr(model, "anat")[,rstructures[i]]
+  for (i in seq_len(nstructures)) {
+    rand_ind <- rstructures[i]
+    structureData <- anat[,rand_ind]
+    RMINC_DUMMY_LHS <- structureData
     
     ## It seems LmerTest cannot compute the deviance function for mincLmers
     ## in the current version, instead extract the model components from
     ## the mincLmerList and re-fit the lmers directly at each structure,
     ## Slower but yeilds the correct result
+    original_data <- attr(model, "data")
     lmod <- mincLmerList[[1]]
-    lmod$fr[,1] <- structureData
     
     # Rebuild the environment of the formula, otherwise updating does not
-    # work in the lmerTest code
-    environment(lmod$formula)$lmod <- lmod
-    environment(lmod$formula)$mincLmerList <- mincLmerList
-    
+    # ensuring it can find both RMINC_DUMMY_LHS and original_data
+    environment(lmod$formula) <- environment()
+
     mmod <-
-      lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
-      lmerTest::summary(mmod)$coefficients[,"df"]
+      suppressMessages(
+        tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+                 , error = function(e){ 
+                   warning("Unable to estimate DFs for structure "
+                           , colnames(anat)[rand_ind]
+                           , call. = FALSE)
+                   NA}))
   }
   
-  df <- apply(dfs, 2, median)
-  cat("Mean df: ", apply(dfs, 2, mean), "\n")
-  cat("Median df: ", apply(dfs, 2, median), "\n")
-  cat("Min df: ", apply(dfs, 2, min), "\n")
-  cat("Max df: ", apply(dfs, 2, max), "\n")
-  cat("Sd df: ", apply(dfs, 2, sd), "\n")
+  df <- apply(dfs, 2, median, na.rm = TRUE)
+  cat("Mean df: ", apply(dfs, 2, mean, na.rm = TRUE), "\n")
+  cat("Median df: ", apply(dfs, 2, median, na.rm = TRUE), "\n")
+  cat("Min df: ", apply(dfs, 2, min, na.rm = TRUE), "\n")
+  cat("Max df: ", apply(dfs, 2, max, na.rm = TRUE), "\n")
+  cat("Sd df: ", apply(dfs, 2, sd, na.rm = TRUE), "\n")
   
   attr(model, "df") <- df
   
@@ -670,11 +1184,6 @@ anatCreateVolume <- function(anat, filename, column=1) {
   return(invisible(newvolume))
 }
 
-#' @export
-anatFDR <- function(buffer, method="FDR") {
-  vertexFDR(buffer, method)
-}
-
 #' anatSummaries
 #' 
 #' These functions are used to compute the mean, standard deviation,
@@ -689,7 +1198,7 @@ anatFDR <- function(buffer, method="FDR") {
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' vm <- anatMean(gf$lobeThickness)
-# }
+#' }
 #' @name anatSummaries
 NULL
 

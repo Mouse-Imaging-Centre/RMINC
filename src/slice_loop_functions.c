@@ -47,7 +47,7 @@ void get_mask(SEXP filename, mihandle_t hmask, double *mask_buffer,
   if (result != MI_NOERROR) {
     error("Error opening mask: %s.\n", CHAR(STRING_ELT(filename, 0)));
   }
-  mask_buffer = malloc(sizes[1] * sizes[2] * sizeof(double));
+  mask_buffer = (double *) malloc(sizes[1] * sizes[2] * sizeof(double));
 }
 
 /* create_slice_buffer: allocates memory for the slice buffer */
@@ -60,9 +60,9 @@ double** create_slice_buffer(SEXP filenames,
   //Rprintf("before: %p\n", buffer[0]);
 
   num_files = LENGTH(filenames);
-  buffer = malloc(num_files * sizeof(double));
+  buffer = (double **) malloc(num_files * sizeof(double *));
   for (i=0; i < num_files; i++) {
-    buffer[i] = malloc(sizes[1] * sizes[2] * sizeof(double));
+    buffer[i] = (double *) malloc(sizes[1] * sizes[2] * sizeof(double));
   }
   //Rprintf("after: %p %d %d\n", buffer[0], sizes[1], sizes[2]);
   return(buffer);

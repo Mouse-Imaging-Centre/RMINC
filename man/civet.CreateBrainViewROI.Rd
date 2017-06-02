@@ -37,4 +37,3 @@ q()
 \seealso{
 civet.CreateBrainViewFile
 }
-

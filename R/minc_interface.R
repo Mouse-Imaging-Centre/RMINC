@@ -16,22 +16,13 @@ print.RMINC_MASKED_VALUE <-
   function(x, ...)
     print(as.symbol("masked"))
 
-# Attributes for minc result objects
-known_minc_attributes <-
-  c("filename", "filenames", "likeVolume", "mask", "mincLmerList", "mincLmerLists", "sizes",
-    "model", "stat-type", "df", "dimnames")
+# Attributes to skip when assigning minc object attributes
+attributes_to_skip <- "dim"
 
 #' Get and Set Minc Specific Attributes
 #' 
-#' Manage auxillary information contained in RMINC objects. Currently recognizes:
-#' \itemize{
-#' \item{filenames: filenames of minc files used to create an object}
-#' \item{likeVolume: a minc file to use a structural template when writing out
-#' data}
-#' \item{mask: a mask file associated with the object}
-#' \item{mincLmerList: extra information used in fitting \link{mincLmer}s}
-#' \item{mincLmerLists: collections of mincLmerLists used to compare \link{mincLmer} fits}
-#' }
+#' Manage auxillary information contained in RMINC objects. Currently returns all attributes
+#' except dimension information
 #' @param minc_object the RMINC object of interest typically a \code{mincMultiDim} or
 #' a related class
 #' @param updated_attrs A named list containing the new attributes to be replaced
@@ -42,7 +33,7 @@ mincAttributes <-
   function(minc_object){
     minc_attributes <- attributes(minc_object)
     minc_attributes <- 
-      minc_attributes[names(minc_attributes) %in% known_minc_attributes]
+      minc_attributes[! names(minc_attributes) %in% attributes_to_skip]
     
     return(minc_attributes)
   }
@@ -54,11 +45,6 @@ setMincAttributes <-
     
     if(is.null(updated_attrs) || length(updated_attrs) == 0)
       return(minc_object)
-    
-    if(any(! names(updated_attrs) %in% known_minc_attributes)) 
-      stop(sprintf("New attributes (%s) must be known minc object attribute (%s)",
-                   paste0(updated_attrs, collapse = ", "),
-                   paste0(known_minc_attributes, collapse = ", ")))
     
     all_attrs <- attributes(minc_object)
     
@@ -74,16 +60,20 @@ setMincAttributes <-
     return(minc_object)
   }
 
-#' Collate Minc
+#' Simplify Masked Results
 #' 
-#' Helper function to collate the results of a \link{mincApplyRCPP} family 
-#' (\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function
-#' @param result_list The mincApply results to collate.
-#' @return a matrix like object of class \code{mincSingleDim}, code{mincMultiDim},
-#' or code{mincList} depending on the dimensions of the input object
-#'@export
-simplify2minc <- function(result_list){
-  
+#' Take the results of an RMINC function that produces masked results
+#' and coerce it to the appropriate result. Scalar elements are converted to a vector,
+#' Vector elements are converted to an array, data.frame elements are row-bound, 
+#' and more complex objects are converted to a list.
+#' 
+#' @param result_list The list of potentially masked results
+#' @return Scalar elements are converted to a vector,
+#' Vector elements are converted to an array, data.frame elements are row-bound, 
+#' and more complex objects are converted to a list. Result lists should be
+#' all of the same type of unexpected errors may occur.
+#' @export
+simplify_masked <- function(result_list){
   ## Deal with masking, find the first non-masked value, NA it out
   ## insert it back in to standardize element length as much as possible
   lgl_missing <- vapply(result_list, 
@@ -91,8 +81,14 @@ simplify2minc <- function(result_list){
                         logical(1))
   
   first_element <- result_list[[which(!lgl_missing)[1]]]      
-  na_value <- first_element                                
-  na_value[] <- getOption("RMINC_MASKED_VALUE")            #set all its elements to masked
+  na_value <- first_element
+  
+  if(length(na_value) != 1){
+    na_value[] <- getOption("RMINC_MASKED_VALUE")
+  } else {
+    na_value <- getOption("RMINC_MASKED_VALUE")
+  } 
+  
   result_list[lgl_missing] <- list(na_value)                #replace in result list
   
   ## Determine the correct reduction technique and apply it
@@ -111,6 +107,24 @@ simplify2minc <- function(result_list){
   result_attributes <- mincAttributes(result_list)
   if(!is.null(result_attributes))
     simplified_results <- setMincAttributes(simplified_results, result_attributes)
+  
+  simplified_results
+}
+
+#' Collate Minc
+#' 
+#' Helper function to collate the results of a \link{mincApplyRCPP} family 
+#' (\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function.
+#' Internally it calls \link{simplify_masked} and then coerces the result
+#' to the appropriate volumetric class (e.g \code{mincMultiDim})
+#' @param result_list The mincApply results to collate.
+#' @return an object of class \code{mincSingleDim}, code{mincMultiDim},
+#' or code{mincList} depending on the dimensions of elements of the input
+#' list, see \link{simplify_masked} for details.
+#'@export
+simplify2minc <- function(result_list){
+  
+  simplified_results <- simplify_masked(result_list) 
   
   ## Reclass the object to the appropriate RMINC class
   if(is.null(ncol(simplified_results)) && is.list(simplified_results)){
@@ -157,24 +171,56 @@ as.minc <- function(x){
   class(x) <- c("mincSingleDim", class(x))
   return(x)
 } 
-    
-mincGetTagFile <- function(filename) {
-  tags <- scan(filename, what="character")
-  # tag points begin after Points = line
-  beginIndex <- grep("Points", tags) + 2
-  endIndex <- length(tags)-1 # get rid of training ;
-  return(matrix(as.numeric(tags[beginIndex:endIndex]), ncol=7, byrow=T))
+
+
+
+
+#' Get or set a likeVolume
+#' 
+#' LikeVolumes control the dimensions of an output minc file.
+#' 
+#' @param x The minc object
+#' @param strict Whether or not to throw an error if the likeVolume does not exist
+#' @param value The replacement value for the likeVolume attribute
+#' @return The likeVolume name if getting, or the object invisibly if setting
+#' @export
+likeVolume <- function(x, strict = TRUE){
+  volFile <- attr(x, "likeVolume")
+  if(is.null(volFile) && strict) stop(deparse(substitute(x)), " does not have an associate likeVolume")
+  
+  volFile
 }
 
-mincConvertTagToMincArrayCoordinates <- function(tags, filename) {
-  tags <- tags[,c(1:3,7)] # get rid of repeated coordinates
-  out <- matrix(ncol=ncol(tags), nrow=nrow(tags))
-  for (i in 1:nrow(tags)) {
-    out[i,3:1] <- mincConvertWorldToVoxel(filename, tags[i,1], tags[i,2], tags[i,3]) + 1
-  }
-  out[,4] <- tags[,4]
-  return(out)
+#' @describeIn likeVolume setter
+#' @export
+`likeVolume<-` <- function(x, value){
+  attr(x, "likeVolume") <- value
+  invisible(x)
 }
+
+#' Get or set a mask file
+#' 
+#' Mask files control which voxels to perform operations on
+#' 
+#' @param x The minc object
+#' @param strict Whether or not to throw an error if the mask does not exist
+#' @param value The replacement value for the mask attribute
+#' @return The mask name if getting, or the object invisibly if setting
+#' @export
+maskFile <- function(x, strict = TRUE){
+  maskFile <- attr(x, "mask")
+  if(is.null(maskFile) && strict) stop(deparse(substitute(x)), " does not have an associated mask file")
+  
+  maskFile
+}
+
+#' @describeIn maskFile setter
+#' @export
+`maskFile<-` <- function(x, value){
+  attr(x, "mask") <- value
+  invisible(x)
+}
+    
 
 #' Retrieve Voxel Values
 #' 
@@ -222,13 +268,44 @@ mincGetVoxel <- function(filenames, v1, v2=NULL, v3=NULL) {
 #' @details Throws an error if a file is not found or not readable
 #' @return Returns NULL invisibly
 mincFileCheck <- function(filenames) {
+  enoughAvailableFileDescriptors(length(filenames))
+  
   for(i in 1:length(filenames) ) {
-    if(file.access(as.character(filenames[i]), 4) == -1 ){
+    if(is.na(filenames[i]) || file.access(as.character(filenames[i]), 4) == -1 ){
         stop("The following file could not be read (full filename is between the dashes): ---", filenames[i], "---")
     }
   }
   
   return(invisible(NULL))
+}
+
+#' Check file step sizes
+#' 
+#' Check if a collection of minc files all have the same step size.
+#' 
+#' @param filenames A character vector of minc file names
+#' @param atlas An optional atlas to compare against the files
+#' @param strict Should differences be treated as errors or warnings
+#' @param tolerance The tolerance for comparing step sizes, 10e-6 by default
+#' @return A 3-component vector of step sizes.
+#' 
+#' @export
+check_step_sizes <-
+  function(filenames, atlas = NULL, strict = FALSE, tolerance = 10e-6){
+  
+  issue <- `if`(strict, stop, warning)
+  #Check step sizes (the c++ code worries about dimensions)
+  sep_sizes <- as.matrix(sapply(filenames, minc.separation.sizes))
+  sapply(1:ncol(sep_sizes), function(i){
+    if(any(abs(sep_sizes[,i] - sep_sizes[,1]) > tolerance)) 
+      issue("File ", i, " differs in step sizes from the first file")
+  })
+  
+  if(!is.null(atlas) &&
+     any(abs(minc.separation.sizes(atlas) - sep_sizes[,1]) > tolerance))
+    issue("The atlas differs in step sizes from the files")
+  
+  return(sep_sizes[,1])
 }
 
 
@@ -423,8 +500,8 @@ mincGetVolume <- function(filename) {
                as.integer(sizes),
                hs=double(total.size), PACKAGE="RMINC")$hs
   class(output) <- c("mincSingleDim", "numeric")
-  attr(output, "filename") <- filename
-  attr(output, "likeVolume") <- filename
+  attr(output, "filename") <- as.character(filename)
+  attr(output, "likeVolume") <- as.character(filename)
   attr(output, "sizes") <- sizes
   return(output)
 }
@@ -434,6 +511,7 @@ mincGetVolume <- function(filename) {
 print.mincMultiDim <- function(x, ...) {
   cat("Multidimensional MINC volume\n")
   cat("Columns:      ", colnames(x), "\n")
+  
   print(attr(x, "likeVolume"))
 }
 
@@ -447,7 +525,12 @@ print.mincLogLikRatio <- function(x, ...) {
     cat("  Formula:  ")
     print(mincLmerList[[i]][[1]]$formula)
   }
-  cat("\nMask used:", attr(x, "mask"), "\n")
+  
+  mask <- attr(x, "mask")
+  if(!is.null(mask) && is.numeric(mask)) 
+    mask <- "<numeric vector>"
+  
+  cat("\nMask used: ", mask, "\n")
   cat("Chi-squared Degrees of Freedom:", attr(x, "df"), "\n")
 }
 
@@ -463,7 +546,12 @@ print.mincLmer <- function(x, ...) {
   else {
     cat("Fitted with ML\n")
   }
-  cat("Mask:         ", attr(x, "mask"), "\n")
+  
+  mask <- attr(x, "mask")
+  if(!is.null(mask) && is.numeric(mask)) 
+    mask <- "<numeric vector>"
+  
+  cat("Mask:         ", mask, "\n")
   cat("Columns:      ", colnames(x), "\n")
 }
       
@@ -489,6 +577,27 @@ print.mincQvals <- function(x, ...) {
   cat("Degrees of Freedom:", paste(attr(x, "DF")), "\n")
   cat("FDR Thresholds:\n")
   print(attr(x, "thresholds"))
+}
+
+#' @method summary mincQvals
+#' @export
+summary.mincQvals <- function(object, ...) {
+  # prints a table of the number of voxels that meet each threshold for each column
+  cn <- colnames(object)
+  object %>% 
+    as.data.frame %>% 
+    summarize_each_(funs(a=sum(. < 0.01, na.rm = TRUE),
+                         b=sum(. < 0.05, na.rm = TRUE),
+                         c=sum(. < 0.1, na.rm = TRUE),
+                         d=sum(. < 0.15, na.rm = TRUE),
+                         e=sum(. < 0.2, na.rm = TRUE)), 
+                    vars = sapply(cn, as.symbol)) %>% 
+    gather_("key", "value", names(.)) %>% 
+    separate_("key", c("var", "stat"), sep=-2) %>% 
+    spread_("var", "value") %>% 
+    mutate_(stat = ~ factor(stat, labels=paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20)))) %>%
+    select_(~ stat, ~ everything()) %>%
+    setNames(sub("_$","", names(.)))
 }
 
 
@@ -617,6 +726,22 @@ minc.dimensions.sizes <- function(filename) {
   return(sizes)
 }
 
+#' Slice Separations
+#' 
+#' Return the slice separation sizes for determining voxel volume
+#' 
+#' @param filename A minc file of interest
+#' @return a vector of the 3 slice separations
+#' @export
+minc.separation.sizes <- function(filename){
+  stopifnot(!is.null(filename))
+  
+  sizes <- .Call("get_minc_separations",
+                 as.character(filename),
+                 sizes = integer(3), PACKAGE="RMINC")
+  return(sizes)
+}
+
 #' Minc History
 #' 
 #' Retrieve or edit the history of a MINC Volume
@@ -636,7 +761,7 @@ minc.get.history <-
     
     history <- 
       .Call("get_minc_history",
-            filename)
+            as.character(filename))
     
     unlist(strsplit(history, "\n"))
   }
@@ -815,6 +940,9 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
 {
     append.file = TRUE
     if (headers == TRUE) {
+      # get rid of parentheses, as they can cause trouble
+        colnames(vertexData) <- gsub('[\\(\\)]', '', 
+                                     colnames(vertexData), perl=T)
         write("<header>", file = filename)
         if (is.object(mean.stats)) {
             write("<mean>", file = filename, append = TRUE)
@@ -972,7 +1100,7 @@ mincSelectRandomVoxels <- function(volumeFileName, nvoxels=50, convert=TRUE, ...
   #load volume - should be a binary mask
   mvol <- mincGetVolume(volumeFileName) 
   # get the indices of voxels inside mask
-  vinmask <- which(mvol %in% 1)
+  vinmask <- which(mvol > .5)
   # keep a random set of voxels
   indicesToKeep <-  vinmask[ floor(runif(nvoxels, min=1, max=length(vinmask))) ]
   if (convert == TRUE) {
@@ -1018,6 +1146,12 @@ enoughAvailableFileDescriptors <-
     return(enough_avail)
   }
 
+## NA corrector
+setNA <- function(x, val){ x[is.na(x)] <- val; x}
+
+## NaN corrector
+setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
+
 #' @title Run Testbed
 #' @description Run the test bed to ensure all RMINC functions
 #' work on your system
@@ -1026,10 +1160,11 @@ enoughAvailableFileDescriptors <-
 #' to print simplified results
 #' @param dataPath The directory to download and unpack the test data 
 #' (unpacks in dataPath/rminctestdata)
+#' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' @param ... additional parameter for \link[testthat]{test_dir}
 #' @return invisibly return the test results
 #' @export
-runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
+runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verboseTest = FALSE) {
   
   original_opts <- options()
   old_env_vars <- Sys.getenv(c("TEST_Q_MINC", "NOT_CRAN", "TRAVIS"))
@@ -1038,8 +1173,12 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
     do.call(Sys.setenv, as.list(old_env_vars))
   })
   
+  if(verboseTest) options(verbose = TRUE)
+  
   setRMINCMaskedValue(0)
   Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
+  
+  getRMINCTestData()
 
   # Run Tests
   rmincPath <- find.package("RMINC")
@@ -1060,17 +1199,19 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), verboseTest = FALSE) {
 #' \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
 #' @param dataPath The directory to download and unpack the test data 
 #' (unpacks in dataPath/rminctestdata)
+#' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
+#' and \code{wget}
 #' @export
-getRMINCTestData <- function(dataPath = tempdir()) {
+getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
 
   downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
   extractedPath <- file.path(dataPath, "rminctestdata/")
   
   if(!file.exists(downloadPath)){
     dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
-    download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz",
+    download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata2.tar.gz",
                   destfile = downloadPath,
-                  method = "wget") 
+                  method = method) # changed from "wget" to stop freakouts on mac
   }
   
   untar(downloadPath, exdir = dataPath, compressed = "gzip")
@@ -1103,15 +1244,19 @@ getRMINCTestData <- function(dataPath = tempdir()) {
 #' @param env the environment in which to run the expression, defaults
 #' to the calling environment
 #' @export
-verboseRun <- function(expr,verbose,env = parent.frame()) {
-	
-	env$expr <- expr
-	
+verboseRun <- function(expr,verbose = getOption("verbose", FALSE),env = parent.frame()) {
+
 	if(!verbose) {
 	  sink("/dev/null")
 	  on.exit(sink())
 	}
 	
-	output = with(env,eval(parse(text=expr)))
+	if(!is.language(substitute(expr))){
+	  output <- eval(parse(text=expr), envir = env) 
+	} else {
+	  output <- eval(expr, envir = env)
+	}
+	
 	return(invisible(output))
 }
+

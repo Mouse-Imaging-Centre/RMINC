@@ -1,4 +1,4 @@
-AC_INIT([RMINC], 1.4.2.1)
+AC_INIT([RMINC], 1.4.4)
 AC_PREREQ([2.68])
 AC_CONFIG_SRCDIR([src/slice_loop_functions.c])
 AC_PROG_CC
@@ -13,14 +13,15 @@ dnl include to CPPFLAGS -I, lib to LDFLAGS and the rpath
 AC_ARG_WITH([build-path],
 	AS_HELP_STRING([--with-build-path=DIR], [build using DIR/include and DIR/lib]),
 	[
-		#Build-path code taken from Steve Robbins m4 macro
-    		for d in `echo $withval | tr : ' '`; do
-       		    test -d $d || AC_MSG_ERROR([build path $d not found.])
-       		    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include/"
-       		    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib/ -Wl,-rpath,$d/lib/"
-   		done	
+          #Build-path code taken from Steve Robbins m4 macro
+    	  for d in `echo $withval | tr : ' '`; do
+       	    test -d $d || AC_MSG_ERROR([build path $d not found.])
+       	    test -d $d/include && CPPFLAGS="$CPPFLAGS -I$d/include/"
+       	    test -d $d/lib && LDFLAGS="$LDFLAGS -L$d/lib/ -Wl,-rpath,$d/lib/"
+   	  done
+	  MINC_PATH=$withval
+   	  MINC_FOUND="yes"
 	])
-
 
 dnl The adds a special variable MINC_TOOLKIT_BUILD_DIR to the configure script
 AC_ARG_VAR([MINC_TOOLKIT_BUILD_DIR],[where to build minctoolkit, default $HOME/local/minc-itk4/])

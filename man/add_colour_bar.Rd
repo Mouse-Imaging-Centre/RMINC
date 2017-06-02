@@ -29,4 +29,3 @@ invisible NULL
 Add a colour bar that corresponds to the colours in a given colourized mesh
 to the current rgl device
 }
-

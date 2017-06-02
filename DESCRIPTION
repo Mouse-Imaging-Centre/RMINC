@@ -1,6 +1,6 @@
 Package: RMINC
-Version: 1.4.2.1
-Date: 2016-05-02
+Version: 1.4.4.0
+Date: 2017-05-31
 Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
 Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
              person("Chris", "Hammill", role = c("aut", "cre"), email = "cfhammill@gmail.com"),
@@ -17,23 +17,29 @@ Depends:
     BatchJobs
 Imports:
     dplyr,
+    tidyr,
     lme4,
     shiny,
     methods,
     grDevices,
     graphics,
+    grid,
+    gridBase,
     utils,
     stats,
     Rcpp,
     parallel,
-    Matrix
+    Matrix,
+    tibble,
+    yaml
 Suggests:
     rgl,
     plotrix,
     lmerTest,
     BiocInstaller,
     qvalue,
-    testthat
+    testthat,
+    igraph
 LinkingTo: 
     Rcpp,
 SystemRequirements:
@@ -46,7 +52,6 @@ SystemRequirements:
 License: BSD_3_clause + file LICENSE
 LazyLoad: yes
 OS_type: unix
-SystemRequirements: 
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
