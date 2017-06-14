@@ -327,7 +327,7 @@ useDynLib(RMINC)
 import(
   dplyr,
   lme4,
-  rgl,
+  #rgl,
   grDevices,
   methods,
   grid,
