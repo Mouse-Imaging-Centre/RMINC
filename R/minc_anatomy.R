@@ -800,6 +800,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
+#' @param weights An optional set of weights to use the regression, must be one per subject
 #' @return Returns an object containing the R-Squared,value,coefficients,F 
 #' and t statistcs that can be passed directly into anatFDR. Additionally
 #' has the attributes for model,stat type and degrees of freedom.
@@ -813,7 +814,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
 #' } 
 #' @export
-anatLm <- function(formula, data, anat, subset=NULL) {
+anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
   
   #INITIALIZATION
   matrixFound = FALSE
@@ -888,7 +889,14 @@ anatLm <- function(formula, data, anat, subset=NULL) {
     rows = colnames(mmatrix) 
     data.matrix.right = matrix()
   }
-  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  
+  if(!is.null(weights)){
+    if(length(weights) != nrow(mmatrix)) stop("Incorrect number of weights supplied, need one per observation")
+    result <- .Call("vertex_wlm_loop",data.matrix.left,data.matrix.right,mmatrix,weights,PACKAGE="RMINC") 
+  } else {
+    result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  }
+  
   rownames(result) <- colnames(anat)
   
   # the order of return values is:
