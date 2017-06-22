@@ -132,7 +132,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' where mask is greater than .5)
 #' @param parallel A two component vector indicating how to parallelize the computation. If the 
 #' first element is "local" the computation will be run via the parallel package, otherwise it will
-#' be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 #' indicating the number of jobs to split the computation into.
 #' @param collate A function to reduce the (potentially masked) list of results into a nice
 #' structure. Defaults to \link{simplify_masked}

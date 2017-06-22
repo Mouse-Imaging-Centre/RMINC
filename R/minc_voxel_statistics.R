@@ -367,7 +367,7 @@ voxel_anova_wrapper <- function(filenames, model_matrix, mask, mask_min, mask_ma
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
@@ -568,7 +568,7 @@ mincLm_c_wrapper <-
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
@@ -883,7 +883,7 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 # Specified as a two element vector, with the first element corresponding to
 # the type of parallelization, and the second to the number
 # of processors to use. For local running set the first element to "local" or "snowfall"
-# for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+# for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 # and \link{configureMincParallel} for details.
 # Leaving this argument NULL runs sequentially.
 
@@ -909,7 +909,7 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' replacement)
 #' @param parallel A two component vector indicating how to parallelize the computation. If the 
 #' first element is "local" the computation will be run via the parallel package, otherwise it will
-#' be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 #' indicating the number of jobs to split the computation into.
 #' @param ... additional arguments for methods
 #' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,

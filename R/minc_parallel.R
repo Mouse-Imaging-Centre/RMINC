@@ -3,7 +3,7 @@
 #' Set up configuration for running parallel jobs with RMINC
 #' Use a standard configuration for SGE and Torque queuing systems
 #' or setup a custom configuration. Essentially a wrapper to
-#' \link{loadConfig} from BatchJobs, with two standard configurations
+#' \link{loadConfig} from batchtools, with two standard configurations
 #' provided. 
 #' 
 #' @param queue_type one of custom, sge, or pbs (torque)
@@ -12,11 +12,11 @@
 #' @return returns the configuration list invisibly
 #' @details 
 #' In order for parallelization to be as general as possible we provide means to setup the parallelization
-#' backend (BatchJobs) for any type of queuing system. For details on how to configure BatchJobs see
-#' \url{https://github.com/tudo-r/BatchJobs/wiki/Configuration}, or get inspiration from the SGE and PBS
+#' backend (batchtools) for any type of queuing system. For details on how to configure batchtools see
+#' \url{https://github.com/tudo-r/batchtools/wiki/Configuration}, or get inspiration from the SGE and PBS
 #' template scripts provided for SGE and PBS are located in \code{system.file("parallel/", package = "RMINC")}.
 #' Use of this function can be unnecessary, RMINC honours the hierarchy
-#' of configuration files <BatchJobs>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
+#' of configuration files <batchtools>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
 #' you can edit one of these files to suit your use case. Alternatively, you can modify
 #' your R \link{Startup} files with \code{
 #' setHook(packageEvent("RMINC", "attach"),
@@ -337,14 +337,14 @@ mcMincApply <-
 #' @param batches The number of batches to divide the job into, this is ignored for
 #' multicore jobs, with the number of batches set to the number of cores.
 #' @param cores the number of cores to parallelize across for each worker, defaults to 1
-#' but higher numbers may be useful for BatchJobs multicore or systems like SciNet that do
+#' but higher numbers may be useful for batchtools multicore or systems like SciNet that do
 #' not allocate single core jobs.
 #' @param resources The resources to request for each job, overrides the \code{default.resources}
 #' specified in the configuration list. See \link{configureMincParallel} for more on configuration 
 #' @param packages packages to be loaded for each job in a registry
 #' @param temp_dir A directory to store files needed for the parallelization
 #' and job management
-#' @param registry_name The name to give your BatchJobs registry
+#' @param registry_name The name to give your batchtools registry
 #' @param wait Whether to wait for your results or return a registry object
 #' to be checked on later
 #' @param cleanup Whether to empty the registry after a successful run defaults
@@ -356,9 +356,9 @@ mcMincApply <-
 #' @param registry_dir where qMincRegistry should create the registry
 #' @param registry a pre-existing job registry
 #' @details RMINC's batching facilities are inherited with little modification from
-#' the BatchJobs package, mostly just providing handy wrappers to handle registry
+#' the batchtools package, mostly just providing handy wrappers to handle registry
 #' creation, batching, submission, and reduction. The abstractions provided are very leaky
-#' and it is worth learning about BatchJobs to handle more complex situations. Formerly one
+#' and it is worth learning about batchtools to handle more complex situations. Formerly one
 #' could set the parallelization method from this function, this has been removed. 
 #' Controlling how and where to execute the parallel jobs is now handled by 
 #' \link{configureMincParallel}.
@@ -368,7 +368,7 @@ mcMincApply <-
 #' is called, the results are returned after collation with \code{collate}
 #' }
 #' \item{If \code{qMincApply} is called with \code{wait = FALSE} or if \code{qMincRegistry} or
-#' \code{qMincMap} are called  a BatchJobs registry is returned that can be used to 
+#' \code{qMincMap} are called  a batchtools registry is returned that can be used to 
 #' query job states, kill jobs, and collected results
 #' }
 #' }

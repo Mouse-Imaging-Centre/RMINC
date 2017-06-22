@@ -49,13 +49,13 @@ specified in the configuration list. See \link{configureMincParallel} for more o
 
 \item{packages}{packages to be loaded for each job in a registry}
 
-\item{registry_name}{The name to give your BatchJobs registry}
+\item{registry_name}{The name to give your batchtools registry}
 
 \item{temp_dir}{A directory to store files needed for the parallelization
 and job management}
 
 \item{cores}{the number of cores to parallelize across for each worker, defaults to 1
-but higher numbers may be useful for BatchJobs multicore or systems like SciNet that do
+but higher numbers may be useful for batchtools multicore or systems like SciNet that do
 not allocate single core jobs.}
 
 \item{wait}{Whether to wait for your results or return a registry object
@@ -81,7 +81,7 @@ even if all jobs are not complete.}
 is called, the results are returned after collation with \code{collate}
 }
 \item{If \code{qMincApply} is called with \code{wait = FALSE} or if \code{qMincRegistry} or
-\code{qMincMap} are called  a BatchJobs registry is returned that can be used to 
+\code{qMincMap} are called  a batchtools registry is returned that can be used to 
 query job states, kill jobs, and collected results
 }
 }
@@ -109,9 +109,9 @@ maintaining the ability to access results when the jobs have finished.
 }
 \details{
 RMINC's batching facilities are inherited with little modification from
-the BatchJobs package, mostly just providing handy wrappers to handle registry
+the batchtools package, mostly just providing handy wrappers to handle registry
 creation, batching, submission, and reduction. The abstractions provided are very leaky
-and it is worth learning about BatchJobs to handle more complex situations. Formerly one
+and it is worth learning about batchtools to handle more complex situations. Formerly one
 could set the parallelization method from this function, this has been removed. 
 Controlling how and where to execute the parallel jobs is now handled by 
 \link{configureMincParallel}.

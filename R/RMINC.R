@@ -9,7 +9,7 @@
 #' @import shiny
 #' @import Rcpp
 #' @import lme4
-#' @import BatchJobs
+#' @import batchtools
 #' @import methods
 #' @importFrom Matrix diag
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow

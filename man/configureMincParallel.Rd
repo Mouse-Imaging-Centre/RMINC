@@ -20,16 +20,16 @@ returns the configuration list invisibly
 Set up configuration for running parallel jobs with RMINC
 Use a standard configuration for SGE and Torque queuing systems
 or setup a custom configuration. Essentially a wrapper to
-\link{loadConfig} from BatchJobs, with two standard configurations
+\link{loadConfig} from batchtools, with two standard configurations
 provided.
 }
 \details{
 In order for parallelization to be as general as possible we provide means to setup the parallelization
-backend (BatchJobs) for any type of queuing system. For details on how to configure BatchJobs see
-\url{https://github.com/tudo-r/BatchJobs/wiki/Configuration}, or get inspiration from the SGE and PBS
+backend (batchtools) for any type of queuing system. For details on how to configure batchtools see
+\url{https://github.com/tudo-r/batchtools/wiki/Configuration}, or get inspiration from the SGE and PBS
 template scripts provided for SGE and PBS are located in \code{system.file("parallel/", package = "RMINC")}.
 Use of this function can be unnecessary, RMINC honours the hierarchy
-of configuration files <BatchJobs>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
+of configuration files <batchtools>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
 you can edit one of these files to suit your use case. Alternatively, you can modify
 your R \link{Startup} files with \code{
 setHook(packageEvent("RMINC", "attach"),
