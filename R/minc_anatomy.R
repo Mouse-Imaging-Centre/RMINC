@@ -267,7 +267,7 @@ anatGetAll <-
 
 # Convert an RMINC style atlas label set to a nice data.frame
 create_labels_frame <-
-  function(defs, side = c("both", "left", "right"), keep_hierarchy = FALSE){
+  function(defs, side = c("both", "left", "right"), hierarchy = NULL){
     side <- match.arg(side)
     
     # if the definitions are given, check to see that we can read the 
@@ -281,16 +281,22 @@ create_labels_frame <-
     label_defs <- 
       read.csv(defs, stringsAsFactors = FALSE)
     
-    if("hierarchy" %in% names(label_defs) & keep_hierarchy){
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label, ~ hierarchy)
+    if("hierarchy" %in% names(label_defs) & !is.null(hierarchy)){
+      label_defs <- 
+        select(label_defs
+               , !!! c("Structure"
+                       , "left.label"
+                       , "right.label"
+                       , hierarchy)) %>% ##new tidyeval
+        rename(hierarchy = !!hierarchy)
     } else {
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label)
+      label_defs <- select(label_defs, !!! c("Structure", "left.label", "right.label"))
     }
     
     label_defs <- 
       label_defs %>%
-      mutate_(both_sides = ~ right.label == left.label) %>%
-      gather_("hemisphere", "label", c("right.label", "left.label")) %>%
+      mutate(both_sides = !! quo(right.label == left.label)) %>%
+      gather("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
                 ~ ifelse(both_sides
                          , Structure
@@ -304,9 +310,9 @@ create_labels_frame <-
       mutate_(hierarchy = 
                 ~ with(.
                        , case_when(is.na(hierarchy) | hierarchy == "" ~ ""
-                                 , both_sides ~ hierarchy
-                                 , hemisphere == "right.label" ~ paste0("right ", hierarchy)
-                                 , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
+                                   , both_sides ~ hierarchy
+                                   , hemisphere == "right.label" ~ paste0("right ", hierarchy)
+                                   , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
     
     label_defs <-
       switch(side
@@ -551,9 +557,9 @@ anatSummarize <-
     
     if(is.character(summarize_by) && length(summarize_by == 1)){
       summarize_by <- 
-        create_labels_frame(defs, keep_hierarchy = TRUE) %>%
+        create_labels_frame(defs, hierarchy = summarize_by) %>%
         select_(~ -label) %>%
-        rename_(label = "Structure", group = summarize_by)
+        rename_(label = "Structure", group = "hierarchy")
     }
     
     if(!discard_missing){
