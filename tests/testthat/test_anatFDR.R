@@ -121,3 +121,7 @@ test_that("anatFDR Three Factors Interaction",{
 	expect_that(rLmFDR6[2],is_equivalent_to(rmincFDR[2,7]))
 	expect_that(rLmFDR6[3],is_equivalent_to(rmincFDR[3,7]))
 })
+
+test_that("rownames are preserved", {
+  expect_equal(rownames(rmincFDR), rownames(rmincLm))
+})
