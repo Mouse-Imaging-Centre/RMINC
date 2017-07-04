@@ -281,7 +281,7 @@ create_labels_frame <-
     label_defs <- 
       read.csv(defs, stringsAsFactors = FALSE)
     
-    if("hierarchy" %in% names(label_defs) & !is.null(hierarchy)){
+    if(!is.null(hierarchy) && hierarchy %in% names(label_defs)){
       label_defs <- 
         select(label_defs
                , !!! c("Structure"
