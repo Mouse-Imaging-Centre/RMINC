@@ -251,26 +251,28 @@ mincLmerEstimateDF <- function(model) {
   nvoxels <- 50
   rvoxels <- mincSelectRandomVoxels(mask, nvoxels)
   dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
+  original_data <- attr(model, "data")
+  
+  ## It seems LmerTest cannot compute the deviance function for mincLmers
+  ## in the current version, instead extract the model components from
+  ## the mincLmerList and re-fit the lmers directly at each structure,
+  ## Slower but yeilds the correct result
+  lmod <- mincLmerList[[1]]
+  LHS <- as.character(lmod$formula[[2]])
+  model_form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
+  environment(model_form) <- environment()
+  
+  filenames <- unique(mincLmerList[[1]]$fr[,1])
+  row_file_match <- match(original_data[[LHS]], filenames)
   
   for (i in 1:nvoxels) {
     rand_inds <- rvoxels[i,]
-    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rand_inds)
-    RMINC_DUMMY_LHS <- voxelData
+    voxel_data <- mincGetVoxel(filenames, rand_inds)
     
-    ## It seems LmerTest cannot compute the deviance function for mincLmers
-    ## in the current version, instead extract the model components from
-    ## the mincLmerList and re-fit the lmers directly at each structure,
-    ## Slower but yeilds the correct result
-    original_data <- attr(model, "data")
-    lmod <- mincLmerList[[1]]
-    
-    # Rebuild the environment of the formula, otherwise updating does not
-    # ensuring it can find both RMINC_DUMMY_LHS and original_data
-    lmod$formula <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
-    environment(lmod$formula) <- environment()
+    original_data$RMINC_DUMMY_LHS <- voxel_data[row_file_match]
     
     mmod <-
-      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
+      lmerTest::lmer(model_form, data = original_data, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
