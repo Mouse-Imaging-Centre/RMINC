@@ -96,7 +96,7 @@ test_that("anatLm Three Factors Interaction",{
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
 
-contex("Test weighted anatLm")
+context("weighted anatLm")
 
 test_that("Weighted anatLm works", {
   w <- runif(20)
