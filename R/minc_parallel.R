@@ -263,7 +263,7 @@ mcMincApply <-
     mincApplyArguments$return_indices <- TRUE
     
     results <- 
-      quiet_mcmapply(mincApplyRCPP,
+      failing_mcmapply(mincApplyRCPP,
                      maskval = mask_vals,
                      MoreArgs = mincApplyArguments,
                      SIMPLIFY = FALSE,

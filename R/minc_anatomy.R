@@ -209,7 +209,7 @@ anatGetAll <-
       # a vector with two elements: the methods followed by the # of workers
       if (parallel[1] %in% c("local", "snowfall")) {
         out <- 
-          parallel::mclapply(groups, function(group){
+          failing_mclapply(groups, function(group){
             compute_summary(filenames[group])
           }, mc.cores = n_groups) %>%
           reduce_matrices %>%
