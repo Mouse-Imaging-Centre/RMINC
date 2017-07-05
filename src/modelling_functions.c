@@ -487,12 +487,12 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
         &rank, pivot, qraux, work);
   
   // Check if pivoting occurred
-  bool pivoted = false;
+  int pivoted = 0;
   for(j = 0; j < p; ++j){
     if(pivot[j] != j){ 
-      error("Pivoted");
-      //pivoted = true;
-      //break;
+      //error("Pivoted");
+      pivoted = 1;
+      break;
     }
   }
   
