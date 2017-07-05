@@ -123,6 +123,7 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   xoutput[p+1] = mss / (mss + rss);
   xoutput[p+2] = logLik;
   free(xws);
+  free(y);
   UNPROTECT(nprot);
   return(output);
 }

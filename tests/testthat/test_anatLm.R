@@ -109,3 +109,4 @@ test_that("Weighted anatLm works", {
   expect_equivalent(sapply(lmods, logLik), alm[,"logLik"])
   expect_equivalent(sapply(lmods, AIC), AIC(alm))
 })
+
