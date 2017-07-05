@@ -486,12 +486,25 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   F77_CALL(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
         &rank, pivot, qraux, work);
   
-  double *piv_coefficients = (double *) malloc(p * sizeof(double));
-  memcpy(piv_coefficients, coefficients, p * sizeof(double));
-  for(j = 0; j < p; ++j)
-    if(pivot[j] != j) error("Pivoted");
-    //coefficients[pivot[j]] = piv_coefficients[j];
-  free(piv_coefficients);
+  // Check if pivoting occurred
+  bool pivoted = false;
+  for(j = 0; j < p; ++j){
+    if(pivot[j] != j){ 
+      error("Pivoted");
+      //pivoted = true;
+      //break;
+    }
+  }
+  
+  // Unpivot
+  if(pivoted){
+    double *piv_coefficients = (double *) malloc(p * sizeof(double));
+    memcpy(piv_coefficients, coefficients, p * sizeof(double));
+    for(j = 0; j < p; ++j)
+      if(pivot[j] == j)
+        coefficients[pivot[j]] = piv_coefficients[j];
+    free(piv_coefficients);
+  }
 
   // Calculate the f-statistic first
   rss = 0; // residual sum of squares
