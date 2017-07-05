@@ -54,6 +54,8 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   //Rprintf("coly %d rowy %d\n", ny,ny1);
   rank = 1;
   tol = 1e-07;
+  for(int j = 0; j < p; ++j)
+    pivot[j] = j;
   
   // compute the least squares solution:
   F77_CALL(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
@@ -195,9 +197,7 @@ SEXP vertex_wlm_loop(SEXP data_left, SEXP data_right,SEXP mmatrix, SEXP ws)  {
   t = malloc(sizeof(double) * p);
   
   Rprintf("N: %d P: %d\n", n,p);
-  
-  for(int j = 0; j < p; ++j)
-    pivot[j] = j;
+
   // protect voxel_lm output, currently returns:
   // 
   // f-statistic

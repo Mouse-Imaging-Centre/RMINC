@@ -479,10 +479,19 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   //Rprintf("coly %d rowy %d\n", ny,ny1);
   rank = 1;
   tol = 1e-07;
-
+  for(int j = 0; j < p; ++j)
+    pivot[j] = j;
+  
   // compute the least squares solution:
   F77_CALL(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
         &rank, pivot, qraux, work);
+  
+  double *piv_coefficients = (double *) malloc(p * sizeof(double));
+  memcpy(piv_coefficients, coefficients, p * sizeof(double));
+  for(j = 0; j < p; ++j)
+    if(pivot[j] != j) error("Pivoted");
+    //coefficients[pivot[j]] = piv_coefficients[j];
+  free(piv_coefficients);
 
   // Calculate the f-statistic first
   rss = 0; // residual sum of squares
