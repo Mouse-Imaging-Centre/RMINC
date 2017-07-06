@@ -36,9 +36,9 @@ Exploring your data using the shiny app (launch_shinyRMINC):
 
 Analyzing volume differences in neuroanatomy with a single set of labels
 
-|     When you are analyzing structures, make sure that the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless
-|   Use the Jacobian determinants that capture the absolute differences (in our case the *log-determinant-scaled* )
-|    Use little blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the *log-determinant-scaled-fwhm0.1* )
+>     When you are analyzing structures, make sure that the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless
+>   Use the Jacobian determinants that capture the absolute differences (in our case the *log-determinant-scaled* )
+>    Use little blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the *log-determinant-scaled-fwhm0.1* )
 
 
 To analyze individual structures in the brain, you will need two things: a set of registered images and an atlas that segments the final average of your registration pipeline into classified labels. This is known as a classified atlas. (Information about how you can align a segmented set of labels to your data set can be found here: Atlas to Atlas Segmentation) The main idea is the following: Through the registration pipeline we have information about the change in volume of the voxels for each of the individual mouse brains. This is captured in the Jacobian determinant files. Using the classified atlas, we can integrate the information captured in the Jacobian determinants to find out the volume of the structures for each of the individual input files.
@@ -50,6 +50,7 @@ A second thing to keep in mind is that the registration pipeline produces two ty
 FILENAME_BASE-log-determinant-scaled-fwhm_KERNEL_.mnc
 
 Here is an example of how to do the analysis in R
+
 ```
 library(RMINC)
  
@@ -57,7 +58,7 @@ library(RMINC)
  
 filenames
 ```
-
+-
 ```
  scaled_jacobians                              genotype
 1 01_wt-log-determinant-scaled-fwhm0.1.mnc           wt
@@ -69,7 +70,7 @@ filenames
 7 07_mut-log-determinant-scaled-fwhm0.1.mnc         mut
 8 08_mut-log-determinant-scaled-fwhm0.1.mnc         mut
 ```
-
+-
 ```
 # The first thing to do now is to get the volume information of all the structures, the atlas with the labels is called resampled_atlas.mnc
  
@@ -87,7 +88,7 @@ anatLm(~ genotype, filenames, volumes_combined)
  
 anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 ```
-
+-
 ```
 N: 20 P: 2
 Beginning vertex loop: 62 3
@@ -108,7 +109,7 @@ FDR Thresholds:
 0.15  14.99036     25.36429    3.871739
 0.2   14.99036     25.36429    3.871739
 There were 11 warnings (use warnings() to see them)
- ```
+```
  
 ```
 # Which will give a table indicating what is significant at which FDR thresholds. In this case, all structures that have a t-statistic of at least 6.172145 or at most -6.172145 are significant at a 5% FDR threshold, all structures that have a t-statistic of at least 4.542356 or at most -4.542356 are significant at a 10% FDR threshold, etc. There are no structures significantly different at a 1% FDR threshold as indicated by the NaN.

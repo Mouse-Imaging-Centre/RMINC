@@ -45,14 +45,12 @@ Exploring your data using the shiny app (launch\_shinyRMINC):
 
 Analyzing volume differences in neuroanatomy with a single set of labels
 
-    When you are analyzing structures, make sure that the label file you
-use accurately segments out your final non-linear model otherwise your
-analysis will be meaningless  
-  Use the Jacobian determinants that capture the absolute differences
-(in our case the *log-determinant-scaled* )  
-   Use little blurring, for instance for files with a 56 micron
-resolution use 100 micron blur (in our case the
-*log-determinant-scaled-fwhm0.1* )
+>     When you are analyzing structures, make sure that the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless
+>
+> Use the Jacobian determinants that capture the absolute differences
+> (in our case the *log-determinant-scaled* ) Use little blurring, for
+> instance for files with a 56 micron resolution use 100 micron blur (in
+> our case the *log-determinant-scaled-fwhm0.1* )
 
 To analyze individual structures in the brain, you will need two things:
 a set of registered images and an atlas that segments the final average
@@ -93,52 +91,50 @@ Here is an example of how to do the analysis in R
      
     filenames
 
-     scaled_jacobians                              genotype
-    1 01_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-    2 02_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-    3 03_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-    4 04_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-    5 05_mut-log-determinant-scaled-fwhm0.1.mnc         mut
-    6 06_mut-log-determinant-scaled-fwhm0.1.mnc         mut
-    7 07_mut-log-determinant-scaled-fwhm0.1.mnc         mut
-    8 08_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+-    scaled_jacobians                              genotype
+        1 01_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+        2 02_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+        3 03_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+        4 04_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+        5 05_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+        6 06_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+        7 07_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+        8 08_mut-log-determinant-scaled-fwhm0.1.mnc         mut
 
-    # The first thing to do now is to get the volume information of all the structures, the atlas with the labels is called resampled_atlas.mnc
-     
-    volumes <- anatGetAll(filenames$scaled_jacobians, "resampled_atlas.mnc")
-     
-    # This atlas contains information about both left and right structures, but in this case we will combine the information of left and right structures and only look at combined volumes:
-     
-    volumes_combined <- anatCombineStructures(volumes)
-     
-    # Run a linear model to get information about f-statistics and t-statistics on the structures. The first argument is the formula to be used, in this case we want to look at differences between the genotype, the second argument is the data which is stored in the variable filenames, and lastly the actual volume information
-     
-    anatLm(~ genotype, filenames, volumes_combined)
-     
-    # The output will be a list of all the structures with a number of columns for the values of the f-statistics and t-statistics. Next to find out which of these changes survive multiple comparison corrections:
-     
-    anatFDR(anatLm(~ genotype, filenames, volumes_combined))
+-   \`\`\` \# The first thing to do now is to get the volume information
+    of all the structures, the atlas with the labels is called
+    resampled\_atlas.mnc
 
-    N: 20 P: 2
-    Beginning vertex loop: 62 3
-    Done with vertex loop
-    Computing FDR threshold for all columns
-     Computing threshold for F-statistic
-     Computing threshold for (Intercept)
-     Computing threshold for genotypewt
-    Multidimensional MINC volume
-    Columns: F-statistic (Intercept) genotypewt
-    NULL
-    Degrees of Freedom: c(1, 18) 18 18
-    FDR Thresholds:
-         F-statistic (Intercept) genotypewt
-    0.01       NaN     25.36429         NaN
-    0.05  20.80325     25.36429    6.172145
-    0.1   17.94643     25.36429    4.542356
-    0.15  14.99036     25.36429    3.871739
-    0.2   14.99036     25.36429    3.871739
-    There were 11 warnings (use warnings() to see them)
-     ```
+volumes &lt;- anatGetAll(filenames$scaled\_jacobians,
+"resampled\_atlas.mnc")
+
+This atlas contains information about both left and right structures, but in this case we will combine the information of left and right structures and only look at combined volumes:
+======================================================================================================================================================================================
+
+volumes\_combined &lt;- anatCombineStructures(volumes)
+
+Run a linear model to get information about f-statistics and t-statistics on the structures. The first argument is the formula to be used, in this case we want to look at differences between the genotype, the second argument is the data which is stored in the variable filenames, and lastly the actual volume information
+================================================================================================================================================================================================================================================================================================================================
+
+anatLm(~ genotype, filenames, volumes\_combined)
+
+The output will be a list of all the structures with a number of columns for the values of the f-statistics and t-statistics. Next to find out which of these changes survive multiple comparison corrections:
+==============================================================================================================================================================================================================
+
+anatFDR(anatLm(~ genotype, filenames, volumes\_combined))
+
+    -
+
+N: 20 P: 2 Beginning vertex loop: 62 3 Done with vertex loop Computing
+FDR threshold for all columns Computing threshold for F-statistic
+Computing threshold for (Intercept) Computing threshold for genotypewt
+Multidimensional MINC volume Columns: F-statistic (Intercept) genotypewt
+NULL Degrees of Freedom: c(1, 18) 18 18 FDR Thresholds: F-statistic
+(Intercept) genotypewt 0.01 NaN 25.36429 NaN 0.05 20.80325 25.36429
+6.172145 0.1 17.94643 25.36429 4.542356 0.15 14.99036 25.36429 3.871739
+0.2 14.99036 25.36429 3.871739 There were 11 warnings (use warnings() to
+see them)
+
      
 
 Which will give a table indicating what is significant at which FDR thresholds. In this case, all structures that have a t-statistic of at least 6.172145 or at most -6.172145 are significant at a 5% FDR threshold, all structures that have a t-statistic of at least 4.542356 or at most -4.542356 are significant at a 10% FDR threshold, etc. There are no structures significantly different at a 1% FDR threshold as indicated by the NaN.
