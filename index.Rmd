@@ -1,19 +1,20 @@
 ---
-title: "RMINC"
-output: md_document
+output: github_document
 ---
 
-RMINC is a library for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files.
+## RMINC 
+
+s a library for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files.
 
 ## Document Outline 
-1. Development
-2. Getting Help
+- **Development**
+- **Getting Help**
     - Some of the latest tutorials from GitHub
-3. Examples
+- **Examples**
     - Analyzing volume differences in neuroanatomy with a single set of labels
     - Analyzing differences in neuroanatomy with multiple sets of labels
     - pMincApply
-4. Installation
+- **Installation**
    
 ## Development
 
@@ -21,7 +22,12 @@ The main development home for RMINC can be found here: RMINC on Github - that pa
 Documentation
 
 ## Getting help
-TODO add more
+
+The most thorough walk-through of RMINC functionality can be found in: https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/documentation/RMINC-userGuide.pdf
+
+Although some components may now be out of date
+
+The best place for function specific help is the manual, which is best accessed through `?`/`help` interfaces from within R
 
 RMINC Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
 
@@ -36,9 +42,11 @@ Exploring your data using the shiny app (launch_shinyRMINC):
 
 Analyzing volume differences in neuroanatomy with a single set of labels
 
->     When you are analyzing structures, make sure that the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless
->   Use the Jacobian determinants that capture the absolute differences (in our case the *log-determinant-scaled* )
->    Use little blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the *log-determinant-scaled-fwhm0.1* )
+>  When you are analyzing structures, make sure that the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless
+
+>  Use the Jacobian determinants that capture the absolute differences (in our case the *log-determinant-scaled* )
+
+>  Use little blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the *log-determinant-scaled-fwhm0.1* )
 
 
 To analyze individual structures in the brain, you will need two things: a set of registered images and an atlas that segments the final average of your registration pipeline into classified labels. This is known as a classified atlas. (Information about how you can align a segmented set of labels to your data set can be found here: Atlas to Atlas Segmentation) The main idea is the following: Through the registration pipeline we have information about the change in volume of the voxels for each of the individual mouse brains. This is captured in the Jacobian determinant files. Using the classified atlas, we can integrate the information captured in the Jacobian determinants to find out the volume of the structures for each of the individual input files.
@@ -59,6 +67,7 @@ library(RMINC)
 filenames
 ```
 
+---
 
 ```
  scaled_jacobians                              genotype
@@ -72,6 +81,7 @@ filenames
 8 08_mut-log-determinant-scaled-fwhm0.1.mnc         mut
 ```
 
+---
 
 ```{r, eval = FALSE}
 # The first thing to do now is to get the volume information of all the structures, the atlas with the labels is called resampled_atlas.mnc
@@ -91,6 +101,7 @@ anatLm(~ genotype, filenames, volumes_combined)
 anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 ```
 
+---
 
 ```
 N: 20 P: 2
@@ -173,12 +184,16 @@ library(car)
 leveneTest(voxel, gf$Strain, center=mean)
 ```
 
+---
+
 ```
 Levene's Test for Homogeneity of Variance (center = mean)
       Df F value Pr(>F)
 group  2  1.5514 0.2188
       74              
 ```
+
+---
 
 ```{r, eval = FALSE}
 # in this example we will extract the F value, and the
