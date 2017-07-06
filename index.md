@@ -91,201 +91,179 @@ Here is an example of how to do the analysis in R
      
     filenames
 
--    scaled_jacobians                              genotype
-        1 01_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-        2 02_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-        3 03_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-        4 04_wt-log-determinant-scaled-fwhm0.1.mnc           wt
-        5 05_mut-log-determinant-scaled-fwhm0.1.mnc         mut
-        6 06_mut-log-determinant-scaled-fwhm0.1.mnc         mut
-        7 07_mut-log-determinant-scaled-fwhm0.1.mnc         mut
-        8 08_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+     scaled_jacobians                              genotype
+    1 01_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+    2 02_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+    3 03_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+    4 04_wt-log-determinant-scaled-fwhm0.1.mnc           wt
+    5 05_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+    6 06_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+    7 07_mut-log-determinant-scaled-fwhm0.1.mnc         mut
+    8 08_mut-log-determinant-scaled-fwhm0.1.mnc         mut
 
--   \`\`\` \# The first thing to do now is to get the volume information
-    of all the structures, the atlas with the labels is called
-    resampled\_atlas.mnc
-
-volumes &lt;- anatGetAll(filenames$scaled\_jacobians,
-"resampled\_atlas.mnc")
-
-This atlas contains information about both left and right structures, but in this case we will combine the information of left and right structures and only look at combined volumes:
-======================================================================================================================================================================================
-
-volumes\_combined &lt;- anatCombineStructures(volumes)
-
-Run a linear model to get information about f-statistics and t-statistics on the structures. The first argument is the formula to be used, in this case we want to look at differences between the genotype, the second argument is the data which is stored in the variable filenames, and lastly the actual volume information
-================================================================================================================================================================================================================================================================================================================================
-
-anatLm(~ genotype, filenames, volumes\_combined)
-
-The output will be a list of all the structures with a number of columns for the values of the f-statistics and t-statistics. Next to find out which of these changes survive multiple comparison corrections:
-==============================================================================================================================================================================================================
-
-anatFDR(anatLm(~ genotype, filenames, volumes\_combined))
-
-    -
-
-N: 20 P: 2 Beginning vertex loop: 62 3 Done with vertex loop Computing
-FDR threshold for all columns Computing threshold for F-statistic
-Computing threshold for (Intercept) Computing threshold for genotypewt
-Multidimensional MINC volume Columns: F-statistic (Intercept) genotypewt
-NULL Degrees of Freedom: c(1, 18) 18 18 FDR Thresholds: F-statistic
-(Intercept) genotypewt 0.01 NaN 25.36429 NaN 0.05 20.80325 25.36429
-6.172145 0.1 17.94643 25.36429 4.542356 0.15 14.99036 25.36429 3.871739
-0.2 14.99036 25.36429 3.871739 There were 11 warnings (use warnings() to
-see them)
-
+    # The first thing to do now is to get the volume information of all the structures, the atlas with the labels is called resampled_atlas.mnc
      
+    volumes <- anatGetAll(filenames$scaled_jacobians, "resampled_atlas.mnc")
+     
+    # This atlas contains information about both left and right structures, but in this case we will combine the information of left and right structures and only look at combined volumes:
+     
+    volumes_combined <- anatCombineStructures(volumes)
+     
+    # Run a linear model to get information about f-statistics and t-statistics on the structures. The first argument is the formula to be used, in this case we want to look at differences between the genotype, the second argument is the data which is stored in the variable filenames, and lastly the actual volume information
+     
+    anatLm(~ genotype, filenames, volumes_combined)
+     
+    # The output will be a list of all the structures with a number of columns for the values of the f-statistics and t-statistics. Next to find out which of these changes survive multiple comparison corrections:
+     
+    anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 
-Which will give a table indicating what is significant at which FDR thresholds. In this case, all structures that have a t-statistic of at least 6.172145 or at most -6.172145 are significant at a 5% FDR threshold, all structures that have a t-statistic of at least 4.542356 or at most -4.542356 are significant at a 10% FDR threshold, etc. There are no structures significantly different at a 1% FDR threshold as indicated by the NaN.
-==================================================================================================================================================================================================================================================================================================================================================================================================================================================
+    N: 20 P: 2
+    Beginning vertex loop: 62 3
+    Done with vertex loop
+    Computing FDR threshold for all columns
+     Computing threshold for F-statistic
+     Computing threshold for (Intercept)
+     Computing threshold for genotypewt
+    Multidimensional MINC volume
+    Columns: F-statistic (Intercept) genotypewt
+    NULL
+    Degrees of Freedom: c(1, 18) 18 18
+    FDR Thresholds:
+         F-statistic (Intercept) genotypewt
+    0.01       NaN     25.36429         NaN
+    0.05  20.80325     25.36429    6.172145
+    0.1   17.94643     25.36429    4.542356
+    0.15  14.99036     25.36429    3.871739
+    0.2   14.99036     25.36429    3.871739
+    There were 11 warnings (use warnings() to see them)
 
-Analyzing differences in neuroanatomy with multiple sets of labels
+Which will give a table indicating what is significant at which FDR
+thresholds. In this case, all structures that have a t-statistic of at
+least 6.172145 or at most -6.172145 are significant at a 5% FDR
+threshold, all structures that have a t-statistic of at least 4.542356
+or at most -4.542356 are significant at a 10% FDR threshold, etc. There
+are no structures significantly different at a 1% FDR threshold as
+indicated by the NaN. Analyzing differences in neuroanatomy with
+multiple sets of labels
 
+In addition to the procedure described above (which uses a single atlas
+and jacobian determinants for each individual brain) we can generate a
+unique set of labels for each individual brain. This can be done using
+MAGeT. Once you have a set of labels for each brain, analysis can
+proceed as described above, but with one major difference: the
+anatGetAll command must be called with a different set of arguments.
+Let's look at this function more closely:
 
-    In addition to the procedure described above (which uses a single atlas and jacobian determinants for each individual brain) we can generate a unique set of labels for each individual brain. This can be done using MAGeT. Once you have a set of labels for each brain, analysis can proceed as described above, but with one major difference: the anatGetAll command must be called with a different set of arguments. Let's look at this function more closely:
+    anatGetAll
+    function (filenames, atlas, method = "jacobians", defs = "/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv",
+     dropLabels = FALSE, side = "both")
 
-anatGetAll function (filenames, atlas, method = "jacobians", defs =
-"/projects/mice/jlerch/cortex-label/c57\_brain\_atlas\_labels.csv",
-dropLabels = FALSE, side = "both")
+The default values for method, defs, dropLabels and side are set for
+users at MICe who do 56 micron ex-vivo registrations. In these cases,
+the anatGetAll call is as shown above:
 
+    volumes <- anatGetAll(filenames$scaled_jacobians, "resampled_atlas.mnc")
 
-    The default values for method, defs, dropLabels and side are set for users at MICe who do 56 micron ex-vivo registrations. In these cases, the anatGetAll call is as shown above:
+For labels generated using MAGeT, you would need the following:
 
-volumes &lt;- anatGetAll(filenames$scaled\_jacobians,
-"resampled\_atlas.mnc")
+-   filenames: Instead of the scaled\_jacobian files, you would instead
+    include the labels for each brain generated by MAGeT.
+-   atlas: This argument is NOT USED when each file has its own set
+    of labels. Unfortunately, you still need to specify something or the
+    function will fail. An example of what to specify is the labels for
+    the first file – filenames$labels\[1\]
+-   method: method = "labels" must be specified
+-   defs: This is critical if the label definitions for the files you
+    are looking at differ from the standard set of 62, described in
+    Dorr, et. al. This will also need to be specified for users who wish
+    use the set described in Dorr et.al, but are not using the machines
+    at MICe.
+-   dropLabels and side can continue to use the defaults.
 
+So, putting it all together, here is what your anatGetAll call and
+following analysis would look like:
 
-    For labels generated using MAGeT, you would need the following:
+    #anatGetAll call, with slightly different arguments
+    volumes <- anatGetAll(filenames$labels, filenames$labels[1], method="labels", defs="brain_label_mappings.csv")
+     
+    #combining structures, anatLm, anatFDR proceed as above:
+    volumes_combined <- anatCombineStructures(volumes, defs="brain_label_mappings.csv")
+    anatLm(~ genotype, filenames, volumes_combined)
+    anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 
-    - filenames: Instead of the scaled_jacobian files, you would instead include the labels for each brain generated by MAGeT.
-    - atlas: This argument is NOT USED when each file has its own set of labels. Unfortunately, you still need to specify something or the function will fail. An example of what to specify is the labels for the first file – filenames$labels[1]
-    - method: method = "labels" must be specified
-    - defs: This is critical if the label definitions for the files you are looking at differ from the standard set of 62, described in Dorr, et. al. This will also need to be specified for users who wish use the set described in Dorr et.al, but are not using the machines at MICe.
-    - dropLabels and side can continue to use the defaults.
+### pMincApply
 
-    So, putting it all together, here is what your anatGetAll call and following analysis would look like:
+pMincApply, just as mincApply, can be used to run any function on all
+voxels in your input files. The difference with mincApply, is that
+pMincApply can be parallelized (hence the p). You can use snowfall to
+run it locally using multiple cores on your machine, or sge to submit
+jobs to a batch system. Here is a short example of how to use pMincApply
+to run a function on your input files that is not implemented by any of
+the standard MINC functions.
 
-anatGetAll call, with slightly different arguments
-==================================================
+    # load the RMINC library
+    library(RMINC)
+     
+    # load the mapping of your input files and in this case genotype
+    # the aim of this example is to test the variance of the Jacobian determinants between wild types and mutants
+    gf <- read.csv("filenames_and_genotype.csv")
+     
+    # Figure out how your function works on your data. For example test
+    # it on a single voxel:
+    voxel <- mincGetVoxel(gf$jacobians, 0,0,0)
+     
+    # Run the function you want to use
+    # the "car" library provides "leveneTest"
+    library(car)
+    leveneTest(voxel, gf$Strain, center=mean)
 
-volumes &lt;-
-anatGetAll(filenames*l**a**b**e**l**s*, *f**i**l**e**n**a**m**e**s*labels\[1\],
-method="labels", defs="brain\_label\_mappings.csv")
+    Levene's Test for Homogeneity of Variance (center = mean)
+          Df F value Pr(>F)
+    group  2  1.5514 0.2188
+          74              
 
-combining structures, anatLm, anatFDR proceed as above:
-=======================================================
+    # in this example we will extract the F value, and the
+    # p value which can be done as so:
+    leveneTest(voxel, gf$Strain, center=mean)[1,2]
+    leveneTest(voxel, gf$Strain, center=mean)[1,3]
+    # also it's smart to encapsulate the return value by
+    # as.numeric to make sure it's returned as a number
+     
+    # write a function that will be passed on to pMincApply. This
+    # function will directly refer to variables in the gf object
+    # this function will return the F-value and p value from the Levene's Test
+    # which comes from row 1, column 2 (as a numeric value) and column 3
+    leveneTestForRMINC <- function(x) {
+      fout <- as.numeric(leveneTest(x, gf$Strain, center=mean)[1,2])
+      pout <- as.numeric(leveneTest(x, gf$Strain, center=mean)[1,3])
+     return(c(fout, pout))
+    }
+     
+    ###########################################################################################
+    #################                      SNOWFALL                       #####################
+    ###########################################################################################
+     
+    # Use the "global" argument to specify all variables and functions you need
+    # Use the "packages" argument to specify all libraries
+    # The mask will restrict the calculations to that area
+    outLeveneTest <- pMincApply(gf$jacobians, quote(leveneTestForRMINC(x)),  mask="mask.mnc", workers=8, global=c("gf","leveneTestForRMINC"), packages="car")
+     
+    # write your stats out to file
+    mincWriteVolume(outLeveneTest, "f_values.mnc", 1)
+    mincWriteVolume(outLeveneTest, "p_values.mnc", 2)
+     
+    ###########################################################################################
+    #################                       SGE                           #####################
+    ###########################################################################################
+     
+    # instead of running the pMincApply in parallel on your machine, you can also use sge:
+     
+    outLeveneTest <- pMincApply(gf$jacobians, quote(leveneTestForRMINC(x)), mask="mask.mnc", workers=8, global=c("gf","leveneTestForRMINC"), packages="car", method="sge")
 
-volumes\_combined &lt;- anatCombineStructures(volumes,
-defs="brain\_label\_mappings.csv") anatLm(~ genotype, filenames,
-volumes\_combined) anatFDR(anatLm(~ genotype, filenames,
-volumes\_combined))
+Installation
+------------
 
-
-    ### pMincApply
-
-    pMincApply, just as mincApply, can be used to run any function on all voxels in your input files. The difference with mincApply, is that pMincApply can be parallelized (hence the p). You can use snowfall to run it locally using multiple cores on your machine, or sge to submit jobs to a batch system. Here is a short example of how to use pMincApply to run a function on your input files that is not implemented by any of the standard MINC functions.
-
-load the RMINC library
-======================
-
-library(RMINC)
-
-load the mapping of your input files and in this case genotype
-==============================================================
-
-the aim of this example is to test the variance of the Jacobian determinants between wild types and mutants
-===========================================================================================================
-
-gf &lt;- read.csv("filenames\_and\_genotype.csv")
-
-Figure out how your function works on your data. For example test
-=================================================================
-
-it on a single voxel:
-=====================
-
-voxel &lt;- mincGetVoxel(gf$jacobians, 0,0,0)
-
-Run the function you want to use
-================================
-
-the "car" library provides "leveneTest"
-=======================================
-
-library(car) leveneTest(voxel, gf$Strain, center=mean)
-
-Levene's Test for Homogeneity of Variance (center = mean) Df F value
-Pr(&gt;F) group 2 1.5514 0.2188 74
-
-in this example we will extract the F value, and the
-====================================================
-
-p value which can be done as so:
-================================
-
-leveneTest(voxel,
-gf*S**t**r**a**i**n*, *c**e**n**t**e**r* = *m**e**a**n*)\[1, 2\]*l**e**v**e**n**e**T**e**s**t*(*v**o**x**e**l*, *g**f*Strain,
-center=mean)\[1,3\] \# also it's smart to encapsulate the return value
-by \# as.numeric to make sure it's returned as a number
-
-write a function that will be passed on to pMincApply. This
-===========================================================
-
-function will directly refer to variables in the gf object
-==========================================================
-
-this function will return the F-value and p value from the Levene's Test
-========================================================================
-
-which comes from row 1, column 2 (as a numeric value) and column 3
-==================================================================
-
-leveneTestForRMINC &lt;- function(x) { fout &lt;-
-as.numeric(leveneTest(x,
-gf*S**t**r**a**i**n*, *c**e**n**t**e**r* = *m**e**a**n*)\[1, 2\])*p**o**u**t* &lt; −*a**s*.*n**u**m**e**r**i**c*(*l**e**v**e**n**e**T**e**s**t*(*x*, *g**f*Strain,
-center=mean)\[1,3\]) return(c(fout, pout)) }
-
-########################################################################################### 
-
-################# SNOWFALL
-
-########################################################################################### 
-
-Use the "global" argument to specify all variables and functions you need
-=========================================================================
-
-Use the "packages" argument to specify all libraries
-====================================================
-
-The mask will restrict the calculations to that area
-====================================================
-
-outLeveneTest &lt;- pMincApply(gf$jacobians,
-quote(leveneTestForRMINC(x)), mask="mask.mnc", workers=8,
-global=c("gf","leveneTestForRMINC"), packages="car")
-
-write your stats out to file
-============================
-
-mincWriteVolume(outLeveneTest, "f\_values.mnc", 1)
-mincWriteVolume(outLeveneTest, "p\_values.mnc", 2)
-
-########################################################################################### 
-
-################# SGE
-
-########################################################################################### 
-
-instead of running the pMincApply in parallel on your machine, you can also use sge:
-====================================================================================
-
-outLeveneTest &lt;- pMincApply(gf$jacobians,
-quote(leveneTestForRMINC(x)), mask="mask.mnc", workers=8,
-global=c("gf","leveneTestForRMINC"), packages="car", method="sge")
-\`\`\`
-
-Installation Installing RMINC from a release:
+Installing RMINC from a release:
 
     Download the tarball from the Github RMINC website https://github.com/mcvaneede/RMINC/tree/master/releases 
 

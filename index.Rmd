@@ -51,14 +51,15 @@ FILENAME_BASE-log-determinant-scaled-fwhm_KERNEL_.mnc
 
 Here is an example of how to do the analysis in R
 
-```
+```{r, eval = FALSE}
 library(RMINC)
  
 # There is a variable that was loaded into R containing the genotype and the location of the Jacobian determinants called filenames, it contains the following:
  
 filenames
 ```
--
+
+
 ```
  scaled_jacobians                              genotype
 1 01_wt-log-determinant-scaled-fwhm0.1.mnc           wt
@@ -70,8 +71,9 @@ filenames
 7 07_mut-log-determinant-scaled-fwhm0.1.mnc         mut
 8 08_mut-log-determinant-scaled-fwhm0.1.mnc         mut
 ```
--
-```
+
+
+```{r, eval = FALSE}
 # The first thing to do now is to get the volume information of all the structures, the atlas with the labels is called resampled_atlas.mnc
  
 volumes <- anatGetAll(filenames$scaled_jacobians, "resampled_atlas.mnc")
@@ -88,7 +90,8 @@ anatLm(~ genotype, filenames, volumes_combined)
  
 anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 ```
--
+
+
 ```
 N: 20 P: 2
 Beginning vertex loop: 62 3
@@ -111,21 +114,20 @@ FDR Thresholds:
 There were 11 warnings (use warnings() to see them)
 ```
  
-```
-# Which will give a table indicating what is significant at which FDR thresholds. In this case, all structures that have a t-statistic of at least 6.172145 or at most -6.172145 are significant at a 5% FDR threshold, all structures that have a t-statistic of at least 4.542356 or at most -4.542356 are significant at a 10% FDR threshold, etc. There are no structures significantly different at a 1% FDR threshold as indicated by the NaN.
+Which will give a table indicating what is significant at which FDR thresholds. In this case, all structures that have a t-statistic of at least 6.172145 or at most -6.172145 are significant at a 5% FDR threshold, all structures that have a t-statistic of at least 4.542356 or at most -4.542356 are significant at a 10% FDR threshold, etc. There are no structures significantly different at a 1% FDR threshold as indicated by the NaN.
 Analyzing differences in neuroanatomy with multiple sets of labels
-```
 
 In addition to the procedure described above (which uses a single atlas and jacobian determinants for each individual brain) we can generate a unique set of labels for each individual brain. This can be done using MAGeT. Once you have a set of labels for each brain, analysis can proceed as described above, but with one major difference: the anatGetAll command must be called with a different set of arguments. Let's look at this function more closely:
 
-```
+```{r, eval = FALSE}
 anatGetAll
 function (filenames, atlas, method = "jacobians", defs = "/projects/mice/jlerch/cortex-label/c57_brain_atlas_labels.csv",
  dropLabels = FALSE, side = "both")
 ```
 
 The default values for method, defs, dropLabels and side are set for users at MICe who do 56 micron ex-vivo registrations. In these cases, the anatGetAll call is as shown above:
-```
+
+```{r, eval = FALSE}
 volumes <- anatGetAll(filenames$scaled_jacobians, "resampled_atlas.mnc")
 ```
 
@@ -139,7 +141,7 @@ For labels generated using MAGeT, you would need the following:
 
 So, putting it all together, here is what your anatGetAll call and following analysis would look like:
 
-```
+```{r, eval = FALSE}
 #anatGetAll call, with slightly different arguments
 volumes <- anatGetAll(filenames$labels, filenames$labels[1], method="labels", defs="brain_label_mappings.csv")
  
@@ -153,7 +155,7 @@ anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 
 pMincApply, just as mincApply, can be used to run any function on all voxels in your input files. The difference with mincApply, is that pMincApply can be parallelized (hence the p). You can use snowfall to run it locally using multiple cores on your machine, or sge to submit jobs to a batch system. Here is a short example of how to use pMincApply to run a function on your input files that is not implemented by any of the standard MINC functions.
 
-```
+```{r, eval = FALSE}
 # load the RMINC library
 library(RMINC)
  
@@ -178,7 +180,7 @@ group  2  1.5514 0.2188
       74              
 ```
 
-```
+```{r, eval = FALSE}
 # in this example we will extract the F value, and the
 # p value which can be done as so:
 leveneTest(voxel, gf$Strain, center=mean)[1,2]
@@ -218,7 +220,7 @@ mincWriteVolume(outLeveneTest, "p_values.mnc", 2)
 outLeveneTest <- pMincApply(gf$jacobians, quote(leveneTestForRMINC(x)), mask="mask.mnc", workers=8, global=c("gf","leveneTestForRMINC"), packages="car", method="sge")
 ```
  
-Installation
+## Installation
 Installing RMINC from a release:
 
     Download the tarball from the Github RMINC website https://github.com/mcvaneede/RMINC/tree/master/releases 

@@ -10,3 +10,4 @@
 ^Makefile$
 ^index.Rmd$
 ^index.md$
+^Gemfile*$
