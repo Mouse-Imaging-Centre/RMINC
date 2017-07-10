@@ -105,6 +105,12 @@ test_that("Weighted anatLm works", {
   
   verboseRun(alm <- anatLm(~ a + b + c, data = x, anat = y, w = w))
   lmods <- apply(y, 2, function(col) lm(col ~ a + b + c, data = x, weights = w))
+  expect_equivalent(as.numeric(t(sapply(lmods, function(m) summary(m)$coefficients[, "t value"])))
+                    , as.numeric(alm[, grepl("tvalue", colnames(alm))]))
+  expect_equivalent(as.numeric(t(sapply(lmods, function(m) summary(m)$r.squared)))
+                    , as.numeric(alm[, "R-squared"]))
+  expect_equivalent(as.numeric(t(sapply(lmods, function(m) summary(m)$fstatistic["value"])))
+                    , as.numeric(alm[, "F-statistic"]))
   expect_equivalent(as.numeric(t(sapply(lmods, coef))), as.numeric(alm[, grepl("beta", colnames(alm))]))
   expect_equivalent(sapply(lmods, logLik), alm[,"logLik"])
   expect_equivalent(sapply(lmods, AIC), AIC(alm))

@@ -60,6 +60,7 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   // compute the least squares solution:
   F77_CALL(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
            &rank, pivot, qraux, work);
+    
   
   // Check if pivoting occurred
   int pivoted = 0;
@@ -82,29 +83,37 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   // Calculate the f-statistic first
   rss = 0; // residual sum of squares
   double wrss = 0; //weighted residual sum of squares
+  double sumw = 0;
+  double* fitted = (double *) malloc(n * sizeof(double));
   rdf = 0; // residual degrees of freedom
   mss = 0; // (fitted - mean fitted sum) of squares
   sum_fitted = 0;
   logLik = 0;
   for (i=0; i < n; i++) {
+    sumw += REAL(ws)[i];
     residuals[i] /= xws[i];
     double res2 = pow(residuals[i],2);
     rss += res2;
-    wrss += REAL(ws)[i] * res2; 
-    sum_fitted += (y[i] - residuals[i]);
+    wrss += REAL(ws)[i] * res2;
+    fitted[i] = REAL(Sy)[i] - residuals[i];
+    sum_fitted += fitted[i];
   }
   
   logLik = .5 * (total_log_weight - n * (log(2*M_PI) + 1 - log(n) + log(wrss)));
   
-  mean_fitted = sum_fitted / n;
-  for (i=0; i < n; i++) {
-    mss += pow((y[i] - residuals[i]) - mean_fitted, 2);
+  double m = 0;
+  for (i=0; i < n; ++i) {
+    m += (REAL(ws)[i] * fitted[i]) / sumw;
+  }
+  
+  for(i=0; i < n; ++i){
+    mss += REAL(ws)[i] * pow(fitted[i] - m, 2);
   }
   
   rdf = n - p;
   
   //Rprintf("rss %f p %d resvar %f %\n", rss,p,resvar);
-  resvar = rss/rdf;
+  resvar = wrss/rdf;
   //Rprintf("mss %f p %d resvar %f %\n", mss,p,resvar);
   /* first output is the f-stat of the whole model */
   
@@ -129,15 +138,21 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   // on to the t-statistics for the intercept and other terms
   for (i=0; i < p; i++) {
     index = (i * n) + i;
-    se[i] = sqrt(x[index] *resvar);
+    //unpivot the se's
+    se[pivot[i]] = sqrt(x[index] *resvar);
+  }
+  
+  for(i=0; i < p; i++){
+    index = (i * n) + i;
     xoutput[i+1] = coefficients[i] / se[i];
   }
   
   // the r-squared:
-  xoutput[p+1] = mss / (mss + rss);
+  xoutput[p+1] = mss / (mss + wrss);
   xoutput[p+2] = logLik;
   free(xws);
   free(y);
+  free(fitted);
   UNPROTECT(nprot);
   return(output);
 }
