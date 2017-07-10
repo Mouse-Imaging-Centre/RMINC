@@ -551,7 +551,12 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   // on to the t-statistics for the intercept and other terms
   for (i=0; i < p; i++) {
     index = (i * n) + i;
-    se[i] = sqrt(x[index] *resvar);
+    //unpivot the se's
+    se[pivot[i]] = sqrt(x[index] *resvar);
+  }
+  
+  for(i=0; i < p; i++){
+    index = (i * n) + i;
     xoutput[i+1] = coefficients[i] / se[i];
   }
 
