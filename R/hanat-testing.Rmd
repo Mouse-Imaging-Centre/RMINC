@@ -1,0 +1,44 @@
+---
+title: "hierarchical tests"
+output: html_notebook
+---
+
+Code to test the generation of hierarchies
+
+```{r}
+library(knitr)
+library(RMINC)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+load("~/data/Pain-Beggs/Beggs-test-data.RData")
+
+gfBasic <- gf %>%
+  filter(Neonatal != "Naive") %>%
+  filter(time.to.sac == "3 days")
+```
+
+
+```{r}
+# mapping files
+abijson <- "~/Dropbox/colourbars/allen.json"
+defs <- "~/Dropbox/colourbars/Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv"
+```
+
+```{r}
+hdefs <- makeMICeDefsHierachical(defs, abijson) 
+```
+
+```{r}
+vols <- addVolumesToHierarchy(hdefs, allvols)
+hLm <- hanatLm(~Sex, gfBasic, vols)
+```
+
+```{r}
+hanatView(hLm, "tvalue.Sexmale", low=2, high=5, symmetric = T, edgeColourFromABI = T)
+```
+```{r}
+hanatView(hLm)
+```
+

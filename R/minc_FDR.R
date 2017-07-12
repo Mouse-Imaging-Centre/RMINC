@@ -147,7 +147,7 @@ mincFDR.mincLogLikRatio <- function(buffer, mask=NULL, ...) {
 
 #' @describeIn mincFDR mincLmer
 #' @export
-mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
+mincFDR.mincLmer <- function(buffer, mask=NULL, method="fdr", ...) {
   
   # if no DF set, exit with message
   df <- attr(buffer, "df")
@@ -181,7 +181,7 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
   for (i in 1:ncolsToUse) {
     # compute qvals through R's p.adjust function
     pvals[, i] <- pt2(buffer[mask>0.5, tlmerColumns[i]], df[[i]])
-    qvals[, i] <- p.adjust(pvals[, i], "fdr")
+    qvals[, i] <- p.adjust(pvals[, i], method=method)
     output[mask>0.5, i] <- qvals[, i]
     for (j in 1:length(p.thresholds)) {
       # compute thresholds; to be honest, not quite sure what the NA checking is about
@@ -381,6 +381,10 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     else if (method == "FDR" | method == "p.adjust") {
       qobj$pvalue <- pvals
       qobj$qvalue <- p.adjust(pvals, "fdr")
+    }
+    else if (method == "BY") {
+      qobj$pvalue <- pvals
+      qobj$qvalue <- p.adjust(pvals, "BY")
     }
     else if (method == "pFDR" | method == "fastqvalue") {
       qobj <- fast.qvalue(pvals)
