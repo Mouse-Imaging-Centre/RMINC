@@ -479,10 +479,32 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   //Rprintf("coly %d rowy %d\n", ny,ny1);
   rank = 1;
   tol = 1e-07;
-
+  for(int j = 0; j < p; ++j)
+    pivot[j] = j;
+  
   // compute the least squares solution:
   F77_CALL(dqrls)(x, &n, &p, y, &ny, &tol, coefficients, residuals, effects,
         &rank, pivot, qraux, work);
+  
+  // Check if pivoting occurred
+  int pivoted = 0;
+  for(j = 0; j < p; ++j){
+    if(pivot[j] != j){ 
+      //error("Pivoted");
+      pivoted = 1;
+      break;
+    }
+  }
+  
+  // Unpivot
+  if(pivoted){
+    double *piv_coefficients = (double *) malloc(p * sizeof(double));
+    memcpy(piv_coefficients, coefficients, p * sizeof(double));
+    for(j = 0; j < p; ++j)
+      if(pivot[j] == j)
+        coefficients[pivot[j]] = piv_coefficients[j];
+    free(piv_coefficients);
+  }
 
   // Calculate the f-statistic first
   rss = 0; // residual sum of squares
@@ -529,7 +551,12 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   // on to the t-statistics for the intercept and other terms
   for (i=0; i < p; i++) {
     index = (i * n) + i;
-    se[i] = sqrt(x[index] *resvar);
+    //unpivot the se's
+    se[pivot[i]] = sqrt(x[index] *resvar);
+  }
+  
+  for(i=0; i < p; i++){
+    index = (i * n) + i;
     xoutput[i+1] = coefficients[i] / se[i];
   }
 

@@ -209,7 +209,7 @@ anatGetAll <-
       # a vector with two elements: the methods followed by the # of workers
       if (parallel[1] %in% c("local", "snowfall")) {
         out <- 
-          parallel::mclapply(groups, function(group){
+          failing_mclapply(groups, function(group){
             compute_summary(filenames[group])
           }, mc.cores = n_groups) %>%
           reduce_matrices %>%
@@ -267,7 +267,7 @@ anatGetAll <-
 
 # Convert an RMINC style atlas label set to a nice data.frame
 create_labels_frame <-
-  function(defs, side = c("both", "left", "right"), keep_hierarchy = FALSE){
+  function(defs, side = c("both", "left", "right"), hierarchy = NULL){
     side <- match.arg(side)
     
     # if the definitions are given, check to see that we can read the 
@@ -281,16 +281,22 @@ create_labels_frame <-
     label_defs <- 
       read.csv(defs, stringsAsFactors = FALSE)
     
-    if("hierarchy" %in% names(label_defs) & keep_hierarchy){
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label, ~ hierarchy)
+    if(!is.null(hierarchy) && hierarchy %in% names(label_defs)){
+      label_defs <- 
+        select(label_defs
+               , !!! c("Structure"
+                       , "left.label"
+                       , "right.label"
+                       , hierarchy)) %>% ##new tidyeval
+        rename(hierarchy = !!hierarchy)
     } else {
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label)
+      label_defs <- select(label_defs, !!! c("Structure", "left.label", "right.label"))
     }
     
     label_defs <- 
       label_defs %>%
-      mutate_(both_sides = ~ right.label == left.label) %>%
-      gather_("hemisphere", "label", c("right.label", "left.label")) %>%
+      mutate(both_sides = !! quo(right.label == left.label)) %>%
+      gather("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
                 ~ ifelse(both_sides
                          , Structure
@@ -304,9 +310,9 @@ create_labels_frame <-
       mutate_(hierarchy = 
                 ~ with(.
                        , case_when(is.na(hierarchy) | hierarchy == "" ~ ""
-                                 , both_sides ~ hierarchy
-                                 , hemisphere == "right.label" ~ paste0("right ", hierarchy)
-                                 , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
+                                   , both_sides ~ hierarchy
+                                   , hemisphere == "right.label" ~ paste0("right ", hierarchy)
+                                   , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
     
     label_defs <-
       switch(side
@@ -551,9 +557,9 @@ anatSummarize <-
     
     if(is.character(summarize_by) && length(summarize_by == 1)){
       summarize_by <- 
-        create_labels_frame(defs, keep_hierarchy = TRUE) %>%
+        create_labels_frame(defs, hierarchy = summarize_by) %>%
         select_(~ -label) %>%
-        rename_(label = "Structure", group = summarize_by)
+        rename_(label = "Structure", group = "hierarchy")
     }
     
     if(!discard_missing){
@@ -800,6 +806,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
+#' @param weights An optional set of weights to use the regression, must be one per subject
 #' @return Returns an object containing the R-Squared,value,coefficients,F 
 #' and t statistcs that can be passed directly into anatFDR. Additionally
 #' has the attributes for model,stat type and degrees of freedom.
@@ -813,7 +820,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
 #' } 
 #' @export
-anatLm <- function(formula, data, anat, subset=NULL) {
+anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
   
   #INITIALIZATION
   matrixFound = FALSE
@@ -888,7 +895,14 @@ anatLm <- function(formula, data, anat, subset=NULL) {
     rows = colnames(mmatrix) 
     data.matrix.right = matrix()
   }
-  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  
+  if(!is.null(weights)){
+    if(length(weights) != nrow(mmatrix)) stop("Incorrect number of weights supplied, need one per observation")
+    result <- .Call("vertex_wlm_loop",data.matrix.left,data.matrix.right,mmatrix,weights,PACKAGE="RMINC") 
+  } else {
+    result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  }
+  
   rownames(result) <- colnames(anat)
   
   # the order of return values is:

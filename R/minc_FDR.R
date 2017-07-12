@@ -202,6 +202,7 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, method="fdr", ...) {
   colnames(thresholds) <- columnNames
   attr(output, "thresholds") <- thresholds
   colnames(output) <- columnNamesQ
+  rownames(output) <- rownames(buffer)
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- df
   class(output) <- c("mincQvals", "mincMultiDim", "matrix")
@@ -431,6 +432,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   colnames(thresholds) <- columns
   attr(output, "thresholds") <- thresholds
   colnames(output) <- columns
+  rownames(output) <- rownames(buffer)
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- new_dfs
   class(output) <- c("mincQvals", "mincMultiDim", "matrix")

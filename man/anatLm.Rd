@@ -4,7 +4,7 @@
 \alias{anatLm}
 \title{Calculates statistics and coefficients for linear model of specified anat structure}
 \usage{
-anatLm(formula, data, anat, subset = NULL)
+anatLm(formula, data, anat, subset = NULL, weights = NULL)
 }
 \arguments{
 \item{formula}{a model formula. The RHS of the formula may contain one term with a matrix. If
@@ -15,6 +15,8 @@ so only the + operator may be used, and only two terms may appear on the RHS}
 \item{anat}{an array of atlas labels vs subject data}
 
 \item{subset}{rows to be used, by default all are used}
+
+\item{weights}{An optional set of weights to use the regression, must be one per subject}
 }
 \value{
 Returns an object containing the R-Squared,value,coefficients,F 

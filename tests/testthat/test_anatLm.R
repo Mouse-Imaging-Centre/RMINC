@@ -95,3 +95,24 @@ test_that("anatLm Three Factors Interaction",{
 	expect_that(rmincLm[1,14],is_equivalent_to(rLm$coefficients[6,3]))
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(rLm$df[2]))
 })
+
+context("weighted anatLm")
+
+test_that("Weighted anatLm works", {
+  w <- runif(20)
+  y <- matrix(rnorm(60), ncol = 3)
+  x <- data.frame(a = runif(20), b = rnorm(20), c = rgamma(20, 1))
+  
+  verboseRun(alm <- anatLm(~ a + b + c, data = x, anat = y, w = w))
+  lmods <- apply(y, 2, function(col) lm(col ~ a + b + c, data = x, weights = w))
+  expect_equivalent(as.numeric(t(sapply(lmods, function(m) summary(m)$coefficients[, "t value"])))
+                    , as.numeric(alm[, grepl("tvalue", colnames(alm))]))
+  expect_equivalent(as.numeric(t(sapply(lmods, function(m) summary(m)$r.squared)))
+                    , as.numeric(alm[, "R-squared"]))
+  expect_equivalent(as.numeric(t(sapply(lmods, function(m) summary(m)$fstatistic["value"])))
+                    , as.numeric(alm[, "F-statistic"]))
+  expect_equivalent(as.numeric(t(sapply(lmods, coef))), as.numeric(alm[, grepl("beta", colnames(alm))]))
+  expect_equivalent(sapply(lmods, logLik), alm[,"logLik"])
+  expect_equivalent(sapply(lmods, AIC), AIC(alm))
+})
+
