@@ -1045,9 +1045,10 @@ anatLmer <-
 #' produced by \link{anatLmer}. See \link{anatLmer} for more details
 #' on degrees of freedom estimation for linear mixed effects models
 #' @param model an \code{anatLmerModel}
+#' @param n number of structures to use for DF estimation
 #' @return the same model, now with degrees of freedom set
 #' @export
-anatLmerEstimateDF <- function(model) {
+anatLmerEstimateDF <- function(model, n=50) {
   # set the DF based on the Satterthwaite approximation
   
   mincLmerList <- attr(model, "mincLmerList")
@@ -1056,7 +1057,7 @@ anatLmerEstimateDF <- function(model) {
   # estimated DF depends on the input data. Rather than estimate separately at every structure,
   # instead select a small number of structures and estimate DF for those structures, then keep the
   # min
-  nstructures <- min(50, nrow(model))
+  nstructures <- min(n, nrow(model))
   rstructures <- sample(seq_len(nrow(model)), nstructures)
   dfs <- matrix(nrow = nstructures, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
   

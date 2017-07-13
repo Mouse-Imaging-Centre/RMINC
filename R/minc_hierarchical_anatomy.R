@@ -99,7 +99,7 @@ hanatAnova <- function(formula, data, anatTree) {
 #' @param anatTree The anatomical tree
 #' @param ... Extra options (REML, control of parallel execution, etc.) passed on to anatLmer
 #'
-#' @return The anatomical tree with teh model information added
+#' @return The anatomical tree with the model information added
 #' @export
 #' 
 #' @details The volumes inside the anatomical hierarchy and the data must be of
@@ -171,7 +171,13 @@ copyExtraAttributes <- function(source, target) {
 #' thresholds(hLm)
 #' }
 hanatFDR <- function(buffer) {
-  modelData <- t(buffer$Get("model"))
+  modelData <- buffer$Get("model")
+  if (is.null(dim(modelData))) {
+    dim(modelData) <- c(length(modelData), 1)
+  }
+  else {
+    modelData <- t(modelData)
+  }
   modelData <- copyExtraAttributes(buffer, modelData)
   dimnames(modelData) <- attr(buffer, "modelDimnames")
   class(modelData) <- attr(buffer, "modelClass")
@@ -187,6 +193,42 @@ hanatFDR <- function(buffer) {
   }
   attr(buffer, "thresholds") <- attr(aFDR, "thresholds")
   class(buffer) <- c(class(buffer), "mincQvals")
+  return(buffer)
+}
+
+#' Estimates degrees of freedom
+#' 
+#' see \link{anatLmerEstimateDF}
+#'
+#' @param buffer input hierarchical tree
+#' @param n number of structures to use for DF estimation
+#'
+#' @return input tree with df added
+#' @export
+#' 
+#' @details The volumes inside the anatomical hierarchy and the data must be of
+#'   the same length and ordering.
+#'
+#' @examples \dontrun{
+#' vols <- addVolumesToHierarchy(hdefs, allvols)
+#' hLm <- hanatLmer(~Sex + (1|ID), gf, vols)
+#' hLm <- hanatLmerEstimateDF(hLm)
+#' hLm <- hanatFDR(hLm)
+#' thresholds(hLm)
+#' }
+hanatLmerEstimateDF <- function(buffer, n=50) {
+  modelData <- buffer$Get("model")
+  if (is.null(dim(modelData))) {
+    dim(modelData) <- c(length(modelData), 1)
+  }
+  else {
+    modelData <- t(modelData)
+  }
+  modelData <- copyExtraAttributes(buffer, modelData)
+  dimnames(modelData) <- attr(buffer, "modelDimnames")
+  class(modelData) <- attr(buffer, "modelClass")
+  modelData <- anatLmerEstimateDF(modelData, n=n)
+  attr(buffer, "df") <- attr(modelData, "df")
   return(buffer)
 }
 
