@@ -538,13 +538,13 @@ hanatToVisGraph <- function(hanatTree,
 
 #' @describeIn hanatToVisGraph Directly view the graph
 #' @export
-hanatView <- function(...) {
+hanatView <- function(..., fontsize=14, levelSeparation=500) {
   require(visNetwork)
   gv <- hanatToVisGraph(...)
   visNetwork(gv$nodes, gv$edges) %>% 
-    visNodes(shape="box") %>% 
+    visNodes(shape="box", font=list(size=fontsize)) %>% 
     visEdges(width=10, smooth=F, arrows="to") %>% 
-    visHierarchicalLayout(direction="LR", levelSeparation = 500, sortMethod="directed") %>% 
+    visHierarchicalLayout(direction="LR", levelSeparation = levelSeparation, sortMethod="directed") %>% 
     visPhysics(enabled=F)
 }
 
