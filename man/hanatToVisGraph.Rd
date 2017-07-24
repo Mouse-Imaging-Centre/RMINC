@@ -34,9 +34,9 @@ hanatView(..., fontsize = 14, levelSeparation = 500)
 
 \item{...}{Extra arguments to \code{hanatToVisGraph} from \code{hanatView}}
 
-\item{levelSeparation}{Spacing between hierarchical layers for \code{hanatView}}
+\item{fontsize}{The font size for \code{hanatView}}
 
-\item{fontSize}{The font size for \code{hanatView}}
+\item{levelSeparation}{Spacing between hierarchical layers for \code{hanatView}}
 }
 \value{
 list with nodes and edges data frames

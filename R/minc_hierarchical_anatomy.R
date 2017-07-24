@@ -474,7 +474,7 @@ colourVector <- function(vals, low, high, symmetric=F,
 #' @param symmetric Boolean for whether colour scale is symmetric
 #' @param transparent Colour to use for transparent nodes
 #' @param edgeColourFromABI Whether to set edge colours based on ABI atlas
-#' @param fontSize The font size for \code{hanatView}
+#' @param fontsize The font size for \code{hanatView}
 #' @param levelSeparation Spacing between hierarchical layers for \code{hanatView}
 #' @param ... Extra arguments to \code{hanatToVisGraph} from \code{hanatView}
 #' 
