@@ -7,3 +7,7 @@
 ^.git$
 ^tests/testthat/test_torque_parallel.R$
 ^etc/.*$
+^Makefile$
+^index.Rmd$
+^index.md$
+^Gemfile*$
