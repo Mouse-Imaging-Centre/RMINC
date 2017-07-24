@@ -419,9 +419,6 @@ copyABIinfo <- function(hdefs, abitree) {
 #' hdefs <- makeMICeDefsHierachical(defs, abijson) 
 #' }
 makeMICeDefsHierachical <- function(defs, abijson) {
-  require(rjson)
-  require(data.tree)
-  
   # read the definitions from the JSON file provided by the Allen institute
   abi <- fromJSON(file=abijson)
   # create a data.tree
@@ -477,11 +474,14 @@ colourVector <- function(vals, low, high, symmetric=F,
 #' @param symmetric Boolean for whether colour scale is symmetric
 #' @param transparent Colour to use for transparent nodes
 #' @param edgeColourFromABI Whether to set edge colours based on ABI atlas
-#'
+#' @param fontSize The font size for \code{hanatView}
+#' @param levelSeparation Spacing between hierarchical layers for \code{hanatView}
+#' @param ... Extra arguments to \code{hanatToVisGraph} from \code{hanatView}
+#' 
 #' @return list with nodes and edges data frames
 #' @export
 #'
-#' @examples
+## @examples
 hanatToVisGraph <- function(hanatTree, 
                             colourVariable="color_hex_triplet", 
                             colourScale=colorRampPalette(c("red", "yellow"))(255), 
@@ -539,7 +539,6 @@ hanatToVisGraph <- function(hanatTree,
 #' @describeIn hanatToVisGraph Directly view the graph
 #' @export
 hanatView <- function(..., fontsize=14, levelSeparation=500) {
-  require(visNetwork)
   gv <- hanatToVisGraph(...)
   visNetwork(gv$nodes, gv$edges) %>% 
     visNodes(shape="box", font=list(size=fontsize)) %>% 
@@ -548,6 +547,11 @@ hanatView <- function(..., fontsize=14, levelSeparation=500) {
     visPhysics(enabled=F)
 }
 
+#' hanatPlot
+#'
+#' Create a basic plot of the anatomy tree
+#' 
+#' @param anatTree the input anatomical tree
 #' @export
 hanatPlot <- function(anatTree) {
   tree <- Clone(anatTree)

@@ -27,6 +27,11 @@
 #' @importFrom grid plotViewport popViewport pushViewport
 #' @importFrom gridBase baseViewports
 #' @importFrom yaml yaml.load_file
+#' @importFrom data.tree FindNode Clone isLeaf Traverse Aggregate isNotLeaf
+#'                       SetGraphStyle FromListSimple as.Node
+#' @importFrom visNetwork visNetwork visNodes visEdges visHierarchicalLayout
+#'                        visPhysics
+#' @importFrom rjson fromJSON
 #' @useDynLib RMINC, .registration = TRUE 
 #' @docType package
 #' @name RMINC

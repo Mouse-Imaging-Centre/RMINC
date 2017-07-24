@@ -11,3 +11,4 @@
 ^index.Rmd$
 ^index.md$
 ^Gemfile*$
+^_config.yml$
