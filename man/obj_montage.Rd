@@ -33,8 +33,6 @@ allowable labels/measures/statistics to be includedon the surface}
 
 \item{colour_bar}{Whether or not to draw a colour bar in the figure}
 
-\item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
-
 \item{labels}{Whether or not the colour_map is a set of discrete labels}
 
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
