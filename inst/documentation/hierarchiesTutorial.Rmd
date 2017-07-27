@@ -246,12 +246,16 @@ names(hVs)
 
 The main difference here is that rather than using the Benjamini & Hochberg (1995) method as is used for every other FDR invocation in RMINC, it uses the Benjamini and Yekutieli (2001) FDR algorithm, which is viable in the presence of dependence (as obviously exists in a hierarchy where lower level values are dependent on high levels).
 
+For sake of illustration, let's run it again as an ANOVA
+
 ```{r}
 hA <- hanatAnova(~genotype, gfAB, vols)
 stats <- hanatToVolume(hA, labelVol, "genotype")
 mincPlotSliceSeries(anatVol, stats, low=4, high=25, symmetric=F, legend="F-stats", begin=50, end=-50)
 hanatView(hA, "genotype", low=4, high=25, symmetric=F)
 ```
+
+And as a linear mixed effects model. This doesn't necessarily make sense for this particular dataset, but having information pooled across sex is not that unreasonable ...
 
 ```{r}
 hLmer <- hanatLmer(~genotype + (1|sex), gfAB, vols)
