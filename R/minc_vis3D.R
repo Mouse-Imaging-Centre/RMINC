@@ -366,7 +366,7 @@ add_colour_bar <- function(mesh,
                               0.05 * plotdims[4], 
                               0.99 * plotdims[2], 
                               0.45 * plotdims[4], 
-                              -colour_range, rev(palette$neg), gradient="y", align="rb")
+                              -rev(colour_range), rev(palette$neg), gradient="y", align="rb")
         plotrix::color.legend(0.97 * plotdims[2], 
                               0.55 * plotdims[4], 
                               0.99 * plotdims[2], 
