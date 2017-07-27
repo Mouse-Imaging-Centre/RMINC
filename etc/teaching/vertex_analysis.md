@@ -1,28 +1,9 @@
-R for MRI Analysis
+Vertex Analysis
 ================
 Jason Lerch and Chris Hammill
 July 26, 2017
 
 ------------------------------------------------------------------------
-
-Introduction
-------------
-
--   Jason
--   Chris
-
-Scope
------
-
--   3D structural MRI, no fMRI
--   MINC ecosystem
-
-Background
-----------
-
--   MINC
--   CIVET
--   RMINC
 
 The world at large
 ------------------
@@ -31,24 +12,10 @@ The world at large
 
 ![](neuroconductor_dep_graph.png)
 
-Getting Set Up
---------------
+RMINC
+-----
 
-Login in to scinet
-
-``` bash
-ssh -X <username>@login.scinet.utoronto.ca
-gpcdev -X
-qsub -lnodes=1:ppn=8,walltime=3:00:00 -qteach -I -X
-```
-
-Load necessary modules
-
-``` bash
-module use -a /project/j/jlerch/matthijs/privatemodules
-
-module load gcc/4.9.0 intel/15.0.2 gnuplot/4.6.1 hdf5/187-v18-serial-intel openblas/1.13-multithreaded  gotoblas/1.13-singlethreaded octave gcclib/5.2.0 jpeg/v9b cmake/3.5.2 Xlibraries/X11-64 extras/64_6.4 ImageMagick/6.6.7 python/3.5.1 curl/7.49.1 R/3.3.0 minc-toolkit/1.9.15 minc-stuffs/0.1.20 RMINC/1.5.0.0 mesa
-```
+We're going to focus on RMINC, although many of the principles will be cross-applicable to other packages
 
 ------------------------------------------------------------------------
 
@@ -56,6 +23,8 @@ Data
 ----
 
 -   Alzheimer's Disease Neuroimaging Initative Data
+-   Large open data-set of healthy controls and participants with Alzheimer's disease
+-   We're going to be working with a small excerpt
 
 Open R
 ------
@@ -66,39 +35,58 @@ library(dplyr)
 library(ggjoy)
 ```
 
+Or for those who don't like clogging your terminal
+
+``` r
+suppressPackageStartupMessages({
+  library(RMINC)
+  library(dplyr)
+  library(ggjoy)
+})
+```
+
 Data ingest
 -----------
+
+Let's bring in a prepared meta-data sheet for our excerpt
 
 ``` r
 civet_dir <- "~/civet-course/civet-course" #"/scinet/course/ss2017/19_mrir/civet-course/" 
 adni <- read.csv(file.path(civet_dir, "civet_ADNI.csv"))
 ```
 
-Inspect the data
+Let's have a look at the data
 
 ``` r
 summary(adni)
 ```
 
-CIVETQC?
---------
+Hmm, what's this CIVETQC column?
 
 ``` r
 adni$CIVETQC
-
-## Filter QC fails
-adni <- adni %>% filter(CIVETQC != 0)
-## OR
-adni <- adni[adni$CIVETQC != 0, ]
 ```
 
-Who's left
-----------
+Looks like a binary measure indicating if subjects passed QC
 
 ``` r
+## Filter QC fails
+adni <- adni[adni$CIVETQC != 0, ]
+
+#who's left over
 summary(adni)
+```
+
+``` r
+## Tabulate of demographics
+table(adni$Gender, adni$DX_bl)
 
 ## visualize age distributions
+
+#boxplot
+boxplot(Age ~ Gender + DX_bl, data = adni)
+
+#joyplot
 adni %>%
     mutate(sxd =
                factor(paste(DX_bl, Gender)
