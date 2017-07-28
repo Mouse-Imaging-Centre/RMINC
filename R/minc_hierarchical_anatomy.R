@@ -99,7 +99,7 @@ hanatAnova <- function(formula, data, anatTree) {
 #' @param anatTree The anatomical tree
 #' @param ... Extra options (REML, control of parallel execution, etc.) passed on to anatLmer
 #'
-#' @return The anatomical tree with teh model information added
+#' @return The anatomical tree with the model information added
 #' @export
 #' 
 #' @details The volumes inside the anatomical hierarchy and the data must be of
@@ -171,7 +171,13 @@ copyExtraAttributes <- function(source, target) {
 #' thresholds(hLm)
 #' }
 hanatFDR <- function(buffer) {
-  modelData <- t(buffer$Get("model"))
+  modelData <- buffer$Get("model")
+  if (is.null(dim(modelData))) {
+    dim(modelData) <- c(length(modelData), 1)
+  }
+  else {
+    modelData <- t(modelData)
+  }
   modelData <- copyExtraAttributes(buffer, modelData)
   dimnames(modelData) <- attr(buffer, "modelDimnames")
   class(modelData) <- attr(buffer, "modelClass")
@@ -187,6 +193,42 @@ hanatFDR <- function(buffer) {
   }
   attr(buffer, "thresholds") <- attr(aFDR, "thresholds")
   class(buffer) <- c(class(buffer), "mincQvals")
+  return(buffer)
+}
+
+#' Estimates degrees of freedom
+#' 
+#' see \link{anatLmerEstimateDF}
+#'
+#' @param buffer input hierarchical tree
+#' @param n number of structures to use for DF estimation
+#'
+#' @return input tree with df added
+#' @export
+#' 
+#' @details The volumes inside the anatomical hierarchy and the data must be of
+#'   the same length and ordering.
+#'
+#' @examples \dontrun{
+#' vols <- addVolumesToHierarchy(hdefs, allvols)
+#' hLm <- hanatLmer(~Sex + (1|ID), gf, vols)
+#' hLm <- hanatLmerEstimateDF(hLm)
+#' hLm <- hanatFDR(hLm)
+#' thresholds(hLm)
+#' }
+hanatLmerEstimateDF <- function(buffer, n=50) {
+  modelData <- buffer$Get("model")
+  if (is.null(dim(modelData))) {
+    dim(modelData) <- c(length(modelData), 1)
+  }
+  else {
+    modelData <- t(modelData)
+  }
+  modelData <- copyExtraAttributes(buffer, modelData)
+  dimnames(modelData) <- attr(buffer, "modelDimnames")
+  class(modelData) <- attr(buffer, "modelClass")
+  modelData <- anatLmerEstimateDF(modelData, n=n)
+  attr(buffer, "df") <- attr(modelData, "df")
   return(buffer)
 }
 
@@ -377,9 +419,6 @@ copyABIinfo <- function(hdefs, abitree) {
 #' hdefs <- makeMICeDefsHierachical(defs, abijson) 
 #' }
 makeMICeDefsHierachical <- function(defs, abijson) {
-  require(rjson)
-  require(data.tree)
-  
   # read the definitions from the JSON file provided by the Allen institute
   abi <- fromJSON(file=abijson)
   # create a data.tree
@@ -435,11 +474,14 @@ colourVector <- function(vals, low, high, symmetric=F,
 #' @param symmetric Boolean for whether colour scale is symmetric
 #' @param transparent Colour to use for transparent nodes
 #' @param edgeColourFromABI Whether to set edge colours based on ABI atlas
-#'
+#' @param fontsize The font size for \code{hanatView}
+#' @param levelSeparation Spacing between hierarchical layers for \code{hanatView}
+#' @param ... Extra arguments to \code{hanatToVisGraph} from \code{hanatView}
+#' 
 #' @return list with nodes and edges data frames
 #' @export
 #'
-#' @examples
+## @examples
 hanatToVisGraph <- function(hanatTree, 
                             colourVariable="color_hex_triplet", 
                             colourScale=colorRampPalette(c("red", "yellow"))(255), 
@@ -496,16 +538,20 @@ hanatToVisGraph <- function(hanatTree,
 
 #' @describeIn hanatToVisGraph Directly view the graph
 #' @export
-hanatView <- function(...) {
-  require(visNetwork)
+hanatView <- function(..., fontsize=14, levelSeparation=500) {
   gv <- hanatToVisGraph(...)
   visNetwork(gv$nodes, gv$edges) %>% 
-    visNodes(shape="box") %>% 
+    visNodes(shape="box", font=list(size=fontsize)) %>% 
     visEdges(width=10, smooth=F, arrows="to") %>% 
-    visHierarchicalLayout(direction="LR", levelSeparation = 500, sortMethod="directed") %>% 
+    visHierarchicalLayout(direction="LR", levelSeparation = levelSeparation, sortMethod="directed") %>% 
     visPhysics(enabled=F)
 }
 
+#' hanatPlot
+#'
+#' Create a basic plot of the anatomy tree
+#' 
+#' @param anatTree the input anatomical tree
 #' @export
 hanatPlot <- function(anatTree) {
   tree <- Clone(anatTree)

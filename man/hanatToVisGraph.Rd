@@ -11,7 +11,7 @@ hanatToVisGraph(hanatTree, colourVariable = "color_hex_triplet",
   high = NULL, symmetric = F, transparent = "#FDFDFD",
   edgeColourFromABI = F)
 
-hanatView(...)
+hanatView(..., fontsize = 14, levelSeparation = 500)
 }
 \arguments{
 \item{hanatTree}{The input anatomical tree}
@@ -31,6 +31,12 @@ hanatView(...)
 \item{transparent}{Colour to use for transparent nodes}
 
 \item{edgeColourFromABI}{Whether to set edge colours based on ABI atlas}
+
+\item{...}{Extra arguments to \code{hanatToVisGraph} from \code{hanatView}}
+
+\item{fontsize}{The font size for \code{hanatView}}
+
+\item{levelSeparation}{Spacing between hierarchical layers for \code{hanatView}}
 }
 \value{
 list with nodes and edges data frames

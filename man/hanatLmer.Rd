@@ -16,7 +16,7 @@ hanatLmer(formula, data, anatTree, ...)
 \item{...}{Extra options (REML, control of parallel execution, etc.) passed on to anatLmer}
 }
 \value{
-The anatomical tree with teh model information added
+The anatomical tree with the model information added
 }
 \description{
 See \link{anatLmer} for more detail

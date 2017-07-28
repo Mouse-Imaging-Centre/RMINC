@@ -17,8 +17,6 @@ pre code {
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-# some weirdness potentially particular to mac. Images are flipped, so fix that:
-options(RMINC_flip_image=TRUE)
 options(width=1000)
 ```
 
@@ -41,19 +39,26 @@ library(data.tree)
 Next, the data - again, nothing has changed from prior anatomical analyses so far - we load in the CSV file containing information about the scans in the study, and we also load in the label volume and its underlying average for visualization purposes (and it's fine to either use the one resampled for your study or the original version).
 
 ```{r}
-# this takes the place of two calls:
-# gf <- read.csv("input.csv")
-# allvols <- anatGetAll(gf$labels)
-load("~/Dropbox/data/scott-enrichment.RData")
+# start with some data reading
+
+gfAB <- read.csv("/hpf/largeprojects/MICe/lqiu/collaborator_40um/Scott_enrichment/Scott_groupA-B_jacobians.csv")
+
+
+# add the blurred jacobians
+gfAB$relative02 <- sub('.mnc', '_fwhm0.2.mnc', gfAB$relative)
+gfAB$absolute02 <- sub('.mnc', '_fwhm0.2.mnc', gfAB$absolute)
 
 # add some reorganization of the data
 gfAB$treatment <- relevel(gfAB$treatment, ref="standard")
 gfAB$genotype <- relevel(gfAB$genotype, ref="wt")
 gfAB$sex <- gfAB$sex %>% recode('?' = "female")
 
+# load the volumes
+allvols <- anatGetAll(gfAB$labels, method="labels", defs="/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/mappings/DSURQE_40micron_R_mapping.csv", parallel=c("local", 7))
+
 # and read in the label and anatomical volumes
-labelVol <- mincArray(mincGetVolume("/Users/jason/Dropbox/data/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/ex-vivo/DSURQE_40micron_labels.mnc"))
-anatVol <- mincArray(mincGetVolume("/Users/jason/Dropbox/data/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/ex-vivo/DSURQE_40micron_average.mnc"))
+labelVol <- mincArray(mincGetVolume("/hpf/largeprojects/MICe/tools/atlases//Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/ex-vivo/DSURQE_40micron_labels.mnc"))
+anatVol <- mincArray(mincGetVolume("/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/ex-vivo/DSURQE_40micron_average.mnc"))
 ```
 
 Next it is time to make the defintions hierarchical. This will be identical for every study that uses this atlas, so there's a good chance we will simply include the hierarchical definitions as data files in RMINC in the future. 
@@ -62,8 +67,8 @@ For rolling your own, the CSV file is the same as it's always been, except with 
 
 ```{r}
 
-abijson <- "~/Dropbox/colourbars/allen.json"
-defs <- "~/Dropbox/colourbars/DSURQE_40micron_R_mapping.csv"
+abijson <- "/hpf/largeprojects/MICe/tools/atlases/Allen_Brain/Allen_hierarchy_definitions.json"
+defs <- "/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/mappings/DSURQE_40micron_R_mapping.csv"
 hdefs <- makeMICeDefsHierachical(defs, abijson)
 
 ```
@@ -244,7 +249,7 @@ thresholds(hVs)
 names(hVs)
 ```
 
-The main difference here is that rather than using the Benjamini & Hochberg (1995) method as is used for every other FDR invocation in RMINC, it uses the Benjamini and Yekutieli (2001) FDR algorithm, which is viable in the presence of dependence (as obviously exists in a hierarchy where lower level values are dependent on high levels).
+The main difference here is that rather than using the Benjamini & Hochberg (1995) method as is used for every other FDR invocation in RMINC, it uses the Benjamini and Yekutieli (2001) FDR algorithm, which is viable in the presence of dependence (as obviously exists in a hierarchy where higher level values are dependent on low levels).
 
 For sake of illustration, let's run it again as an ANOVA
 
@@ -253,6 +258,8 @@ hA <- hanatAnova(~genotype, gfAB, vols)
 stats <- hanatToVolume(hA, labelVol, "genotype")
 mincPlotSliceSeries(anatVol, stats, low=4, high=25, symmetric=F, legend="F-stats", begin=50, end=-50)
 hanatView(hA, "genotype", low=4, high=25, symmetric=F)
+hA <- hanatFDR(hA)
+thresholds(hA)
 ```
 
 And as a linear mixed effects model. This doesn't necessarily make sense for this particular dataset, but having information pooled across sex is not that unreasonable ...
