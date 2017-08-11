@@ -51,7 +51,7 @@ END_RCPP
 }
 // replaceValues
 void replaceValues(NumericVector labelVol, NumericVector out, NumericVector labels, NumericVector values);
-RcppExport SEXP RMINC_replaceValues(SEXP labelVolSEXP, SEXP outSEXP, SEXP labelsSEXP, SEXP valuesSEXP) {
+RcppExport SEXP _RMINC_replaceValues(SEXP labelVolSEXP, SEXP outSEXP, SEXP labelsSEXP, SEXP valuesSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type labelVol(labelVolSEXP);
