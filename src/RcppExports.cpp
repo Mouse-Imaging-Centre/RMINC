@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // anat_summary
 List anat_summary(CharacterVector filenames, IntegerVector atlas, std::string method);
-RcppExport SEXP RMINC_anat_summary(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP methodSEXP) {
+RcppExport SEXP _RMINC_anat_summary(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP methodSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -20,7 +20,7 @@ END_RCPP
 }
 // count_labels
 NumericMatrix count_labels(CharacterVector filenames);
-RcppExport SEXP RMINC_count_labels(SEXP filenamesSEXP) {
+RcppExport SEXP _RMINC_count_labels(SEXP filenamesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -31,7 +31,7 @@ END_RCPP
 }
 // rcpp_minc_apply
 List rcpp_minc_apply(CharacterVector filenames, bool use_mask, CharacterVector mask, double mask_lower_val, double mask_upper_val, RObject value_for_mask, bool filter_masked, NumericVector slab_sizes, Function fun, List args);
-RcppExport SEXP RMINC_rcpp_minc_apply(SEXP filenamesSEXP, SEXP use_maskSEXP, SEXP maskSEXP, SEXP mask_lower_valSEXP, SEXP mask_upper_valSEXP, SEXP value_for_maskSEXP, SEXP filter_maskedSEXP, SEXP slab_sizesSEXP, SEXP funSEXP, SEXP argsSEXP) {
+RcppExport SEXP _RMINC_rcpp_minc_apply(SEXP filenamesSEXP, SEXP use_maskSEXP, SEXP maskSEXP, SEXP mask_lower_valSEXP, SEXP mask_upper_valSEXP, SEXP value_for_maskSEXP, SEXP filter_maskedSEXP, SEXP slab_sizesSEXP, SEXP funSEXP, SEXP argsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -64,7 +64,7 @@ END_RCPP
 }
 // graph_tfce_wqu
 std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vector<int> > adjacencies, double E, double H, int nsteps, std::vector<double> weights);
-RcppExport SEXP RMINC_graph_tfce_wqu(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP, SEXP weightsSEXP) {
+RcppExport SEXP _RMINC_graph_tfce_wqu(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -80,7 +80,7 @@ END_RCPP
 }
 // graph_tfce
 std::vector<double> graph_tfce(std::vector<double> map, std::vector<std::vector<int> > adjacencies, double E, double H, int nsteps, std::vector<double> weights);
-RcppExport SEXP RMINC_graph_tfce(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP, SEXP weightsSEXP) {
+RcppExport SEXP _RMINC_graph_tfce(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP, SEXP weightsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -96,7 +96,7 @@ END_RCPP
 }
 // coords2ind
 int coords2ind(int i, int j, int k, int d1, int d2, int d3);
-RcppExport SEXP RMINC_coords2ind(SEXP iSEXP, SEXP jSEXP, SEXP kSEXP, SEXP d1SEXP, SEXP d2SEXP, SEXP d3SEXP) {
+RcppExport SEXP _RMINC_coords2ind(SEXP iSEXP, SEXP jSEXP, SEXP kSEXP, SEXP d1SEXP, SEXP d2SEXP, SEXP d3SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -112,7 +112,7 @@ END_RCPP
 }
 // ind2coords
 std::vector<int> ind2coords(int v, int d1, int d2, int d3);
-RcppExport SEXP RMINC_ind2coords(SEXP vSEXP, SEXP d1SEXP, SEXP d2SEXP, SEXP d3SEXP) {
+RcppExport SEXP _RMINC_ind2coords(SEXP vSEXP, SEXP d1SEXP, SEXP d2SEXP, SEXP d3SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -126,7 +126,7 @@ END_RCPP
 }
 // neighbour_list
 std::vector<std::vector<int> > neighbour_list(double x, double y, double z, int n);
-RcppExport SEXP RMINC_neighbour_list(SEXP xSEXP, SEXP ySEXP, SEXP zSEXP, SEXP nSEXP) {
+RcppExport SEXP _RMINC_neighbour_list(SEXP xSEXP, SEXP ySEXP, SEXP zSEXP, SEXP nSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -140,7 +140,7 @@ END_RCPP
 }
 // mesh_area
 std::vector<double> mesh_area(std::vector<double> vertices, std::vector<double> triangles);
-RcppExport SEXP RMINC_mesh_area(SEXP verticesSEXP, SEXP trianglesSEXP) {
+RcppExport SEXP _RMINC_mesh_area(SEXP verticesSEXP, SEXP trianglesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
