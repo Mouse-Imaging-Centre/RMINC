@@ -7,7 +7,7 @@
 mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L,
   temp_dir = getwd(), safely = FALSE, cleanup = TRUE,
-  summary_type = c("fixef", "ranef", "both", "anova"))
+  summary_type = c("fixef", "ranef", "both", "anova"), weights = NULL)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -50,6 +50,8 @@ run}
   \item{both: both fixed and random effects}
   \item{anova: return the F-statistic for each fixed effect}
 }}
+
+\item{weights}{weights to be applied to each observation}
 }
 \value{
 a matrix where rows correspond to number of voxels in the file and columns to

@@ -956,10 +956,11 @@ anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
 #' using more complicated random effects structures.
 #' @export 
 anatLmer <-
-  function(formula, data, anat, REML = TRUE,
-           control = lmerControl(), verbose = FALSE, 
-           start = NULL, parallel = NULL, safely = FALSE, 
-           summary_type = c("fixef", "ranef", "both", "anova")){
+  function(formula, data, anat, REML = TRUE
+           , control = lmerControl(), verbose = FALSE
+           , start = NULL, parallel = NULL, safely = FALSE
+           , summary_type = c("fixef", "ranef", "both", "anova")
+           , weights = NULL){
     
     mc <- mcout <- match.call()
     
@@ -973,7 +974,7 @@ anatLmer <-
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely")]
+    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely", "summary_type")]
     
     lmod <- eval(mc)
     
@@ -998,7 +999,7 @@ anatLmer <-
     
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){
-        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun, weights = weights),
                  error = function(e){warning(e); return(NA)})
       }
     

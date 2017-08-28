@@ -6,6 +6,11 @@ suppressPackageStartupMessages({
 
 context("anatLmer")
 
+eval({
+    
+    "bug"
+})	
+
 getRMINCTestData()
 dataPath <- file.path(tempdir(), "rminctestdata/")
 
@@ -19,7 +24,8 @@ known_labels <- with(label_frame, union(left.label, right.label))
 anat_env <- new.env()
 
 test_that("anatLmer works", {
-  evalq({
+    evalq({
+        
     jacobians <-
       anatGetAll(gf$jacobians_0.2, 
                  atlas = segmentation, 
@@ -73,3 +79,42 @@ test_that("anatLmer exotic formulae work", {
     expect_true(all(between(dfs[2:4], 30, 50)))
   }, envir = anat_env)
 })
+
+test_that("anatLmer exotic formulae work", {
+  evalq({
+    verboseRun(
+      exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
+                              , data = gf, anat = jacobians, weights = )
+    )
+    
+    expect_warning(verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer)),
+                   regex = "Unable to estimate")
+    dfs <- attr(with_dfs, "df")
+    expect_true(between(dfs[1], 1, 3))
+    expect_true(all(between(dfs[2:4], 30, 50)))
+  }, envir = anat_env)
+})
+
+test_that("weighted lmer works", {
+    verboseRun({
+        
+        d <- data_frame(y = rnorm(20)
+                      , w = runif(20)
+                      , g = rep(c("A", "B"), length.out = 20))
+
+        a <- matrix(rnorm(60), ncol = 3)
+        
+        weighted_lmer <- anatLmer( ~ x + (1 | g), data = d, anat = a, weights = d$w)
+
+        lmer_ref <-
+            apply(a, 2, function(col){
+                d <- d %>% mutate(resp = col)
+                mod <- lmer(resp ~ x + (1 | g), data = d, weights = d$w)
+                RMINC:::fixef_summary(mod)
+            }) %>%
+            t
+
+        all.equal(weighted_lmer, lmer_ref)
+    })
+})
+      

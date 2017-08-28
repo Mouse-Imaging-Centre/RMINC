@@ -33,6 +33,7 @@
 #'   \item{both: both fixed and random effects}
 #'   \item{anova: return the F-statistic for each fixed effect}
 #'}
+#' @param weights weights to be applied to each observation
 #' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
 #' run
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
@@ -84,7 +85,8 @@
 mincLmer <- function(formula, data, mask, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
-                     cleanup = TRUE, summary_type = c("fixef", "ranef", "both", "anova")) {
+                     cleanup = TRUE, summary_type = c("fixef", "ranef", "both", "anova")
+                     , weights = NULL) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here

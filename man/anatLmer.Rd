@@ -6,7 +6,7 @@
 \usage{
 anatLmer(formula, data, anat, REML = TRUE, control = lmerControl(),
   verbose = FALSE, start = NULL, parallel = NULL, safely = FALSE,
-  summary_type = c("fixef", "ranef", "both", "anova"))
+  summary_type = c("fixef", "ranef", "both", "anova"), weights = NULL)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -43,6 +43,8 @@ NA for the result.}
   \item{both: both fixed and random effects}
   \item{anova: return the F-statistic for each fixed effect}
 }}
+
+\item{weights}{weights to be applied to each observation}
 }
 \description{
 Fit a linear mixed effects model for each structure in the results of
