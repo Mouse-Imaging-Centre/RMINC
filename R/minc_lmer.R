@@ -261,8 +261,8 @@ mincLmerEstimateDF <- function(model) {
   ## Slower but yeilds the correct result
   lmod <- mincLmerList[[1]]
   LHS <- as.character(lmod$formula[[2]])
-  model_form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
-  environment(model_form) <- environment()
+  form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
+  #environment(model_form) <- environment()
   
   filenames <- unique(mincLmerList[[1]]$fr[,1])
   row_file_match <- match(original_data[[LHS]], filenames)
@@ -272,9 +272,14 @@ mincLmerEstimateDF <- function(model) {
     voxel_data <- mincGetVoxel(filenames, rand_inds)
     
     original_data$RMINC_DUMMY_LHS <- voxel_data[row_file_match]
+
+    ## Work around for slowness in recent lme4, fixed in upstream lme4
+    ## thanks to https://github.com/lme4/lme4/issues/410#issuecomment-311092416
+    model_env <- list2env(original_data)
+    environment(form) <- model_env
     
     mmod <-
-      lmerTest::lmer(model_form, data = original_data, REML = lmod$REML,
+      lmerTest::lmer(form, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     

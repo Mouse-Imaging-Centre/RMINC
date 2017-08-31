@@ -336,7 +336,7 @@ vertexLmer <-
 
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("mask", "parallel", "safely")]
+    mc <- mc[!names(mc) %in% c("mask", "parallel", "safely", "summary_type")]
 
     lmod <- eval(mc, parent.frame(1L))
     mincFileCheck(lmod$fr[,1])
@@ -454,24 +454,25 @@ vertexLmerEstimateDF <-
     nvertices <- min(50, sum(mask > .5))
     rvertices <- sample(which(mask > .5), nvertices)
     dfs <- matrix(nrow = nvertices, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
+    original_data <- attr(model, "data")
     
+    ## It seems LmerTest cannot compute the deviance function for mincLmers
+    ## in the current version, instead extract the model components from
+    ## the mincLmerList and re-fit the lmers directly at each structure,
+    ## Slower but yeilds the correct result
+    lmod <- mincLmerList[[1]]
+    LHS <- as.character(lmod$formula[[2]])
+    form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
+
     for (i in 1:nvertices) {
       vertex_vals <- vertex_data[i,]
-      
-      ## It seems LmerTest cannot compute the deviance function for mincLmers
-      ## in the current version, instead extract the model components from
-      ## the mincLmerList and re-fit the lmers directly at each structure,
-      ## Slower but yeilds the correct result
-      lmod <- mincLmerList[[1]]
-      lmod$fr[,1] <- vertex_vals
-      
-      # Rebuild the environment of the formula, otherwise updating does not
-      # work in the lmerTest code
-      environment(lmod$formula)$lmod <- lmod
-      environment(lmod$formula)$mincLmerList <- mincLmerList
-      
+      original_data$RMINC_DUMMY_LHS <- vertex_vals
+
+      model_env <- list2env(original_data)
+      environment(form) <- model_env
+
       mmod <-
-        lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+        lmerTest::lmer(form, REML = lmod$REML,
                        start = mincLmerList[[4]], control = mincLmerList[[3]],
                        verbose = mincLmerList[[5]])
       

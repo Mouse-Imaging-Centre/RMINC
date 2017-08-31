@@ -1047,13 +1047,21 @@ anatLmer <-
 #' on degrees of freedom estimation for linear mixed effects models
 #' @param model an \code{anatLmerModel}
 #' @param n number of structures to use for DF estimation
+#' @param verbose Whether or not to print progress
 #' @return the same model, now with degrees of freedom set
 #' @export
-anatLmerEstimateDF <- function(model, n=50) {
+anatLmerEstimateDF <- function(model, n=50, verbose = FALSE) {
   # set the DF based on the Satterthwaite approximation
-  
+    
   mincLmerList <- attr(model, "mincLmerList")
   anat <- attr(model, "anat")
+  original_data <- attr(model, "data")
+
+  ## It seems LmerTest cannot compute the deviance function for mincLmers
+  ## in the current version, instead extract the model components from
+  ## the mincLmerList and re-fit the lmers directly at each structure,
+  ## Slower but yeilds the correct result
+  lmod <- mincLmerList[[1]]
   
   # estimated DF depends on the input data. Rather than estimate separately at every structure,
   # instead select a small number of structures and estimate DF for those structures, then keep the
@@ -1061,36 +1069,34 @@ anatLmerEstimateDF <- function(model, n=50) {
   nstructures <- min(n, nrow(model))
   rstructures <- sample(seq_len(nrow(model)), nstructures)
   dfs <- matrix(nrow = nstructures, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
-  
-  for (i in seq_len(nstructures)) {
+
+  for(i in seq_len(nstructures)){
+    if(verbose) cat("Iteration ", i, " of ", n)
+    
     rand_ind <- rstructures[i]
     structureData <- anat[,rand_ind]
-    RMINC_DUMMY_LHS <- structureData
     
-    ## It seems LmerTest cannot compute the deviance function for mincLmers
-    ## in the current version, instead extract the model components from
-    ## the mincLmerList and re-fit the lmers directly at each structure,
-    ## Slower but yeilds the correct result
-    original_data <- attr(model, "data")
-    lmod <- mincLmerList[[1]]
-    
-    # Rebuild the environment of the formula, otherwise updating does not
-    # ensuring it can find both RMINC_DUMMY_LHS and original_data
-    environment(lmod$formula) <- environment()
+    original_data$RMINC_DUMMY_LHS <- structureData
+
+    ## Work around for slowness in recent lme4, fixed in upstream lme4
+    ## thanks to https://github.com/lme4/lme4/issues/410#issuecomment-311092416
+    model_env <- list2env(original_data)
+    form <- lmod$formula
+    environment(form) <- model_env
 
     mmod <-
-      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
+      lmerTest::lmer(form, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
       suppressMessages(
         tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
-                 , error = function(e){ 
-                   warning("Unable to estimate DFs for structure "
-                           , colnames(anat)[rand_ind]
-                           , call. = FALSE)
-                   NA}))
+               , error = function(e){ 
+                 warning("Unable to estimate DFs for structure "
+                       , colnames(anat)[rand_ind]
+                       , call. = FALSE)
+                 NA}))
   }
   
   df <- apply(dfs, 2, median, na.rm = TRUE)
