@@ -959,24 +959,23 @@ anatLmer <-
   function(formula, data, anat, REML = TRUE
            , control = lmerControl(), verbose = FALSE
            , start = NULL, parallel = NULL, safely = FALSE
-           , summary_type = c("fixef", "ranef", "both", "anova")
+           , summary_type = "fixef"
            , weights = NULL){
     
     mc <- mcout <- match.call()
+    original_data <- data
     
-    # Allow the user to omit the LHS by inserting a normal random variable
-    mc$formula <- update(formula, RMINC_DUMMY_LHS ~ .)
-    environment(mc$formula) <- environment()
-    RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    # Add a dummy response column
+    mc$formula <- update(formula,  RMINC_DUMMY_LHS ~ .)
+    data$RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    mc[["data"]] <- as.symbol("data")
     
     mc[[1]] <- quote(lme4::lFormula)
-    mc$data <- as.symbol("data")
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
     mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely", "summary_type")]
-    
-    lmod <- eval(mc)
+    lmod <- eval(mc, environment())
     
     # code ripped from lme4:::mkLmerDevFun
     rho <- new.env(parent = parent.env(environment()))
@@ -990,12 +989,17 @@ anatLmer <-
     
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
-    summary_type <- match.arg(summary_type)
-    summary_fun <- switch(summary_type
+    summary_fun <- summary_type
+    if(is.character(summary_type) && length(summary_type))
+      summary_fun <- switch(summary_type
                           , fixef = fixef_summary
                           , ranef = ranef_summary
                           , both = effect_summary
-                          , anova = anova_summary)
+                          , anova = anova_summary
+                          , stop("invalid summary type specified"))
+
+    if(!is.function(summary_fun))
+      stop("summary_type must be a string specifying a summary, or a function")
     
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){

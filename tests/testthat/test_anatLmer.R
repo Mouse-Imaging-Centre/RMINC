@@ -6,11 +6,6 @@ suppressPackageStartupMessages({
 
 context("anatLmer")
 
-eval({
-    
-    "bug"
-})	
-
 getRMINCTestData()
 dataPath <- file.path(tempdir(), "rminctestdata/")
 
@@ -98,12 +93,12 @@ test_that("anatLmer exotic formulae work", {
 test_that("weighted lmer works", {
     verboseRun({
         
-        d <- data_frame(y = rnorm(20)
+        d <- data.frame(x = rnorm(20)
                       , w = runif(20)
                       , g = rep(c("A", "B"), length.out = 20))
 
         a <- matrix(rnorm(60), ncol = 3)
-        
+
         weighted_lmer <- anatLmer( ~ x + (1 | g), data = d, anat = a, weights = d$w)
 
         lmer_ref <-

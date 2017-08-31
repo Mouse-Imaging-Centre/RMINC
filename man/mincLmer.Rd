@@ -7,7 +7,7 @@
 mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L,
   temp_dir = getwd(), safely = FALSE, cleanup = TRUE,
-  summary_type = c("fixef", "ranef", "both", "anova"), weights = NULL)
+  summary_type = "fixef", weights = NULL)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -43,13 +43,13 @@ NA for the result.}
 \item{cleanup}{Whether or not to cleanup registry files after a queue parallelized 
 run}
 
-\item{summary_type}{One of
+\item{summary_type}{Either one of
 \itemize{
   \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
   \item{ranef: returns random effect coefficients and t-values}
   \item{both: both fixed and random effects}
   \item{anova: return the F-statistic for each fixed effect}
-}}
+} or a function to be used to generate the summary}
 
 \item{weights}{weights to be applied to each observation}
 }

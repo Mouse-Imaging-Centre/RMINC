@@ -329,7 +329,7 @@ vertexLm <- function(formula, data, subset=NULL) {
 vertexLmer <-
   function(formula, data, mask=NULL, parallel=NULL,
            REML=TRUE, control=lmerControl(), start=NULL,
-           verbose=0L, safely = FALSE, summary_type = c("fixef", "ranef", "both", "anova")) {
+           verbose=0L, safely = FALSE, summary_type = "fixef") {
 
     mc <- mcout <- match.call()
     mc[[1]] <- quote(lme4::lFormula)
@@ -355,12 +355,18 @@ vertexLmer <-
 
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
 
-    summary_type <- match.arg(summary_type)
-    summary_fun <- switch(summary_type
-                          , fixef = fixef_summary
-                          , ranef = ranef_summary
-                          , both = effect_summary
-                          , anova = anova_summary)
+    summary_fun <- summary_type
+    if(is.character(summary_type) && length(summary_type))
+       summary_fun <- switch(summary_type
+                           , fixef = fixef_summary
+                           , ranef = ranef_summary
+                           , both = effect_summary
+                           , anova = anova_summary
+                           , stop("invalid summary type specified"))
+
+    if(!is.function(summary_fun))
+      stop("summary_type must be a string specifying a summary, or a function")
+    
 
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){
