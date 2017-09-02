@@ -175,7 +175,7 @@ mincApplyRCPP <-
     masked_value <- getOption("RMINC_MASKED_VALUE")
     
     results_indexed <-
-      .Call("RMINC_rcpp_minc_apply",
+      .Call(`_RMINC_rcpp_minc_apply`,
             filenames,
             use_mask = use_mask,
             mask = mask,
@@ -185,8 +185,7 @@ mincApplyRCPP <-
             filter_masked = filter_masked,
             slab_sizes = slab_sizes,
             fun = apply_fun,
-            args = args,
-            PACKAGE = "RMINC")
+            args = args)
     
     # run the garbage collector...
     gcout <- gc()
