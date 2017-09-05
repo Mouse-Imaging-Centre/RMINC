@@ -127,7 +127,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
   slab_dims[1] <- 1
   
   summary_fun <- summary_type
-  if(is.character(summary_type) && length(summary_type))
+  if(is.character(summary_type) && length(summary_type) == 1)
     summary_fun <- switch(summary_type
                         , fixef = fixef_summary
                         , ranef = ranef_summary
