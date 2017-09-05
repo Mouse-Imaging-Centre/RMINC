@@ -388,16 +388,13 @@ vertexLmer <-
     ## Result post processing
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
 
-    termnames <- colnames(lmod$X)
-    betaNames <- paste("beta-", termnames, sep="")
-    tnames <- paste("tvalue-", termnames, sep="")
-    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
-
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
 
-    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                                "logLik", "converged")
+    res_cols <- colnames(out)
+    attr(out, "stat-type") <- ## Handle all possible output types
+      check_stat_type(res_cols, summary_type)
+
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
     attr(out, "REML") <- REML

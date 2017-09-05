@@ -197,16 +197,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
   
   res_cols <- colnames(out)
   attr(out, "stat-type") <- ## Handle all possible output types
-    case_when(res_cols == "logLik" ~ "logLik"
-              , res_cols == "converged" ~ "converged"
-              , summary_type == "anova" ~ "flmer"
-              , grepl("^tvalue-", res_cols) & summary_type == "ranef" ~ "rand-tlmer"
-              , grepl("^beta-", res_cols) & summary_type == "ranef" ~ "rand-beta"
-              , grepl("^tvalue-", res_cols) ~ "tlmer"
-              , grepl("^beta-", res_cols) ~ "beta"
-              , grepl("^rand-beta-", res_cols) ~ "rand-beta"
-              , grepl("^rand-tvalue-", res_cols) ~ "rand-tlmer")
-  
+    check_stat_type(res_cols, summary_type)
 
   # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
@@ -386,6 +377,23 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
                    fr = lmod$fr, mcout, lme4conv = cc)
   return(mmod)
 }
+
+check_stat_type <- function(stat, summary_type){
+  if(!is.character(summary_type))
+    summary_type <- "unknown"
+  
+  case_when(stat == "logLik" ~ "logLik"
+          , stat == "converged" ~ "converged"
+          , summary_type == "anova" ~ "flmer"
+          , grepl("^tvalue-", stat) & summary_type == "ranef" ~ "rand-tlmer"
+          , grepl("^beta-", stat) & summary_type == "ranef" ~ "rand-beta"
+          , grepl("^tvalue-", stat) ~ "tlmer"
+          , grepl("^beta-", stat) ~ "beta"
+          , grepl("^rand-beta-", stat) ~ "rand-beta"
+          , grepl("^rand-tvalue-", stat) ~ "rand-tlmer"
+          , TRUE ~ "unknown")
+  }
+  
 
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector
