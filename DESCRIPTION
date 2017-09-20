@@ -9,8 +9,8 @@ Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkid
              person("Jim",  "Nikelski", role = "ctb", email = "nikelski@bic.mni.mcgill.ca"),
              person("Yohan", "Yee", role = "ctb", email = "yohan.yee@sickkids.ca"),
              person("Miriam", "Friedel", role = "ctb"))
-Description: Tools for reading, writing, analyzing, and visualizing Medical Imaging NetCDF (MINC) files
-             with R. 
+Description: Tools for reading, writing, analyzing, and visualizing Medical
+    Imaging NetCDF (MINC) files with R.
 Additional_repositories: http://bioconductor.org/packages/3.3/bioc
 Depends:
     R (>= 3.0.1),
@@ -43,10 +43,8 @@ Suggests:
     qvalue,
     testthat,
     igraph
-LinkingTo: 
-    Rcpp
-SystemRequirements:
-    lsof AND EITHER
+LinkingTo: Rcpp
+SystemRequirements: lsof AND EITHER
     minc-toolkit-v2 (https://github.com/BIC-MNI/minc-toolkit-v2) OR
     cmake (> 2.6),
     git,
