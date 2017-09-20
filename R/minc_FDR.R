@@ -431,7 +431,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   rownames(thresholds) <- p.thresholds
   colnames(thresholds) <- columns
   attr(output, "thresholds") <- thresholds
-  colnames(output) <- columns
+  colnames(output) <- paste0("qvalue-", columns)
   rownames(output) <- rownames(buffer)
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- new_dfs
