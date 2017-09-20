@@ -1003,7 +1003,7 @@ anatLmer <-
     
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){
-        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun, weights = weights),
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
                  error = function(e){warning(e); return(NA)})
       }
     
