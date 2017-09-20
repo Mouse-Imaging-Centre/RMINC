@@ -15,7 +15,7 @@
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
 #'                       rgb
 #' @importFrom graphics abline contour hist layout mtext par plot.default
-#'                      plot.new rasterImage text segments points
+#'                      plot.new rasterImage text segments points plot
 #' @importFrom stats anova df.residual formula lm lm.fit
 #'                   logLik median model.matrix p.adjust pchisq
 #'                   pf predict pt pwilcox qchisq qf qt
