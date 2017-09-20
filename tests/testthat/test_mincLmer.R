@@ -112,3 +112,17 @@ test_that("Exotic formulae work", {
 
 })
 
+test_that("mincLmer works with NAs", {
+  verboseRun({
+    gf_missing <- gf
+    gf_missing[1, "Sex"] <- NA
+    
+    missing <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf_missing, mask=maskfile)
+    missing_dfs <- mincLmerEstimateDF(missing)
+    df <- attr(missing_dfs, "df")
+  })
+  
+  expect_that( df[[2]], is_less_than(nrow(missing)+1))
+  expect_that( df[[2]], is_more_than(1))
+})
+

@@ -87,7 +87,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
     
     if(parallel[1] == "local") {
       results <- 
-        quiet_mclapply(groups, function(group){
+        failing_mclapply(groups, function(group){
           apply_fun(mat[group,])
         }, mc.cores = n_groups) %>%
         Reduce(c, ., NULL)
@@ -329,14 +329,14 @@ vertexLm <- function(formula, data, subset=NULL) {
 vertexLmer <-
   function(formula, data, mask=NULL, parallel=NULL,
            REML=TRUE, control=lmerControl(), start=NULL,
-           verbose=0L, safely = FALSE, summary_type = c("fixef", "ranef", "both", "anova")) {
+           verbose=0L, safely = FALSE, summary_type = "fixef") {
 
     mc <- mcout <- match.call()
     mc[[1]] <- quote(lme4::lFormula)
 
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("mask", "parallel", "safely")]
+    mc <- mc[!names(mc) %in% c("mask", "parallel", "safely", "summary_type")]
 
     lmod <- eval(mc, parent.frame(1L))
     mincFileCheck(lmod$fr[,1])
@@ -355,12 +355,18 @@ vertexLmer <-
 
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
 
-    summary_type <- match.arg(summary_type)
-    summary_fun <- switch(summary_type
-                          , fixef = fixef_summary
-                          , ranef = ranef_summary
-                          , both = effect_summary
-                          , anova = anova_summary)
+    summary_fun <- summary_type
+    if(is.character(summary_type) && length(summary_type) == 1)
+       summary_fun <- switch(summary_type
+                           , fixef = fixef_summary
+                           , ranef = ranef_summary
+                           , both = effect_summary
+                           , anova = anova_summary
+                           , stop("invalid summary type specified"))
+
+    if(!is.function(summary_fun))
+      stop("summary_type must be a string specifying a summary, or a function")
+    
 
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){
@@ -382,16 +388,13 @@ vertexLmer <-
     ## Result post processing
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
 
-    termnames <- colnames(lmod$X)
-    betaNames <- paste("beta-", termnames, sep="")
-    tnames <- paste("tvalue-", termnames, sep="")
-    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
-
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
 
-    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                                "logLik", "converged")
+    res_cols <- colnames(out)
+    attr(out, "stat-type") <- ## Handle all possible output types
+      check_stat_type(res_cols, summary_type)
+
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
     attr(out, "REML") <- REML
@@ -454,24 +457,25 @@ vertexLmerEstimateDF <-
     nvertices <- min(50, sum(mask > .5))
     rvertices <- sample(which(mask > .5), nvertices)
     dfs <- matrix(nrow = nvertices, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
+    original_data <- attr(model, "data")
     
+    ## It seems LmerTest cannot compute the deviance function for mincLmers
+    ## in the current version, instead extract the model components from
+    ## the mincLmerList and re-fit the lmers directly at each structure,
+    ## Slower but yeilds the correct result
+    lmod <- mincLmerList[[1]]
+    LHS <- as.character(lmod$formula[[2]])
+    form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
+
     for (i in 1:nvertices) {
       vertex_vals <- vertex_data[i,]
-      
-      ## It seems LmerTest cannot compute the deviance function for mincLmers
-      ## in the current version, instead extract the model components from
-      ## the mincLmerList and re-fit the lmers directly at each structure,
-      ## Slower but yeilds the correct result
-      lmod <- mincLmerList[[1]]
-      lmod$fr[,1] <- vertex_vals
-      
-      # Rebuild the environment of the formula, otherwise updating does not
-      # work in the lmerTest code
-      environment(lmod$formula)$lmod <- lmod
-      environment(lmod$formula)$mincLmerList <- mincLmerList
-      
+      original_data$RMINC_DUMMY_LHS <- vertex_vals
+
+      model_env <- list2env(original_data)
+      environment(form) <- model_env
+
       mmod <-
-        lmerTest::lmer(lmod$formula, data = lmod$fr, REML = lmod$REML,
+        lmerTest::lmer(form, REML = lmod$REML,
                        start = mincLmerList[[4]], control = mincLmerList[[3]],
                        verbose = mincLmerList[[5]])
       

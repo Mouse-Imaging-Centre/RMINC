@@ -209,7 +209,7 @@ anatGetAll <-
       # a vector with two elements: the methods followed by the # of workers
       if (parallel[1] %in% c("local", "snowfall")) {
         out <- 
-          parallel::mclapply(groups, function(group){
+          failing_mclapply(groups, function(group){
             compute_summary(filenames[group])
           }, mc.cores = n_groups) %>%
           reduce_matrices %>%
@@ -267,7 +267,7 @@ anatGetAll <-
 
 # Convert an RMINC style atlas label set to a nice data.frame
 create_labels_frame <-
-  function(defs, side = c("both", "left", "right"), keep_hierarchy = FALSE){
+  function(defs, side = c("both", "left", "right"), hierarchy = NULL){
     side <- match.arg(side)
     
     # if the definitions are given, check to see that we can read the 
@@ -281,16 +281,22 @@ create_labels_frame <-
     label_defs <- 
       read.csv(defs, stringsAsFactors = FALSE)
     
-    if("hierarchy" %in% names(label_defs) & keep_hierarchy){
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label, ~ hierarchy)
+    if(!is.null(hierarchy) && hierarchy %in% names(label_defs)){
+      label_defs <- 
+        select(label_defs
+               , !!! c("Structure"
+                       , "left.label"
+                       , "right.label"
+                       , hierarchy)) %>% ##new tidyeval
+        rename(hierarchy = !!hierarchy)
     } else {
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label)
+      label_defs <- select(label_defs, !!! c("Structure", "left.label", "right.label"))
     }
     
     label_defs <- 
       label_defs %>%
-      mutate_(both_sides = ~ right.label == left.label) %>%
-      gather_("hemisphere", "label", c("right.label", "left.label")) %>%
+      mutate(both_sides = .data$right.label == .data$left.label) %>%
+      gather("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
                 ~ ifelse(both_sides
                          , Structure
@@ -304,9 +310,9 @@ create_labels_frame <-
       mutate_(hierarchy = 
                 ~ with(.
                        , case_when(is.na(hierarchy) | hierarchy == "" ~ ""
-                                 , both_sides ~ hierarchy
-                                 , hemisphere == "right.label" ~ paste0("right ", hierarchy)
-                                 , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
+                                   , both_sides ~ hierarchy
+                                   , hemisphere == "right.label" ~ paste0("right ", hierarchy)
+                                   , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
     
     label_defs <-
       switch(side
@@ -551,9 +557,9 @@ anatSummarize <-
     
     if(is.character(summarize_by) && length(summarize_by == 1)){
       summarize_by <- 
-        create_labels_frame(defs, keep_hierarchy = TRUE) %>%
+        create_labels_frame(defs, hierarchy = summarize_by) %>%
         select_(~ -label) %>%
-        rename_(label = "Structure", group = summarize_by)
+        rename_(label = "Structure", group = "hierarchy")
     }
     
     if(!discard_missing){
@@ -800,6 +806,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
+#' @param weights An optional set of weights to use the regression, must be one per subject
 #' @return Returns an object containing the R-Squared,value,coefficients,F 
 #' and t statistcs that can be passed directly into anatFDR. Additionally
 #' has the attributes for model,stat type and degrees of freedom.
@@ -813,7 +820,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
 #' } 
 #' @export
-anatLm <- function(formula, data, anat, subset=NULL) {
+anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
   
   #INITIALIZATION
   matrixFound = FALSE
@@ -888,7 +895,14 @@ anatLm <- function(formula, data, anat, subset=NULL) {
     rows = colnames(mmatrix) 
     data.matrix.right = matrix()
   }
-  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  
+  if(!is.null(weights)){
+    if(length(weights) != nrow(mmatrix)) stop("Incorrect number of weights supplied, need one per observation")
+    result <- .Call("vertex_wlm_loop",data.matrix.left,data.matrix.right,mmatrix,weights,PACKAGE="RMINC") 
+  } else {
+    result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  }
+  
   rownames(result) <- colnames(anat)
   
   # the order of return values is:
@@ -942,26 +956,26 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' using more complicated random effects structures.
 #' @export 
 anatLmer <-
-  function(formula, data, anat, REML = TRUE,
-           control = lmerControl(), verbose = FALSE, 
-           start = NULL, parallel = NULL, safely = FALSE, 
-           summary_type = c("fixef", "ranef", "both", "anova")){
+  function(formula, data, anat, REML = TRUE
+           , control = lmerControl(), verbose = FALSE
+           , start = NULL, parallel = NULL, safely = FALSE
+           , summary_type = "fixef"
+           , weights = NULL){
     
     mc <- mcout <- match.call()
+    original_data <- data
     
-    # Allow the user to omit the LHS by inserting a normal random variable
-    mc$formula <- update(formula, RMINC_DUMMY_LHS ~ .)
-    environment(mc$formula) <- environment()
-    RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    # Add a dummy response column
+    mc$formula <- update(formula,  RMINC_DUMMY_LHS ~ .)
+    data$RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    mc[["data"]] <- as.symbol("data")
     
     mc[[1]] <- quote(lme4::lFormula)
-    mc$data <- as.symbol("data")
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely")]
-    
-    lmod <- eval(mc)
+    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely", "summary_type")]
+    lmod <- eval(mc, environment())
     
     # code ripped from lme4:::mkLmerDevFun
     rho <- new.env(parent = parent.env(environment()))
@@ -975,12 +989,17 @@ anatLmer <-
     
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
-    summary_type <- match.arg(summary_type)
-    summary_fun <- switch(summary_type
+    summary_fun <- summary_type
+    if(is.character(summary_type) && length(summary_type) == 1)
+      summary_fun <- switch(summary_type
                           , fixef = fixef_summary
                           , ranef = ranef_summary
                           , both = effect_summary
-                          , anova = anova_summary)
+                          , anova = anova_summary
+                          , stop("invalid summary type specified"))
+
+    if(!is.function(summary_fun))
+      stop("summary_type must be a string specifying a summary, or a function")
     
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){
@@ -1000,17 +1019,19 @@ anatLmer <-
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
     
-    termnames <- colnames(lmod$X)
-    betaNames <- paste("beta-", termnames, sep="")
-    tnames <- paste("tvalue-", termnames, sep="")
-    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+    #termnames <- colnames(lmod$X)
+    #betaNames <- paste("beta-", termnames, sep="")
+    #tnames <- paste("tvalue-", termnames, sep="")
+    #colnames(out) <- c(betaNames, tnames, "logLik", "converged")
     rownames(out) <- colnames(anat)
     
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
     
-    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                                "logLik", "converged")
+    res_cols <- colnames(out)
+    attr(out, "stat-type") <- ## Handle all possible output types
+      check_stat_type(res_cols, summary_type)
+    
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
     attr(out, "REML") <- REML
@@ -1031,50 +1052,57 @@ anatLmer <-
 #' produced by \link{anatLmer}. See \link{anatLmer} for more details
 #' on degrees of freedom estimation for linear mixed effects models
 #' @param model an \code{anatLmerModel}
+#' @param n number of structures to use for DF estimation
+#' @param verbose Whether or not to print progress
 #' @return the same model, now with degrees of freedom set
 #' @export
-anatLmerEstimateDF <- function(model) {
+anatLmerEstimateDF <- function(model, n=50, verbose = FALSE) {
   # set the DF based on the Satterthwaite approximation
-  
+    
   mincLmerList <- attr(model, "mincLmerList")
   anat <- attr(model, "anat")
+  original_data <- attr(model, "data")
+
+  ## It seems LmerTest cannot compute the deviance function for mincLmers
+  ## in the current version, instead extract the model components from
+  ## the mincLmerList and re-fit the lmers directly at each structure,
+  ## Slower but yeilds the correct result
+  lmod <- mincLmerList[[1]]
   
   # estimated DF depends on the input data. Rather than estimate separately at every structure,
   # instead select a small number of structures and estimate DF for those structures, then keep the
   # min
-  nstructures <- min(50, nrow(model))
+  nstructures <- min(n, nrow(model))
   rstructures <- sample(seq_len(nrow(model)), nstructures)
   dfs <- matrix(nrow = nstructures, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
-  
-  for (i in seq_len(nstructures)) {
+
+  for(i in seq_len(nstructures)){
+    if(verbose) cat("Iteration ", i, " of ", n)
+    
     rand_ind <- rstructures[i]
     structureData <- anat[,rand_ind]
-    RMINC_DUMMY_LHS <- structureData
     
-    ## It seems LmerTest cannot compute the deviance function for mincLmers
-    ## in the current version, instead extract the model components from
-    ## the mincLmerList and re-fit the lmers directly at each structure,
-    ## Slower but yeilds the correct result
-    original_data <- attr(model, "data")
-    lmod <- mincLmerList[[1]]
-    
-    # Rebuild the environment of the formula, otherwise updating does not
-    # ensuring it can find both RMINC_DUMMY_LHS and original_data
-    environment(lmod$formula) <- environment()
+    original_data$RMINC_DUMMY_LHS <- structureData
+
+    ## Work around for slowness in recent lme4, fixed in upstream lme4
+    ## thanks to https://github.com/lme4/lme4/issues/410#issuecomment-311092416
+    model_env <- list2env(original_data)
+    form <- lmod$formula
+    environment(form) <- model_env
 
     mmod <-
-      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
+      lmerTest::lmer(form, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
       suppressMessages(
         tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
-                 , error = function(e){ 
-                   warning("Unable to estimate DFs for structure "
-                           , colnames(anat)[rand_ind]
-                           , call. = FALSE)
-                   NA}))
+               , error = function(e){ 
+                 warning("Unable to estimate DFs for structure "
+                       , colnames(anat)[rand_ind]
+                       , call. = FALSE)
+                 NA}))
   }
   
   df <- apply(dfs, 2, median, na.rm = TRUE)

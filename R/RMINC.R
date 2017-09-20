@@ -15,7 +15,7 @@
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
 #'                       rgb
 #' @importFrom graphics abline contour hist layout mtext par plot.default
-#'                      plot.new rasterImage text segments points
+#'                      plot.new rasterImage text segments points plot
 #' @importFrom stats anova df.residual formula lm lm.fit
 #'                   logLik median model.matrix p.adjust pchisq
 #'                   pf predict pt pwilcox qchisq qf qt
@@ -27,6 +27,11 @@
 #' @importFrom grid plotViewport popViewport pushViewport
 #' @importFrom gridBase baseViewports
 #' @importFrom yaml yaml.load_file
+#' @importFrom data.tree FindNode Clone isLeaf Traverse Aggregate isNotLeaf
+#'                       SetGraphStyle FromListSimple as.Node
+#' @importFrom visNetwork visNetwork visNodes visEdges visHierarchicalLayout
+#'                        visPhysics
+#' @importFrom rjson fromJSON
 #' @useDynLib RMINC, .registration = TRUE 
 #' @docType package
 #' @name RMINC
@@ -94,4 +99,5 @@ NULL
 # Silence warning about magrittr/dplyr dot
 # a la https://github.com/smbache/magrittr/issues/29
 utils::globalVariables(".")
+utils::globalVariables(".data")
 

@@ -110,7 +110,7 @@ vals_to_numeric <- function(map){
 #' @param colour_range a two element numeric vector indicating the min and max values of 
 #' allowable labels/measures/statistics to be includedon the surface
 #' @param colour_default The colour given to vertices excluded by colour_range
-#' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
+#' @param symmetric Whether to have a positive and negative colour scale (not yet implemented)
 #' @param labels Whether or not the colour_map is a set of discrete labels
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
@@ -121,7 +121,7 @@ colour_mesh <- function(mesh,
                         colour_map,
                         colour_range = NULL,
                         colour_default = "grey",
-                        reverse = NULL,
+                        symmetric = NULL,
                         labels = FALSE,
                         palette = heat.colors(255)){
   
@@ -129,34 +129,61 @@ colour_mesh <- function(mesh,
   #Of a file containing such a vector spread over lines
   colour_map <- vals_to_numeric(colour_map)
   
-  
-  if(is.null(colour_range)) colour_range <- range(colour_map, na.rm = TRUE)
-  colour_map[!between(colour_map, colour_range[1], colour_range[2])] <- NA
-  
-  colour_depth <- length(palette)
-  
-  ## Deal with numeric vs label colours
-  if(!labels){
+  if(!symmetric && !labels){
+    if(is.null(colour_range)) colour_range <- range(colour_map, na.rm = TRUE)
+    colour_depth <- length(palette)
+    
+    colour_map[!between(colour_map, colour_range[1], colour_range[2])] <- NA
+    
     colour_indices <- 
       floor(
         (colour_map - colour_range[1]) / 
           diff(colour_range) * (colour_depth - 1)) + 1
-  } else {
+    
+    #Internally in tmesh3d, the vertex matrix is expanded
+    #Such that the vertices for each triangle appear sequentially
+    #in informal groups of three, the colours need to be triplicated
+    #and reordered to match, this is acheived by using the polygon matrix 
+    #as an index to the colours
+    colours <- palette[colour_indices][mesh$it]
+    colours[is.na(colours)] <- colour_default
+    
+  } 
+  
+  if(symmetric && !labels){
+    colour_depth <- 255
+    
+    palette <- list(pos = colorRampPalette(c("red", "yellow"))(colour_depth)
+                    , neg_palette = colorRampPalette(c("blue", "turquoise1"))(colour_depth))
+    
+    if(is.null(colour_range)) colour_range <- range(abs(colour_map), na.rm = TRUE)
+    
+    colour_map[!between(abs(colour_map), colour_range[1], colour_range[2])] <- NA
+    
+    colour_indices <-
+      floor(
+        (abs(colour_map) - colour_range[1]) / 
+          diff(colour_range) * (colour_depth - 1)) + 1
+    
+    # see note above
+    colours <- palette$pos[colour_indices]
+    colours[colour_map < 0 & !is.na(colour_map)] <- 
+      palette$neg[colour_indices[colour_map < 0 & !is.na(colour_map)]]
+    colours[is.na(colours)] <- colour_default
+    colours <- colours[mesh$it]
+  }
+  
+  
+  if(labels){
     colour_indices <- factor(colour_map)
     levels(colour_indices) <- sort(levels(colour_indices))
     colour_indices <- as.numeric(colour_indices)
   }
   
-  #Internally in tmesh3d, the vertex matrix is expanded
-  #Such that the vertices for each triangle appear sequentially
-  #in informal groups of three, the colours need to be triplicated
-  #and reordered to match, this is acheived by using the polygon matrix 
-  #as an index to the colours
-  colours <- palette[colour_indices][mesh$it]
-  colours[is.na(colours)] <- colour_default
   
   mesh$legend <- list(colour_range = colour_range, 
-                      palette = palette)
+                      palette = palette,
+                      symmetric = symmetric)
   
   mesh$material$color <- colours
   
@@ -210,7 +237,7 @@ add_opacity <- function(mesh, a_map, a_range = c(.5,1), a_default = 1){
 #' @param colour_range a two element numeric vector indicating the min and max values of 
 #' allowable labels/measures/statistics to be includedon the surface
 #' @param colour_default The colour given to vertices excluded by colour_range
-#' @param reverse Whether to have a positive and negative colour scale (not yet implemented)
+#' @param symmetric Whether to have a positive and negative colour scale (not yet implemented)
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
 #' @param labels whether the statistic map should be treated as discrete labels.
@@ -227,7 +254,7 @@ plot.bic_obj <-
            colour_map = NULL, 
            colour_range = NULL,
            colour_default = "grey",
-           reverse = NULL,
+           symmetric = FALSE,
            palette = heat.colors(255),
            labels = FALSE,
            colour_bar = TRUE,
@@ -258,7 +285,7 @@ plot.bic_obj <-
                                    colour_range = colour_range, 
                                    colour_default = colour_default,
                                    labels = labels,
-                                   reverse = reverse, 
+                                   symmetric = symmetric, 
                                    palette = palette)
     
     mesh %>% rgl::shade3d(override = FALSE)
@@ -313,19 +340,40 @@ add_colour_bar <- function(mesh,
     rgl::bgplot3d({
       par(mar = c(4,8,4,2))
       
-      stat_range <- seq(colour_range[1], colour_range[2], 
-                        length.out = length(palette))
+      # stat_range <- seq(colour_range[1], colour_range[2], 
+      #                   length.out = length(palette))
       
-      layout(matrix(1:length(column_widths), nrow = 1), widths = column_widths)
-      replicate(which_col - 1, plot.new())
-      
-      image(y = stat_range, 
-            z =  matrix(stat_range, nrow = 1), 
-            col = palette,
-            xaxt = "n",
-            ylab = title,
-            useRaster = TRUE,
-            ...)
+      #layout(matrix(1:length(column_widths), nrow = 1), widths = column_widths)
+      #replicate(which_col - 1, plot.new())
+      plot.new()
+      plotdims <- par("usr")
+      if(!symmetric){
+        # image(y = stat_range, 
+        #       z =  matrix(stat_range, nrow = 1), 
+        #       col = palette,
+        #       xaxt = "n",
+        #       ylab = title,
+        #       useRaster = TRUE,
+        #       ...)
+        plotrix::color.legend(0.97 * plotdims[2], 
+                              0.25 * plotdims[4], 
+                              0.99 * plotdims[2], 
+                              0.75 * plotdims[4], 
+                              colour_range, palette, gradient="y", align="rb")
+        text(1.10, 0.5, labels=title, srt=90)
+      } else {
+        plotrix::color.legend(0.97 * plotdims[2], 
+                              0.05 * plotdims[4], 
+                              0.99 * plotdims[2], 
+                              0.45 * plotdims[4], 
+                              -rev(colour_range), rev(palette$neg), gradient="y", align="rb")
+        plotrix::color.legend(0.97 * plotdims[2], 
+                              0.55 * plotdims[4], 
+                              0.99 * plotdims[2], 
+                              0.95 * plotdims[4], 
+                              colour_range, palette$pos, gradient="y", align="rb")
+        text(1.10, 0.5, labels=title, srt=90)
+      }
     })
   })
   
@@ -369,9 +417,9 @@ obj_montage <- function(left_obj,
                         colour_range = NULL,
                         colour_default = "grey",
                         colour_bar = TRUE,
-                        reverse = NULL,
                         labels = FALSE,
                         palette = heat.colors(255),
+                        symmetric = FALSE,
                         ...,
                         add_normals = TRUE,
                         colour_title = "",
@@ -389,7 +437,7 @@ obj_montage <- function(left_obj,
     colour_mesh(left_map,
                 colour_range = colour_range,
                 colour_default = colour_default,
-                reverse = reverse,
+                symmetric = symmetric,
                 labels = labels,
                 palette = palette)
   
@@ -398,7 +446,7 @@ obj_montage <- function(left_obj,
     colour_mesh(right_map,
                 colour_range = colour_range,
                 colour_default = colour_default,
-                reverse = reverse,
+                symmetric = symmetric,
                 labels = labels,
                 palette = palette)
   

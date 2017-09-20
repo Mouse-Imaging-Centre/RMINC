@@ -1,3 +1,13 @@
+New in Version 1.5.0.*
+=======================
+0
+--
+* Adds hierarchical atlas features
+* fixes pivoting bug in lm code
+* Adds weighting option to anatLm/*Lmer
+* Increases dplyr and lme4 version dependencies
+* Adds symmetric colour palettes to 3D plotting
+
 New in Version 1.4.4.*
 =======================
 0

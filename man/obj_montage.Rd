@@ -6,8 +6,8 @@
 \usage{
 obj_montage(left_obj, right_obj, left_map, right_map, output = NULL,
   colour_map, colour_range = NULL, colour_default = "grey",
-  colour_bar = TRUE, reverse = NULL, labels = FALSE,
-  palette = heat.colors(255), ..., add_normals = TRUE, colour_title = "",
+  colour_bar = TRUE, labels = FALSE, palette = heat.colors(255),
+  symmetric = FALSE, ..., add_normals = TRUE, colour_title = "",
   close_on_output = TRUE)
 }
 \arguments{
@@ -33,12 +33,12 @@ allowable labels/measures/statistics to be includedon the surface}
 
 \item{colour_bar}{Whether or not to draw a colour bar in the figure}
 
-\item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
-
 \item{labels}{Whether or not the colour_map is a set of discrete labels}
 
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}
+
+\item{symmetric}{Whether to have a positive and negative colour scale (not yet implemented)}
 
 \item{...}{additonal parameters to be passed to \link{create_mesh}}
 

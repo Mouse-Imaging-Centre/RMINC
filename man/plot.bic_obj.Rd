@@ -5,7 +5,7 @@
 \title{Plot a BIC obj}
 \usage{
 \method{plot}{bic_obj}(x, colour_map = NULL, colour_range = NULL,
-  colour_default = "grey", reverse = NULL, palette = heat.colors(255),
+  colour_default = "grey", symmetric = FALSE, palette = heat.colors(255),
   labels = FALSE, colour_bar = TRUE, add = FALSE, ...)
 }
 \arguments{
@@ -20,7 +20,7 @@ allowable labels/measures/statistics to be includedon the surface}
 
 \item{colour_default}{The colour given to vertices excluded by colour_range}
 
-\item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
+\item{symmetric}{Whether to have a positive and negative colour scale (not yet implemented)}
 
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}

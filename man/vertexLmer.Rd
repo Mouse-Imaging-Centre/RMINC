@@ -6,7 +6,7 @@
 \usage{
 vertexLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L, safely = FALSE,
-  summary_type = c("fixef", "ranef", "both", "anova"))
+  summary_type = "fixef")
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -35,13 +35,13 @@ Leaving this argument NULL runs sequentially and may take a long time.}
 block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 NA for the result.}
 
-\item{summary_type}{One of
+\item{summary_type}{Either one of
 \itemize{
   \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
   \item{ranef: returns random effect coefficients and t-values}
   \item{both: both fixed and random effects}
   \item{anova: return the F-statistic for each fixed effect}
-}}
+} or a function to be used to generate the summary}
 }
 \description{
 Perform linear mixed effects model fitting for vertex data.

@@ -147,7 +147,7 @@ mincFDR.mincLogLikRatio <- function(buffer, mask=NULL, ...) {
 
 #' @describeIn mincFDR mincLmer
 #' @export
-mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
+mincFDR.mincLmer <- function(buffer, mask=NULL, method="fdr", ...) {
   
   # if no DF set, exit with message
   df <- attr(buffer, "df")
@@ -181,7 +181,7 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
   for (i in 1:ncolsToUse) {
     # compute qvals through R's p.adjust function
     pvals[, i] <- pt2(buffer[mask>0.5, tlmerColumns[i]], df[[i]])
-    qvals[, i] <- p.adjust(pvals[, i], "fdr")
+    qvals[, i] <- p.adjust(pvals[, i], method=method)
     output[mask>0.5, i] <- qvals[, i]
     for (j in 1:length(p.thresholds)) {
       # compute thresholds; to be honest, not quite sure what the NA checking is about
@@ -202,6 +202,7 @@ mincFDR.mincLmer <- function(buffer, mask=NULL, ...) {
   colnames(thresholds) <- columnNames
   attr(output, "thresholds") <- thresholds
   colnames(output) <- columnNamesQ
+  rownames(output) <- rownames(buffer)
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- df
   class(output) <- c("mincQvals", "mincMultiDim", "matrix")
@@ -382,6 +383,10 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       qobj$pvalue <- pvals
       qobj$qvalue <- p.adjust(pvals, "fdr")
     }
+    else if (method == "BY") {
+      qobj$pvalue <- pvals
+      qobj$qvalue <- p.adjust(pvals, "BY")
+    }
     else if (method == "pFDR" | method == "fastqvalue") {
       qobj <- fast.qvalue(pvals)
     }
@@ -426,7 +431,8 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   rownames(thresholds) <- p.thresholds
   colnames(thresholds) <- columns
   attr(output, "thresholds") <- thresholds
-  colnames(output) <- columns
+  colnames(output) <- paste0("qvalue-", columns)
+  rownames(output) <- rownames(buffer)
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
   attr(output, "DF") <- new_dfs
   class(output) <- c("mincQvals", "mincMultiDim", "matrix")

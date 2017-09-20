@@ -127,4 +127,30 @@ test_that("AnatGetAll Flags Garbage", {
 })
 
 
+context("anatomy hierarchy summarization")
+## Test hierarchy
+test_hier1 <- label_frame
+test_hier1$hierarchy <- paste0("struc", rep(1:11, length.out = 34))
+test_hier1_file <- file.path(dataPath, "test_hierarchy1.csv")
+write.csv(test_hier1, test_hier1_file, row.names = FALSE)
 
+test_that("Anatomy hierarchy works", {
+  evalq({
+    hier_res <- anatSummarize(anat = new_jacobians, summarize_by = "hierarchy", defs = test_hier1_file)
+    expect_equal(ncol(hier_res), 24)
+  }, envir = test_env)
+})
+
+
+## Test hierarchy
+test_hier2 <- label_frame
+test_hier2$other.colname <- paste0("struc", rep(1:8, length.out = 34))
+test_hier2_file <- file.path(dataPath, "test_hierarchy2.csv")
+write.csv(test_hier2, test_hier2_file, row.names = FALSE)
+
+test_that("anatomy hierarchy works", {
+  evalq({
+    hier_res <- anatSummarize(anat = new_jacobians, summarize_by = "other.colname", defs = test_hier2_file)
+    expect_equal(ncol(hier_res), 17)
+  }, envir = test_env)
+})

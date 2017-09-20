@@ -175,7 +175,7 @@ mincApplyRCPP <-
     masked_value <- getOption("RMINC_MASKED_VALUE")
     
     results_indexed <-
-      .Call("RMINC_rcpp_minc_apply",
+      .Call(`_RMINC_rcpp_minc_apply`,
             filenames,
             use_mask = use_mask,
             mask = mask,
@@ -185,8 +185,7 @@ mincApplyRCPP <-
             filter_masked = filter_masked,
             slab_sizes = slab_sizes,
             fun = apply_fun,
-            args = args,
-            PACKAGE = "RMINC")
+            args = args)
     
     # run the garbage collector...
     gcout <- gc()
@@ -473,7 +472,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, 
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
-        quiet_mclapply(groups
+        failing_mclapply(groups
                        , parallel_mincAnova
                        , filenames = filenames
                        , model_matrix = mmatrix
@@ -671,7 +670,7 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
-        quiet_mclapply(groups
+        failing_mclapply(groups
                        , parallel_mincLm_c
                        , plm = parseLmOutput, mask = new_mask_file, mask_vol = mask_vol
                        , mc.cores = n_groups) %>%
@@ -1124,7 +1123,7 @@ mincRandomize_core <-
       
       if (parallel[1] %in% c("local", "snowfall")) {
         result <- 
-          quiet_mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
+          failing_mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
           Reduce(rbind, ., NULL) 
       }
       else {

@@ -4,10 +4,14 @@
 \alias{anatLmerEstimateDF}
 \title{Estimate Degrees of freedom for an anatLmer model}
 \usage{
-anatLmerEstimateDF(model)
+anatLmerEstimateDF(model, n = 50, verbose = FALSE)
 }
 \arguments{
 \item{model}{an \code{anatLmerModel}}
+
+\item{n}{number of structures to use for DF estimation}
+
+\item{verbose}{Whether or not to print progress}
 }
 \value{
 the same model, now with degrees of freedom set
