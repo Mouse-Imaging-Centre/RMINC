@@ -99,4 +99,5 @@ NULL
 # Silence warning about magrittr/dplyr dot
 # a la https://github.com/smbache/magrittr/issues/29
 utils::globalVariables(".")
+utils::globalVariables(".data")
 
