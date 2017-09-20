@@ -6,7 +6,7 @@
 \usage{
 civet.readCBRAIN(path, prefix, subjects = NULL, atlas = "AAL",
   civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE,
-  flatten = TRUE)
+  flatten = TRUE, QCDir = "QC")
 }
 \arguments{
 \item{path}{Path to the civet project}
@@ -26,6 +26,8 @@ civet.readCBRAIN(path, prefix, subjects = NULL, atlas = "AAL",
 
 \item{flatten}{logical whether to convert the CIVET results into a \code{dplyr} compatible data frame or leave
 it in the legacy format}
+
+\item{QCDir}{The directory, or vector of directories of where to find QC tables}
 }
 \value{
 A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in

@@ -644,13 +644,14 @@ civet_filenames_2_0_0 <-
 #' @param readQC logical whether to read and merge the QC results (must be used with \code{flatten})
 #' @param flatten logical whether to convert the CIVET results into a \code{dplyr} compatible data frame or leave
 #' it in the legacy format
+#' @param QCDir The directory, or vector of directories of where to find QC tables
 #' @return A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
 #' the format of \link{civet.readAllCivetFiles} if \code{readFiles} is TRUE and \code{flatten} is FALSE. And a data.frame in
 #' the format of \link{civet.flattenForDplyr} if \code{readQC}, \code{readFiles}, and \code{flatten} are all TRUE (default)
 #' @seealso \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr} 
 #' @export
 civet.readCBRAIN <-
-  function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE, flatten = TRUE){
+  function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE, flatten = TRUE, QCDir = "QC"){
     ## Check bad arguments
     if(readQC && readFiles && !flatten) stop("Can't merge QC when readFiles is TRUE and flatten is FALSE")
     
@@ -681,7 +682,9 @@ civet.readCBRAIN <-
     }
     
     if(readQC){
-      qc <- civet.readQC(file.path(path, "QC"), civetVersion)
+      #prefix dirs if necessary
+      dirs <- sapply(QCDir, function(d) sub("^([^/])", paste0(path, "/\\1"), d))
+      qc <- civet.readQC(dirs, civetVersion)
       results <- full_join(results, qc, by = c("subject" = "ID"))
     }
       
@@ -1671,7 +1674,7 @@ civet.flattenForDplyr <-
 #' 
 #' After running the CIVET quality control pipeline, import the results
 #' 
-#' @param dir The CIVET output directory
+#' @param dir The CIVET QC directory, or vector of directories 
 #' @param civetVersion the version of CIVET used, currently only supports
 #' 1.1.12, 2.0.0, 2.1.0
 #' @return A table of QC results including whether or not the subjects passed
@@ -1692,7 +1695,8 @@ civet.readQC <-
              , "2.1.0" = civet_qc_2_1_0
              , civet_qc_1_1_12)
     
-    qc_gatherer(dir)
+      lapply(dir, qc_gatherer) %>%
+          bind_rows
   }
 
 civet_qc_1_1_12 <- 
