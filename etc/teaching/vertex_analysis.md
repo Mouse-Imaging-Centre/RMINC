@@ -15,7 +15,7 @@ The world at large
 RMINC
 -----
 
-We're going to focus on RMINC, although many of the principles will be cross-applicable to other packages
+We're going to focus on RMINC, although many of the principles will be applicable to other packages
 
 ------------------------------------------------------------------------
 
@@ -152,7 +152,7 @@ Simple T-test
 Recall R's simple linear model command
 
 ``` r
-lm(y ~ x1, data = d)
+lm(y ~ x, data = d)
 ```
 
 RMINC has equivalents that operate on vectors of files
@@ -319,7 +319,7 @@ Threshold Free Cluster Enhancement
 Following the intuition that we're more confident in large regions of contiguous effect, Nichols et al. introduced Threshold Free Cluster Enhancement (TFCE).
 
 TFCE is computed as
-$$ \\integral h^H e(h)^H dh $$
+∫*h*<sup>*H*</sup>*e*(*h*)<sup>*H*</sup>*d**h*
  where h is the threshold e is the extent of the cluster at threshold h, H and E are 2 and 0.5 respectively.
 
 ``` r
