@@ -295,7 +295,7 @@ create_labels_frame <-
     
     label_defs <- 
       label_defs %>%
-      mutate(both_sides = !! quo(right.label == left.label)) %>%
+      mutate(both_sides = .data$right.label == .data$left.label) %>%
       gather("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
                 ~ ifelse(both_sides
