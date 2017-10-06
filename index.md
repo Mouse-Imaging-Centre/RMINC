@@ -8,8 +8,6 @@ Document Outline
 ----------------
 
 -   **Development**
--   **Getting Help**
-    -   Some of the latest tutorials from GitHub
 -   **Examples**
     -   Analyzing volume differences in neuroanatomy with a single set of labels
     -   Analyzing differences in neuroanatomy with multiple sets of labels
@@ -24,9 +22,9 @@ The main development home for RMINC can be found here: RMINC on Github - that pa
 Getting help
 ------------
 
-The most thorough walk-through of RMINC functionality can be found in: <https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/documentation/RMINC-userGuide.pdf>
+The most thorough walk-through of RMINC functionality can be found in: <https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/documentation/RMINC-userGuide.pdf> although some components may now be out of date
 
-Although some components may now be out of date
+For a recent tutorial on basic RMINC functionality and an example of how to use the POND publicly released mouse data see our [POND release tutorial](/RMINC/etc/data_release/example_analysis.html)
 
 The best place for function specific help is the manual, which is best accessed through `?`/`help` interfaces from within R
 
