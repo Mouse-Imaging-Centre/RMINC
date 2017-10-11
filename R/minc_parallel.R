@@ -101,7 +101,7 @@ tenacious_remove_registry <-
 #' at a time defaults to one slice along the first dimension.
 #' @param method A deprecated argument formerly used to configure how to parallelize the jobs
 #' now this is handled with \link{configureMincParallel} or by setting \code{local = TRUE}
-#' @param local boolean whether to run the jobs locally (with the parallel package) or with BatchJovs
+#' @param local boolean whether to run the jobs locally (with the parallel package) or with batchtools
 #' @param cores defaults to 1 or  
 #' \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} if running locally
 #' see \link{qMincApply} for details.
@@ -185,7 +185,7 @@ pMincApply <-
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
                             clobber = TRUE, collate = collate,
-                            cleaup = cleanup) 
+                            cleanup = cleanup) 
     }
 
   
