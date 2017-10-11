@@ -12,7 +12,8 @@ mincTFCE(x, ...)
 
 \method{mincTFCE}{mincSingleDim}(x, d = 0.1, E = 0.5, H = 2,
   side = c("both", "positive", "negative"), output_file = NULL,
-  keep = is.null(output_file), ...)
+  keep = is.null(output_file), conf_file = getOption("RMINC_BATCH_CONF"),
+  ...)
 
 \method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2, side = c("both",
   "positive", "negative"), like_volume, ...)
@@ -43,6 +44,8 @@ or a \code{matrix} object, or \code{mincLm} object.}
 
 \item{keep}{Whether or not to keep the enhanced volume, defaults to whether or not 
 a \code{output_file} was specified.}
+
+\item{conf_file}{A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}}
 
 \item{like_volume}{A path to a like volume specifying the dimensions of the output volumes}
 

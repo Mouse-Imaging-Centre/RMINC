@@ -1,47 +1,3 @@
-#' Parallel Configuration
-#' 
-#' Set up configuration for running parallel jobs with RMINC
-#' Use a standard configuration for SGE and Torque queuing systems
-#' or setup a custom configuration. Essentially a wrapper to
-#' \link{loadConfig} from batchtools, with two standard configurations
-#' provided. 
-#' 
-#' @param queue_type one of custom, sge, or pbs (torque)
-#' @param config_file the configuration file to use if a custom \code{queue_type} is
-#' selected.
-#' @return returns the configuration list invisibly
-#' @details 
-#' In order for parallelization to be as general as possible we provide means to setup the parallelization
-#' backend (batchtools) for any type of queuing system. For details on how to configure batchtools see
-#' \url{https://github.com/tudo-r/batchtools/wiki/Configuration}, or get inspiration from the SGE and PBS
-#' template scripts provided for SGE and PBS are located in \code{system.file("parallel/", package = "RMINC")}.
-#' Use of this function can be unnecessary, RMINC honours the hierarchy
-#' of configuration files <batchtools>/.BatchJobs.R < ~/.BatchJobs.R < getwd()/.BatchJobs.R
-#' you can edit one of these files to suit your use case. Alternatively, you can modify
-#' your R \link{Startup} files with \code{
-#' setHook(packageEvent("RMINC", "attach"),
-#' function(...) 
-#'   configureMincParallel("custom", "<your-config-file.R>"))
-#' } to set your configuration whenever \code{RMINC} is loaded
-#' @export 
-configureMincParallel <- 
-  function(queue_type = c("custom", "sge", "pbs")
-           , config_file = NULL){
-    
-    queue_type <- match.arg(queue_type)
-    
-    if(queue_type == "custom" && is.null(config_file))
-      stop("To use a custom configuration you need to pass a config file\n"
-           , "Please see ?configureMincParallel for details")
-    
-    script_directory <- system.file("parallel", package = "RMINC")
-    
-    switch(queue_type
-           , "custom" = loadConfig(config_file)
-           , "pbs"    = loadConfig(file.path(script_directory, "pbs_BatchJobs.R"))
-           , "sge"    = loadConfig(file.path(script_directory, "sge_BatchJobs.R")))
-  }
-
 create_parallel_mask <-
   function(sample_file, mask = NULL, n, temp_dir = getwd(), prefix = "pMincMask", tinyMask = FALSE){
     
@@ -83,6 +39,16 @@ tenacious_remove_registry <-
                  removeRegistry(reg, ask = "no")
                })
   }
+
+new_file <- function(name, dir = getwd()){
+  files <- grep(name, list.files(dir), value = TRUE)
+
+  i <- 1
+  while(sprintf("%s%03d", name, i) %in% files)
+    i <- i + 1
+
+  sprintf("%s%03d", name, i)
+}
 
 #' Parallel MincApply
 #' 
@@ -126,6 +92,7 @@ tenacious_remove_registry <-
 #' @param cleanup Whether to clean up registry after a queue parallelization job
 #' @param collate A function to be applied to collapse the results of the
 #' the pMincApply. Defaults to \link{simplify2minc}.
+#' @inheritParams qMincApply
 #' @return The results of applying \code{fun} to each voxel accross \code{filenames}
 #' after collation with \code{collate}
 #' @details This is a convenience wrapper for two underlying functions \link{qMincApply}
@@ -146,14 +113,17 @@ pMincApply <-
            method = NULL,
            local = FALSE,
            cores = NULL,
-           resources = list(),
+           resources = NULL,
            packages = NULL,
            vmem = NULL,
            walltime = NULL,
            workers = batches,
-           temp_dir = tempdir(),
+           temp_dir = getwd(),
            cleanup = TRUE,
-           collate = simplify2minc
+           collate = simplify2minc,
+           conf_file = getOption("RMINC_BATCH_CONF"),
+           registry_name = new_file("pMincApply_registry"),
+           registry_dir = getwd()
   ){
     
     if(!is.null(method))
@@ -185,7 +155,10 @@ pMincApply <-
                             tinyMask = tinyMask, batches = batches, 
                             resources = resources, packages = packages,
                             clobber = TRUE, collate = collate,
-                            cleanup = cleanup) 
+                            cleanup = cleanup,
+                            conf_file = conf_file,
+                            registry_dir = reg_dir,
+                            registy_name = registry_name) 
     }
 
   
@@ -220,12 +193,13 @@ mcMincApply <-
            mask = NULL,
            tinyMask = FALSE,
            slab_sizes = NULL,
-           temp_dir = tempdir(),
+           temp_dir = getwd(),
            cores = getOption("mc.cores", parallel::detectCores() - 1),
            return_raw = FALSE,
            cleanup = TRUE,
            mask_vals = NULL,
-           collate = simplify2minc){
+           collate = simplify2minc
+           ){
     
     filenames <- as.character(filenames)
     enoughAvailableFileDescriptors(length(filenames))
@@ -305,7 +279,7 @@ mcMincApply <-
 #' 
 #' Split a minc apply job into batches and process it either locally
 #' or a true grid computing setup. Endeavours to provide an abstract
-#' and customizable interface for job scheduling based on the BatchJobs
+#' and customizable interface for job scheduling based on the batchtools
 #' package. Basic steps of the apply is to 
 #' \itemize{
 #' \item{create a registry with \link{qMincRegistry} where jobs are coordinated and 
@@ -340,7 +314,7 @@ mcMincApply <-
 #' but higher numbers may be useful for batchtools multicore or systems like SciNet that do
 #' not allocate single core jobs.
 #' @param resources The resources to request for each job, overrides the \code{default.resources}
-#' specified in the configuration list. See \link{configureMincParallel} for more on configuration 
+#' specified in the configuration list. 
 #' @param packages packages to be loaded for each job in a registry
 #' @param temp_dir A directory to store files needed for the parallelization
 #' and job management
@@ -353,15 +327,17 @@ mcMincApply <-
 #' @param collate A function to collate the returned list into another object type.
 #' @param ignore_incompletes Whether to reduce the results with \code{qMincReduce}
 #' even if all jobs are not complete.
-#' @param registry_dir where qMincRegistry should create the registry
+#' @param registry_dir where batchtools should create the registry
+#' @param registry_name a name for the registry
 #' @param registry a pre-existing job registry
+#' @param conf_file A batchtools config file, defaults to \code{option("RMINC_BATCH_CONF")}
 #' @details RMINC's batching facilities are inherited with little modification from
 #' the batchtools package, mostly just providing handy wrappers to handle registry
 #' creation, batching, submission, and reduction. The abstractions provided are very leaky
 #' and it is worth learning about batchtools to handle more complex situations. Formerly one
 #' could set the parallelization method from this function, this has been removed. 
 #' Controlling how and where to execute the parallel jobs is now handled by 
-#' \link{configureMincParallel}.
+#' the conf_file argument.
 #' @return 
 #' \itemize{
 #' \item{If \code{qMincApply} is called with \code{wait = TRUE} or if \code{qMincReduce}
@@ -378,15 +354,17 @@ qMincApply <-
   function(filenames, fun, ..., 
            mask=NULL, batches=4, tinyMask=FALSE,
            slab_sizes = NULL,
-           resources = list(),
+           resources = NULL,
            packages = c("RMINC"),
+           registry_dir = getwd(),
            registry_name = "qMincApply_registry",
            temp_dir = getwd(),
            cores = 1, #max(getOption("mc.cores"), parallel::detectCores() - 1),
            wait = TRUE,
            cleanup = TRUE,
            clobber = FALSE,
-           collate = simplify2minc) {
+           collate = simplify2minc,
+           conf_file = getOption("RMINC_BATCH_CONF")) {
 
     if(is.null(slab_sizes)){
       slab_sizes <- minc.dimensions.sizes(filenames[1])
@@ -394,10 +372,12 @@ qMincApply <-
     }
 
     qMinc_registry <-
-      qMincRegistry(registry_name = registry_name,
-                    registry_dir = file.path(temp_dir, registry_name),
+      qMincRegistry(registry_name = new_file(registry_name, registry_dir),
+                    registry_dir = registry_dir,
                     packages = packages,
-                    clobber = clobber)
+                    clobber = clobber,
+                    resources = resources,
+                    conf_file = conf_file)
     
     on.exit({
       if(cleanup && wait){
@@ -415,8 +395,7 @@ qMincApply <-
              cores = cores,
              mask = mask, 
              tinyMask = tinyMask,
-             temp_dir = temp_dir,
-             resources = resources)
+             temp_dir = temp_dir)
     
     if(wait){
       qMinc_results <- qMincReduce(qMinc_registry, wait = TRUE, collate = collate)
@@ -431,8 +410,10 @@ qMincApply <-
 #' @export
 qMincRegistry <- function(registry_name = "qMincApply_registry",
                           packages = c("RMINC"),
-                          registry_dir = file.path(getwd(), registry_name),
-                          clobber = FALSE){
+                          registry_dir = getwd(),
+                          clobber = FALSE,
+                          resources = NULL,
+                          conf_file = getOption("RMINC_BATCH_CONF")){
   
   if(! "RMINC" %in% packages)
     packages <- c("RMINC", packages)
@@ -443,7 +424,11 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
   qMinc_registry <-
     makeRegistry(registry_name,
                  registry_dir,
-                 packages = packages)
+                 packages = packages,
+                 conf.file = conf_file)
+
+  if(!is.null(resources))
+    qMinc_registry$default.resources <- resources
   
   return(qMinc_registry)
 }
@@ -454,7 +439,7 @@ qMincMap <-
   function(registry, filenames, fun, ..., mask = NULL, 
            slab_sizes = NULL,
            batches = 4, tinyMask = FALSE, temp_dir = getwd(),
-           resources = list(),
+           resources = NULL,
            cores = 1){
     
     if(is.null(slab_sizes)){
@@ -488,13 +473,15 @@ qMincMap <-
         dot_args)
     #Override these if passed through ...
     mincApplyArguments$return_raw <- TRUE
+
     
-    batchMap(registry,
-             mcMincApply, 
-             mask_vals = mask_indices,
-             more.args = mincApplyArguments)
+    ids <-
+      batchMap(reg = registry,
+               mcMincApply, 
+               mask_vals = mask_indices,
+               more.args = mincApplyArguments)
     
-    submitJobs(registry, resources = resources)
+    submitJobs(ids, reg = registry)
     
     return(registry)
   }
@@ -505,12 +492,12 @@ qMincReduce <-
   function(registry, ignore_incompletes = FALSE, wait = FALSE, collate = simplify2minc){
     
     if(wait)
-      waitForJobs(registry)
+      waitForJobs(reg = registry)
     
     if((!ignore_incompletes) && length(findNotTerminated(registry) != 0))
       stop("Some jobs have not terminated, use `ignore_incompletes` to reduce anyway, or set `wait`")
     
-    results <- loadResults(registry, use.names = FALSE)
+    results <- loadResults(reg = registry, use.names = FALSE)
     result_attributes <- mincAttributes(results[[1]])
     
     result_indices <- unlist(lapply(results, function(el) el$inds))

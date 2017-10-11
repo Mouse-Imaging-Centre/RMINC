@@ -81,13 +81,13 @@ NULL
     
     op.RMINC <- list(
       RMINC_MASKED_VALUE = 
-        structure(0, class = "RMINC_MASKED_VALUE"),
-      RMINC_QUEUE = 
-        `if`(Sys.getenv("RMINC_QUEUE") == "",
-             Sys.getenv("RMINC_QUEUE"),
-             "multicore"),
-      RMINC_LABEL_DEFINITIONS =
+        structure(0, class = "RMINC_MASKED_VALUE")
+    , RMINC_LABEL_DEFINITIONS =
         Sys.getenv("RMINC_LABEL_DEFINITIONS")
+    , RMINC_BATCH_CONF =
+        `if`(Sys.getenv("RMINC_BATCH_CONF") == ""
+           , system.file("parallel/pbs_batchtools.R", package = "RMINC")
+           , Sys.getenv("RMINC_BATCH_CONF"))
     )
     
     toset <- !(names(op.RMINC) %in% names(op))

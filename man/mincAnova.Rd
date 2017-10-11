@@ -34,6 +34,8 @@ and \link{configureMincParallel} for details.
 Leaving this argument NULL runs sequentially.}
 
 \item{cleanup}{Whether or not to remove parallelization files}
+
+\item{conf_file}{A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}}
 }
 \value{
 Returns an array with the F-statistic for each model specified by 

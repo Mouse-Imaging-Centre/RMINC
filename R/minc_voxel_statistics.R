@@ -371,6 +371,7 @@ voxel_anova_wrapper <- function(filenames, model_matrix, mask, mask_min, mask_ma
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @details This function computes a sequential ANOVA over a set of files.
 #' @return Returns an array with the F-statistic for each model specified by 
 #' formula with the following attributes: 
@@ -482,10 +483,11 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, 
         Reduce(rbind, ., NULL) 
     }
     else {
-      reg <- makeRegistry("mincAnova_registry")
+      reg <- qMincRegistry(new_file("mincAnova_registry"), conf_file = conf_file)
       on.exit( if(cleanup) tenacious_remove_registry(reg), add = TRUE)
       
-      batchMap(reg
+      ids <-
+        batchMap(reg = reg
                , parallel_mincAnova
                , group = groups
                , more.args = list(filenames = filenames
@@ -493,11 +495,11 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, 
                                   , mask = new_mask_file
                                   , mask_vol = mask_vol))
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       result <-
-        loadResults(reg, use.names = FALSE) %>%
+        loadResults(reg = reg, use.names = FALSE) %>%
         Reduce(rbind, ., NULL) 
     } 
     
@@ -572,6 +574,7 @@ mincLm_c_wrapper <-
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 #' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
 #' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
@@ -586,7 +589,10 @@ mincLm_c_wrapper <-
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE) {
+mincLm <- function(formula, data=NULL,subset=NULL
+                 , mask=NULL, maskval=NULL, parallel = NULL
+                 , cleanup = TRUE
+                 , conf_file = getOption("RMINC_BATCH_CONF")) {
   
   #INITIALIZATION
   method <- "lm"
@@ -677,19 +683,20 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
         Reduce(rbind, ., NULL) 
     }
     else {
-      reg <- makeRegistry("mincLm_registry")
+      reg <- qMincRegistry(new_file("mincLm_registry"), conf_file = conf_file)
       on.exit( if(cleanup) tenacious_remove_registry(reg), add = TRUE)
       
-      batchMap(reg
+      ids <-
+        batchMap(reg = reg
                , parallel_mincLm_c
                , group = groups
                , more.args = list(plm = parseLmOutput, mask = new_mask_file, mask_vol = mask_vol))
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       result <-
-        loadResults(reg, use.names = FALSE) %>%
+        loadResults(reg = reg, use.names = FALSE) %>%
         Reduce(rbind, ., NULL) 
     } 
     
@@ -911,6 +918,7 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' first element is "local" the computation will be run via the parallel package, otherwise it will
 #' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 #' indicating the number of jobs to split the computation into.
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @param ... additional arguments for methods
 #' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
 #' in the single dimensional case, a string denoting a minc file or a \code{mincSingleDim} object
@@ -934,10 +942,11 @@ mincTFCE <-
 #' @export 
 mincTFCE.mincSingleDim <-
   function(x, d = 0.1, E = .5, H = 2.0
-           , side = c("both", "positive", "negative")
-           , output_file = NULL
-           , keep = is.null(output_file)
-           , ...){
+         , side = c("both", "positive", "negative")
+         , output_file = NULL
+         , keep = is.null(output_file)
+         , conf_file = getOption("RMINC_BATCH_CONF")
+         , ...){
     
     volume  <- x
     side    <- match.arg(side)
@@ -1127,18 +1136,18 @@ mincRandomize_core <-
           Reduce(rbind, ., NULL) 
       }
       else {
-        reg <- makeRegistry("mincRandomize_registry")
+        reg <- qMincRegistry(new_file("mincRandomize_registry"), conf_file = conf_file)
         on.exit( tenacious_remove_registry(reg), add = TRUE)
         
         suppressWarnings( #Warning suppression for large env for bootmodel (>10mb)
-          batchMap(reg, boot_model, n = group_sizes)
+          ids <- batchMap(reg = reg, boot_model, n = group_sizes)
         )
         
-        submitJobs(reg)
-        waitForJobs(reg)
+        submitJobs(ids, reg = reg)
+        waitForJobs(reg = reg)
         
         result <-
-          reduceResultsMatrix(reg, fun = function(job, res) res, rows = TRUE)
+          reduceResults(rbind, reg = reg)
       } 
     }
     

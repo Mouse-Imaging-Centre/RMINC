@@ -59,7 +59,8 @@ vertexSd<- function(filenames)
 ### Helper function for applying over rows of a potentially 
 ### masked matrix potentially in parallel
 matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
-                        , collate = simplify_masked){
+                      , collate = simplify_masked
+                      , conf_file = getOption("RMINC_BATCH_CONF")){
   
   if(!is.null(mask)){
     if(length(mask) == 1 && is.character(mask))
@@ -92,18 +93,18 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
         }, mc.cores = n_groups) %>%
         Reduce(c, ., NULL)
     } else {
-      reg <- makeRegistry("matrixApply_registry")
+      reg <- qMincRegistry(new_file("matrixApply_registry"), conf_file = conf_file)
       on.exit( tenacious_remove_registry(reg) )
       
-      batchMap(reg, function(group){
+      ids <- batchMap(reg = reg, function(group){
         apply_fun(mat[group,])
       }, group = groups)
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       results <-
-        loadResults(reg, use.names = FALSE) %>%
+        loadResults(reg = reg, use.names = FALSE) %>%
         Reduce(c, ., NULL)
     }
   }

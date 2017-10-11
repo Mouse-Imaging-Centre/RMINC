@@ -7,7 +7,8 @@
 anatGetAll(filenames, atlas = NULL,
   defs = getOption("RMINC_LABEL_DEFINITIONS"), method = c("jacobians",
   "labels", "sums", "means", "text"), side = c("both", "left", "right"),
-  parallel = NULL, strict = TRUE)
+  parallel = NULL, strict = TRUE,
+  conf_file = getOption("RMINC_BATCH_CONF"))
 }
 \arguments{
 \item{filenames}{A vector of filenames (strings) which contain the
@@ -40,6 +41,8 @@ and \link{configureMincParallel} for details.
 Leaving this argument NULL runs sequentially.}
 
 \item{strict}{check if any files differ in step sizes}
+
+\item{conf_file}{A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}}
 }
 \value{
 A matrix with ncols equal to the number of labels in the atlas and

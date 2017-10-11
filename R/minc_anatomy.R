@@ -120,6 +120,7 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 
 #' @details 
 #' anatGetAll needs a set of files along with an atlas and a set of
@@ -154,7 +155,8 @@ anatGetAll <-
            method = c("jacobians", "labels", "sums", "means", "text"), 
            side = c("both", "left", "right"),
            parallel = NULL, 
-           strict = TRUE){
+           strict = TRUE
+         , conf_file = getOption("RMINC_BATCH_CONF")){
     
     method <- match.arg(method)
     
@@ -217,20 +219,21 @@ anatGetAll <-
           setNA(0)
       }
       else {
-        reg <- makeRegistry("anatGet_registry")
+        reg <- qMincRegistry(new_file("anatGet_registry")
+                           , conf_file = conf_file)
         on.exit( tenacious_remove_registry(reg) )
         
         suppressWarnings( #Warning suppression for large env for function (>10mb)
-          batchMap(reg, function(group){
+          ids <- batchMap(reg = reg, function(group){
             compute_summary(filenames[group])
           }, group = groups)
         )
         
-        submitJobs(reg)
-        waitForJobs(reg)
+        submitJobs(ids, reg = reg)
+        waitForJobs(reg = reg)
         
         out <-
-          loadResults(reg, use.names = FALSE) %>%
+          loadResults(reg = reg, use.names = FALSE) %>%
           reduce_matrices %>%
           `colnames<-`(filenames) %>%
           setNA(0)

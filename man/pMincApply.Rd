@@ -6,9 +6,11 @@
 \usage{
 pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
   batches = 4, slab_sizes = NULL, method = NULL, local = FALSE,
-  cores = NULL, resources = list(), packages = NULL, vmem = NULL,
-  walltime = NULL, workers = batches, temp_dir = tempdir(),
-  cleanup = TRUE, collate = simplify2minc)
+  cores = NULL, resources = NULL, packages = NULL, vmem = NULL,
+  walltime = NULL, workers = batches, temp_dir = getwd(),
+  cleanup = TRUE, collate = simplify2minc,
+  conf_file = getOption("RMINC_BATCH_CONF"),
+  registry_name = new_file("pMincApply_registry"), registry_dir = getwd())
 }
 \arguments{
 \item{filenames}{Paths to the minc files to be applied accross}
@@ -31,7 +33,7 @@ at a time defaults to one slice along the first dimension.}
 \item{method}{A deprecated argument formerly used to configure how to parallelize the jobs
 now this is handled with \link{configureMincParallel} or by setting \code{local = TRUE}}
 
-\item{local}{boolean whether to run the jobs locally (with the parallel package) or with BatchJovs}
+\item{local}{boolean whether to run the jobs locally (with the parallel package) or with batchtools}
 
 \item{cores}{defaults to 1 or
 \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} if running locally
@@ -65,6 +67,12 @@ true queuing system (so /tmp will not work).}
 
 \item{collate}{A function to be applied to collapse the results of the
 the pMincApply. Defaults to \link{simplify2minc}.}
+
+\item{conf_file}{A batchtools config file, defaults to \code{option("RMINC_BATCH_CONF")}}
+
+\item{registry_name}{The name to give your batchtools registry}
+
+\item{registry_dir}{where batchtools should create the registry}
 }
 \value{
 The results of applying \code{fun} to each voxel accross \code{filenames}

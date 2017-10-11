@@ -36,6 +36,7 @@
 #' @param weights weights to be applied to each observation
 #' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
 #' run
+#' @param conf_file A batchtools configuration file
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
 #' the number of terms in the formula, with both the beta coefficient and the t-statistic
 #' being returned. In addition, an extra column keeps the log likelihood, and another
@@ -86,7 +87,8 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
                      cleanup = TRUE, summary_type = "fixef"
-                     , weights = NULL) {
+                   , weights = NULL
+                   , conf_file = getOption("RMINC_BATCH_CONF")) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -171,7 +173,10 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
                         summary_fun = summary_fun,
-                        cleanup = cleanup)
+                        cleanup = cleanup,
+                        registry_name = new_file("mincLmer_registry"),
+                        conf_file = getOption("RMINC_BATCH_CONF")
+                        )
     } 
   }
   else {
