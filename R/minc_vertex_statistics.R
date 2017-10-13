@@ -399,6 +399,7 @@ vertexLmer <-
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
     attr(out, "REML") <- REML
     attr(out, "mask") <- mask
+    attr(out, "data") <- data
     attr(out, "mincLmerList") <- mincLmerList
     class(out) <- c("vertexLmer", "mincLmer", "mincMultiDim", "matrix")
 
