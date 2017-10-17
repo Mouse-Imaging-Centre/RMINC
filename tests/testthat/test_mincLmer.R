@@ -8,7 +8,7 @@ dataPath <- file.path(tempdir(), "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 maskfile <- file.path(dataPath, "testminc-mask.mnc")
-
+ 
 # pick a voxel inside the mask
 voxelIndex <- 453 # for later comparisons
 gf$v <- mincGetVoxel(gf$jacobians_fixed_2, 4, 5, 2)
@@ -122,7 +122,7 @@ test_that("mincLmer works with NAs", {
     df <- attr(missing_dfs, "df")
   })
   
-  expect_that( df[[2]], is_less_than(nrow(missing)+1))
+  expect_that( df[[2]], is_less_than(nrow(attr(missing, "data"))+1))
   expect_that( df[[2]], is_more_than(1))
 })
 

@@ -469,9 +469,12 @@ vertexLmerEstimateDF <-
     LHS <- as.character(lmod$formula[[2]])
     form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
 
+    filenames <- unique(mincLmerList[[1]]$fr[,1])
+    row_file_match <- match(original_data[[LHS]], filenames)
+
     for (i in 1:nvertices) {
       vertex_vals <- vertex_data[i,]
-      original_data$RMINC_DUMMY_LHS <- vertex_vals
+      original_data$RMINC_DUMMY_LHS <- vertex_vals[row_file_match]
 
       model_env <- list2env(original_data)
       environment(form) <- model_env
