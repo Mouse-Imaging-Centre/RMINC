@@ -9,7 +9,7 @@ mincPlotSliceSeries(anatomy, statistics = NULL, dimension = 2,
   anatHigh = NULL, col = heat.colors(255), begin = 1,
   end = (dim(anatomy)[dimension] - 1), symmetric = FALSE, legend = NULL,
   locator = !is.null(legend), plottitle = NULL, indicatorLevels = NULL,
-  discreteStats = FALSE)
+  discreteStats = FALSE, legendHeight = 0.5)
 }
 \arguments{
 \item{anatomy}{A minc array of the anatomy volume to plot}
@@ -52,6 +52,8 @@ locator, defaults to every slice}
 
 \item{discreteStats}{Whether stats are discrete values and should should not have
 their range taken from their histogram if unsupplied.}
+
+\item{legendHeight}{What vertical fraction of the figure should the legend occupy}
 }
 \description{
 Plot a series of slices through a minc volume
