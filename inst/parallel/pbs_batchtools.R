@@ -1,4 +1,4 @@
-cluster.functions <- makeClusterFunctionsTorque(system.file("parallel/pbs_script.tmpl", package = "RMINC"))
+cluster.functions <- makeClusterFunctionsTORQUE(system.file("parallel/pbs_script.tmpl", package = "RMINC"))
 default.resources <-
   list(nodes = 1,
        vmem = "8G",
