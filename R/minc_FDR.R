@@ -256,11 +256,6 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     else {
       statType <- attr(buffer, "stat-type")
     }
-    # make sure that the stat type is recognized
-    if (! all(statType %in% knownStats)) {
-      stop("Error: not all the stat types are recognized. Currently allowed are: ",
-           paste(knownStats, collapse=" "))
-    }
     # make sure that there are either just one stat type
     # or as many as there are columns
     if (length(statType) == 1 & ncol(buffer) !=1) {
@@ -273,7 +268,12 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
       stop("Error: stat type needs to be either a single entry or as many entries as there are columns in the buffer")
     }
   }
-  
+
+  # make sure that the stat type is recognized
+  if (! all(statType %in% knownStats)) {
+    stop("Error: not all the stat types are recognized. Currently allowed are: ",
+         paste(knownStats, collapse=" "))
+  }
   
   if ( any(statType %in% "u")) {
     m <- attr(buffer, "m") 
