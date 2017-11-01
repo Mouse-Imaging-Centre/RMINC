@@ -35,7 +35,7 @@ tenacious_remove_registry <-
     tryCatch(removeRegistry(reg, ask = "no")
              , error = 
                function(e){
-                 killJobs(reg, findNotTerminated(reg))
+                 killJobs(reg = reg, findNotDone(reg = reg))
                  removeRegistry(reg, ask = "no")
                })
   }
