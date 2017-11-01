@@ -473,7 +473,7 @@ vertexLmerEstimateDF <-
     row_file_match <- match(original_data[[LHS]], filenames)
 
     for (i in 1:nvertices) {
-      vertex_vals <- vertex_data[i,]
+      vertex_vals <- vertex_data[rverts[i],]
       original_data$RMINC_DUMMY_LHS <- vertex_vals[row_file_match]
 
       model_env <- list2env(original_data)
