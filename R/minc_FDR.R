@@ -307,7 +307,7 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
   if (is.null(columns)) {
     columns <- colnames(buffer)
     cat("\nComputing FDR threshold for all columns\n")
-  }
+  } 
   
   n.cols <- length(columns)
   n.row <-0
@@ -339,39 +339,40 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     cat("  Computing threshold for ", columns[i], "\n")
     pvals <- 0
     qobj <- vector("list", length(pvals))
-    new_dfs[[i]] <- df[[i]]
+    col_ind <- match(columns[i], colnames(buffer))
+    new_dfs[[i]] <- df[[col_ind]]
     
     # convert statistics to p-values
-    if (statType[i] %in% c("t", "tlmer")) {
+    if (statType[col_ind] %in% c("t", "tlmer")) {
       if (is.matrix(buffer)) {
-        pvals <- pt2(buffer[mask>0.5, columns[i]], df[[i]])
+        pvals <- pt2(buffer[mask>0.5, col_ind], df[[col_ind]])
       }
       
       else {
-        pvals <- pt2(buffer[mask>0.5], df[[i]])
+        pvals <- pt2(buffer[mask>0.5], df[[col_ind]])
       }
     }
-    else if (statType[i] == "F") {
+    else if (statType[col_ind] == "F") {
       if (is.matrix(buffer)) {
-        pvals <- pf(buffer[mask>0.5, columns[i]], df[[i]][1], df[[i]][2],
+        pvals <- pf(buffer[mask>0.5, col_ind], df[[col_ind]][1], df[[col_ind]][2],
                     lower.tail=FALSE)
       }
       
       
       else {
-        pvals <- pf(buffer[mask>0.5], df[[i]][1], df[[i]][2], lower.tail=FALSE)
+        pvals <- pf(buffer[mask>0.5], df[[col_ind]][1], df[[col_ind]][2], lower.tail=FALSE)
       }
       
     }
-    else if (statType[i] == "u") {
-      pvals <- 1 - pwilcox(buffer[mask>0.5,columns[i]],m,n,lower.tail = FALSE)
+    else if (statType[col_ind] == "u") {
+      pvals <- 1 - pwilcox(buffer[mask>0.5,col_ind],m,n,lower.tail = FALSE)
     }
-    else if (statType[i] == "chisq") {
+    else if (statType[col_ind] == "chisq") {
       if (is.matrix(buffer)) {
-        pvals <- pchisq(buffer[mask>0.5, columns[i]], df[[i]], lower.tail=F)
+        pvals <- pchisq(buffer[mask>0.5, col_ind], df[[col_ind]], lower.tail=F)
       }
       else {
-        pvals <- pchisq(buffer[mask>0.5], df[[i]], lower.tail=F)
+        pvals <- pchisq(buffer[mask>0.5], df[[col_ind]], lower.tail=F)
       }
     }  
     
@@ -392,23 +393,24 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
     }
     # calculate thresholds at different sig levels
     for (j in 1:length(p.thresholds)) {
-      if (statType[i] == "F") {
+      if (statType[col_ind] == "F") {
         subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
         subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
         # cat(sprintf("Number of sub-threshold F p-values: %d\n", length(subTholdPvalues)))
         if ( length(subTholdPvaluesNumbers) >= 1 ) {
-          thresholds[j,i] <- qf(max(subTholdPvaluesNumbers), df[[i]][1], df[[i]][2], lower.tail=FALSE)
+          thresholds[j,i] <-
+            qf(max(subTholdPvaluesNumbers), df[[col_ind]][1], df[[col_ind]][2], lower.tail=FALSE)
         } else { thresholds[j,i] <- NA }
       }
-      else if (statType[i] %in% c("t", "tlmer")) {
+      else if (statType[col_ind] %in% c("t", "tlmer")) {
         subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
         subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
         #cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
         if ( length(subTholdPvaluesNumbers) >= 1 ) {
-          thresholds[j,i] <-qt(max(subTholdPvaluesNumbers)/2, df[[i]], lower.tail=FALSE)
+          thresholds[j,i] <-qt(max(subTholdPvaluesNumbers)/2, df[[col_ind]], lower.tail=FALSE)
         } else { thresholds[j,i] <- NA }
       }
-      else if (statType[i] == "u") {
+      else if (statType[col_ind] == "u") {
         subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
         subTholdPvaluesNumbers = subTholdPvalues[which(!is.na(subTholdPvalues))];
         #cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
@@ -417,11 +419,11 @@ mincFDR.mincMultiDim <- function(buffer, columns=NULL, mask=NULL, df=NULL,
         } else { thresholds[j,i] <- NA }
       }
       
-      else if (statType[i] == "chisq") {
+      else if (statType[col_ind] == "chisq") {
         subTholdPvalues <- qobj$pvalue[qobj$qvalue <= p.thresholds[j]]
         #cat(sprintf("Number of sub-threshold t p-values: %d\n", length(subTholdPvalues)))
         if ( length(subTholdPvalues) >= 1 ) {
-          thresholds[j,i] <-qchisq(max(subTholdPvalues), df[[i]], lower.tail=FALSE)
+          thresholds[j,i] <-qchisq(max(subTholdPvalues), df[[col_ind]], lower.tail=FALSE)
         } else { thresholds[j,i] <- NA }       
       }
     }
