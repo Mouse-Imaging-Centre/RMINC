@@ -1,4 +1,5 @@
 library(testthat)
+library(batchtools)
 context("Parallel Functions")
 
 getRMINCTestData()
