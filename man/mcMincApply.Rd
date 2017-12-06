@@ -5,7 +5,7 @@
 \title{Local multicore mincApply}
 \usage{
 mcMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
-  slab_sizes = NULL, temp_dir = tempdir(), cores = getOption("mc.cores",
+  slab_sizes = NULL, temp_dir = getwd(), cores = getOption("mc.cores",
   parallel::detectCores() - 1), return_raw = FALSE, cleanup = TRUE,
   mask_vals = NULL, collate = simplify2minc)
 }

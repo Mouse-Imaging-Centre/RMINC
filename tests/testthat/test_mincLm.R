@@ -52,7 +52,7 @@ verboseRun({
   rmincLmArray <- mincArray(rmincLm, "tvalue-SexM")
   maxPeak <- arrayInd(which.max(rmincLmArray), .dim=c(10,10,10))
   minPeak <- arrayInd(which.min(rmincLmArray), .dim=c(10,10,10))
-  minPeakFromPeaks <- as.integer(sortByCol(peaks, "value")[1,1:3])
+  minPeakFromPeaks <- as.integer(BBmisc::sortByCol(peaks, "value")[1,1:3])
   maxPeakFromPeaks <- as.integer(peaks[1,1:3])
 })
 

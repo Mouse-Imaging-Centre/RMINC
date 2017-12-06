@@ -117,9 +117,10 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 
 #' @details 
 #' anatGetAll needs a set of files along with an atlas and a set of
@@ -154,7 +155,8 @@ anatGetAll <-
            method = c("jacobians", "labels", "sums", "means", "text"), 
            side = c("both", "left", "right"),
            parallel = NULL, 
-           strict = TRUE){
+           strict = TRUE
+         , conf_file = getOption("RMINC_BATCH_CONF")){
     
     method <- match.arg(method)
     
@@ -217,20 +219,21 @@ anatGetAll <-
           setNA(0)
       }
       else {
-        reg <- makeRegistry("anatGet_registry")
+        reg <- qMincRegistry(new_file("anatGet_registry")
+                           , conf_file = conf_file)
         on.exit( tenacious_remove_registry(reg) )
         
         suppressWarnings( #Warning suppression for large env for function (>10mb)
-          batchMap(reg, function(group){
+          ids <- batchMap(reg = reg, function(group){
             compute_summary(filenames[group])
           }, group = groups)
         )
         
-        submitJobs(reg)
-        waitForJobs(reg)
+        submitJobs(ids, reg = reg)
+        waitForJobs(reg = reg)
         
         out <-
-          loadResults(reg, use.names = FALSE) %>%
+          loadResults(reg = reg, use.names = FALSE) %>%
           reduce_matrices %>%
           `colnames<-`(filenames) %>%
           setNA(0)
@@ -295,7 +298,7 @@ create_labels_frame <-
     
     label_defs <- 
       label_defs %>%
-      mutate(both_sides = !! quo(right.label == left.label)) %>%
+      mutate(both_sides = .data$right.label == .data$left.label) %>%
       gather("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
                 ~ ifelse(both_sides
@@ -990,7 +993,7 @@ anatLmer <-
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
     summary_fun <- summary_type
-    if(is.character(summary_type) && length(summary_type))
+    if(is.character(summary_type) && length(summary_type) == 1)
       summary_fun <- switch(summary_type
                           , fixef = fixef_summary
                           , ranef = ranef_summary
@@ -1003,7 +1006,7 @@ anatLmer <-
     
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){
-        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun, weights = weights),
+        tryCatch(mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
                  error = function(e){warning(e); return(NA)})
       }
     
@@ -1019,17 +1022,19 @@ anatLmer <-
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
     
-    termnames <- colnames(lmod$X)
-    betaNames <- paste("beta-", termnames, sep="")
-    tnames <- paste("tvalue-", termnames, sep="")
-    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+    #termnames <- colnames(lmod$X)
+    #betaNames <- paste("beta-", termnames, sep="")
+    #tnames <- paste("tvalue-", termnames, sep="")
+    #colnames(out) <- c(betaNames, tnames, "logLik", "converged")
     rownames(out) <- colnames(anat)
     
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
     
-    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                                "logLik", "converged")
+    res_cols <- colnames(out)
+    attr(out, "stat-type") <- ## Handle all possible output types
+      check_stat_type(res_cols, summary_type)
+    
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
     attr(out, "REML") <- REML

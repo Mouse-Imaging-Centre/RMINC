@@ -12,7 +12,7 @@
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially and may take a long time. 
 
@@ -36,6 +36,7 @@
 #' @param weights weights to be applied to each observation
 #' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
 #' run
+#' @param conf_file A batchtools configuration file
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
 #' the number of terms in the formula, with both the beta coefficient and the t-statistic
 #' being returned. In addition, an extra column keeps the log likelihood, and another
@@ -86,7 +87,8 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
                      cleanup = TRUE, summary_type = "fixef"
-                     , weights = NULL) {
+                   , weights = NULL
+                   , conf_file = getOption("RMINC_BATCH_CONF")) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -127,7 +129,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
   slab_dims[1] <- 1
   
   summary_fun <- summary_type
-  if(is.character(summary_type) && length(summary_type))
+  if(is.character(summary_type) && length(summary_type) == 1)
     summary_fun <- switch(summary_type
                         , fixef = fixef_summary
                         , ranef = ranef_summary
@@ -171,7 +173,10 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
                         summary_fun = summary_fun,
-                        cleanup = cleanup)
+                        cleanup = cleanup,
+                        registry_name = new_file("mincLmer_registry"),
+                        conf_file = getOption("RMINC_BATCH_CONF")
+                        )
     } 
   }
   else {
@@ -197,16 +202,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
   
   res_cols <- colnames(out)
   attr(out, "stat-type") <- ## Handle all possible output types
-    case_when(res_cols == "logLik" ~ "logLik"
-              , res_cols == "converged" ~ "converged"
-              , summary_type == "anova" ~ "flmer"
-              , grepl("^tvalue-", res_cols) & summary_type == "ranef" ~ "rand-tlmer"
-              , grepl("^beta-", res_cols) & summary_type == "ranef" ~ "rand-beta"
-              , grepl("^tvalue-", res_cols) ~ "tlmer"
-              , grepl("^beta-", res_cols) ~ "beta"
-              , grepl("^rand-beta-", res_cols) ~ "rand-beta"
-              , grepl("^rand-tvalue-", res_cols) ~ "rand-tlmer")
-  
+    check_stat_type(res_cols, summary_type)
 
   # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
@@ -386,6 +382,23 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
                    fr = lmod$fr, mcout, lme4conv = cc)
   return(mmod)
 }
+
+check_stat_type <- function(stat, summary_type){
+  if(!is.character(summary_type))
+    summary_type <- "unknown"
+  
+  case_when(stat == "logLik" ~ "logLik"
+          , stat == "converged" ~ "converged"
+          , summary_type == "anova" ~ "flmer"
+          , grepl("^tvalue-", stat) & summary_type == "ranef" ~ "rand-tlmer"
+          , grepl("^beta-", stat) & summary_type == "ranef" ~ "rand-beta"
+          , grepl("^tvalue-", stat) ~ "tlmer"
+          , grepl("^beta-", stat) ~ "beta"
+          , grepl("^rand-beta-", stat) ~ "rand-beta"
+          , grepl("^rand-tvalue-", stat) ~ "rand-tlmer"
+          , TRUE ~ "unknown")
+  }
+  
 
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector

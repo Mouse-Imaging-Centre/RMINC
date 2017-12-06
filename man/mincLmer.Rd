@@ -7,7 +7,8 @@
 mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L,
   temp_dir = getwd(), safely = FALSE, cleanup = TRUE,
-  summary_type = "fixef", weights = NULL)
+  summary_type = "fixef", weights = NULL,
+  conf_file = getOption("RMINC_BATCH_CONF"))
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -20,7 +21,7 @@ mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
 Specified as a two element vector, with the first element corresponding to
 the type of parallelization, and the second to the number
 of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 and \link{configureMincParallel} for details.
 Leaving this argument NULL runs sequentially and may take a long time.}
 
@@ -52,6 +53,8 @@ run}
 } or a function to be used to generate the summary}
 
 \item{weights}{weights to be applied to each observation}
+
+\item{conf_file}{A batchtools configuration file}
 }
 \value{
 a matrix where rows correspond to number of voxels in the file and columns to

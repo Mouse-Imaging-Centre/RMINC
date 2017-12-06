@@ -1,4 +1,5 @@
 library(testthat)
+library(batchtools)
 context("Parallel Functions")
 
 getRMINCTestData()
@@ -6,9 +7,6 @@ dataPath <- file.path(tempdir(), "rminctestdata/")
  
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 mask_file <- file.path(dataPath, "testminc-mask.mnc")
-
-old_config <- getConfig()
-old_options <- options()
 
 test_that("Test sequential, multicore, and queue applies work", {
   
@@ -19,8 +17,7 @@ test_that("Test sequential, multicore, and queue applies work", {
     skip("qMinc tests disabled")
   
   options(BBmisc.ProgressBar.style = "off")
-  setConfig(list(cluster.functions = makeClusterFunctionsMulticore(max.jobs = min(2, parallel::detectCores() - 1))))
-  
+    
   m_sequential <- verboseRun(
     mincApplyRCPP(gf$jacobians_fixed_2, mean, slab_sizes = c(5,1,10)),
     getOption("verbose"))

@@ -59,7 +59,8 @@ vertexSd<- function(filenames)
 ### Helper function for applying over rows of a potentially 
 ### masked matrix potentially in parallel
 matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
-                        , collate = simplify_masked){
+                      , collate = simplify_masked
+                      , conf_file = getOption("RMINC_BATCH_CONF")){
   
   if(!is.null(mask)){
     if(length(mask) == 1 && is.character(mask))
@@ -92,18 +93,18 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
         }, mc.cores = n_groups) %>%
         Reduce(c, ., NULL)
     } else {
-      reg <- makeRegistry("matrixApply_registry")
+      reg <- qMincRegistry(new_file("matrixApply_registry"), conf_file = conf_file)
       on.exit( tenacious_remove_registry(reg) )
       
-      batchMap(reg, function(group){
+      ids <- batchMap(reg = reg, function(group){
         apply_fun(mat[group,])
       }, group = groups)
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       results <-
-        loadResults(reg, use.names = FALSE) %>%
+        loadResults(reg = reg, use.names = FALSE) %>%
         Reduce(c, ., NULL)
     }
   }
@@ -132,7 +133,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' where mask is greater than .5)
 #' @param parallel A two component vector indicating how to parallelize the computation. If the 
 #' first element is "local" the computation will be run via the parallel package, otherwise it will
-#' be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 #' indicating the number of jobs to split the computation into.
 #' @param collate A function to reduce the (potentially masked) list of results into a nice
 #' structure. Defaults to \link{simplify_masked}
@@ -356,7 +357,7 @@ vertexLmer <-
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
 
     summary_fun <- summary_type
-    if(is.character(summary_type) && length(summary_type))
+    if(is.character(summary_type) && length(summary_type) == 1)
        summary_fun <- switch(summary_type
                            , fixef = fixef_summary
                            , ranef = ranef_summary
@@ -388,20 +389,18 @@ vertexLmer <-
     ## Result post processing
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
 
-    termnames <- colnames(lmod$X)
-    betaNames <- paste("beta-", termnames, sep="")
-    tnames <- paste("tvalue-", termnames, sep="")
-    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
-
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
 
-    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                                "logLik", "converged")
+    res_cols <- colnames(out)
+    attr(out, "stat-type") <- ## Handle all possible output types
+      check_stat_type(res_cols, summary_type)
+
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
     attr(out, "REML") <- REML
     attr(out, "mask") <- mask
+    attr(out, "data") <- data
     attr(out, "mincLmerList") <- mincLmerList
     class(out) <- c("vertexLmer", "mincLmer", "mincMultiDim", "matrix")
 
@@ -470,9 +469,12 @@ vertexLmerEstimateDF <-
     LHS <- as.character(lmod$formula[[2]])
     form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
 
+    filenames <- unique(mincLmerList[[1]]$fr[,1])
+    row_file_match <- match(original_data[[LHS]], filenames)
+
     for (i in 1:nvertices) {
-      vertex_vals <- vertex_data[i,]
-      original_data$RMINC_DUMMY_LHS <- vertex_vals
+      vertex_vals <- vertex_data[rverts[i],]
+      original_data$RMINC_DUMMY_LHS <- vertex_vals[row_file_match]
 
       model_env <- list2env(original_data)
       environment(form) <- model_env

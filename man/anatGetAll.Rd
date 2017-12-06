@@ -7,7 +7,8 @@
 anatGetAll(filenames, atlas = NULL,
   defs = getOption("RMINC_LABEL_DEFINITIONS"), method = c("jacobians",
   "labels", "sums", "means", "text"), side = c("both", "left", "right"),
-  parallel = NULL, strict = TRUE)
+  parallel = NULL, strict = TRUE,
+  conf_file = getOption("RMINC_BATCH_CONF"))
 }
 \arguments{
 \item{filenames}{A vector of filenames (strings) which contain the
@@ -35,11 +36,13 @@ which specify what labels to obtain.}
 Specified as a two element vector, with the first element corresponding to
 the type of parallelization, and the second to the number
 of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
+for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 and \link{configureMincParallel} for details.
 Leaving this argument NULL runs sequentially.}
 
 \item{strict}{check if any files differ in step sizes}
+
+\item{conf_file}{A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}}
 }
 \value{
 A matrix with ncols equal to the number of labels in the atlas and

@@ -158,6 +158,7 @@ sliceSeriesLayout <-
 #' locator, defaults to every slice
 #' @param discreteStats Whether stats are discrete values and should should not have
 #' their range taken from their histogram if unsupplied.
+#' @param legendHeight What vertical fraction of the figure should the legend occupy
 #' @details 
 #' You can get a fuller tutorial on how to use the visualization tools by executing
 #' the following command:
@@ -189,7 +190,8 @@ mincPlotSliceSeries <-
            locator = !is.null(legend),
            plottitle = NULL, 
            indicatorLevels = NULL,
-           discreteStats = FALSE){
+           discreteStats = FALSE,
+           legendHeight = .5){
     
     if(length(dim(anatomy)) != 3) 
       stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -261,7 +263,8 @@ mincPlotStatsSliceSeries <-
            locator = !is.null(legend),
            plottitle = NULL, 
            indicatorLevels = c(900, 1200),
-           discreteStats = FALSE) {
+           discreteStats = FALSE,
+           legendHeight = .5) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
@@ -299,7 +302,14 @@ mincPlotStatsSliceSeries <-
     #Add a legend for the statistics if desired
     if(!is.null(legend)){
       plot.new()
-      if (symmetric==TRUE) {
+
+      if(discreteStats){
+        labs <- statRange[1]:statRange[2]
+      } else {
+        labs <- statRange
+      }
+      
+      if (symmetric) {
         col <- colorRampPalette(c("red", "yellow"))(255)
         rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
         plotrix::color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), 
@@ -308,7 +318,7 @@ mincPlotStatsSliceSeries <-
                               col, gradient="y", align="rb", col="white")
       }
       else {
-        plotrix::color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), 
+        plotrix::color.legend(.3, (1 - legendHeight) / 2, .5, 1 - (1 - legendHeight) / 2, labs, 
                                col, gradient="y", align="rb", col="white")
       }
       
