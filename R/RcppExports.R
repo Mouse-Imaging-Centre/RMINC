@@ -2,42 +2,42 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 anat_summary <- function(filenames, atlas, method) {
-    .Call(`_RMINC_anat_summary`, filenames, atlas, method)
+    .Call('_RMINC_anat_summary', PACKAGE = 'RMINC', filenames, atlas, method)
 }
 
 count_labels <- function(filenames) {
-    .Call(`_RMINC_count_labels`, filenames)
+    .Call('_RMINC_count_labels', PACKAGE = 'RMINC', filenames)
 }
 
 rcpp_minc_apply <- function(filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args) {
-    .Call(`_RMINC_rcpp_minc_apply`, filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args)
+    .Call('_RMINC_rcpp_minc_apply', PACKAGE = 'RMINC', filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args)
 }
 
 replaceValues <- function(labelVol, out, labels, values) {
-    invisible(.Call(`_RMINC_replaceValues`, labelVol, out, labels, values))
+    invisible(.Call('_RMINC_replaceValues', PACKAGE = 'RMINC', labelVol, out, labels, values))
 }
 
 graph_tfce_wqu <- function(map, adjacencies, E, H, nsteps, weights) {
-    .Call(`_RMINC_graph_tfce_wqu`, map, adjacencies, E, H, nsteps, weights)
+    .Call('_RMINC_graph_tfce_wqu', PACKAGE = 'RMINC', map, adjacencies, E, H, nsteps, weights)
 }
 
 graph_tfce <- function(map, adjacencies, E, H, nsteps, weights) {
-    .Call(`_RMINC_graph_tfce`, map, adjacencies, E, H, nsteps, weights)
+    .Call('_RMINC_graph_tfce', PACKAGE = 'RMINC', map, adjacencies, E, H, nsteps, weights)
 }
 
 coords2ind <- function(i, j, k, d1, d2, d3) {
-    .Call(`_RMINC_coords2ind`, i, j, k, d1, d2, d3)
+    .Call('_RMINC_coords2ind', PACKAGE = 'RMINC', i, j, k, d1, d2, d3)
 }
 
 ind2coords <- function(v, d1, d2, d3) {
-    .Call(`_RMINC_ind2coords`, v, d1, d2, d3)
+    .Call('_RMINC_ind2coords', PACKAGE = 'RMINC', v, d1, d2, d3)
 }
 
 neighbour_list <- function(x, y, z, n) {
-    .Call(`_RMINC_neighbour_list`, x, y, z, n)
+    .Call('_RMINC_neighbour_list', PACKAGE = 'RMINC', x, y, z, n)
 }
 
 mesh_area <- function(vertices, triangles) {
-    .Call(`_RMINC_mesh_area`, vertices, triangles)
+    .Call('_RMINC_mesh_area', PACKAGE = 'RMINC', vertices, triangles)
 }
 
