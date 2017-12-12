@@ -987,18 +987,21 @@ mincTFCE.mincSingleDim <-
 #' @export
 mincTFCE.matrix <- 
   function(x, d = 0.1, E = .5, H = 2.0
-           , side = c("both", "positive", "negative")
-           , like_volume
-           , ...){
-    mapply(function(col_ind, d){
-      x[,col_ind] %>%
-        `class<-`(c("mincSingleDim", "numeric")) %>%
-        `likeVolume<-`(like_volume) %>%
-        setNA(0) %>%
-        setNaN(0) %>% 
-        mincTFCE(d = d, E = E, H = H, side = side)
-    }, col_ind = seq_len(ncol(x)), d = d) %>%
-      `colnames<-`(colnames(x))
+         , side = c("both", "positive", "negative")
+         , like_volume
+         , ...){
+      mapply(function(col_ind, d){
+        x[,col_ind] %>%
+          `class<-`(c("mincSingleDim", "numeric")) %>%
+          `likeVolume<-`(like_volume) %>%
+          setNA(0) %>%
+          setNaN(0) %>% 
+          mincTFCE(d = d, E = E, H = H, side = side)
+      }, col_ind = seq_len(ncol(x)), d = d) %>%
+      `colnames<-`(colnames(x)) %>%
+      `likeVolume<-`(like_volume)
+
+    
   }
 
 #' @describeIn mincTFCE mincMultiDim
