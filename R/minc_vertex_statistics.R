@@ -483,17 +483,23 @@ vertexLmerEstimateDF <-
         lmerTest::lmer(form, REML = lmod$REML,
                        start = mincLmerList[[4]], control = mincLmerList[[3]],
                        verbose = mincLmerList[[5]])
-      
+
       dfs[i,] <- 
-        lmerTest::summary(mmod)$coefficients[,"df"]
+        suppressMessages(
+          tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+                 , error = function(e){ 
+                   warning("Unable to estimate DFs for vertex "
+                         , rverts[i]
+                         , call. = FALSE)
+                   NA}))
     }
     
-    df <- apply(dfs, 2, median)
-    cat("Mean df: ", apply(dfs, 2, mean), "\n")
-    cat("Median df: ", apply(dfs, 2, median), "\n")
-    cat("Min df: ", apply(dfs, 2, min), "\n")
-    cat("Max df: ", apply(dfs, 2, max), "\n")
-    cat("Sd df: ", apply(dfs, 2, sd), "\n")
+    df <- apply(dfs, 2, median, na.rm = TRUE)
+    cat("Mean df: ", apply(dfs, 2, mean, na.rm = TRUE), "\n")
+    cat("Median df: ", apply(dfs, 2, median, na.rm = TRUE), "\n")
+    cat("Min df: ", apply(dfs, 2, min, na.rm = TRUE), "\n")
+    cat("Max df: ", apply(dfs, 2, max, na.rm = TRUE), "\n")
+    cat("Sd df: ", apply(dfs, 2, sd, na.rm = TRUE), "\n")
     
     attr(model, "df") <- df
     
