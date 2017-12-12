@@ -34,7 +34,8 @@ Imports:
     yaml,
     data.tree,
     visNetwork,
-    rjson
+    rjson,
+    DT
 Suggests:
     rgl,
     plotrix,
