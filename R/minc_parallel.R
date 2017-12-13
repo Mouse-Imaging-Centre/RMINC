@@ -493,7 +493,7 @@ qMincReduce <-
     if(wait)
       waitForJobs(reg = registry)
     
-    if((!ignore_incompletes) && length(findNotDone(registry) != 0))
+    if((!ignore_incompletes) && nrow(findNotDone(reg = registry)) != 0)
       stop("Some jobs have not terminated, use `ignore_incompletes` to reduce anyway, or set `wait`")
     
     results <- reduceResultsList(reg = registry, use.names = FALSE)
