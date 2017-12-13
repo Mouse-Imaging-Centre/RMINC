@@ -1017,10 +1017,11 @@ getCall.mincLm <-
 
 mincRandomize.mincLm <- 
   function(x
-           , R = 500
-           , alternative = c("two.sided", "greater")
-           , replace = FALSE, parallel = NULL
-           , columns = grep("tvalue-", colnames(x))){
+         , R = 500
+         , alternative = c("two.sided", "greater")
+         , replace = FALSE, parallel = NULL
+         , columns = grep("tvalue-", colnames(x))
+         , conf_file = getOption("RMINC_BATCH_CONF")){
     lmod          <- x
     alternative   <- match.arg(alternative)
     original_stats <- lmod[,columns]
@@ -1041,13 +1042,14 @@ mincRandomize.mincLm <-
 #' @export
 mincTFCE.mincLm <- 
   function(x
-           , R = 500
-           , alternative = c("two.sided", "greater")
-           , d = 0.1, E = .5, H = 2.0
-           , side = c("both", "positive", "negative")
-           , replace = FALSE
-           , parallel = NULL
-           , ...){
+         , R = 500
+         , alternative = c("two.sided", "greater")
+         , d = 0.1, E = .5, H = 2.0
+         , side = c("both", "positive", "negative")
+         , replace = FALSE
+         , parallel = NULL
+         , conf_file = getOption("RMINC_BATCH_CONF")
+         , ...){
     
     lmod          <- x
     alternative   <- match.arg(alternative)
@@ -1061,10 +1063,11 @@ mincTFCE.mincLm <-
     
     randomization_dist <-
       mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
-                         , alternative = alternative
-                         , post_proc = mincTFCE.matrix
-                         , like_volume = like_vol
-                         , side = side, d = d, E = E, H = H)
+                       , alternative = alternative
+                       , post_proc = mincTFCE.matrix
+                       , like_volume = like_vol
+                       , side = side, d = d, E = E, H = H
+                       , conf_file = conf_file)
 
     output <- list(tfce = original_tfce, randomization_dist = randomization_dist
                    , args = list(call = lmod_call,
@@ -1076,11 +1079,12 @@ mincTFCE.mincLm <-
 
 mincRandomize_core <-
   function(x
-           , R = 500, replace = FALSE, parallel = NULL
-           , columns = grep("tvalue-", colnames(x))
-           , alternative = c("two.sided", "greater")
-           , post_proc = identity
-           , ...){
+         , R = 500, replace = FALSE, parallel = NULL
+         , columns = grep("tvalue-", colnames(x))
+         , alternative = c("two.sided", "greater")
+         , post_proc = identity
+         , conf_file = getOption("RMINC_BATCH_CONF")
+         , ...){
     
     # Setup useful local variables
     lmod        <- x

@@ -104,8 +104,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
       waitForJobs(reg = reg)
       
       results <-
-        loadResults(reg = reg, use.names = FALSE) %>%
-        Reduce(c, ., NULL)
+        reduceResults(c, init = NULL, reg = reg)
     }
   }
   
