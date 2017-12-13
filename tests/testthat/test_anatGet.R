@@ -136,6 +136,7 @@ write.csv(test_hier1, test_hier1_file, row.names = FALSE)
 
 test_that("Anatomy hierarchy works", {
   evalq({
+    skip_if_not(has_mincstuffs)
     hier_res <- anatSummarize(anat = new_jacobians, summarize_by = "hierarchy", defs = test_hier1_file)
     expect_equal(ncol(hier_res), 24)
   }, envir = test_env)
@@ -150,6 +151,7 @@ write.csv(test_hier2, test_hier2_file, row.names = FALSE)
 
 test_that("anatomy hierarchy works", {
   evalq({
+    skip_if_not(has_mincstuffs)
     hier_res <- anatSummarize(anat = new_jacobians, summarize_by = "other.colname", defs = test_hier2_file)
     expect_equal(ncol(hier_res), 17)
   }, envir = test_env)
