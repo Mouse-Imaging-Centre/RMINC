@@ -393,7 +393,7 @@ voxel_anova_wrapper <- function(filenames, model_matrix, mask, mask_min, mask_ma
 #' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE) {
+mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE, conf_file = getOption("RMINC_BATCH_CONF")) {
   
   #Don't move this otherwise the closure gets big
   parallel_mincAnova <- function(group, filenames, model_matrix, mask, mask_vol){
@@ -499,8 +499,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, 
       waitForJobs(reg = reg)
       
       result <-
-        loadResults(reg = reg, use.names = FALSE) %>%
-        Reduce(rbind, ., NULL) 
+        reduceResults(rbind, init = NULL, reg = reg)
     } 
     
     result_fleshed_out <- matrix(0
@@ -696,8 +695,7 @@ mincLm <- function(formula, data=NULL,subset=NULL
       waitForJobs(reg = reg)
       
       result <-
-        loadResults(reg = reg, use.names = FALSE) %>%
-        Reduce(rbind, ., NULL) 
+        reduceResults(rbind, init = NULL, reg = reg)
     } 
     
     result_fleshed_out <- matrix(0

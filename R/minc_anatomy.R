@@ -233,7 +233,7 @@ anatGetAll <-
         waitForJobs(reg = reg)
         
         out <-
-          loadResults(reg = reg, use.names = FALSE) %>%
+          reduceResultsList(reg = reg) %>%
           reduce_matrices %>%
           `colnames<-`(filenames) %>%
           setNA(0)

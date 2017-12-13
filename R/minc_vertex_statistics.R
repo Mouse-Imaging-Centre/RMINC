@@ -473,7 +473,7 @@ vertexLmerEstimateDF <-
     row_file_match <- match(original_data[[LHS]], filenames)
 
     for (i in 1:nvertices) {
-      vertex_vals <- vertex_data[rverts[i],]
+      vertex_vals <- vertex_data[rvertices[i],]
       original_data$RMINC_DUMMY_LHS <- vertex_vals[row_file_match]
 
       model_env <- list2env(original_data)
@@ -489,7 +489,7 @@ vertexLmerEstimateDF <-
           tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
                  , error = function(e){ 
                    warning("Unable to estimate DFs for vertex "
-                         , rverts[i]
+                         , rvertices[i]
                          , call. = FALSE)
                    NA}))
     }
