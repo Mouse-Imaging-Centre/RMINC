@@ -13,7 +13,6 @@ before_install: |
      wget http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb)
      sudo dpkg -i ../minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb
      source /opt/minc-itk4/minc-toolkit-config.sh
-     Rscript -e "install.packages('BBmisc')"
    fi
    
    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -25,7 +24,6 @@ before_install: |
      sudo hdiutil attach ../minc-toolkit-1.9.11-20160202-Darwin-10.11-x86_64.dmg
      sudo installer -package /Volumes/minc-toolkit-1.9.11-20160202-Darwin-x86_64/minc-toolkit-1.9.11-20160202-Darwin-x86_64.pkg -target /
      source /opt/minc-itk4/minc-toolkit-config.sh
-     Rscript -e "install.packages('BBmisc')"
    fi
    
 repos:
