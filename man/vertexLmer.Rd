@@ -19,8 +19,7 @@ vertexLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
 Specified as a two element vector, with the first element corresponding to
 the type of parallelization, and the second to the number
 of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
-and \link{configureMincParallel} for details.
+for back-compatibility, anything else will be run with batchtools see \link{pMincApply}.
 Leaving this argument NULL runs sequentially and may take a long time.}
 
 \item{REML}{whether to use use Restricted Maximum Likelihood or Maximum Likelihood}

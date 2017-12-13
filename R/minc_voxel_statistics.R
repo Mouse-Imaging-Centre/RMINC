@@ -368,7 +368,6 @@ voxel_anova_wrapper <- function(filenames, model_matrix, mask, mask_min, mask_ma
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
 #' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
@@ -570,7 +569,6 @@ mincLm_c_wrapper <-
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
 #' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
@@ -889,7 +887,6 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 # the type of parallelization, and the second to the number
 # of processors to use. For local running set the first element to "local" or "snowfall"
 # for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
-# and \link{configureMincParallel} for details.
 # Leaving this argument NULL runs sequentially.
 
 #' Threshold Free Cluster Enhancement

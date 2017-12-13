@@ -53,7 +53,7 @@ specified in the configuration list.}
 
 \item{registry_dir}{where batchtools should create the registry}
 
-\item{registry_name}{The name to give your batchtools registry}
+\item{registry_name}{a name for the registry}
 
 \item{temp_dir}{A directory to store files needed for the parallelization
 and job management}
@@ -78,8 +78,6 @@ to true}
 
 \item{ignore_incompletes}{Whether to reduce the results with \code{qMincReduce}
 even if all jobs are not complete.}
-
-\item{registry_name}{a name for the registry}
 }
 \value{
 \itemize{
