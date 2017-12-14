@@ -1,6 +1,18 @@
-New in Version 1.5.0.*
+New in Version 1.5.*.*
 =======================
-0
+1.0
+--
+- Converts parallel backend to batchtools. No more
+NFS file locks on hpf
+- Improved vertexLmer df estimation robustness
+- Configurable legend height in slice series plots
+- Improved discrete legends in slice series plots
+- mincTFCE preserves likeVolume
+- Variety of miscellaneous bug fixes, see
+issue tracker for details.
+
+
+0.0
 --
 * Adds hierarchical atlas features
 * fixes pivoting bug in lm code
