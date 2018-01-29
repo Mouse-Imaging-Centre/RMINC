@@ -5,10 +5,12 @@
 \title{launch a shiny based inspector}
 \usage{
 launch_shinyRMINC(statsoutput, anatVol, volumes = NULL, keepBetas = FALSE,
-  plotcolumns = NULL, modelfunc = NULL, anatLow = 700, anatHigh = 1400)
+  plotcolumns = NULL, modelfunc = NULL, singleStatType = NULL,
+  anatLow = 700, anatHigh = 1400)
 }
 \arguments{
-\item{statsoutput}{the output of mincLm or mincAnova}
+\item{statsoutput}{the output of mincLm, mincAnova, or mincLmer. Alternatively
+a single statistic volume. Must be compatible with \link{mincArray}}
 
 \item{anatVol}{the anatomical volume on which to display the statistics. Can
 be passed a filename, a MINC volume (from mincGetVol), or a mincArray.}
@@ -20,6 +22,10 @@ be passed a filename, a MINC volume (from mincGetVol), or a mincArray.}
 \item{plotcolumns}{extra data to be used for plotting}
 
 \item{modelfunc}{optional modelling function}
+
+\item{singleStatType}{if passing a single statistic volume to \code{statsoutput}
+what statistic type is it. Stat-types "b", "t", and "tlmer" will get symmetric
+colour scales. All others will get one sided colour scales.}
 
 \item{anatLow}{The lower threshold value for displaying the underlying anatomy}
 
