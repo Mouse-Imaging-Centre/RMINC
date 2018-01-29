@@ -135,6 +135,10 @@ mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' examples include link{unlist} and \link{simplify2array}, defaulting
 #' to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
 #' \code{mincSingleDim}, or \code{mincList} depending on the result structure.
+#' \cr
+#' If you encounter memory issues, it could be due to minc file caching.
+#' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+#' a small value like 1.
 #' @return a list of results subject the the collate function
 #' @export
 mincApplyRCPP <- 
@@ -238,6 +242,10 @@ mincApplyRCPP <-
 #' example, use mincLm rather than applying lm, and if lm has to
 #' really be applied, try to use lm.fit rather than plain lm.
 #' When using the pbs method, one can also set the options --> TMPDIR,MAX_NODES and WORKDIR
+#' \cr
+#' If you encounter memory issues, it could be due to minc file caching.
+#' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+#' a small value like 1.
 #' @return out The output is a matrix with the same number of rows a the
 #' file sizes and the same number of columns as output by the
 #' function that was applied. Cast into one of the MINC classes
@@ -574,6 +582,10 @@ mincLm_c_wrapper <-
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 #' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
+#' \cr
+#' If you encounter memory issues, it could be due to minc file caching.
+#' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+#' a small value like 1.
 #' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
 #' column is the F-statistic of the significance of the entire volume, the following columns contain the R-Squared term, the marginal t-statistics for each of the terms in the model along with their respective coefficients.
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
