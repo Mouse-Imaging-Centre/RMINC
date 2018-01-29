@@ -22,6 +22,9 @@ modelfunc <- get("modelfunc", sys.frame(1))
 vols <- get("volumes", sys.frame(1))
 anatLow <- get("anatLow", sys.frame(1))
 anatHigh <- get("anatHigh", sys.frame(1))
+fdr <- get("fdr", sys.frame(1))
+tholds <-
+  `if`(is.null(fdr), NULL, thresholds(fdr))
 cat(names(statsList))
 
 shinyServer(function(input, output, clientData, session) {
@@ -137,6 +140,24 @@ shinyServer(function(input, output, clientData, session) {
       updateSliderInput(session, "low", max=maxstat)
     }
   })
+
+  output$fdr_thresholds <-
+    renderUI({
+      if(!is.null(fdr))
+        selectInput("fdr_thresh", "Select FDR Limit"
+                  , c("none"
+                    , paste(rownames(tholds),
+                            sprintf("%.3f", tholds[,input$statistic])
+                          , sep = "% - "))
+                   , selected = "none")
+    })
+
+    observeEvent(input$fdr_thresh, {
+      if(!is.null(fdr) && input$fdr_thresh != "none"){
+        thresh <- sub("% - .*", "", input$fdr_thresh)
+        updateSliderInput(session, "high", value = tholds[thresh, input$statistic])
+      }
+    })
 
   output$seriesPlot <- renderPlot({
     cat("Low", input$low, "High", input$high, "sym", statsList[[input$statistic]]$symmetric, "\n")

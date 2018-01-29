@@ -15,6 +15,7 @@
 #' @param singleStatType if passing a single statistic volume to \code{statsoutput}
 #' what statistic type is it. Stat-types "b", "t", and "tlmer" will get symmetric
 #' colour scales. All others will get one sided colour scales.
+#' @param fdr An optional mincFDR object for choosing thresholds.
 #' @param anatLow The lower threshold value for displaying the underlying anatomy
 #' @param anatHigh The upper threshold value for displaying the underlying anatomy
 #' @examples
@@ -27,7 +28,7 @@
 #' @export
 launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL
                             , keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL
-                            , singleStatType = NULL
+                            , singleStatType = NULL, fdr = NULL
                             , anatLow = 700, anatHigh = 1400) {
   gfs <- data.frame(filenames = attributes(statsoutput)$filenames)
   if (!is.null(plotcolumns)) {
