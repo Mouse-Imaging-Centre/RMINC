@@ -136,6 +136,8 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' indicating the number of jobs to split the computation into.
 #' @param collate A function to reduce the (potentially masked) list of results into a nice
 #' structure. Defaults to \link{simplify_masked}
+#' @param transpose Whether to alternatively transpose the vertex matrix and apply a function to
+#' each subject
 #' @return  The a matrix with a row of results for each vertex
 #' @examples 
 #' \dontrun{
@@ -146,10 +148,13 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft, mean)
 #' }
 #' @export
-vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL, collate = simplify_masked) 
+vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
+                      , collate = simplify_masked, transpose = FALSE) 
 {
   # Load the data
   vertexData <- vertexTable(filenames)
+  if(transpose)
+    vertexData <- t(vertexData)
   
   results <- matrixApply(vertexData, fun, ..., mask = mask, parallel = parallel, collate = collate)
   attr(results, "likeFile") <- filenames[1]
