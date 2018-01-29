@@ -50,16 +50,17 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL
   
   statsList <- list()
 
+  if(!inherits(statsoutput, "mincMultiDim")){
+    input_name <- deparse(substitute(statsoutput))
+    dim(statsoutput) <- c(length(statsoutput), 1)
+    class(statsoutput) <- c("mincMultiDim", "matrix")
+    attr(statsoutput, "stat-type") <- singleStatType
+    colnames(statsoutput) <- input_name
+  }
   
-  sType <-
-    `if`(inherits(statsoutput, "mincMultiDim")
-       , attributes(statsoutput)$`stat-type`
-       , singleStatType)
-  
-  cNames <-
-    `if`(inherits(statsoutput, "mincMultiDim")
-       , colnames(statsoutput)
-       , deparse(substitute(statsoutput)))
+  sType <- attributes(statsoutput)$`stat-type`
+  cNames <- colnames(statsoutput)
+
   
   cat("Converting to mincArray - might take a second or two\n")
   for (i in 1:length(cNames)) {
