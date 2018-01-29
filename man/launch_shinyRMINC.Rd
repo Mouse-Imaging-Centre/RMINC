@@ -6,7 +6,7 @@
 \usage{
 launch_shinyRMINC(statsoutput, anatVol, volumes = NULL, keepBetas = FALSE,
   plotcolumns = NULL, modelfunc = NULL, singleStatType = NULL,
-  anatLow = 700, anatHigh = 1400)
+  fdr = NULL, anatLow = 700, anatHigh = 1400)
 }
 \arguments{
 \item{statsoutput}{the output of mincLm, mincAnova, or mincLmer. Alternatively
@@ -26,6 +26,8 @@ be passed a filename, a MINC volume (from mincGetVol), or a mincArray.}
 \item{singleStatType}{if passing a single statistic volume to \code{statsoutput}
 what statistic type is it. Stat-types "b", "t", and "tlmer" will get symmetric
 colour scales. All others will get one sided colour scales.}
+
+\item{fdr}{An optional mincFDR object for choosing thresholds.}
 
 \item{anatLow}{The lower threshold value for displaying the underlying anatomy}
 
