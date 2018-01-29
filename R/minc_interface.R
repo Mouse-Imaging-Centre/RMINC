@@ -909,6 +909,12 @@ minc.get.volumes <- function(filenames) {
 #' data corresponding to a single file
 #' @export
 vertexTable <- function(filenames) {
+  if(is.factor(filenames))
+    filenames <- as.character(filenames)
+
+  if(!is.character(filenames))
+    stop("filenames must be either a character or factor vector")
+  
   nSubjects <- length(filenames)
   nvertices <- nrow(read.table(filenames[1]))
   output <- matrix(nrow=nvertices, ncol=nSubjects)
