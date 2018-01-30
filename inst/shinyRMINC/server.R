@@ -131,13 +131,17 @@ shinyServer(function(input, output, clientData, session) {
     updateSliderInput(session, "end", min=-d[dval])
   })
   observe({
-    currentStat <- input$statistic
+    currentStat <- statsList[[input$statistic]]$data
     currentStat[!is.finite(currentStat)] <- 0 # Maybe not the right thing to do?
-    maxstat <- round(max(abs(range(statsList[[currentStat]]$data))), 1)
-    cat("in observe ", maxstat, "\n")
+    maxstat <- round(max(abs(range(currentStat))), 1)
+    low_thresh <-
+      as.numeric(
+        quantile(abs(currentStat[currentStat != 0])
+               , probs = .5))
+    
     if (!is.infinite(maxstat)) {
-      updateSliderInput(session, "high", max=maxstat)
-      updateSliderInput(session, "low", max=maxstat)
+      updateSliderInput(session, "high", max=maxstat, val = maxstat)
+      updateSliderInput(session, "low", max=maxstat, val = low_thresh)
     }
   })
 
