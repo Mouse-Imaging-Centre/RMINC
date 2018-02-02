@@ -11,6 +11,55 @@ library(plotrix)
 library(ggplot2)
 library(reshape2)
 
+# theme_black, stolen from: https://jonlefcheck.net/2013/03/11/black-theme-for-ggplot2-2/
+# with a few minor modifications to make it look more like theme_classic
+theme_black=function(base_size=12,base_family="") {
+  theme_grey(base_size=base_size,base_family=base_family) %+replace%
+    theme(
+      # Specify axis options
+      axis.line=element_line(colour="white"), #element_blank(), 
+      axis.text.x=element_text(size=base_size*0.8,color="white",
+                               lineheight=0.9,vjust=1), 
+      axis.text.y=element_text(size=base_size*0.8,color="white",
+                               lineheight=0.9,hjust=1), 
+      axis.ticks=element_line(color="white",size = 0.2), 
+      axis.title.x=element_text(size=base_size,color="white",vjust=1, margin=margin(5,0,0,0)), 
+      axis.title.y=element_text(size=base_size,color="white",angle=90,
+                                vjust=0.5, margin=margin(0,5,0,0)), 
+      axis.ticks.length=unit(0.3,"lines"), 
+      axis.ticks.margin=unit(0.5,"lines"),
+      # Specify legend options
+      legend.background=element_rect(color=NA,fill="black"), 
+      legend.key=element_rect(color=NA, fill="black"), 
+      legend.key.size=unit(1.2,"lines"), 
+      legend.key.height=NULL, 
+      legend.key.width=NULL,     
+      legend.text=element_text(size=base_size*0.8,color="white"), 
+      legend.title=element_text(size=base_size*0.8,face="bold",hjust=0,
+                                color="white"), 
+      legend.position="right", 
+      legend.text.align=NULL, 
+      legend.title.align=NULL, 
+      legend.direction="vertical", 
+      legend.box=NULL,
+      # Specify panel options
+      panel.background=element_rect(fill="black",color = NA), 
+      panel.border=element_blank(), #element_rect(fill=NA,color="white"), 
+      panel.grid.major=element_blank(), 
+      panel.grid.minor=element_blank(), 
+      panel.margin=unit(0.25,"lines"),  
+      # Specify facetting options
+      strip.background=element_rect(fill="grey30",color="grey10"), 
+      strip.text.x=element_text(size=base_size*0.8,color="white"), 
+      strip.text.y=element_text(size=base_size*0.8,color="white",
+                                angle=-90), 
+      # Specify plot options
+      plot.background=element_rect(color="black",fill="black"), 
+      plot.title=element_text(size=base_size*1.2,color="white"), 
+      plot.margin=unit(c(1,1,0.5,0.5),"lines")
+    )
+}
+
 #load("preparedData.RData")
 # get the data from the calling environment
 statsList <- get("statsList", sys.frame(1))
@@ -127,8 +176,10 @@ shinyServer(function(input, output, clientData, session) {
   observe({
     # update min and max slice based on the dimension being displaced
     dval <- as.integer(input$dimension)
-    updateSliderInput(session, "begin", max=d[dval])
-    updateSliderInput(session, "end", min=-d[dval])
+    diff20 <- round(d[dval] * 0.2)
+    cat("in observe slice range:", dval, d[dval], diff20, "\n")
+    updateSliderInput(session, "sliceRange", max=d[dval], value=c(diff20, d[dval]-diff20))
+    
   })
   observe({
     currentStat <- statsList[[input$statistic]]$data
@@ -140,8 +191,7 @@ shinyServer(function(input, output, clientData, session) {
                , probs = .5))
     
     if (!is.infinite(maxstat)) {
-      updateSliderInput(session, "high", max=maxstat, val = maxstat)
-      updateSliderInput(session, "low", max=maxstat, val = low_thresh)
+      updateSliderInput(session, "range", max=maxstat, val = c(low_thresh, maxstat))
     }
   })
 
@@ -164,10 +214,10 @@ shinyServer(function(input, output, clientData, session) {
     })
 
   output$seriesPlot <- renderPlot({
-    cat("Low", input$low, "High", input$high, "sym", statsList[[input$statistic]]$symmetric, "\n")
     mincPlotSliceSeries(anatVol, statsList[[input$statistic]]$data,
-                        anatLow=anatLow, anatHigh=anatHigh, low=input$low, high=input$high,
-                        begin=input$begin, end=input$end, plottitle = input$statistic,
+                        anatLow=anatLow, anatHigh=anatHigh, low=input$range[1], 
+                        high=input$range[2],
+                        begin=input$sliceRange[1], end=input$sliceRange[2], plottitle = input$statistic,
                         dim=as.integer(input$dimension), symmetric=statsList[[input$statistic]]$symmetric,
                         legend=statsList[[input$statistic]]$legendTitle, mfrow=c(input$rows, input$columns))
 
@@ -179,7 +229,7 @@ shinyServer(function(input, output, clientData, session) {
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
                               anatLow=anatLow, anatHigh=anatHigh,
-                              low=input$low, high=input$high,
+                              low=input$range[1], high=input$range[2],
                               slice=v$loc2, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=2)
     #mincContour(statsList[[input$statistic]]$data, slice=v$loc2, col="green", add=T, levels=statsList[[input$statistic]]$thresholds[3])
@@ -187,36 +237,41 @@ shinyServer(function(input, output, clientData, session) {
     abline(h=v$loc1)
     #abline(v=v$loc3/d[1])
     abline(v=v$loc3)
-  })
+  }, bg="black")
   output$sagittalPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
                               anatLow=anatLow, anatHigh=anatHigh,
-                              low=input$low, high=input$high,
+                              low=input$range[1], high=input$range[2],
                               slice=v$loc3, symmetric=statsList[[input$statistic]]$symmetric,
-                              dim=1, legend="F-statistic")
+                              dim=1, legend="F-statistic", legendTextColour = "white")
     #abline(h=v$loc1/d[3])
     abline(h=v$loc1)
     #abline(v=v$loc2/d[2])
     abline(v=v$loc2)
-  })
+  }, bg="black")
   output$axialPlot <- renderPlot({
     mincPlotAnatAndStatsSlice(anatVol,
                               statsList[[input$statistic]]$data,
                               anatLow=anatLow, anatHigh=anatHigh,
-                              low=input$low, high=input$high,
+                              low=input$range[1], high=input$range[2],
                               slice=v$loc1, symmetric=statsList[[input$statistic]]$symmetric,
                               dim=3)
     #abline(v=v$loc3/d[1])
     abline(v=v$loc3)
     #abline(h=v$loc2/d[2])
     abline(h=v$loc2)
-  })
+  }, bg="black")
 
   output$graphPlot <- renderPlot({
+    update_geom_defaults("point", list(colour = "white"))
+    update_geom_defaults("errorbar", list(colour = "white"))
+    update_geom_defaults("boxplot", list(colour = "white", fill="transparent"))
+    
     gfs$voxel <- v$voxel
     if(!is.null(gfs$voxel))
-      graphData(exp(v$voxel), "jacobians", gfs)
+      graphData(exp(v$voxel), "jacobians", gfs) + theme_black() + theme(legend.position="top") + 
+      guides(colour = guide_legend(nrow=1), fill=guide_legend(nrow=1))
 
     #qplot(xvar, exp(voxel), data=gfs, geom=input$graphType, colour=colour, fill=fill)
   })
