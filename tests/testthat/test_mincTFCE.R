@@ -56,6 +56,7 @@ test_that("minc multi dim TFCE works", {
     expect_equal(md_tfce[test_voxels,1], example_values)
     expect_equal(md_tfce[test_voxels,2], example_values)
     expect_equal(md_tfce[test_voxels,3], rep(0, length(example_values)))
+    expect_equal(likeVolume(md_tfce), likeVolume(test_multidim))
   }, envir = local_env)
 })
 

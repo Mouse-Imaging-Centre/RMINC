@@ -126,6 +126,32 @@ test_that("AnatGetAll Flags Garbage", {
                , regex = "could not be read")
 })
 
+test_that("Multires Works", {
+  xfm <- file.path(dataPath, "scale10.xfm")
+  cat("MNI Transform File"
+    , "Transform_Type = Linear;"
+    , "Linear_Transform ="
+    , "10 0 0 0"
+    , "0 10 0 0"
+    , "0 0 10 0;"
+    , sep = "\n", file = xfm)
+
+
+  first_file <- gf$jacobians_0.2[1]
+  transformed_file <- file.path(dataPath, "scaled_jacobians.mnc")
+  sprintf("mincresample %s -tfm_input_sampling -transformation %s -step 1 1 1 %s"
+        , first_file
+        , xfm
+        , transformed_file) %>%
+    system(ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+  vols <-
+    anatGetAll(c(as.character(gf$jacobians[1:5]), transformed_file)
+             , defs = labels, atlas = segmentation, strict = FALSE)
+
+  expect_equivalent(vols[1,] * 1000, vols[6,])
+})
+
 
 context("anatomy hierarchy summarization")
 ## Test hierarchy
@@ -136,6 +162,7 @@ write.csv(test_hier1, test_hier1_file, row.names = FALSE)
 
 test_that("Anatomy hierarchy works", {
   evalq({
+    skip_if_not(has_mincstuffs)
     hier_res <- anatSummarize(anat = new_jacobians, summarize_by = "hierarchy", defs = test_hier1_file)
     expect_equal(ncol(hier_res), 24)
   }, envir = test_env)
@@ -150,6 +177,7 @@ write.csv(test_hier2, test_hier2_file, row.names = FALSE)
 
 test_that("anatomy hierarchy works", {
   evalq({
+    skip_if_not(has_mincstuffs)
     hier_res <- anatSummarize(anat = new_jacobians, summarize_by = "other.colname", defs = test_hier2_file)
     expect_equal(ncol(hier_res), 17)
   }, envir = test_env)

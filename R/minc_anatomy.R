@@ -118,7 +118,6 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
 #' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
 #' Leaving this argument NULL runs sequentially.
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 
@@ -233,7 +232,7 @@ anatGetAll <-
         waitForJobs(reg = reg)
         
         out <-
-          loadResults(reg = reg, use.names = FALSE) %>%
+          reduceResultsList(reg = reg) %>%
           reduce_matrices %>%
           `colnames<-`(filenames) %>%
           setNA(0)

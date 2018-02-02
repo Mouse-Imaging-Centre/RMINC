@@ -45,9 +45,14 @@ List anat_summary(CharacterVector filenames,
 
   double *vol_buffer =
     (double *) malloc(total_voxels * sizeof(double));
-  
-  NumericVector separations = as<NumericVector>(get_minc_separations(wrap(filenames[0])));
-  double vox_vol = fabs(separations[0]) * fabs(separations[1]) * fabs(separations[2]);
+
+  NumericVector vox_vol(filenames.size());
+
+  for(int i = 0; i < vox_vol.size(); ++i){
+    NumericVector separations = as<NumericVector>(get_minc_separations(wrap(filenames[i])));
+    double sep  = fabs(separations[0]) * fabs(separations[1]) * fabs(separations[2]);
+    vox_vol[i] = sep;
+  }
 
   for(int subject = 0; subject < volumes.size(); ++subject){
     stringstream error_message;
@@ -66,7 +71,7 @@ List anat_summary(CharacterVector filenames,
       ++label_counts(current_label, subject);
       
       if(method == "jacobians"){
-        label_values(current_label, subject) += exp(current_value) * vox_vol;  
+        label_values(current_label, subject) += exp(current_value) * vox_vol[subject];  
       } else {
         label_values(current_label, subject) += current_value;
       }

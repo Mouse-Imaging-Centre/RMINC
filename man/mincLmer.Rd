@@ -21,8 +21,7 @@ mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
 Specified as a two element vector, with the first element corresponding to
 the type of parallelization, and the second to the number
 of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
-and \link{configureMincParallel} for details.
+for back-compatibility, anything else will be run with batchtools see \link{pMincApply}.
 Leaving this argument NULL runs sequentially and may take a long time.}
 
 \item{REML}{whether to use use Restricted Maximum Likelihood or Maximum Likelihood}
@@ -77,7 +76,10 @@ determine. RMINC provides two alternatives: (1) estimating degrees of freedom us
 \code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
 models with a separate intercept or separate intercept and slope per subject - both of these
 approximations are likely correct. Be careful in using these approximations if
-using more complicated random effects structures.
+using more complicated random effects structures. \cr
+If you encounter memory issues, it could be due to minc file caching.
+Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+a small value like 1.
 }
 \examples{
 \dontrun{

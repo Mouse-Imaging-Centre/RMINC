@@ -24,7 +24,8 @@ mincTFCE(x, ...)
 
 \method{mincTFCE}{mincLm}(x, R = 500, alternative = c("two.sided",
   "greater"), d = 0.1, E = 0.5, H = 2, side = c("both", "positive",
-  "negative"), replace = FALSE, parallel = NULL, ...)
+  "negative"), replace = FALSE, parallel = NULL,
+  conf_file = getOption("RMINC_BATCH_CONF"), ...)
 }
 \arguments{
 \item{x}{Either a character vector with a single filename, a \code{mincSingleDim} object,

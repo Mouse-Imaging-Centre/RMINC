@@ -22,6 +22,9 @@ modelfunc <- get("modelfunc", sys.frame(1))
 vols <- get("volumes", sys.frame(1))
 anatLow <- get("anatLow", sys.frame(1))
 anatHigh <- get("anatHigh", sys.frame(1))
+fdr <- get("fdr", sys.frame(1))
+tholds <-
+  `if`(is.null(fdr), NULL, thresholds(fdr))
 cat(names(statsList))
 
 shinyServer(function(input, output, clientData, session) {
@@ -128,15 +131,37 @@ shinyServer(function(input, output, clientData, session) {
     updateSliderInput(session, "end", min=-d[dval])
   })
   observe({
-    currentStat <- input$statistic
+    currentStat <- statsList[[input$statistic]]$data
     currentStat[!is.finite(currentStat)] <- 0 # Maybe not the right thing to do?
-    maxstat <- round(max(abs(range(statsList[[currentStat]]$data))), 1)
-    cat("in observe ", maxstat, "\n")
+    maxstat <- round(max(abs(range(currentStat))), 1)
+    low_thresh <-
+      as.numeric(
+        quantile(abs(currentStat[currentStat != 0])
+               , probs = .5))
+    
     if (!is.infinite(maxstat)) {
-      updateSliderInput(session, "high", max=maxstat)
-      updateSliderInput(session, "low", max=maxstat)
+      updateSliderInput(session, "high", max=maxstat, val = maxstat)
+      updateSliderInput(session, "low", max=maxstat, val = low_thresh)
     }
   })
+
+  output$fdr_thresholds <-
+    renderUI({
+      if(!is.null(fdr))
+        selectInput("fdr_thresh", "Select FDR Limit"
+                  , c("none"
+                    , paste(rownames(tholds),
+                            sprintf("%.3f", tholds[,input$statistic])
+                          , sep = "% - "))
+                   , selected = "none")
+    })
+
+    observeEvent(input$fdr_thresh, {
+      if(!is.null(fdr) && input$fdr_thresh != "none"){
+        thresh <- sub("% - .*", "", input$fdr_thresh)
+        updateSliderInput(session, "high", value = tholds[thresh, input$statistic])
+      }
+    })
 
   output$seriesPlot <- renderPlot({
     cat("Low", input$low, "High", input$high, "sym", statsList[[input$statistic]]$symmetric, "\n")

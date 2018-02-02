@@ -32,11 +32,11 @@ create_parallel_mask <-
 
 tenacious_remove_registry <- 
   function(reg){
-    tryCatch(removeRegistry(reg, ask = "no")
+    tryCatch(removeRegistry(reg = reg)
              , error = 
                function(e){
                  killJobs(reg = reg, findNotDone(reg = reg))
-                 removeRegistry(reg, ask = "no")
+                 removeRegistry(reg = reg)
                })
   }
 
@@ -66,7 +66,7 @@ new_file <- function(name, dir = getwd()){
 #' @param slab_sizes A 3 element vector indicating how large a chunk of data to read from each minc file 
 #' at a time defaults to one slice along the first dimension.
 #' @param method A deprecated argument formerly used to configure how to parallelize the jobs
-#' now this is handled with \link{configureMincParallel} or by setting \code{local = TRUE}
+#' now this is handled with \code{conf_file}
 #' @param local boolean whether to run the jobs locally (with the parallel package) or with batchtools
 #' @param cores defaults to 1 or  
 #' \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} if running locally
@@ -127,7 +127,7 @@ pMincApply <-
   ){
     
     if(!is.null(method))
-      warning("Use of method is deprecated, see ?configureMincParallel to configure parallelization or use"
+      warning("Use of method is deprecated, please use a `conf_file` or"
               , "the local argument")
     
     enoughAvailableFileDescriptors(length(filenames))
@@ -157,7 +157,7 @@ pMincApply <-
                             clobber = TRUE, collate = collate,
                             cleanup = cleanup,
                             conf_file = conf_file,
-                            registry_dir = reg_dir,
+                            registry_dir = registry_dir,
                             registy_name = registry_name) 
     }
 
@@ -318,7 +318,6 @@ mcMincApply <-
 #' @param packages packages to be loaded for each job in a registry
 #' @param temp_dir A directory to store files needed for the parallelization
 #' and job management
-#' @param registry_name The name to give your batchtools registry
 #' @param wait Whether to wait for your results or return a registry object
 #' to be checked on later
 #' @param cleanup Whether to empty the registry after a successful run defaults
@@ -419,7 +418,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
     packages <- c("RMINC", packages)
   
   if(clobber)
-    try(removeRegistry(loadRegistry(registry_dir), ask = "no"), silent = TRUE)
+    try(removeRegistry(reg = loadRegistry(registry_dir)), silent = TRUE)
   
   qMinc_registry <-
     makeRegistry(registry_name,
@@ -494,10 +493,10 @@ qMincReduce <-
     if(wait)
       waitForJobs(reg = registry)
     
-    if((!ignore_incompletes) && length(findNotTerminated(registry) != 0))
+    if((!ignore_incompletes) && nrow(findNotDone(reg = registry)) != 0)
       stop("Some jobs have not terminated, use `ignore_incompletes` to reduce anyway, or set `wait`")
     
-    results <- loadResults(reg = registry, use.names = FALSE)
+    results <- reduceResultsList(reg = registry, use.names = FALSE)
     result_attributes <- mincAttributes(results[[1]])
     
     result_indices <- unlist(lapply(results, function(el) el$inds))

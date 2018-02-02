@@ -27,7 +27,6 @@ Specified as a two element vector, with the first element corresponding to
 the type of parallelization, and the second to the number
 of processors to use. For local running set the first element to "local" or "snowfall"
 for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
-and \link{configureMincParallel} for details.
 Leaving this argument NULL runs sequentially.}
 
 \item{cleanup}{Whether or not to remove parallelization files}
@@ -44,6 +43,10 @@ Linear Model at Every Voxel
 \details{
 This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 being that the left-hand side of the formula specification takes a series of filenames for MINC files.
+\cr
+If you encounter memory issues, it could be due to minc file caching.
+Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+a small value like 1.
 }
 \examples{
 \dontrun{

@@ -5,7 +5,7 @@
 \title{Apply function over vertex Files}
 \usage{
 vertexApply(filenames, fun, ..., mask = NULL, parallel = NULL,
-  collate = simplify_masked)
+  collate = simplify_masked, transpose = FALSE)
 }
 \arguments{
 \item{filenames}{vertex file names}
@@ -24,6 +24,9 @@ indicating the number of jobs to split the computation into.}
 
 \item{collate}{A function to reduce the (potentially masked) list of results into a nice
 structure. Defaults to \link{simplify_masked}}
+
+\item{transpose}{Whether to alternatively transpose the vertex matrix and apply a function to
+each subject}
 }
 \value{
 The a matrix with a row of results for each vertex

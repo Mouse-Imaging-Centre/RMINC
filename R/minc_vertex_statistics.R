@@ -104,8 +104,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
       waitForJobs(reg = reg)
       
       results <-
-        loadResults(reg = reg, use.names = FALSE) %>%
-        Reduce(c, ., NULL)
+        reduceResults(c, init = NULL, reg = reg)
     }
   }
   
@@ -137,6 +136,8 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' indicating the number of jobs to split the computation into.
 #' @param collate A function to reduce the (potentially masked) list of results into a nice
 #' structure. Defaults to \link{simplify_masked}
+#' @param transpose Whether to alternatively transpose the vertex matrix and apply a function to
+#' each subject
 #' @return  The a matrix with a row of results for each vertex
 #' @examples 
 #' \dontrun{
@@ -147,10 +148,13 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' vm <- vertexApply(gf$CIVETFILES$nativeRMStlink20mmleft, mean)
 #' }
 #' @export
-vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL, collate = simplify_masked) 
+vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
+                      , collate = simplify_masked, transpose = FALSE) 
 {
   # Load the data
   vertexData <- vertexTable(filenames)
+  if(transpose)
+    vertexData <- t(vertexData)
   
   results <- matrixApply(vertexData, fun, ..., mask = mask, parallel = parallel, collate = collate)
   attr(results, "likeFile") <- filenames[1]
@@ -473,7 +477,7 @@ vertexLmerEstimateDF <-
     row_file_match <- match(original_data[[LHS]], filenames)
 
     for (i in 1:nvertices) {
-      vertex_vals <- vertex_data[rverts[i],]
+      vertex_vals <- vertex_data[rvertices[i],]
       original_data$RMINC_DUMMY_LHS <- vertex_vals[row_file_match]
 
       model_env <- list2env(original_data)
@@ -483,17 +487,23 @@ vertexLmerEstimateDF <-
         lmerTest::lmer(form, REML = lmod$REML,
                        start = mincLmerList[[4]], control = mincLmerList[[3]],
                        verbose = mincLmerList[[5]])
-      
+
       dfs[i,] <- 
-        lmerTest::summary(mmod)$coefficients[,"df"]
+        suppressMessages(
+          tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+                 , error = function(e){ 
+                   warning("Unable to estimate DFs for vertex "
+                         , rvertices[i]
+                         , call. = FALSE)
+                   NA}))
     }
     
-    df <- apply(dfs, 2, median)
-    cat("Mean df: ", apply(dfs, 2, mean), "\n")
-    cat("Median df: ", apply(dfs, 2, median), "\n")
-    cat("Min df: ", apply(dfs, 2, min), "\n")
-    cat("Max df: ", apply(dfs, 2, max), "\n")
-    cat("Sd df: ", apply(dfs, 2, sd), "\n")
+    df <- apply(dfs, 2, median, na.rm = TRUE)
+    cat("Mean df: ", apply(dfs, 2, mean, na.rm = TRUE), "\n")
+    cat("Median df: ", apply(dfs, 2, median, na.rm = TRUE), "\n")
+    cat("Min df: ", apply(dfs, 2, min, na.rm = TRUE), "\n")
+    cat("Max df: ", apply(dfs, 2, max, na.rm = TRUE), "\n")
+    cat("Sd df: ", apply(dfs, 2, sd, na.rm = TRUE), "\n")
     
     attr(model, "df") <- df
     

@@ -31,7 +31,7 @@ snowfall/local mode}
 at a time defaults to one slice along the first dimension.}
 
 \item{method}{A deprecated argument formerly used to configure how to parallelize the jobs
-now this is handled with \link{configureMincParallel} or by setting \code{local = TRUE}}
+now this is handled with \code{conf_file}}
 
 \item{local}{boolean whether to run the jobs locally (with the parallel package) or with batchtools}
 
@@ -70,7 +70,7 @@ the pMincApply. Defaults to \link{simplify2minc}.}
 
 \item{conf_file}{A batchtools config file, defaults to \code{option("RMINC_BATCH_CONF")}}
 
-\item{registry_name}{The name to give your batchtools registry}
+\item{registry_name}{a name for the registry}
 
 \item{registry_dir}{where batchtools should create the registry}
 }

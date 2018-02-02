@@ -30,6 +30,9 @@ shinyUI(pageWithSidebar(
                   max = 15,
                   step=0.01,
                   value = 20)),
+    conditionalPanel(
+      'input.tab == "Slice Series" || input.tab == "Single Slice"',
+      uiOutput("fdr_thresholds")),
     selectInput("statistic", "Statistic to display:", choices=c()),
                 #choices=c("Neonatal" = "Neonatal",
                 #          "Sex" = "mouse.gender")),
