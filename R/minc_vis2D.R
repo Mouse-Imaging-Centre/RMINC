@@ -439,6 +439,7 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
 #' @param col colours for statistics
 #' @param rcol colours for negative statistics if using a symmetric statistic
 #' @param legend an optional string to name the legend, indicating desire for a legend
+#' @param legendTextColour an optional description of the text colour for the legend
 #' (or not)
 #' @return invisible NULL
 #' @export
@@ -449,7 +450,8 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           anatLow=min(anatomy, na.rm = TRUE), 
                           anatHigh=max(anatomy, na.rm = TRUE), 
                           symmetric=FALSE,
-                          col=NULL, rcol=NULL, legend=NULL) {
+                          col=NULL, rcol=NULL, legend=NULL,
+                          legendTextColour="black") {
   
   if(length(dim(anatomy)) != 3) 
     stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -490,21 +492,24 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                              0.05 * plotdims[4], 
                              0.99 * plotdims[2], 
                              0.45 * plotdims[4], 
-                             c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
+                             c(high*-1, low*-1), rev(rcol), gradient="y", align="rb",
+                            col=legendTextColour)
       plotrix::color.legend(0.97 * plotdims[2], 
                              0.55 * plotdims[4], 
                              0.99 * plotdims[2], 
                              0.95 * plotdims[4], 
-                             c(low, high), col, gradient="y", align="rb")
-      text(1.10, 0.5, labels=legend, srt=90)
+                             c(low, high), col, gradient="y", align="rb",
+                            col=legendTextColour)
+      text(1.05*plotdims[2], 0.5*plotdims[4], labels=legend, srt=90, col=legendTextColour)
     }
     else {
       plotrix::color.legend(0.97 * plotdims[2], 
                              0.25 * plotdims[4], 
                              0.99 * plotdims[2], 
                              0.75 * plotdims[4], 
-                             c(low, high), col, gradient="y", align="rb")
-      text(1.05, 0.5, labels=legend, srt=90)
+                             c(low, high), col, gradient="y", align="rb",
+                            col=legendTextColour)
+      text(1.05*plotdims[2], 0.5*plotdims[4], labels=legend, srt=90, col=legendTextColour)
     }
     opar <- par(no.readonly = TRUE) #I think this gets lost anyway
     par(xpd=T)
