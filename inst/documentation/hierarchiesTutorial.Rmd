@@ -61,7 +61,7 @@ labelVol <- mincArray(mincGetVolume("/hpf/largeprojects/MICe/tools/atlases//Dorr
 anatVol <- mincArray(mincGetVolume("/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/ex-vivo/DSURQE_40micron_average.mnc"))
 ```
 
-Next it is time to make the defintions hierarchical. This will be identical for every study that uses this atlas, so there's a good chance we will simply include the hierarchical definitions as data files in RMINC in the future. 
+Next it is time to make the definitions hierarchical. This will be identical for every study that uses this atlas, so there's a good chance we will simply include the hierarchical definitions as data files in RMINC in the future. 
 
 For rolling your own, the CSV file is the same as it's always been, except with an extra column giving the name of the corresponding structure in the Allen atlas. The allen.json file is obtained directly from the Allen institute, and contains their definition of anatomical hierarchies.
 
@@ -251,6 +251,8 @@ names(hVs)
 
 The main difference here is that rather than using the Benjamini & Hochberg (1995) method as is used for every other FDR invocation in RMINC, it uses the Benjamini and Yekutieli (2001) FDR algorithm, which is viable in the presence of dependence (as obviously exists in a hierarchy where higher level values are dependent on low levels).
 
+For sake of illustration, let's run it again as an ANOVA
+
 ```{r}
 hA <- hanatAnova(~genotype, gfAB, vols)
 stats <- hanatToVolume(hA, labelVol, "genotype")
@@ -259,6 +261,8 @@ hanatView(hA, "genotype", low=4, high=25, symmetric=F)
 hA <- hanatFDR(hA)
 thresholds(hA)
 ```
+
+And as a linear mixed effects model. This doesn't necessarily make sense for this particular dataset, but having information pooled across sex is not that unreasonable ...
 
 ```{r}
 hLmer <- hanatLmer(~genotype + (1|sex), gfAB, vols)
