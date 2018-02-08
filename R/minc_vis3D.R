@@ -321,56 +321,63 @@ plot.obj_mesh <-
 #' 
 #' @param mesh A \code{obj_mesh} object created with \link{colour_mesh}
 #' @param title The label to give the colour bar
-#' @param ... additional plot parameters to be passed down to the \link{image}
-#' function.
-#' @param column_widths define the horizonatal segmentation of the plot device,
-#' values are scaled to sum to 1. Defaults to a 15% region on the left to hold
-#' the colour bar
-#' @param which_col The column index of where to draw the colour bar, defaults
-#' to the last panel, useful for creating a non-standard colour bar location.
-#' @return invisible NULL
+#' @param lpos the position for the left edge of the colour bar in fraction
+#' of the plot area, defaults to .97
+#' @param rpos the position for the right edge of the colour bar in fraction
+#' of the plot area, defaults to .99
+#' @param bpos the position for the bottom edge of the colour bar in fraction
+#' of the plot area. In the symmetric case this is for the negative scale. Defaults
+#' to .25 for non-symmetric and .05 for symmetric.
+#' @param tpos the position for the top edge of the colour bar in fraction
+#' of the plot area. In the symmetric case this is for the negative scale. Defaults
+#' to .75 for non-symmetric and .45 for symmetric.
+#' @param bpos2 the position for the bottom edge of the colour bar in fraction
+#' of the plot area. Only used in the symmetic case for the positive scale,
+#' defaults to .55
+#' @param tpos2 the position for the top edge of the colour bar in fraction
+#' of the plot area. Only used in the symmetric case for the positive scale,
+#' defaults to .95
 #' @export
-add_colour_bar <- function(mesh,
-                           title = "",
-                           ...,
-                           column_widths = c(.75, .25), 
-                           which_col = length(column_widths)){
+add_colour_bar <- function(mesh
+                         , title = ""
+                         , lpos = .97
+                         , rpos = .99
+                         , bpos = NULL
+                         , tpos = NULL
+                         , bpos2 = NULL
+                         , tpos2 = NULL){
   if(is.null(mesh$legend)) stop("Your mesh has no colour information")
   with(mesh$legend, {
     rgl::bgplot3d({
       par(mar = c(4,8,4,2))
       
-      # stat_range <- seq(colour_range[1], colour_range[2], 
-      #                   length.out = length(palette))
-      
-      #layout(matrix(1:length(column_widths), nrow = 1), widths = column_widths)
-      #replicate(which_col - 1, plot.new())
       plot.new()
-      plotdims <- par("usr")
       if(!symmetric){
-        # image(y = stat_range, 
-        #       z =  matrix(stat_range, nrow = 1), 
-        #       col = palette,
-        #       xaxt = "n",
-        #       ylab = title,
-        #       useRaster = TRUE,
-        #       ...)
-        plotrix::color.legend(0.97 * plotdims[2], 
-                              0.25 * plotdims[4], 
-                              0.99 * plotdims[2], 
-                              0.75 * plotdims[4], 
+        if(is.null(bpos)) bpos <- .25
+        if(is.null(tpos)) tpos <- .75
+        
+        plotrix::color.legend(lpos, 
+                              bpos, 
+                              rpos, 
+                              tpos, 
                               colour_range, palette, gradient="y", align="rb")
+
         text(1.10, 0.5, labels=title, srt=90)
       } else {
-        plotrix::color.legend(0.97 * plotdims[2], 
-                              0.05 * plotdims[4], 
-                              0.99 * plotdims[2], 
-                              0.45 * plotdims[4], 
+        if(is.null(bpos)) bpos  <- .05
+        if(is.null(tpos)) tpos  <- .45
+        if(is.null(bpos2)) bpos2 <- .55
+        if(is.null(tpos2)) tpos2 <- .95
+        
+        plotrix::color.legend(lpos,
+                              bpos,
+                              rpos,
+                              tpos,
                               -rev(colour_range), rev(palette$neg), gradient="y", align="rb")
-        plotrix::color.legend(0.97 * plotdims[2], 
-                              0.55 * plotdims[4], 
-                              0.99 * plotdims[2], 
-                              0.95 * plotdims[4], 
+        plotrix::color.legend(lpos,
+                              bpos2,
+                              rpos,
+                              tpos2,
                               colour_range, palette$pos, gradient="y", align="rb")
         text(1.10, 0.5, labels=title, srt=90)
       }
@@ -429,7 +436,7 @@ obj_montage <- function(left_obj,
   right_map <- vals_to_numeric(right_map)
   
   if(is.null(colour_range)){
-    colour_range <- range(c(left_map, right_map), na.rm = TRUE)
+    colour_range <- round(range(c(left_map, right_map), na.rm = TRUE), 2)
   }
   
   left_mesh <- 
@@ -475,11 +482,9 @@ obj_montage <- function(left_obj,
   rgl::useSubscene3d(parent_scene)
   
   if(colour_bar){
-    left_mesh %>% add_colour_bar(title = colour_title, 
-                                 column_widths = c(6,2,6), 
-                                 which_col = 2, 
-                                 cex.axis = 2, 
-                                 cex.lab = 2)
+    left_mesh %>% add_colour_bar(title = colour_title,
+                                 lpos = .40,
+                                 rpos = .46)
   }
   
   if(!is.null(output)) rgl::snapshot3d(output)
