@@ -6,10 +6,11 @@
 \usage{
 mincPlotSliceSeries(anatomy, statistics = NULL, dimension = 2,
   mfrow = c(4, 5), low = NULL, high = NULL, anatLow = NULL,
-  anatHigh = NULL, col = heat.colors(255), begin = 1,
-  end = (dim(anatomy)[dimension] - 1), symmetric = FALSE, legend = NULL,
-  locator = !is.null(legend), plottitle = NULL, indicatorLevels = NULL,
-  discreteStats = FALSE, legendHeight = 0.5)
+  anatHigh = NULL, col = heat.colors(255), anatCol = gray.colors(255,
+  start = 0), begin = 1, end = (dim(anatomy)[dimension] - 1),
+  symmetric = FALSE, legend = NULL, locator = !is.null(legend),
+  plottitle = NULL, indicatorLevels = NULL, discreteStats = FALSE,
+  legendHeight = 0.5)
 }
 \arguments{
 \item{anatomy}{A minc array of the anatomy volume to plot}
@@ -32,6 +33,8 @@ and not \code{discreteStats}, otherwise the maximum statistic}
 \item{anatHigh}{the maximum antomy intensity to plot}
 
 \item{col}{colours for statistics or for the anatomy if statistics are not passed}
+
+\item{anatCol}{colours for the}
 
 \item{begin}{the first slice to plot, defaults to 1}
 

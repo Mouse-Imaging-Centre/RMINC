@@ -4,26 +4,35 @@
 \alias{add_colour_bar}
 \title{Add a colour bar for a mesh}
 \usage{
-add_colour_bar(mesh, title = "", ..., column_widths = c(0.75, 0.25),
-  which_col = length(column_widths))
+add_colour_bar(mesh, title = "", lpos = 0.97, rpos = 0.99, bpos = NULL,
+  tpos = NULL, bpos2 = NULL, tpos2 = NULL)
 }
 \arguments{
 \item{mesh}{A \code{obj_mesh} object created with \link{colour_mesh}}
 
 \item{title}{The label to give the colour bar}
 
-\item{...}{additional plot parameters to be passed down to the \link{image}
-function.}
+\item{lpos}{the position for the left edge of the colour bar in fraction
+of the plot area, defaults to .97}
 
-\item{column_widths}{define the horizonatal segmentation of the plot device,
-values are scaled to sum to 1. Defaults to a 15% region on the left to hold
-the colour bar}
+\item{rpos}{the position for the right edge of the colour bar in fraction
+of the plot area, defaults to .99}
 
-\item{which_col}{The column index of where to draw the colour bar, defaults
-to the last panel, useful for creating a non-standard colour bar location.}
-}
-\value{
-invisible NULL
+\item{bpos}{the position for the bottom edge of the colour bar in fraction
+of the plot area. In the symmetric case this is for the negative scale. Defaults
+to .25 for non-symmetric and .05 for symmetric.}
+
+\item{tpos}{the position for the top edge of the colour bar in fraction
+of the plot area. In the symmetric case this is for the negative scale. Defaults
+to .75 for non-symmetric and .45 for symmetric.}
+
+\item{bpos2}{the position for the bottom edge of the colour bar in fraction
+of the plot area. Only used in the symmetic case for the positive scale,
+defaults to .55}
+
+\item{tpos2}{the position for the top edge of the colour bar in fraction
+of the plot area. Only used in the symmetric case for the positive scale,
+defaults to .95}
 }
 \description{
 Add a colour bar that corresponds to the colours in a given colourized mesh
