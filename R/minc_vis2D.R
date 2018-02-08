@@ -146,6 +146,7 @@ sliceSeriesLayout <-
 #' @param anatLow the minimum anatomy intensity to plot
 #' @param anatHigh the maximum antomy intensity to plot
 #' @param col colours for statistics or for the anatomy if statistics are not passed
+#' @param anatCol colours for the 
 #' @param begin the first slice to plot, defaults to 1
 #' @param end the last slice to plot, defaults to the last slice
 #' @param symmetric whether the statistics are symmetric (such as for t-statistics)
@@ -183,6 +184,7 @@ mincPlotSliceSeries <-
            low = NULL, high = NULL,          # stat thresholding
            anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
            col =  heat.colors(255),
+           anatCol = gray.colors(255, start=0.0),
            begin = 1,                          # first slice
            end = (dim(anatomy)[dimension] - 1),# last slice 
            symmetric = FALSE,
@@ -220,6 +222,7 @@ mincPlotSimpleSliceSeries <-
            anatLow = NULL, anatHigh = NULL, 
            begin = 1, 
            end = (dim(anatomy)[dimension] - 1),
+           anatCol = gray.colors(255, start=0.0),
            plottitle = NULL,
            legend = NULL,
            locator = !is.null(legend),
@@ -238,7 +241,7 @@ mincPlotSimpleSliceSeries <-
     lapply(slices, function(current_slice) {
       mincImage(anatomy, dimension, slice=current_slice,
                 low=anatRange[1], high=anatRange[2], 
-                axes = FALSE, underTransparent = TRUE)
+                axes = FALSE, underTransparent = TRUE, col = anatCol)
     })
     
     if(locator) plotLocator(dimension, anatomy, 
@@ -256,6 +259,7 @@ mincPlotStatsSliceSeries <-
            low = NULL, high = NULL,          # stat thresholding
            anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
            col = heat.colors(255),
+           anatCol = gray.colors(255, start=0.0)
            begin = 1,                        # first slice
            end = dim(anatomy)[dimension] - 1,# last slice 
            symmetric = FALSE,
@@ -264,7 +268,7 @@ mincPlotStatsSliceSeries <-
            plottitle = NULL, 
            indicatorLevels = c(900, 1200),
            discreteStats = FALSE,
-           legendHeight = .5) {
+           legendHeight = .5,) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
@@ -292,7 +296,7 @@ mincPlotStatsSliceSeries <-
       mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                                 low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
                                 anatHigh=anatRange[2], col=col, legend=NULL, 
-                                symmetric=symmetric)
+                                symmetric=symmetric, acol = anatCol)
     }
     
     #Add the plot locator if desired
@@ -438,6 +442,7 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
 #' @param symmetric whether the statistics are symmetric (such as for t-statistics)
 #' @param col colours for statistics
 #' @param rcol colours for negative statistics if using a symmetric statistic
+#' @param acol colours to use for the anatomy
 #' @param legend an optional string to name the legend, indicating desire for a legend
 #' (or not)
 #' @return invisible NULL
@@ -449,7 +454,8 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           anatLow=min(anatomy, na.rm = TRUE), 
                           anatHigh=max(anatomy, na.rm = TRUE), 
                           symmetric=FALSE,
-                          col=NULL, rcol=NULL, legend=NULL) {
+                          col=NULL, rcol=NULL, legend=NULL,
+                          acol = gray.colors(255, start=0.0)) {
   
   if(length(dim(anatomy)) != 3) 
     stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -469,7 +475,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
     rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
   }
   
-  anatCols = gray.colors(255, start=0.0)
+  anatCols = acol
     
   mincImage(anatomy, dimension, slice, axes = FALSE, col=anatCols,
             low=anatLow, high=anatHigh)
