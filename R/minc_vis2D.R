@@ -259,7 +259,7 @@ mincPlotStatsSliceSeries <-
            low = NULL, high = NULL,          # stat thresholding
            anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
            col = heat.colors(255),
-           anatCol = gray.colors(255, start=0.0)
+           anatCol = gray.colors(255, start=0.0),
            begin = 1,                        # first slice
            end = dim(anatomy)[dimension] - 1,# last slice 
            symmetric = FALSE,
@@ -268,7 +268,7 @@ mincPlotStatsSliceSeries <-
            plottitle = NULL, 
            indicatorLevels = c(900, 1200),
            discreteStats = FALSE,
-           legendHeight = .5,) {
+           legendHeight = .5) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
