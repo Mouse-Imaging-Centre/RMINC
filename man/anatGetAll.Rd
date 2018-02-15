@@ -25,12 +25,9 @@ proper name for the structure and contains additional
 information for laterality of each structure. See \link{voxel_atlas_defs}
 for details.}
 
-\item{method}{A string specifying the way information is to be computed at
-every voxel. See the details section for the possible options
-and what they mean.}
+\item{method}{A string specifying the way information is to be computed at every voxel (default is "jacobians"). See the details section for the possible options and what they mean.}
 
-\item{side}{Three choices, "right", "left", and "both" (the default)
-which specify what labels to obtain.}
+\item{side}{One of three choices, "right", "left", or "both" (the default) which specify what labels to obtain.}
 
 \item{parallel}{how many processors to run on (default=single processor).
 Specified as a two element vector, with the first element corresponding to
@@ -52,7 +49,7 @@ Computes volumes, means, sums, and similar values across a
 segmented atlas
 }
 \details{
-anatGetAll needs a set of files along with an atlas and a set of
+anatGetAll needs a set of files, an atlas (unless method=="labels"), and a set of
 atlas definitions. In the end it will produce one value per label
 in the atlas for each of the input files. How that value is
 computed depends on the methods argument:

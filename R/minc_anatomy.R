@@ -112,6 +112,8 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' Computes volumes, means, sums, and similar values across a
 #' segmented atlas
 #' @inheritParams anatGetAll_old
+#' @param method A string specifying the way information is to be computed at every voxel (default is "jacobians"). See the details section for the possible options and what they mean.
+#' @param side One of three choices, "right", "left", or "both" (the default) which specify what labels to obtain.
 #' @param strict check if any files differ in step sizes
 #' @param parallel how many processors to run on (default=single processor).
 #' Specified as a two element vector, with the first element corresponding to
@@ -122,7 +124,7 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 
 #' @details 
-#' anatGetAll needs a set of files along with an atlas and a set of
+#' anatGetAll needs a set of files, an atlas (unless method=="labels"), and a set of
 #' atlas definitions. In the end it will produce one value per label
 #' in the atlas for each of the input files. How that value is
 #' computed depends on the methods argument:
