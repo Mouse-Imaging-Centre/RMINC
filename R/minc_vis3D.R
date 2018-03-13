@@ -133,7 +133,8 @@ colour_mesh <- function(mesh,
     if(is.null(colour_range)) colour_range <- range(colour_map, na.rm = TRUE)
     colour_depth <- length(palette)
     
-    colour_map[!between(colour_map, colour_range[1], colour_range[2])] <- NA
+    colour_map[colour_map < colour_range[1]] <- NA
+    colour_map[colour_map > colour_range[2]] <- colour_range[2]
     
     colour_indices <- 
       floor(
@@ -157,8 +158,12 @@ colour_mesh <- function(mesh,
                     , neg_palette = colorRampPalette(c("blue", "turquoise1"))(colour_depth))
     
     if(is.null(colour_range)) colour_range <- range(abs(colour_map), na.rm = TRUE)
-    
-    colour_map[!between(abs(colour_map), colour_range[1], colour_range[2])] <- NA
+
+    colour_sign <- sign(colour_map)
+    colour_map[abs(colour_map) < colour_range[1]] <- NA
+    colour_map[!is.na(colour_map) & abs(colour_map) > colour_range[2]] <-
+      colour_sign[!is.na(colour_map) & abs(colour_map) > colour_range[2]] *
+      colour_range[2]
     
     colour_indices <-
       floor(
@@ -404,6 +409,10 @@ add_colour_bar <- function(mesh
 #' @param ... additonal parameters to be passed to \link{create_mesh}
 #' @param add_normals Whether or not to add normals to the surface objects, see \link{create_mesh} for
 #' details
+#' @param plot_corners The coordinates in pixels for the top left and bottom right corners of the
+#' the rgl device. `c(lx, ly, rx, ry)`
+#' @param zoom A zoom factor to apply to each subplot. This is the inverse of what you might expect
+#' for consistency with rgl. zoom > 1 zooms out, zoom < zooms in.
 #' @param colour_title legend title for the colour bar if requested
 #' @param close_on_output Whether or not to close the output after taking a snapshot, defaults to
 #' TRUE
@@ -413,7 +422,8 @@ add_colour_bar <- function(mesh
 #' take a snapshot after tweaking the angles, or changing the colour bar with \link{add_colour_bar}.
 #' Its other mode is to take a snapshot after it has finished adding the 3d objects to the scene,
 #' in this mode, whether or not to keep the window open can be configured with close_on_output.
-#' @return invisible NULL
+#' @return The subscenes invisibly.
+#' @md
 #' @export
 obj_montage <- function(left_obj, 
                         right_obj, 
@@ -428,6 +438,8 @@ obj_montage <- function(left_obj,
                         palette = heat.colors(255),
                         symmetric = FALSE,
                         ...,
+                        plot_corners = c(100, 100, 900, 900),
+                        zoom = 1,
                         add_normals = TRUE,
                         colour_title = "",
                         close_on_output = TRUE){
@@ -457,11 +469,11 @@ obj_montage <- function(left_obj,
                 labels = labels,
                 palette = palette)
   
-  rgl::open3d(windowRect = c(100,100, 900, 900))
+  rgl::open3d(windowRect = plot_corners)
   #This isn't my fault I swear, see the ?bgplot3d examples, weird bugs happen
   #without waiting, e.g. brains will only draw when there is an inactive rgl device
   Sys.sleep(.25)
-  rgl::par3d(viewport = c(0,0,800,800))
+  rgl::par3d(viewport = c(0,0,plot_corners[3] - plot_corners[1], plot_corners[4] - plot_corners[2]))
 
   parent_scene <- rgl::currentSubscene3d()
   
@@ -476,7 +488,7 @@ obj_montage <- function(left_obj,
       right_mesh %>% rgl::shade3d(override = FALSE)
     }
     
-    rgl::par3d(userMatrix = view_matrix)
+    rgl::par3d(userMatrix = view_matrix, zoom = zoom)
   }, subscenes, hemisphere_viewpoints, left_or_right)
 
   rgl::useSubscene3d(parent_scene)
@@ -490,7 +502,7 @@ obj_montage <- function(left_obj,
   if(!is.null(output)) rgl::snapshot3d(output)
   if(!is.null(output) && close_on_output) rgl::rgl.close()
   
-  invisible(NULL)
+  invisible(subscenes)
 }
 
 #' Find Closest Vertex
