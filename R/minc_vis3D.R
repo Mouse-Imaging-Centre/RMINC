@@ -99,12 +99,8 @@ vals_to_numeric <- function(map){
   map
 }
 
-#' Colourize a mesh
+#' Generate a vector of colours from a map
 #' 
-#' Add colour information to your mesh, either from a vertex atlas like AAL
-#' or from a statistic/measurement map like those produced by CIVET
-#' 
-#' @param mesh \link[rgl]{mesh3d} object ideally produced by \link{create_mesh}
 #' @param colour_map either a vector with a label/measure/statistic for every vertex
 #' or a character file path pointing to a file with such a vector in a rowwise format.
 #' @param colour_range a two element numeric vector indicating the min and max values of 
@@ -114,6 +110,77 @@ vals_to_numeric <- function(map){
 #' @param labels Whether or not the colour_map is a set of discrete labels
 #' @param palette A palette, AKA look-up-table, providing a linear colour scale for the colours in
 #' \code{colour_map}
+#' @return A vector of colours with types corresponding to your input palette
+#' @export
+map_to_colours <-
+  function(colour_map,
+           colour_range = NULL,
+           colour_default = "grey",
+           symmetric = NULL,
+           labels = FALSE,
+           palette = heat.colors(255)){
+    
+    colour_map <- vals_to_numeric(colour_map)
+  
+    if(!symmetric && !labels){
+      if(is.null(colour_range)) colour_range <- range(colour_map, na.rm = TRUE)
+      colour_depth <- length(palette)
+      
+      colour_map[colour_map < colour_range[1]] <- NA
+      colour_map[colour_map > colour_range[2]] <- colour_range[2]
+      
+      colour_indices <- 
+        floor(
+        (colour_map - colour_range[1]) / 
+        diff(colour_range) * (colour_depth - 1)) + 1
+      
+      colours <- palette[colour_indices]
+      colours[is.na(colours)] <- colour_default
+      
+    } 
+    
+    if(symmetric && !labels){
+      colour_depth <- 255
+      
+      palette <- list(pos = colorRampPalette(c("red", "yellow"))(colour_depth)
+                    , neg_palette = colorRampPalette(c("blue", "turquoise1"))(colour_depth))
+      
+      if(is.null(colour_range)) colour_range <- range(abs(colour_map), na.rm = TRUE)
+
+      colour_sign <- sign(colour_map)
+      colour_map[abs(colour_map) < colour_range[1]] <- NA
+      colour_map[!is.na(colour_map) & abs(colour_map) > colour_range[2]] <-
+        colour_sign[!is.na(colour_map) & abs(colour_map) > colour_range[2]] *
+        colour_range[2]
+      
+      colour_indices <-
+        floor(
+        (abs(colour_map) - colour_range[1]) / 
+        diff(colour_range) * (colour_depth - 1)) + 1
+      
+      colours <- palette$pos[colour_indices]
+      colours[colour_map < 0 & !is.na(colour_map)] <- 
+        palette$neg[colour_indices[colour_map < 0 & !is.na(colour_map)]]
+      colours[is.na(colours)] <- colour_default
+    }
+    
+    
+    if(labels){
+      colour_indices <- factor(colour_map)
+      levels(colour_indices) <- sort(levels(colour_indices))
+      colour_indices <- as.numeric(colour_indices)
+    }
+
+    colours
+  }
+
+#' Colourize a mesh
+#' 
+#' Add colour information to your mesh, either from a vertex atlas like AAL
+#' or from a statistic/measurement map like those produced by CIVET
+#' 
+#' @param mesh \link[rgl]{mesh3d} object ideally produced by \link{create_mesh}
+#' @inheritParams map_to_colours
 #' @return an \code{obj_mesh} object descended from \link[rgl]{mesh3d}, with added colour information
 #' and an additional \code{legend} element to be used in building a colour bar
 #' @export  
@@ -125,72 +192,23 @@ colour_mesh <- function(mesh,
                         labels = FALSE,
                         palette = heat.colors(255)){
   
-  #Check colour_map is a numeric vector of colours per vertex or file name
-  #Of a file containing such a vector spread over lines
-  colour_map <- vals_to_numeric(colour_map)
-  
-  if(!symmetric && !labels){
-    if(is.null(colour_range)) colour_range <- range(colour_map, na.rm = TRUE)
-    colour_depth <- length(palette)
-    
-    colour_map[colour_map < colour_range[1]] <- NA
-    colour_map[colour_map > colour_range[2]] <- colour_range[2]
-    
-    colour_indices <- 
-      floor(
-        (colour_map - colour_range[1]) / 
-          diff(colour_range) * (colour_depth - 1)) + 1
-    
-    #Internally in tmesh3d, the vertex matrix is expanded
-    #Such that the vertices for each triangle appear sequentially
-    #in informal groups of three, the colours need to be triplicated
-    #and reordered to match, this is acheived by using the polygon matrix 
-    #as an index to the colours
-    colours <- palette[colour_indices][mesh$it]
-    colours[is.na(colours)] <- colour_default
-    
-  } 
-  
-  if(symmetric && !labels){
-    colour_depth <- 255
-    
-    palette <- list(pos = colorRampPalette(c("red", "yellow"))(colour_depth)
-                    , neg_palette = colorRampPalette(c("blue", "turquoise1"))(colour_depth))
-    
-    if(is.null(colour_range)) colour_range <- range(abs(colour_map), na.rm = TRUE)
+  ## generate the colours
+  colours <- map_to_colours(colour_map, colour_range, colour_default
+                          , symmetric, labels, palette)
 
-    colour_sign <- sign(colour_map)
-    colour_map[abs(colour_map) < colour_range[1]] <- NA
-    colour_map[!is.na(colour_map) & abs(colour_map) > colour_range[2]] <-
-      colour_sign[!is.na(colour_map) & abs(colour_map) > colour_range[2]] *
-      colour_range[2]
-    
-    colour_indices <-
-      floor(
-        (abs(colour_map) - colour_range[1]) / 
-          diff(colour_range) * (colour_depth - 1)) + 1
-    
-    # see note above
-    colours <- palette$pos[colour_indices]
-    colours[colour_map < 0 & !is.na(colour_map)] <- 
-      palette$neg[colour_indices[colour_map < 0 & !is.na(colour_map)]]
-    colours[is.na(colours)] <- colour_default
-    colours <- colours[mesh$it]
-  }
-  
-  
-  if(labels){
-    colour_indices <- factor(colour_map)
-    levels(colour_indices) <- sort(levels(colour_indices))
-    colour_indices <- as.numeric(colour_indices)
-  }
-  
+  #Internally in tmesh3d, the vertex matrix is expanded
+  #Such that the vertices for each triangle appear sequentially
+  #in informal groups of three, the colours need to be triplicated
+  #and reordered to match, this is acheived by using the polygon matrix 
+  #as an index to the colours
+  colours <- colours[mesh$it]
   
   mesh$legend <- list(colour_range = colour_range, 
                       palette = palette,
                       symmetric = symmetric)
-  
+
   mesh$material$color <- colours
+  
   
   class(mesh) <- c("obj_mesh", class(mesh))
   
