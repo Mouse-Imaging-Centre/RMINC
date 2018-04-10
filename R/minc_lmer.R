@@ -177,7 +177,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                         summary_fun = summary_fun,
                         cleanup = cleanup,
                         registry_name = new_file("mincLmer_registry"),
-                        conf_file = getOption("RMINC_BATCH_CONF")
+                        conf_file = conf_file
                         )
     } 
   }
