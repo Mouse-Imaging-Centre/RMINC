@@ -1031,7 +1031,46 @@ mincTFCE.mincMultiDim <-
 getCall.mincLm <-
   function(x, ...) attributes(x)$call
 
+#' Run a permutation test on a \code{mincLm} result
+#'
+#' Run a permutation test on a \code{mincLm} result, computing
+#' the most extreme statistic under exchanged response variables.
+#' The randomization distribution of these extremal statistics is
+#' returbed.
+#' @param x A \code{mincLm} object.
+#' @param R number of randomizations to perform
+#' @param alternative Whether to consider a one-sided or two-sided alternative hypothesis. Default
+#' "two-sided", use "greater" for a one sided test.
+#' @param replace Sample with or without replacement for the randomization, defaults to FALSE (no
+#' replacement)
+#' @param parallel A two component vector indicating how to parallelize the computation. If the 
+#' first element is "local" the computation will be run via the parallel package, otherwise it will
+#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
+#' indicating the number of jobs to split the computation into.
+#' @param columns Which columns to compute extrema for, defaults to columns with `tvalue` in
+#' the name.
+#' @param resources A list of resources to use for the jobs, for example
+#' \code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+#' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+#' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+#' more examples
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
+#' @return A list with the original object, the randomization distribution of extremal statistics
+#' and configuration args used for computing the distributions.
+#' @export
+mincRandomize <-
+  function(x
+         , R = 500
+         , alternative = c("two.sided", "greater")
+         , replace = FALSE, parallel = NULL
+         , columns = grep("tvalue-", colnames(x))
+         , resources = list()
+         , conf_file = getOption("RMINC_BATCH_CONF")){
+    UseMethod("mincRandomize")
+  }
 
+#' @describeIn mincRandomize mincLm
+#' @export
 mincRandomize.mincLm <- 
   function(x
          , R = 500
