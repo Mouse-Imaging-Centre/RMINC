@@ -1101,7 +1101,7 @@ anatLmerEstimateDF <- function(model, n=50, verbose = FALSE) {
     
     dfs[i,] <- 
       suppressMessages(
-        tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+        tryCatch(summary(mmod)$coefficients[,"df"]
                , error = function(e){ 
                  warning("Unable to estimate DFs for structure "
                        , colnames(anat)[rand_ind]

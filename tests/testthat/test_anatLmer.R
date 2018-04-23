@@ -52,11 +52,10 @@ test_that("anatLmer works", {
 
 test_that("anatLmer estimate DF returns sensible results", {
   evalq({
-    expect_warning(verboseRun(with_dfs <- anatLmerEstimateDF(lmer_res_nlhs)),
-                   regex = "Unable to estimate")
+    verboseRun(with_dfs <- anatLmerEstimateDF(lmer_res_nlhs))                  
     dfs <- attr(with_dfs, "df")
     expect_true(between(dfs[1], 1, 3))
-    expect_true(all(between(dfs[2:4], 30, 50)))            
+    expect_true(all(between(dfs[2:4], 20, 31)))            
   }, envir = anat_env)
 })
 
@@ -67,11 +66,10 @@ test_that("anatLmer exotic formulae work", {
                               , data = gf, anat = jacobians)
     )
     
-    expect_warning(verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer)),
-                   regex = "Unable to estimate")
+    verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer))
     dfs <- attr(with_dfs, "df")
     expect_true(between(dfs[1], 1, 3))
-    expect_true(all(between(dfs[2:4], 30, 50)))
+    expect_true(all(between(dfs[2:4], 20, 31)))
   }, envir = anat_env)
 })
 
@@ -79,14 +77,13 @@ test_that("anatLmer exotic formulae work", {
   evalq({
     verboseRun(
       exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
-                              , data = gf, anat = jacobians, weights = )
+                              , data = gf, anat = jacobians)
     )
     
-    expect_warning(verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer)),
-                   regex = "Unable to estimate")
+    verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer))
     dfs <- attr(with_dfs, "df")
     expect_true(between(dfs[1], 1, 3))
-    expect_true(all(between(dfs[2:4], 30, 50)))
+    expect_true(all(between(dfs[2:4], 20, 31)))
   }, envir = anat_env)
 })
 
@@ -107,9 +104,9 @@ test_that("weighted lmer works", {
                 mod <- lmer(resp ~ x + (1 | g), data = d, weights = d$w)
                 RMINC:::fixef_summary(mod)
             }) %>%
-            t
+          t
 
-        all.equal(weighted_lmer, lmer_ref)
+        expect_equivalent(unclass(weighted_lmer), lmer_ref)
     })
 })
       

@@ -490,7 +490,7 @@ vertexLmerEstimateDF <-
 
       dfs[i,] <- 
         suppressMessages(
-          tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+          tryCatch(summary(mmod)$coefficients[,"df"]
                  , error = function(e){ 
                    warning("Unable to estimate DFs for vertex "
                          , rvertices[i]
