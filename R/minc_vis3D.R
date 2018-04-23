@@ -171,6 +171,7 @@ map_to_colours <-
       colour_indices <- as.numeric(colour_indices)
     }
 
+    attr(colours, "palette") <- palette
     colours
   }
 
@@ -196,6 +197,8 @@ colour_mesh <- function(mesh,
   colours <- map_to_colours(colour_map, colour_range, colour_default
                           , symmetric, labels, palette)
 
+  updated_palette <- attr(colours, "palette")
+
   #Internally in tmesh3d, the vertex matrix is expanded
   #Such that the vertices for each triangle appear sequentially
   #in informal groups of three, the colours need to be triplicated
@@ -204,7 +207,7 @@ colour_mesh <- function(mesh,
   colours <- colours[mesh$it]
   
   mesh$legend <- list(colour_range = colour_range, 
-                      palette = palette,
+                      palette = updated_palette,
                       symmetric = symmetric)
 
   mesh$material$color <- colours
