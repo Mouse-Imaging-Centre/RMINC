@@ -35,6 +35,11 @@
 #' @param weights weights to be applied to each observation
 #' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
 #' run
+#' @param resources A list of resources to use for the jobs, for example
+#' \code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+#' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+#' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+#' more examples
 #' @param conf_file A batchtools configuration file
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
 #' the number of terms in the formula, with both the beta coefficient and the t-statistic
@@ -90,6 +95,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
                      cleanup = TRUE, summary_type = "fixef"
                    , weights = NULL
+                   , resources = list()
                    , conf_file = getOption("RMINC_BATCH_CONF")) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
@@ -177,6 +183,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                         summary_fun = summary_fun,
                         cleanup = cleanup,
                         registry_name = new_file("mincLmer_registry"),
+                        resources = resources,
                         conf_file = conf_file
                         )
     } 

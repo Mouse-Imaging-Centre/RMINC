@@ -7,7 +7,7 @@
 mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
   control = lmerControl(), start = NULL, verbose = 0L,
   temp_dir = getwd(), safely = FALSE, cleanup = TRUE,
-  summary_type = "fixef", weights = NULL,
+  summary_type = "fixef", weights = NULL, resources = list(),
   conf_file = getOption("RMINC_BATCH_CONF"))
 }
 \arguments{
@@ -52,6 +52,12 @@ run}
 } or a function to be used to generate the summary}
 
 \item{weights}{weights to be applied to each observation}
+
+\item{resources}{A list of resources to use for the jobs, for example
+\code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+\code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+\code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+more examples}
 
 \item{conf_file}{A batchtools configuration file}
 }

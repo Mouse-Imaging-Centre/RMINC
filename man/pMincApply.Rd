@@ -6,7 +6,7 @@
 \usage{
 pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
   batches = 4, slab_sizes = NULL, method = NULL, local = FALSE,
-  cores = NULL, resources = NULL, packages = NULL, vmem = NULL,
+  cores = NULL, resources = list(), packages = NULL, vmem = NULL,
   walltime = NULL, workers = batches, temp_dir = getwd(),
   cleanup = TRUE, collate = simplify2minc,
   conf_file = getOption("RMINC_BATCH_CONF"),
@@ -40,10 +40,10 @@ now this is handled with \code{conf_file}}
 see \link{qMincApply} for details.}
 
 \item{resources}{A list of resources to request from the queueing system
-common examples including vmem, walltime, nodes, and modules see
+common examples including memory, walltime, and nodes see
 \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
 \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
-more details}
+more examples}
 
 \item{packages}{Character vector of packages to load for all jobs}
 

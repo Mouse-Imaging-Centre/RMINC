@@ -8,18 +8,18 @@
 \title{True cluster mincApply}
 \usage{
 qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
-  tinyMask = FALSE, slab_sizes = NULL, resources = NULL,
+  tinyMask = FALSE, slab_sizes = NULL, resources = list(),
   packages = c("RMINC"), registry_dir = getwd(),
   registry_name = "qMincApply_registry", temp_dir = getwd(), cores = 1,
   wait = TRUE, cleanup = TRUE, clobber = FALSE, collate = simplify2minc,
   conf_file = getOption("RMINC_BATCH_CONF"))
 
 qMincRegistry(registry_name = "qMincApply_registry", packages = c("RMINC"),
-  registry_dir = getwd(), clobber = FALSE, resources = NULL,
+  registry_dir = getwd(), clobber = FALSE,
   conf_file = getOption("RMINC_BATCH_CONF"))
 
 qMincMap(registry, filenames, fun, ..., mask = NULL, slab_sizes = NULL,
-  batches = 4, tinyMask = FALSE, temp_dir = getwd(), resources = NULL,
+  batches = 4, tinyMask = FALSE, temp_dir = getwd(), resources = list(),
   cores = 1)
 
 qMincReduce(registry, ignore_incompletes = FALSE, wait = FALSE,
@@ -46,8 +46,11 @@ multicore jobs, with the number of batches set to the number of cores.}
 \item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file 
 at a time defaults to one slice along the first dimension.}
 
-\item{resources}{The resources to request for each job, overrides the \code{default.resources}
-specified in the configuration list.}
+\item{resources}{A list of resources to request from the queueing system
+common examples including memory, walltime, and nodes see
+\code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+\code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+more examples}
 
 \item{packages}{packages to be loaded for each job in a registry}
 

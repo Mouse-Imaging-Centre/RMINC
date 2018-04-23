@@ -961,10 +961,12 @@ anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
 #' @export 
 anatLmer <-
   function(formula, data, anat, REML = TRUE
-           , control = lmerControl(), verbose = FALSE
-           , start = NULL, parallel = NULL, safely = FALSE
-           , summary_type = "fixef"
-           , weights = NULL){
+         , control = lmerControl(), verbose = FALSE
+         , start = NULL, parallel = NULL, safely = FALSE
+         , summary_type = "fixef"
+         , weights = NULL
+         , resources = list()
+         , conf_file = getOption("RMINC_BATCH_CONF")){
     
     mc <- mcout <- match.call()
     original_data <- data
@@ -1016,10 +1018,12 @@ anatLmer <-
     
     out <- 
       matrixApply(t(anat)
-                  , optimizer_fun
-                  , mincLmerList = mincLmerList
-                  , summary_fun = summary_fun
-                  , parallel = parallel)
+                , optimizer_fun
+                , mincLmerList = mincLmerList
+                , summary_fun = summary_fun
+                , parallel = parallel
+                , resources = resources
+                , conf_file = conf_file)
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
     

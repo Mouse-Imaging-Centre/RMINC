@@ -60,6 +60,7 @@ vertexSd<- function(filenames)
 ### masked matrix potentially in parallel
 matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
                       , collate = simplify_masked
+                      , resources = list() 
                       , conf_file = getOption("RMINC_BATCH_CONF")){
   
   if(!is.null(mask)){
@@ -100,7 +101,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
         apply_fun(mat[group,])
       }, group = groups)
       
-      submitJobs(ids, reg = reg)
+      submitJobs(ids, reg = reg, resources = resources)
       waitForJobs(reg = reg)
       
       results <-

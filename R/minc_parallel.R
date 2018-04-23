@@ -72,10 +72,10 @@ new_file <- function(name, dir = getwd()){
 #' \code{max(getOption("mc.cores"), parallel::detectCores() - 1)} if running locally
 #' see \link{qMincApply} for details.
 #' @param resources A list of resources to request from the queueing system
-#' common examples including vmem, walltime, nodes, and modules see
+#' common examples including memory, walltime, and nodes see
 #' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
 #' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
-#' more details
+#' more examples
 #' @param packages Character vector of packages to load for all jobs
 #' @param vmem The number of gigabytes of memory to request for each batched
 #' job. It is a compatibility argument and will overload \code{vmem} 
@@ -113,7 +113,7 @@ pMincApply <-
            method = NULL,
            local = FALSE,
            cores = NULL,
-           resources = NULL,
+           resources = list(),
            packages = NULL,
            vmem = NULL,
            walltime = NULL,
@@ -313,8 +313,11 @@ mcMincApply <-
 #' @param cores the number of cores to parallelize across for each worker, defaults to 1
 #' but higher numbers may be useful for batchtools multicore or systems like SciNet that do
 #' not allocate single core jobs.
-#' @param resources The resources to request for each job, overrides the \code{default.resources}
-#' specified in the configuration list. 
+#' @param resources A list of resources to request from the queueing system
+#' common examples including memory, walltime, and nodes see
+#' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+#' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+#' more examples
 #' @param packages packages to be loaded for each job in a registry
 #' @param temp_dir A directory to store files needed for the parallelization
 #' and job management
@@ -353,7 +356,7 @@ qMincApply <-
   function(filenames, fun, ..., 
            mask=NULL, batches=4, tinyMask=FALSE,
            slab_sizes = NULL,
-           resources = NULL,
+           resources = list(),
            packages = c("RMINC"),
            registry_dir = getwd(),
            registry_name = "qMincApply_registry",
@@ -375,7 +378,6 @@ qMincApply <-
                     registry_dir = registry_dir,
                     packages = packages,
                     clobber = clobber,
-                    resources = resources,
                     conf_file = conf_file)
     
     on.exit({
@@ -388,7 +390,8 @@ qMincApply <-
     qMincMap(qMinc_registry,
              filenames, 
              fun = match.fun(fun), 
-             ..., 
+             ...,
+             resources = resources,
              slab_sizes = slab_sizes,
              batches = batches,
              cores = cores,
@@ -411,7 +414,6 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
                           packages = c("RMINC"),
                           registry_dir = getwd(),
                           clobber = FALSE,
-                          resources = NULL,
                           conf_file = getOption("RMINC_BATCH_CONF")){
   
   if(! "RMINC" %in% packages)
@@ -425,9 +427,6 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
                  registry_dir,
                  packages = packages,
                  conf.file = conf_file)
-
-  if(!is.null(resources))
-    qMinc_registry$default.resources <- resources
   
   return(qMinc_registry)
 }
@@ -438,7 +437,7 @@ qMincMap <-
   function(registry, filenames, fun, ..., mask = NULL, 
            slab_sizes = NULL,
            batches = 4, tinyMask = FALSE, temp_dir = getwd(),
-           resources = NULL,
+           resources = list(),
            cores = 1){
     
     if(is.null(slab_sizes)){
@@ -466,6 +465,7 @@ qMincMap <-
              slab_sizes = slab_sizes,
              cores = cores,
              mask = new_mask_file,
+             resources = resources,
              tinyMask = tinyMask,
              temp_dir = temp_dir,
              collate = identity),

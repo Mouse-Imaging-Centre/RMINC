@@ -24,7 +24,7 @@ mincTFCE(x, ...)
 
 \method{mincTFCE}{mincLm}(x, R = 500, alternative = c("two.sided",
   "greater"), d = 0.1, E = 0.5, H = 2, side = c("both", "positive",
-  "negative"), replace = FALSE, parallel = NULL,
+  "negative"), replace = FALSE, parallel = NULL, resources = list(),
   conf_file = getOption("RMINC_BATCH_CONF"), ...)
 }
 \arguments{
@@ -62,6 +62,12 @@ replacement)}
 first element is "local" the computation will be run via the parallel package, otherwise it will
 be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 indicating the number of jobs to split the computation into.}
+
+\item{resources}{A list of resources to use for the jobs, for example
+\code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+\code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+\code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+more examples}
 }
 \value{
 The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,

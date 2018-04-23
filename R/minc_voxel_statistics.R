@@ -925,6 +925,11 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' first element is "local" the computation will be run via the parallel package, otherwise it will
 #' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 #' indicating the number of jobs to split the computation into.
+#' @param resources A list of resources to use for the jobs, for example
+#' \code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+#' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+#' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+#' more examples
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @param ... additional arguments for methods
 #' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
@@ -1033,6 +1038,7 @@ mincRandomize.mincLm <-
          , alternative = c("two.sided", "greater")
          , replace = FALSE, parallel = NULL
          , columns = grep("tvalue-", colnames(x))
+         , resources = list()
          , conf_file = getOption("RMINC_BATCH_CONF")){
     lmod          <- x
     alternative   <- match.arg(alternative)
@@ -1041,7 +1047,7 @@ mincRandomize.mincLm <-
     
     randomization_dist <-
       mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
-                         , alternative = alternative)
+                         , alternative = alternative, conf_file = conf_file, resources = resources)
     
     output <- list(stats = original_stats, randomization_dist = randomization_dist
                    , args = c(call = lmod_call, alternative = alternative))
@@ -1060,6 +1066,7 @@ mincTFCE.mincLm <-
          , side = c("both", "positive", "negative")
          , replace = FALSE
          , parallel = NULL
+         , resources = list()
          , conf_file = getOption("RMINC_BATCH_CONF")
          , ...){
     
@@ -1079,6 +1086,7 @@ mincTFCE.mincLm <-
                        , post_proc = mincTFCE.matrix
                        , like_volume = like_vol
                        , side = side, d = d, E = E, H = H
+                       , resources = resources
                        , conf_file = conf_file)
 
     output <- list(tfce = original_tfce, randomization_dist = randomization_dist
@@ -1095,6 +1103,7 @@ mincRandomize_core <-
          , columns = grep("tvalue-", colnames(x))
          , alternative = c("two.sided", "greater")
          , post_proc = identity
+         , resources = list()
          , conf_file = getOption("RMINC_BATCH_CONF")
          , ...){
     
@@ -1157,7 +1166,7 @@ mincRandomize_core <-
           ids <- batchMap(reg = reg, boot_model, n = group_sizes)
         )
         
-        submitJobs(ids, reg = reg)
+        submitJobs(ids, reg = reg, resources = resources)
         waitForJobs(reg = reg)
         
         result <-
