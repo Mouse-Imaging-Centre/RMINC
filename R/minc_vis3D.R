@@ -172,6 +172,7 @@ map_to_colours <-
     }
 
     attr(colours, "palette") <- palette
+    attr(colours, "colour_range") <- colour_range
     colours
   }
 
@@ -198,6 +199,8 @@ colour_mesh <- function(mesh,
                           , symmetric, labels, palette)
 
   updated_palette <- attr(colours, "palette")
+  if(is.null(colour_range))
+    colour_range <- attr(colours, "colour_range")
 
   #Internally in tmesh3d, the vertex matrix is expanded
   #Such that the vertices for each triangle appear sequentially
@@ -381,6 +384,9 @@ add_colour_bar <- function(mesh
       if(!symmetric){
         if(is.null(bpos)) bpos <- .25
         if(is.null(tpos)) tpos <- .75
+
+        text_h <- bpos + (tpos - bpos) * .5
+        text_w <- rpos + (rpos - lpos) * .2
         
         plotrix::color.legend(lpos, 
                               bpos, 
@@ -388,12 +394,15 @@ add_colour_bar <- function(mesh
                               tpos, 
                               colour_range, palette, gradient="y", align="rb")
 
-        text(1.10, 0.5, labels=title, srt=90)
+        text(text_w, text_h, labels=title, srt=-90)
       } else {
         if(is.null(bpos)) bpos  <- .05
         if(is.null(tpos)) tpos  <- .45
         if(is.null(bpos2)) bpos2 <- .55
         if(is.null(tpos2)) tpos2 <- .95
+
+        text_h <- bpos + (tpos2 - bpos) * .5
+        text_w <- rpos + (rpos - lpos) * .2
         
         plotrix::color.legend(lpos,
                               bpos,
@@ -405,7 +414,7 @@ add_colour_bar <- function(mesh
                               rpos,
                               tpos2,
                               colour_range, palette$pos, gradient="y", align="rb")
-        text(1.10, 0.5, labels=title, srt=90)
+        text(text_w, text_h, labels=title, srt=-90)
       }
     })
   })
