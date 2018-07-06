@@ -705,31 +705,28 @@ civet.vertexFilenames <-
     ids <- getElement(gf, idvar)
     
     thickness_files <-
-      lapply(ids, function(id){ 
+      map_df(ids, function(id){ 
         civet.getFilenamesCorticalThickness(id, baseDir = basedir, civetVersion = civetVersion) %>%
           as_data_frame
       }) %>% 
-      bind_rows %>%
-      rename_(left_thickness = "left"
-              , right_thickness = "right")
+      rename(left_thickness = UQ("left")
+           , right_thickness = UQ("right"))
     
     area_files <-
-      lapply(ids, function(id){ 
+      map_df(ids, function(id){ 
         civet.getFilenamesCorticalArea(id, baseDir = basedir, civetVersion = civetVersion) %>%
           as_data_frame
       }) %>% 
-      bind_rows %>%
-      rename_(left_area = "left"
-              , right_area = "right")
+      rename(left_area = UQ("left")
+           , right_area = UQ("right"))
     
     volume_files <-
-      lapply(ids, function(id){ 
+      map_df(ids, function(id){ 
         civet.getFilenamesCorticalVolume(id, baseDir = basedir, civetVersion = civetVersion) %>%
           as_data_frame
       }) %>% 
-      bind_rows %>%
-      rename_(left_volume = "left"
-              , right_volume = "right")
+      rename(left_volume = UQ("left")
+           , right_volume = UQ("right"))
     
     bind_cols(data_frame(ids = ids)
               , thickness_files
@@ -1695,8 +1692,7 @@ civet.readQC <-
              , "2.1.0" = civet_qc_2_1_0
              , civet_qc_1_1_12)
     
-      lapply(dir, qc_gatherer) %>%
-          bind_rows
+    map_df(dir, qc_gatherer)
   }
 
 civet_qc_1_1_12 <- 
