@@ -32,6 +32,7 @@
 #' @importFrom visNetwork visNetwork visNodes visEdges visHierarchicalLayout
 #'                        visPhysics
 #' @importFrom rjson fromJSON
+#' @importFrom purrr map map_df
 #' @useDynLib RMINC, .registration = TRUE 
 #' @docType package
 #' @name RMINC
