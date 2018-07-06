@@ -11,7 +11,7 @@ Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkid
              person("Miriam", "Friedel", role = "ctb"))
 Description: Tools for reading, writing, analyzing, and visualizing Medical
     Imaging NetCDF (MINC) files with R.
-BiocViews:
+Additional_repositories: http://bioconductor.org/packages/3.6/bioc
 Depends:
     R (>= 3.2)
 Imports:
