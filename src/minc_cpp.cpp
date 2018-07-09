@@ -5,6 +5,48 @@
 using namespace Rcpp;
 using namespace std;
 
+
+  
+void MincVolume::read_slab_to_buffer(vector<misize_t> start
+                                        , vector<misize_t> count
+                                        , mitype_t type
+                                        , double* &buf){
+  misize_t* start_arr = (misize_t*) malloc(start.size() * sizeof(misize_t));
+  misize_t* count_arr = (misize_t*) malloc(count.size() * sizeof(misize_t));
+
+  for(int i = 0; i < start.size(); ++i){
+    start_arr[i] = start[i];
+    count_arr[i] = count[i];
+  }
+
+  cautious_get_hyperslab(handle, type, start_arr, count_arr, buf,
+                         "unable to read from file: " + filename + "\n");
+}
+
+double* MincVolume::read_slab(vector<misize_t> start
+                              , vector<misize_t> count
+                              , mitype_t type){
+  int nvox = MincVolume::size();
+  double* buffer = (double *) malloc(nvox * sizeof(double));
+  MincVolume::read_slab_to_buffer(start, count, type, buffer);
+
+  return(buffer);
+}
+
+void MincVolume::read_volume_to_buffer(double* &buf, mitype_t type){
+  vector<misize_t> starts(sizes.size(), 0);
+
+  MincVolume::read_slab_to_buffer(starts, sizes, type, buf);
+}
+
+double* MincVolume::read_volume(mitype_t type){
+  int nvox = (int) std::accumulate(sizes.begin(), sizes.end(), 1, std::multiplies<misize_t>());
+  double* buffer = (double *) malloc(nvox * sizeof(double));
+  MincVolume::read_volume_to_buffer(buffer, type);
+
+  return(buffer);
+}
+
 template <typename T>
 string NumberToString ( T Number )
 {
