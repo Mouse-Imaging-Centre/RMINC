@@ -352,7 +352,7 @@ create_anat_results <-
         as.data.frame(results) %>%
         (tibble::rownames_to_column)(var = "indices") %>%
         slice(-1) %>%
-        mutate(indices = as.numeric(indices)) %>%                           
+        mutate(indices = as.numeric(.data$indices)) %>%                           
         left_join(label_frame, by = c("indices" = "label"))
     }
     

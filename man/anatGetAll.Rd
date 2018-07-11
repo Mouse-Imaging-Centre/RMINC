@@ -6,7 +6,7 @@
 \usage{
 anatGetAll(filenames, atlas = NULL,
   defs = getOption("RMINC_LABEL_DEFINITIONS"), method = c("jacobians",
-  "labels", "sums", "means", "text"), side = c("both", "left", "right"),
+  "labels", "sums", "means"), side = c("both", "left", "right"),
   parallel = NULL, strict = TRUE,
   conf_file = getOption("RMINC_BATCH_CONF"))
 }
@@ -14,10 +14,8 @@ anatGetAll(filenames, atlas = NULL,
 \item{filenames}{A vector of filenames (strings) which contain the
 information to be extracted at every structure in the atlas.}
 
-\item{atlas}{A single filename containing the atlas definitions. This MINC
-volume has to be of the same sampling (sizes and dimension
-order) as the filenames specified in the first argument and
-use a separate integer for each atlas label.}
+\item{atlas}{One of: NULL if the method is labels, a single atlas file for all subjects,
+or a vector of one atlas file per subject.}
 
 \item{defs}{A string pointing to the filename containing the label
 definitions. Used to map the integers in the atlas to a
@@ -68,8 +66,7 @@ computed depends on the methods argument:
   \item{sums -}{ Each file contains an aribtrary number and the sum of all
   voxels inside each label is computed.
   }
-  \item{text -}{ Each file is a comma separated values text file and is simply
-  read in.
-  }
 }
+If multiple atlases are passed in each subject will have the summary computed
+with respect to their atlas.
 }

@@ -709,24 +709,24 @@ civet.vertexFilenames <-
         civet.getFilenamesCorticalThickness(id, baseDir = basedir, civetVersion = civetVersion) %>%
           as_data_frame
       }) %>% 
-      rename(left_thickness = UQ("left")
-           , right_thickness = UQ("right"))
+      rename(left_thickness = .data$left
+           , right_thickness = .data$right)
     
     area_files <-
       map_df(ids, function(id){ 
         civet.getFilenamesCorticalArea(id, baseDir = basedir, civetVersion = civetVersion) %>%
           as_data_frame
       }) %>% 
-      rename(left_area = UQ("left")
-           , right_area = UQ("right"))
+      rename(left_area = .data$left
+           , right_area = .data$right)
     
     volume_files <-
       map_df(ids, function(id){ 
         civet.getFilenamesCorticalVolume(id, baseDir = basedir, civetVersion = civetVersion) %>%
           as_data_frame
       }) %>% 
-      rename(left_volume = UQ("left")
-           , right_volume = UQ("right"))
+      rename(left_volume = .data$left
+           , right_volume = .data$right)
     
     bind_cols(data_frame(ids = ids)
               , thickness_files

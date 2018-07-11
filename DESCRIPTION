@@ -36,7 +36,8 @@ Imports:
     data.tree (>= 0.7.6),
     visNetwork (>= 2.0.4),
     rjson (>= 0.2.20),
-    DT (>= 0.4)
+    DT (>= 0.4),
+    rlang (>= 0.2.1)
 Suggests:
     rgl,
     plotrix,
