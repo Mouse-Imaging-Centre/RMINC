@@ -8,6 +8,7 @@
 using namespace Rcpp;
 using namespace std;
 
+
 // [[Rcpp::export]]
 List anat_summary(CharacterVector filenames,
                   IntegerVector atlas,
@@ -169,3 +170,139 @@ NumericMatrix count_labels(CharacterVector filenames) {
   
   return(label_values);
 }  
+
+// [[Rcpp::export]]
+List atlas_get_all(CharacterVector filenames,
+                   CharacterVector atlas,
+                   std::string method){
+
+  if(method != "labels" && atlas.size() != filenames.size() && atlas.size() != 1){
+    stop(string("Number of atlases does not match the number of files. ") +
+         "anatGetAll requires either a single atlas or one per subject");
+  }
+
+  vector<map<int,double> > all_results;
+  MincVolume cur_atlas(as<string>(atlas[0]));
+  shared_ptr<double> at_data = cur_atlas.read_volume(MI_TYPE_DOUBLE);
+  shared_ptr<int> int_atlas(new int[cur_atlas.size()]);
+  
+  for(int i = 0; i < cur_atlas.size(); ++i)
+    int_atlas.get()[i] = round(at_data.get()[i]);
+
+  int n_to_process = (method == "labels") ? atlas.size() : filenames.size();
+  for(int i = 0; i < n_to_process; ++i){
+
+    // If the atlas has changed, update all the necessary stuff
+    if(i != 0 && atlas.size() != 1){
+      MincVolume cur_atlas(as<string>(atlas[i]));
+      at_data = cur_atlas.read_volume(MI_TYPE_DOUBLE);
+      int_atlas = shared_ptr<int>(new int[cur_atlas.size()]);
+      for(int i = 0; i < cur_atlas.size(); ++i)
+        int_atlas.get()[i] = round(at_data.get()[i]);
+    } 
+
+    MincVolume cur_subj(as<string>(filenames[i]));
+    double vox_vol = cur_subj.voxel_volume();
+
+    if(cur_subj.size() != cur_atlas.size())
+      stop("File: " + cur_subj.get_filename() +
+           " did not match the size of atlas: " +
+           cur_atlas.get_filename());
+
+    if(method != "labels")
+      shared_ptr<double> subj_data = cur_subj.read_volume(MI_TYPE_DOUBLE);
+
+    map<int,double> res;
+    if(method == "means"){
+      res = atlasMeans(cur_subj, int_atlas);
+    } else if(method == "sums"){
+      res = atlasReduce(cur_subj, int_atlas
+                        , [](double acc, double x){ return(acc + x); }
+                        );
+    } else if(method == "jacobians"){
+      res = atlasReduce(cur_subj, int_atlas
+                        , [=](double acc, double x){ return(acc + vox_vol * exp(x));  }
+                        );
+    } else if(method == "labels"){
+      res = atlasVol(int_atlas, cur_atlas.size(), vox_vol);
+    } else {
+      stop(string("Unrecognized method, this should have been caught in the ") +
+           string("parent R code, please file a bug report."));
+    }
+
+    all_results.push_back(res);
+  }
+
+  return(mergeCountMaps(all_results));
+}
+
+map<int,double> atlasMeans(MincVolume subject, shared_ptr<int> atlas_buf){
+  shared_ptr<double> subj_buf = subject.read_volume(MI_TYPE_DOUBLE);
+  map <int,pair<double,int>> res;
+  
+  for(int i = 0; i < subject.size(); ++i){
+    int key = atlas_buf.get()[i];
+    double val = subj_buf.get()[i];
+
+    pair<double,int>& cur_res = res[key];
+    cur_res.first += val;
+    cur_res.second += 1;
+  }
+
+  map<int,double> full_res;
+  for(auto it = res.begin(); it != res.end(); ++it){
+    full_res[(*it).first] = (*it).second.first / (*it).second.second;
+  }
+    
+  return(full_res);  
+}
+
+map<int,double> atlasReduce(MincVolume subject, shared_ptr<int> atlas_buf
+                            , std::function<double(double,double)> fun){
+  shared_ptr<double> subj_buf = subject.read_volume(MI_TYPE_DOUBLE);
+  map<int,double> res;
+  
+  for(int i = 0; i < subject.size(); ++i){
+    int key = atlas_buf.get()[i];
+    double val = subj_buf.get()[i];
+
+    res[key] = fun(res[key], val);
+  }
+    
+  return(res);  
+}
+
+map<int,double> atlasVol(shared_ptr<int> atlas_buf, int len, double vox_vol){
+  map<int,double> res;
+
+  for(int i = 0; i < len; ++i){
+    int key = atlas_buf.get()[i];
+    res[key] += vox_vol;
+  }
+
+  return(res);
+}
+
+List mergeCountMaps(vector<map<int,double> > maps){
+  set<int> keys;
+  map<string,NumericVector> merged;
+  
+  for(auto vit = maps.begin(); vit != maps.end(); ++vit){
+    for(auto mit = (*vit).begin(); mit != (*vit).end(); ++mit){
+      keys.insert((*mit).first);
+    }
+  }
+
+  for(auto vit = maps.begin(); vit != maps.end(); ++vit){
+    for(auto kit = keys.begin(); kit != keys.end(); ++kit){
+      auto val = (*vit).find(*kit);
+      if(val == (*vit).end()){
+        merged[to_string(*kit)].push_back(NA_REAL);
+      } else {
+        merged[to_string(*kit)].push_back((*val).second);
+      }        
+    }
+  }
+
+  return(wrap(merged));
+}

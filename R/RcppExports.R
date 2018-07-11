@@ -9,8 +9,16 @@ count_labels <- function(filenames) {
     .Call(`_RMINC_count_labels`, filenames)
 }
 
+atlas_get_all <- function(filenames, atlas, method) {
+    .Call(`_RMINC_atlas_get_all`, filenames, atlas, method)
+}
+
 rcpp_minc_apply <- function(filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args) {
     .Call(`_RMINC_rcpp_minc_apply`, filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args)
+}
+
+get_volume <- function(filename) {
+    .Call(`_RMINC_get_volume`, filename)
 }
 
 replaceValues <- function(labelVol, out, labels, values) {

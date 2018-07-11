@@ -269,6 +269,124 @@ anatGetAll <-
     create_anat_results(out, label_frame, filenames = filenames, atlas = atlas)
   }
 
+# anatGetAll2
+anatGetAll2 <-
+  function(filenames = NULL, atlases, 
+           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
+           method = c("jacobians", "labels", "sums", "means", "text"), 
+           side = c("both", "left", "right"),
+           parallel = NULL, 
+           strict = TRUE
+         , conf_file = getOption("RMINC_BATCH_CONF")){
+    
+    method <- match.arg(method)
+    
+    if(method != "labels" && is.null(filenames))
+      stop("Filenames are required for all methods other than \"labels\" ")
+    
+    if(!is.null(filenames)){
+      mincFileCheck(filenames)
+      filenames <- as.character(filenames)
+    }
+    mincFileCheck(atlases)
+    atlases <- as.character(atlases)
+
+    compute_summary <- function(file_atlas_pairs){
+      atlas_get_all(file_atlas_pairs[[1]], file_atlas_pairs[[2]]
+                  , method = method)
+    }
+
+    result_rows <- `if`(method == "label", atlases, filenames)
+    
+    ## Special matrix reducer to ensure rows are bound by index
+    reduce_results <- 
+      function(res_list){
+        res_list %>%
+          map_df(function(r){
+            setNames(r, paste0("label_", names(r))) %>%
+              as.data.frame 
+          })
+      }
+    
+    ## Handle parallelism choices
+    if (is.null(parallel)) {
+      out <-
+        reduce_results(list(compute_summary(list(filenames, atlases))))
+    }
+    else {
+      n_groups <- as.numeric(parallel[2])
+
+      if(length(atlases) != 1){
+        atlas_groups <-
+          split(atlases
+              , groupingVector(length(atlases), n_groups))
+      } else {
+        atlas_groups <- list(atlases)
+      }
+
+      if(!is.null(filenames)){
+        file_groups <-
+          split(filenames
+              , groupingVector(length(filenames), n_groups))
+      } else {
+        file_groups <- list(NULL)
+      }
+
+      groups <- map2(file_groups, atlas_groups, list)
+      # a vector with two elements: the methods followed by the # of workers
+      if (parallel[1] %in% c("local", "snowfall")) {
+        out <- 
+          failing_mclapply(groups, function(group){
+            compute_summary(group)
+          }, mc.cores = n_groups) %>%
+          reduce_results
+      }
+      else {
+        reg <- qMincRegistry(new_file("anatGet_registry")
+                           , conf_file = conf_file)
+        on.exit( tenacious_remove_registry(reg) )
+        
+        suppressWarnings( #Warning suppression for large env for function (>10mb)
+          ids <- batchMap(reg = reg, function(group){
+            compute_summary(group)
+          }, group = groups)
+        )
+        
+        submitJobs(ids, reg = reg)
+        waitForJobs(reg = reg)
+        
+        out <-
+          reduceResultsList(reg = reg) %>%
+          reduce_results
+      }
+    }
+
+    out <-
+      as.matrix(out) %>%
+      t %>%
+      `colnames<-`(result_rows) %>%
+      `rownames<-`(sub("label_", "", rownames(.))) %>%
+      .[order(as.numeric(rownames(.))),]
+
+    missing_labels <- abs(rowSums(out)) == 0
+    ## Handle creating the label frame
+    if(!is.null(defs)){
+      label_frame <- create_labels_frame(defs, side = side)
+    } else {
+      warning("No definitions provided, using indices from atlas \n",
+              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
+              " or set it as an environment variable")      
+      labels <- rownames(out)
+      label_frame <-
+        data_frame(Structure = as.character(uniq_labels)
+                 , label   = uniq_labels) 
+    } 
+    
+    ## Dress up the results and do label error checking
+    create_anat_results(out, label_frame, filenames = filenames, atlas = atlases
+                      , new_style = TRUE)
+  }
+
 # Convert an RMINC style atlas label set to a nice data.frame
 create_labels_frame <-
   function(defs, side = c("both", "left", "right"), hierarchy = NULL){
@@ -334,17 +452,26 @@ create_labels_frame <-
 
 # create the results matrix from the c++ results and a label frame 
 create_anat_results <-
-  function(results, label_frame, filenames = NULL, atlas = NULL){
+  function(results, label_frame, filenames = NULL, atlas = NULL, new_style = FALSE){
     
     missing_labels <- abs(rowSums(results)) == 0
     if(nrow(results) == 1) stop("No structures found, check your atlas or label volumes")
-    
-    results <- 
-      as.data.frame(results) %>%
-      slice(-1) %>% #removes the zero label
-      mutate(indices = 1:n()) %>%
-      filter_(~ ! missing_labels[-1]) %>%
-      left_join(label_frame, by = c("indices" = "label"))
+
+    if(!new_style){
+      results <- 
+        as.data.frame(results) %>%
+        slice(-1) %>% #removes the zero label
+        mutate(indices = 1:n()) %>%
+        filter_(~ ! missing_labels[-1]) %>%
+        left_join(label_frame, by = c("indices" = "label"))
+    } else {
+      results <-
+        as.data.frame(results) %>%
+        (tibble::rownames_to_column)(var = "indices") %>%
+        slice(-1) %>%
+        mutate(indices = as.numeric(indices)) %>%                           
+        left_join(label_frame, by = c("indices" = "label"))
+    }
     
     extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)

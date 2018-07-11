@@ -1,12 +1,5 @@
-#include <Rcpp.h>
-#include "minc2.h"
-#include <stack>
 #include "minc_cpp.h"
-using namespace Rcpp;
-using namespace std;
 
-
-  
 void MincVolume::read_slab_to_buffer(vector<misize_t> start
                                         , vector<misize_t> count
                                         , mitype_t type
@@ -19,16 +12,20 @@ void MincVolume::read_slab_to_buffer(vector<misize_t> start
     count_arr[i] = count[i];
   }
 
-  cautious_get_hyperslab(handle, type, start_arr, count_arr, buf,
+  cautious_get_hyperslab(handle.get(), type, start_arr, count_arr, buf,
                          "unable to read from file: " + filename + "\n");
+
+  free(start_arr);
+  free(count_arr);
 }
 
-double* MincVolume::read_slab(vector<misize_t> start
+shared_ptr<double> MincVolume::read_slab(vector<misize_t> start
                               , vector<misize_t> count
                               , mitype_t type){
   int nvox = MincVolume::size();
-  double* buffer = (double *) malloc(nvox * sizeof(double));
-  MincVolume::read_slab_to_buffer(start, count, type, buffer);
+  shared_ptr<double> buffer(new double[nvox], [](double * arr){delete[] arr;} );
+  double* cbuf = buffer.get();
+  MincVolume::read_slab_to_buffer(start, count, type, cbuf);
 
   return(buffer);
 }
@@ -39,11 +36,9 @@ void MincVolume::read_volume_to_buffer(double* &buf, mitype_t type){
   MincVolume::read_slab_to_buffer(starts, sizes, type, buf);
 }
 
-double* MincVolume::read_volume(mitype_t type){
-  int nvox = (int) std::accumulate(sizes.begin(), sizes.end(), 1, std::multiplies<misize_t>());
-  double* buffer = (double *) malloc(nvox * sizeof(double));
-  MincVolume::read_volume_to_buffer(buffer, type);
-
+shared_ptr<double> MincVolume::read_volume(mitype_t type){
+  vector<misize_t> starts(sizes.size(), 0);
+  shared_ptr<double> buffer = read_slab(starts, sizes, type);
   return(buffer);
 }
 
@@ -54,6 +49,16 @@ string NumberToString ( T Number )
   ss.clear();
   ss << Number;
   return ss.str();
+}
+
+// [[Rcpp::export]]
+SEXP get_volume(std::string filename){
+  MincVolume vol(filename);
+  SEXP res = PROTECT(Rf_allocVector(REALSXP, vol.size()));
+  double* real_res = REAL(res);
+  vol.read_volume_to_buffer(real_res, MI_TYPE_DOUBLE);
+  UNPROTECT(1);
+  return(res);
 }
 
 void cautious_get_hyperslab(mihandle_t volume,
@@ -171,6 +176,31 @@ vector<misize_t> get_volume_dimensions(mihandle_t volume){
   }
   
   return(volume_dimensions);
+}
+
+vector<double> get_step_sizes(mihandle_t volume){
+  midimhandle_t dimensions[3];
+  double steps[3];
+  vector<double> step_sizes(3, 0);
+
+  int success = miget_volume_dimensions(volume, MI_DIMCLASS_SPATIAL,
+                                        MI_DIMATTR_ALL, MI_DIMORDER_FILE,
+                                        3, dimensions);
+  
+  if(success == MI_ERROR){
+    stop("Couldn't read volume dimensions");
+  }
+
+  success = miget_dimension_separations(dimensions, MI_ORDER_FILE
+                                        , 3, steps);
+
+  if(success != MI_NOERROR)
+    stop("Couldn't read volume step sizes");
+
+  for(int i = 0; i < 3; ++i)
+    step_sizes[i] = steps[i];
+
+  return(step_sizes);  
 }
 
 CharacterVector path_to_filename(CharacterVector filenames){
