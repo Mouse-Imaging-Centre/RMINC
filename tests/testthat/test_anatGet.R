@@ -1,6 +1,7 @@
 suppressPackageStartupMessages({
   library(testthat)
   library(dplyr)
+  library(purrr)
 })
 
 context("anatGet")
@@ -14,6 +15,16 @@ segmentation <- file.path(dataPath, "test_segmentation.mnc")
 labels <- file.path(dataPath, "test_defs.csv")
 label_frame <- read.csv(labels)
 known_labels <- with(label_frame, union(left.label, right.label))
+
+unanat <- function(anat){
+  class(anat) <- "matrix"
+  dimnames(anat) <- NULL
+  attr(anat, "anatIDs") <- NULL
+  attr(anat, "atlas") <- NULL
+  attr(anat, "input") <- NULL
+
+  anat
+}
 
 test_env <- new.env()
 
@@ -119,12 +130,85 @@ test_that("AnatGetAll works", {
   }, envir = test_env)
 })
 
+test_that("AnatGetAll multi-atlas works", {
+  evalq({
+    seg_files <- replicate(3, tempfile(tmpdir = dataPath))
+    val_files <- replicate(3, tempfile(tmpdir = dataPath))
+    segs <- replicate(3, sample(0:9, 15^3, replace = TRUE), simplify = FALSE)
+    vals <- replicate(3, rnorm(15^3), simplify = FALSE)
+
+    verboseRun({
+      walk2(segs, seg_files
+          , ~ mincWriteVolume(.x, output.filename = .y
+                            , like.filename = gf$jacobians_0.2[1]))
+      walk2(vals, val_files
+          , ~ mincWriteVolume(.x, output.filename = .y
+                            , like.filename = gf$jacobians_0.2[1]))
+    })
+    
+    label_volume <-
+      verboseRun(anatGetAll(seg_files, method = "labels", defs = NULL))
+    gold_volumes <-
+      map2(segs, segs, ~ tapply(.x, .y, function(s) length(s) * (.1)^3)[-1]) %>%
+      reduce(rbind)
+    expect_equivalent(unanat(label_volume), gold_volumes)
+    
+    label_means <-
+      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "means")) 
+    gold_means <-
+      map2(vals, segs, ~ tapply(.x,.y, function(s) mean(s))[-1]) %>%
+      reduce(rbind)
+    expect_equivalent(unanat(label_means), gold_means, tolerance = 10e-5)
+
+    label_sums <-
+      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "sums")) 
+    gold_sums <-
+      map2(vals, segs, ~ tapply(.x,.y, function(s) sum(s))[-1]) %>%
+      reduce(rbind)
+    expect_equivalent(unanat(label_sums), gold_sums, tolerance = 10e-5)
+
+    label_jacobians <-
+      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "jacobians")) 
+    gold_jacobians <-
+      map2(vals, segs, ~ tapply(.x,.y, function(s) sum(exp(s) * .1^3))[-1]) %>%
+      reduce(rbind)
+    expect_equivalent(unanat(label_jacobians), gold_jacobians, tolerance = 10e-5)
+  }
+, envir = test_env)
+})
+
+test_that("AnatGetAll local parallel works", {
+  evalq({
+    label_volume <-
+      verboseRun(anatGetAll(seg_files, method = "labels", defs = NULL
+                          , parallel = c("local", 2)))
+    expect_equivalent(unanat(label_volume), gold_volumes)
+    
+    label_means <-
+      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "means"
+                          , parallel = c("local", 2))) 
+    expect_equivalent(unanat(label_means), gold_means, tolerance = 10e-5)
+
+    label_sums <-
+      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "sums"
+                          , parallel = c("local", 2))) 
+    expect_equivalent(unanat(label_sums), gold_sums, tolerance = 10e-5)
+
+    label_jacobians <-
+      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "jacobians"
+                          , parallel = c("local", 2))) 
+    expect_equivalent(unanat(label_jacobians), gold_jacobians, tolerance = 10e-5)
+  }
+, envir = test_env)
+})
+
 test_that("AnatGetAll Flags Garbage", {
   gf2 <- gf
   gf2[1,"jacobians_0.2"] <- NA
   expect_error(anatGetAll(gf2$jacobians_0.2, defs = labels, atlas = segmentation)
-               , regex = "could not be read")
+             , regex = "could not be read")
 })
+ 
 
 test_that("Multires Works", {
   xfm <- file.path(dataPath, "scale10.xfm")
@@ -147,11 +231,23 @@ test_that("Multires Works", {
 
   vols <-
     anatGetAll(c(as.character(gf$jacobians[1:5]), transformed_file)
-             , defs = labels, atlas = segmentation, strict = FALSE)
+             , defs = labels, atlas = segmentation, strict = FALSE)    
 
   expect_equivalent(vols[1,] * 1000, vols[6,])
 })
 
+test_that("AnatGetAll errors correctly", {
+  expect_error(anatGetAll(gf$jacobians_0.2, atlas = segmentation, method = "labels")
+             , "Cannot use labels with an atlas")
+
+  expect_error(anatGetAll(gf$jacobians_0.2, atlas = segmentation[c(1,1)], method = "jacobians")
+             , "Number of atlases does not match")
+
+  expect_error(anatGetAll(read.csv(file.path(dataPath, "test_data_set.csv"))$jacobians_fixed_2
+                        , segmentation
+                        , method = "means")
+               , "did not match the size of atlas")
+})
 
 context("anatomy hierarchy summarization")
 ## Test hierarchy

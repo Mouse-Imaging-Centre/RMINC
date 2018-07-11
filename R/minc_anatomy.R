@@ -112,6 +112,8 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' Computes volumes, means, sums, and similar values across a
 #' segmented atlas
 #' @inheritParams anatGetAll_old
+#' @param atlas One of: NULL if the method is labels, a single atlas file for all subjects,
+#' or a vector of one atlas file per subject.
 #' @param method A string specifying the way information is to be computed at every voxel (default is "jacobians"). See the details section for the possible options and what they mean.
 #' @param side One of three choices, "right", "left", or "both" (the default) which specify what labels to obtain.
 #' @param strict check if any files differ in step sizes
@@ -143,17 +145,16 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #'   \item{sums -}{ Each file contains an aribtrary number and the sum of all
 #'   voxels inside each label is computed.
 #'   }
-#'   \item{text -}{ Each file is a comma separated values text file and is simply
-#'   read in.
-#'   }
 #' }
+#' If multiple atlases are passed in each subject will have the summary computed
+#' with respect to their atlas.
 #' @return A matrix with ncols equal to the number of labels in the atlas and
 #' nrows equal to the number of files.
 #' @export
 anatGetAll <-
-  function(filenames, atlas = NULL, 
+  function(filenames, atlas = NULL,
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
-           method = c("jacobians", "labels", "sums", "means", "text"), 
+           method = c("jacobians", "labels", "sums", "means"), 
            side = c("both", "left", "right"),
            parallel = NULL, 
            strict = TRUE
@@ -163,140 +164,26 @@ anatGetAll <-
     
     if(method != "labels" && is.null(atlas))
       stop("An atlas is required for all methods other than \"labels\" ")
-      
-    mincFileCheck(filenames)
-    
-    ## Handle dispatch of worker functions
-    compute_summary <-
-      function(filenames){
-        switch(method
-               , labels =
-                   return(
-                     label_counts(filenames = filenames
-                                , defs = defs
-                                , side = side
-                                , strict = strict))
-               , test = 
-                   return(
-                     Reduce(function(acc, file){ cbind(acc, read.csv(file, header = FALSE)) }
-                            , filenames
-                            , NULL))
-               , #default
-                   return(
-                     anatomy_summary(filenames = filenames
-                                     , atlas = atlas
-                                     , method = method
-                                     , defs = defs
-                                     , side = side
-                                     , strict= strict)))
-        }
-    
-    ## Special matrix reducer to ensure rows are bound by index
-    reduce_matrices <- 
-      function(mat_list){
-        mat_list %>%
-          lapply(function(m) tibble::rownames_to_column(as.data.frame(m))) %>%
-          Reduce(function(df, acc) full_join(df, acc, by = "rowname")
-                 , ., data_frame(rowname = character())) %>%
-          select_(~ -rowname) %>%
-          as.matrix
-      }
-    
-    ## Handle parallelism choices
-    if (is.null(parallel)) {
-      out <- compute_summary(filenames)
-    }
-    else {
-      n_groups <- as.numeric(parallel[2])
-      groups <- split(seq_along(filenames), groupingVector(length(filenames), n_groups))
-      # a vector with two elements: the methods followed by the # of workers
-      if (parallel[1] %in% c("local", "snowfall")) {
-        out <- 
-          failing_mclapply(groups, function(group){
-            compute_summary(filenames[group])
-          }, mc.cores = n_groups) %>%
-          reduce_matrices %>%
-          `colnames<-`(filenames) %>%
-          setNA(0)
-      }
-      else {
-        reg <- qMincRegistry(new_file("anatGet_registry")
-                           , conf_file = conf_file)
-        on.exit( tenacious_remove_registry(reg) )
-        
-        suppressWarnings( #Warning suppression for large env for function (>10mb)
-          ids <- batchMap(reg = reg, function(group){
-            compute_summary(filenames[group])
-          }, group = groups)
-        )
-        
-        submitJobs(ids, reg = reg)
-        waitForJobs(reg = reg)
-        
-        out <-
-          reduceResultsList(reg = reg) %>%
-          reduce_matrices %>%
-          `colnames<-`(filenames) %>%
-          setNA(0)
-      } 
-    }
-    
-    missing_labels <- abs(rowSums(out)) == 0
-    
-    ## Handle creating the label frame
-    if(!is.null(defs)){
-      label_frame <- create_labels_frame(defs, side = side)
-    } else if(!is.null(atlas)) {
-      warning("No definitions provided, using indices from atlas \n",
-              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
-              " or set it as an environment variable")
-      atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
-      uniq_labels <- unique(atlas_vol)
-      label_frame <-
-        data_frame(Structure = as.character(uniq_labels)
-                   , label   = uniq_labels) 
-    } else {
-      warning("No definitions provided, using observed labels \n",
-              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
-              " or set it as an environment variable")
-      uniq_labels <- which(!missing_labels)
-      label_frame <-
-        data_frame(Structure = as.character(uniq_labels)
-                   , label   = uniq_labels) 
-    }
-    
-    ## Dress up the results and do label error checking
-    create_anat_results(out, label_frame, filenames = filenames, atlas = atlas)
-  }
 
-# anatGetAll2
-anatGetAll2 <-
-  function(filenames = NULL, atlases, 
-           defs = getOption("RMINC_LABEL_DEFINITIONS"), 
-           method = c("jacobians", "labels", "sums", "means", "text"), 
-           side = c("both", "left", "right"),
-           parallel = NULL, 
-           strict = TRUE
-         , conf_file = getOption("RMINC_BATCH_CONF")){
-    
-    method <- match.arg(method)
-    
-    if(method != "labels" && is.null(filenames))
-      stop("Filenames are required for all methods other than \"labels\" ")
-    
-    if(!is.null(filenames)){
-      mincFileCheck(filenames)
-      filenames <- as.character(filenames)
+    if(method == "labels" && !is.null(atlas)){
+     stop("Cannot use labels with an atlas, please pass in label volumes as `filenames`")
     }
-    mincFileCheck(atlases)
-    atlases <- as.character(atlases)
+    
+    mincFileCheck(filenames)
+    filenames <- as.character(filenames)
+    if(!is.null(atlas)){
+      mincFileCheck(atlas)
+      atlas <- as.character(atlas)
+    } else {
+      atlas <- character(0)
+    }
 
     compute_summary <- function(file_atlas_pairs){
       atlas_get_all(file_atlas_pairs[[1]], file_atlas_pairs[[2]]
                   , method = method)
     }
 
-    result_rows <- `if`(method == "label", atlases, filenames)
+    result_rows <- filenames
     
     ## Special matrix reducer to ensure rows are bound by index
     reduce_results <- 
@@ -311,26 +198,22 @@ anatGetAll2 <-
     ## Handle parallelism choices
     if (is.null(parallel)) {
       out <-
-        reduce_results(list(compute_summary(list(filenames, atlases))))
+        reduce_results(list(compute_summary(list(filenames, atlas))))
     }
     else {
       n_groups <- as.numeric(parallel[2])
 
-      if(length(atlases) != 1){
+      if(length(atlas) > 1){
         atlas_groups <-
-          split(atlases
-              , groupingVector(length(atlases), n_groups))
+          split(atlas
+              , groupingVector(length(atlas), n_groups))
       } else {
-        atlas_groups <- list(atlases)
+        atlas_groups <- list(atlas)
       }
 
-      if(!is.null(filenames)){
-        file_groups <-
-          split(filenames
-              , groupingVector(length(filenames), n_groups))
-      } else {
-        file_groups <- list(NULL)
-      }
+      file_groups <-
+        split(filenames
+            , groupingVector(length(filenames), n_groups))
 
       groups <- map2(file_groups, atlas_groups, list)
       # a vector with two elements: the methods followed by the # of workers
@@ -366,7 +249,7 @@ anatGetAll2 <-
       t %>%
       `colnames<-`(result_rows) %>%
       `rownames<-`(sub("label_", "", rownames(.))) %>%
-      .[order(as.numeric(rownames(.))),]
+      .[order(as.numeric(rownames(.))),,drop=FALSE]
 
     missing_labels <- abs(rowSums(out)) == 0
     ## Handle creating the label frame
@@ -378,12 +261,12 @@ anatGetAll2 <-
               " or set it as an environment variable")      
       labels <- rownames(out)
       label_frame <-
-        data_frame(Structure = as.character(uniq_labels)
-                 , label   = uniq_labels) 
+        data_frame(Structure = labels
+                 , label   = as.numeric(labels))
     } 
     
     ## Dress up the results and do label error checking
-    create_anat_results(out, label_frame, filenames = filenames, atlas = atlases
+    create_anat_results(out, label_frame, filenames = filenames, atlas = atlas
                       , new_style = TRUE)
   }
 

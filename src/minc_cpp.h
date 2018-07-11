@@ -72,6 +72,8 @@ private:
   }
   
 public:
+  MincVolume(){}
+    
   MincVolume(string fn, int mode = MI2_OPEN_READ, bool dbg = false){
     init(fn, mode, dbg);
   }
@@ -95,7 +97,7 @@ public:
                            , mitype_t type, double* &buf);
 };
 
-extern map<int,double> atlasVol(shared_ptr<int> atlas_buf, int len, double vox_vol);
+extern map<int,double> atlasVol(MincVolume subject, double vox_vol);
 extern map<int,double> atlasMeans(MincVolume subject, shared_ptr<int> atlas_buf);
 extern map<int,double> atlasReduce(MincVolume subject, shared_ptr<int> atlas_buf
                                    , std::function<double(double,double)>);

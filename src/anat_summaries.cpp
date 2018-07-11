@@ -176,25 +176,28 @@ List atlas_get_all(CharacterVector filenames,
                    CharacterVector atlas,
                    std::string method){
 
-  if(method != "labels" && atlas.size() != filenames.size() && atlas.size() != 1){
+  if(method != "labels" && atlas.size() != filenames.size() && atlas.size() > 1){
     stop(string("Number of atlases does not match the number of files. ") +
          "anatGetAll requires either a single atlas or one per subject");
   }
 
   vector<map<int,double> > all_results;
-  MincVolume cur_atlas(as<string>(atlas[0]));
-  shared_ptr<double> at_data = cur_atlas.read_volume(MI_TYPE_DOUBLE);
-  shared_ptr<int> int_atlas(new int[cur_atlas.size()]);
+  MincVolume cur_atlas; 
+  shared_ptr<double> at_data;
+  shared_ptr<int> int_atlas;
   
-  for(int i = 0; i < cur_atlas.size(); ++i)
-    int_atlas.get()[i] = round(at_data.get()[i]);
+  if(atlas.size() != 0){
+    cur_atlas = MincVolume(as<string>(atlas[0]));
+    at_data = cur_atlas.read_volume(MI_TYPE_DOUBLE);
+    int_atlas = shared_ptr<int>(new int[cur_atlas.size()]);
+    for(int i = 0; i < cur_atlas.size(); ++i)
+      int_atlas.get()[i] = round(at_data.get()[i]);
+  }
 
-  int n_to_process = (method == "labels") ? atlas.size() : filenames.size();
-  for(int i = 0; i < n_to_process; ++i){
-
+  for(int i = 0; i < filenames.size(); ++i){
     // If the atlas has changed, update all the necessary stuff
-    if(i != 0 && atlas.size() != 1){
-      MincVolume cur_atlas(as<string>(atlas[i]));
+    if(i != 0 && atlas.size() > 1){
+      cur_atlas = MincVolume(as<string>(atlas[i]));
       at_data = cur_atlas.read_volume(MI_TYPE_DOUBLE);
       int_atlas = shared_ptr<int>(new int[cur_atlas.size()]);
       for(int i = 0; i < cur_atlas.size(); ++i)
@@ -204,7 +207,7 @@ List atlas_get_all(CharacterVector filenames,
     MincVolume cur_subj(as<string>(filenames[i]));
     double vox_vol = cur_subj.voxel_volume();
 
-    if(cur_subj.size() != cur_atlas.size())
+    if(atlas.size() != 0 && cur_subj.size() != cur_atlas.size())
       stop("File: " + cur_subj.get_filename() +
            " did not match the size of atlas: " +
            cur_atlas.get_filename());
@@ -224,7 +227,7 @@ List atlas_get_all(CharacterVector filenames,
                         , [=](double acc, double x){ return(acc + vox_vol * exp(x));  }
                         );
     } else if(method == "labels"){
-      res = atlasVol(int_atlas, cur_atlas.size(), vox_vol);
+      res = atlasVol(cur_subj, vox_vol);
     } else {
       stop(string("Unrecognized method, this should have been caught in the ") +
            string("parent R code, please file a bug report."));
@@ -272,11 +275,12 @@ map<int,double> atlasReduce(MincVolume subject, shared_ptr<int> atlas_buf
   return(res);  
 }
 
-map<int,double> atlasVol(shared_ptr<int> atlas_buf, int len, double vox_vol){
+map<int,double> atlasVol(MincVolume subject, double vox_vol){
+  shared_ptr<double> subj_buf = subject.read_volume(MI_TYPE_DOUBLE);
   map<int,double> res;
 
-  for(int i = 0; i < len; ++i){
-    int key = atlas_buf.get()[i];
+  for(int i = 0; i < subject.size(); ++i){
+    int key = round(subj_buf.get()[i]);
     res[key] += vox_vol;
   }
 
