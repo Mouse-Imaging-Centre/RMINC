@@ -1,5 +1,30 @@
 New in Version 1.5.*.*
 =======================
+2.0
+--
+- Rewrite parallel docs to reflect change to batchtools
+- Add configuration passing for parallel functuibs
+- Rewrite of anatGetAll for multi-mode. Subject specific
+  atlases can be passed for computing summaries, useful
+  for DTI with MAGeT
+- Allow shinyRMINC to be run with mincSingleDim's
+- Allow shinyRMINC to use an FDR object to select thresholds
+- Add slider for dynamic upper limit setting in shinyRMINC
+- Mention the MINC_FILE_CACHE_MB variable in the docs to help
+  fix memory issues especially with parallel jobs
+- Implements a transposed vertexApply for subject specific
+  summaries
+- Allows colour setting in vis2D
+- Refactor 3D plotting code to improve legend placement
+- Better symmetric palettes for 3D plots
+- Fix the parallel memory variable for batchtools
+- Adds a timeout for lsof to stop NFS issues killing RMINC
+- Minor fix for new lmerTest
+- Expose mincRandomize (WIP sharp edges expected)
+- Nice new c++ API for working with minc volumes in RMINC
+  internals. 
+
+
 1.0
 --
 - Converts parallel backend to batchtools. No more
