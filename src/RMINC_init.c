@@ -34,6 +34,7 @@ extern SEXP _RMINC_mesh_area(SEXP, SEXP);
 extern SEXP _RMINC_neighbour_list(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _RMINC_rcpp_minc_apply(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _RMINC_replaceValues(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _RMINC_replaceColours(SEXP, SEXP, SEXP, SEXP);
 extern SEXP vertex_anova_loop(SEXP, SEXP, SEXP);
 extern SEXP vertex_lm_loop(SEXP, SEXP, SEXP);
 extern SEXP vertex_wlm_loop(SEXP, SEXP, SEXP, SEXP);
@@ -67,6 +68,7 @@ static const R_CallMethodDef CallEntries[] = {
   {"_RMINC_neighbour_list",   (DL_FUNC) &_RMINC_neighbour_list,    4},
   {"_RMINC_rcpp_minc_apply",  (DL_FUNC) &_RMINC_rcpp_minc_apply,  10},
   {"_RMINC_replaceValues",    (DL_FUNC) &_RMINC_replaceValues,     4},
+  {"_RMINC_replaceColours",  (DL_FUNC) &_RMINC_replaceColours,   4},
   {"vertex_anova_loop",      (DL_FUNC) &vertex_anova_loop,       3},
   {"vertex_lm_loop",         (DL_FUNC) &vertex_lm_loop,          3},
   {"vertex_wlm_loop",        (DL_FUNC) &vertex_wlm_loop,         4},

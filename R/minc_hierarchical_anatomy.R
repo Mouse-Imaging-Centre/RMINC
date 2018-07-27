@@ -24,7 +24,14 @@ hanatToVolume <- function(anatTree, labelVolume, column) {
     labels <- c(labels, nodeList[[i]]$label)
     values <- c(values, rep(nodeList[[i]][[column]], nlabels))
   }
-  replaceValues(labelVolume, out, labels, values)
+  if (is.numeric(values)) {
+    out <- array(0, dim=dim(labelVolume))
+    replaceValues(labelVolume, out, labels, values)
+  }
+  else if (is.character(values)) {
+    out <- array("", dim=dim(labelVolume))
+    replaceColours(labelVolume, out, labels, values)
+  }
   return(out)
 }
 

@@ -17,6 +17,10 @@ replaceValues <- function(labelVol, out, labels, values) {
     invisible(.Call(`_RMINC_replaceValues`, labelVol, out, labels, values))
 }
 
+replaceColours <- function(labelVol, out, labels, values) {
+    invisible(.Call(`_RMINC_replaceColours`, labelVol, out, labels, values))
+}
+
 graph_tfce_wqu <- function(map, adjacencies, E, H, nsteps, weights) {
     .Call(`_RMINC_graph_tfce_wqu`, map, adjacencies, E, H, nsteps, weights)
 }
