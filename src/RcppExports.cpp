@@ -29,6 +29,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// atlas_get_all
+List atlas_get_all(CharacterVector filenames, CharacterVector atlas, std::string method);
+RcppExport SEXP _RMINC_atlas_get_all(SEXP filenamesSEXP, SEXP atlasSEXP, SEXP methodSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type filenames(filenamesSEXP);
+    Rcpp::traits::input_parameter< CharacterVector >::type atlas(atlasSEXP);
+    Rcpp::traits::input_parameter< std::string >::type method(methodSEXP);
+    rcpp_result_gen = Rcpp::wrap(atlas_get_all(filenames, atlas, method));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpp_minc_apply
 List rcpp_minc_apply(CharacterVector filenames, bool use_mask, CharacterVector mask, double mask_lower_val, double mask_upper_val, RObject value_for_mask, bool filter_masked, NumericVector slab_sizes, Function fun, List args);
 RcppExport SEXP _RMINC_rcpp_minc_apply(SEXP filenamesSEXP, SEXP use_maskSEXP, SEXP maskSEXP, SEXP mask_lower_valSEXP, SEXP mask_upper_valSEXP, SEXP value_for_maskSEXP, SEXP filter_maskedSEXP, SEXP slab_sizesSEXP, SEXP funSEXP, SEXP argsSEXP) {
@@ -46,6 +59,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Function >::type fun(funSEXP);
     Rcpp::traits::input_parameter< List >::type args(argsSEXP);
     rcpp_result_gen = Rcpp::wrap(rcpp_minc_apply(filenames, use_mask, mask, mask_lower_val, mask_upper_val, value_for_mask, filter_masked, slab_sizes, fun, args));
+    return rcpp_result_gen;
+END_RCPP
+}
+// get_volume
+SEXP get_volume(std::string filename);
+RcppExport SEXP _RMINC_get_volume(SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(get_volume(filename));
     return rcpp_result_gen;
 END_RCPP
 }

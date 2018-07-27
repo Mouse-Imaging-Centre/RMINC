@@ -112,6 +112,8 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' Computes volumes, means, sums, and similar values across a
 #' segmented atlas
 #' @inheritParams anatGetAll_old
+#' @param atlas One of: NULL if the method is labels, a single atlas file for all subjects,
+#' or a vector of one atlas file per subject.
 #' @param method A string specifying the way information is to be computed at every voxel (default is "jacobians"). See the details section for the possible options and what they mean.
 #' @param side One of three choices, "right", "left", or "both" (the default) which specify what labels to obtain.
 #' @param strict check if any files differ in step sizes
@@ -143,17 +145,16 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #'   \item{sums -}{ Each file contains an aribtrary number and the sum of all
 #'   voxels inside each label is computed.
 #'   }
-#'   \item{text -}{ Each file is a comma separated values text file and is simply
-#'   read in.
-#'   }
 #' }
+#' If multiple atlases are passed in each subject will have the summary computed
+#' with respect to their atlas.
 #' @return A matrix with ncols equal to the number of labels in the atlas and
 #' nrows equal to the number of files.
 #' @export
 anatGetAll <-
-  function(filenames, atlas = NULL, 
+  function(filenames, atlas = NULL,
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
-           method = c("jacobians", "labels", "sums", "means", "text"), 
+           method = c("jacobians", "labels", "sums", "means"), 
            side = c("both", "left", "right"),
            parallel = NULL, 
            strict = TRUE
@@ -163,61 +164,65 @@ anatGetAll <-
     
     if(method != "labels" && is.null(atlas))
       stop("An atlas is required for all methods other than \"labels\" ")
-      
-    mincFileCheck(filenames)
+
+    if(method == "labels" && !is.null(atlas)){
+     stop("Cannot use labels with an atlas, please pass in label volumes as `filenames`")
+    }
     
-    ## Handle dispatch of worker functions
-    compute_summary <-
-      function(filenames){
-        switch(method
-               , labels =
-                   return(
-                     label_counts(filenames = filenames
-                                , defs = defs
-                                , side = side
-                                , strict = strict))
-               , test = 
-                   return(
-                     Reduce(function(acc, file){ cbind(acc, read.csv(file, header = FALSE)) }
-                            , filenames
-                            , NULL))
-               , #default
-                   return(
-                     anatomy_summary(filenames = filenames
-                                     , atlas = atlas
-                                     , method = method
-                                     , defs = defs
-                                     , side = side
-                                     , strict= strict)))
-        }
+    mincFileCheck(filenames)
+    filenames <- as.character(filenames)
+    if(!is.null(atlas)){
+      mincFileCheck(atlas)
+      atlas <- as.character(atlas)
+    } else {
+      atlas <- character(0)
+    }
+
+    compute_summary <- function(file_atlas_pairs){
+      atlas_get_all(file_atlas_pairs[[1]], file_atlas_pairs[[2]]
+                  , method = method)
+    }
+
+    result_rows <- filenames
     
     ## Special matrix reducer to ensure rows are bound by index
-    reduce_matrices <- 
-      function(mat_list){
-        mat_list %>%
-          lapply(function(m) tibble::rownames_to_column(as.data.frame(m))) %>%
-          Reduce(function(df, acc) full_join(df, acc, by = "rowname")
-                 , ., data_frame(rowname = character())) %>%
-          select_(~ -rowname) %>%
-          as.matrix
+    reduce_results <- 
+      function(res_list){
+        res_list %>%
+          map_df(function(r){
+            setNames(r, paste0("label_", names(r))) %>%
+              as.data.frame 
+          })
       }
     
     ## Handle parallelism choices
     if (is.null(parallel)) {
-      out <- compute_summary(filenames)
+      out <-
+        reduce_results(list(compute_summary(list(filenames, atlas))))
     }
     else {
       n_groups <- as.numeric(parallel[2])
-      groups <- split(seq_along(filenames), groupingVector(length(filenames), n_groups))
+
+      if(length(atlas) > 1){
+        atlas_groups <-
+          split(atlas
+              , groupingVector(length(atlas), n_groups))
+      } else {
+        atlas_groups <- list(atlas)
+      }
+
+      file_groups <-
+        split(filenames
+            , groupingVector(length(filenames), n_groups))
+
+      groups <- map2(file_groups, atlas_groups, list)
       # a vector with two elements: the methods followed by the # of workers
       if (parallel[1] %in% c("local", "snowfall")) {
         out <- 
           failing_mclapply(groups, function(group){
-            compute_summary(filenames[group])
+            compute_summary(group)
           }, mc.cores = n_groups) %>%
-          reduce_matrices %>%
-          `colnames<-`(filenames) %>%
-          setNA(0)
+          reduce_results
       }
       else {
         reg <- qMincRegistry(new_file("anatGet_registry")
@@ -226,7 +231,7 @@ anatGetAll <-
         
         suppressWarnings( #Warning suppression for large env for function (>10mb)
           ids <- batchMap(reg = reg, function(group){
-            compute_summary(filenames[group])
+            compute_summary(group)
           }, group = groups)
         )
         
@@ -235,38 +240,34 @@ anatGetAll <-
         
         out <-
           reduceResultsList(reg = reg) %>%
-          reduce_matrices %>%
-          `colnames<-`(filenames) %>%
-          setNA(0)
-      } 
+          reduce_results
+      }
     }
-    
+
+    out <-
+      as.matrix(out) %>%
+      t %>%
+      `colnames<-`(result_rows) %>%
+      `rownames<-`(sub("label_", "", rownames(.))) %>%
+      .[order(as.numeric(rownames(.))),,drop=FALSE]
+
     missing_labels <- abs(rowSums(out)) == 0
-    
     ## Handle creating the label frame
     if(!is.null(defs)){
       label_frame <- create_labels_frame(defs, side = side)
-    } else if(!is.null(atlas)) {
+    } else {
       warning("No definitions provided, using indices from atlas \n",
               "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
-              " or set it as an environment variable")
-      atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
-      uniq_labels <- unique(atlas_vol)
+              " or set it as an environment variable")      
+      labels <- rownames(out)
       label_frame <-
-        data_frame(Structure = as.character(uniq_labels)
-                   , label   = uniq_labels) 
-    } else {
-      warning("No definitions provided, using observed labels \n",
-              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
-              " or set it as an environment variable")
-      uniq_labels <- which(!missing_labels)
-      label_frame <-
-        data_frame(Structure = as.character(uniq_labels)
-                   , label   = uniq_labels) 
-    }
+        data_frame(Structure = labels
+                 , label   = as.numeric(labels))
+    } 
     
     ## Dress up the results and do label error checking
-    create_anat_results(out, label_frame, filenames = filenames, atlas = atlas)
+    create_anat_results(out, label_frame, filenames = filenames, atlas = atlas
+                      , new_style = TRUE)
   }
 
 # Convert an RMINC style atlas label set to a nice data.frame
@@ -334,17 +335,26 @@ create_labels_frame <-
 
 # create the results matrix from the c++ results and a label frame 
 create_anat_results <-
-  function(results, label_frame, filenames = NULL, atlas = NULL){
+  function(results, label_frame, filenames = NULL, atlas = NULL, new_style = FALSE){
     
     missing_labels <- abs(rowSums(results)) == 0
     if(nrow(results) == 1) stop("No structures found, check your atlas or label volumes")
-    
-    results <- 
-      as.data.frame(results) %>%
-      slice(-1) %>% #removes the zero label
-      mutate(indices = 1:n()) %>%
-      filter_(~ ! missing_labels[-1]) %>%
-      left_join(label_frame, by = c("indices" = "label"))
+
+    if(!new_style){
+      results <- 
+        as.data.frame(results) %>%
+        slice(-1) %>% #removes the zero label
+        mutate(indices = 1:n()) %>%
+        filter_(~ ! missing_labels[-1]) %>%
+        left_join(label_frame, by = c("indices" = "label"))
+    } else {
+      results <-
+        as.data.frame(results) %>%
+        (tibble::rownames_to_column)(var = "indices") %>%
+        slice(-1) %>%
+        mutate(indices = as.numeric(.data$indices)) %>%                           
+        left_join(label_frame, by = c("indices" = "label"))
+    }
     
     extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)
