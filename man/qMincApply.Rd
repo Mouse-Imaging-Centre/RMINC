@@ -15,12 +15,11 @@ qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
   conf_file = getOption("RMINC_BATCH_CONF"))
 
 qMincRegistry(registry_name = "qMincApply_registry", packages = c("RMINC"),
-  registry_dir = getwd(), clobber = FALSE,
+  registry_dir = getwd(), clobber = FALSE, resources = list(),
   conf_file = getOption("RMINC_BATCH_CONF"))
 
 qMincMap(registry, filenames, fun, ..., mask = NULL, slab_sizes = NULL,
-  batches = 4, tinyMask = FALSE, temp_dir = getwd(), resources = list(),
-  cores = 1)
+  batches = 4, tinyMask = FALSE, temp_dir = getwd(), cores = 1)
 
 qMincReduce(registry, ignore_incompletes = FALSE, wait = FALSE,
   collate = simplify2minc)
