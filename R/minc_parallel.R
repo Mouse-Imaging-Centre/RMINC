@@ -392,7 +392,6 @@ qMincApply <-
              filenames, 
              fun = match.fun(fun), 
              ...,
-             resources = resources,
              slab_sizes = slab_sizes,
              batches = batches,
              cores = cores,
