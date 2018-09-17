@@ -86,6 +86,19 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// replaceColours
+void replaceColours(NumericVector labelVol, StringVector out, NumericVector labels, StringVector values);
+RcppExport SEXP _RMINC_replaceColours(SEXP labelVolSEXP, SEXP outSEXP, SEXP labelsSEXP, SEXP valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type labelVol(labelVolSEXP);
+    Rcpp::traits::input_parameter< StringVector >::type out(outSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type labels(labelsSEXP);
+    Rcpp::traits::input_parameter< StringVector >::type values(valuesSEXP);
+    replaceColours(labelVol, out, labels, values);
+    return R_NilValue;
+END_RCPP
+}
 // graph_tfce_wqu
 std::vector<double> graph_tfce_wqu(std::vector<double> map, std::vector<std::vector<int> > adjacencies, double E, double H, int nsteps, std::vector<double> weights);
 RcppExport SEXP _RMINC_graph_tfce_wqu(SEXP mapSEXP, SEXP adjacenciesSEXP, SEXP ESEXP, SEXP HSEXP, SEXP nstepsSEXP, SEXP weightsSEXP) {

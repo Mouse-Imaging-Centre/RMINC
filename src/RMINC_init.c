@@ -34,6 +34,7 @@ extern SEXP _RMINC_mesh_area(SEXP, SEXP);
 extern SEXP _RMINC_neighbour_list(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _RMINC_rcpp_minc_apply(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _RMINC_replaceValues(SEXP, SEXP, SEXP, SEXP);
+extern SEXP _RMINC_replaceColours(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _RMINC_get_volume(SEXP);
 extern SEXP _RMINC_atlas_get_all(SEXP, SEXP, SEXP);
 //extern SEXP _RMINC_anat_reduce(SEXP, SEXP, SEXP, SEXP);
@@ -70,6 +71,7 @@ static const R_CallMethodDef CallEntries[] = {
   {"_RMINC_neighbour_list",   (DL_FUNC) &_RMINC_neighbour_list,    4},
   {"_RMINC_rcpp_minc_apply",  (DL_FUNC) &_RMINC_rcpp_minc_apply,  10},
   {"_RMINC_replaceValues",    (DL_FUNC) &_RMINC_replaceValues,     4},
+  {"_RMINC_replaceColours",  (DL_FUNC) &_RMINC_replaceColours,   4},
   {"_RMINC_atlas_get_all",    (DL_FUNC) &_RMINC_atlas_get_all,     3},
   //  {"_RMINC_anat_reduce",     (DL_FUNC) &_RMINC_anat_reduce,      4},
   {"_RMINC_get_volume",      (DL_FUNC) &_RMINC_get_volume,       1},
