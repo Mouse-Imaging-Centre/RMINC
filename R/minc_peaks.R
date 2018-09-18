@@ -94,14 +94,19 @@ mincFindPeaks <- function(inputStats, column=1, direction="both", minDistance=NA
 #'
 #' @param filename string containing filename to read 
 #'
-#' @return tags as a ntags by 7 matrix
+#' @return tags as a ntags by the number of fields in the input tag matrix
 #' @export
 mincGetTagFile <- function(filename) {
-  tags <- scan(filename, what="character", quiet = TRUE)
+  tags <- readLines(filename)
   # tag points begin after Points = line
-  beginIndex <- grep("Points", tags) + 2
-  endIndex <- length(tags)-1 # get rid of training ;
-  return(matrix(as.numeric(tags[beginIndex:endIndex]), ncol=7, byrow=T))
+  beginIndex <- grep("Points", tags) + 1
+  tags <- tags[beginIndex:length(tags)]
+  # get rid of trailing semicolon
+  tags[length(tags)] <- sub(";", "", tags[length(tags)]) 
+  # get rid of starting whitespace
+  tags <- sub("^ *", "", tags)
+  coord_table <- read.table(text = tags)
+  coord_table %>% as.matrix() %>% unname
 }
 
 #' convert tags from world coordinates to mincArray coordinates
