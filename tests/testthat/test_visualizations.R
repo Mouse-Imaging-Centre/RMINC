@@ -3,8 +3,11 @@ library(dplyr)
 
 context("visualizations")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 likeVol <- file.path(dataPath, "testsummaryminc1.mnc")
 
 uniformData <-

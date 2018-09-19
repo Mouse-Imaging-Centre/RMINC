@@ -3,8 +3,11 @@ library(testthat)
 # mincMean, mincSd, mincVar, mincSum 
 context("mincSummary (Mean, Sd, Var, Sum,t-test,correlation,wilcoxon)")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"))
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0)

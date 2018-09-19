@@ -2,8 +2,11 @@ library(testthat)
 library(dplyr)
 context("mincLm - two group test")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 

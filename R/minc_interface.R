@@ -1195,12 +1195,15 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verbo
   setRMINCMaskedValue(0)
   Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
   
-  getRMINCTestData()
-
+  getRMINCTestData(dataPath = dataPath)
+  
+  tenv <- testthat::test_env() 
+  tenv$dataPath <- dataPath
+  
   # Run Tests
   rmincPath <- find.package("RMINC")
   cat("\n\nRunning tests in: ", paste(rmincPath,"/","user_tests/",sep=""), "\n\n\n")
-  testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), ...)
+  testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), env = tenv, ...)
   
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")
