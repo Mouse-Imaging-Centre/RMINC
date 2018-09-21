@@ -21,7 +21,7 @@ test_parallel <-
         dataPath <- "."
       }
       
-      if(!file.exists(dataPath, "rminctestdata")){
+      if(!file.exists(file.path(dataPath, "rminctestdata"))){
         
         if(getOption("verbose")){
           getRMINCTestData(dataPath)
