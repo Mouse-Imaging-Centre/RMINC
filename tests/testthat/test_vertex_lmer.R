@@ -2,8 +2,11 @@ library(testthat)
 library(lme4)
 context("vertexLmer")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gftest <- read.csv(file.path(dataPath, "subject.csv"))
 

@@ -1,7 +1,10 @@
 context("Single dim mincTFCE")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"))
 first_file <- gf$jacobians_0.2[1]

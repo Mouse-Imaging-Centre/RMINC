@@ -1195,12 +1195,15 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verbo
   setRMINCMaskedValue(0)
   Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
   
-  getRMINCTestData()
-
+  getRMINCTestData(dataPath = dataPath)
+  
+  tenv <- testthat::test_env() 
+  tenv$dataPath <- dataPath
+  
   # Run Tests
   rmincPath <- find.package("RMINC")
   cat("\n\nRunning tests in: ", paste(rmincPath,"/","user_tests/",sep=""), "\n\n\n")
-  testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), ...)
+  testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), env = tenv, ...)
   
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")
@@ -1223,32 +1226,34 @@ getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
 
   downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
   extractedPath <- file.path(dataPath, "rminctestdata/")
-  
-  if(!file.exists(downloadPath)){
-    dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
-    download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata2.tar.gz",
-                  destfile = downloadPath,
-                  method = method) # changed from "wget" to stop freakouts on mac
-  }
-  
-  untar(downloadPath, exdir = dataPath, compressed = "gzip")
-  
-  rectifyPaths <-
-    function(file){
-      readLines(file) %>%
-        gsub("/tmp/rminctestdata/", extractedPath, .) %>%
-        writeLines(file)
-      
-      invisible(NULL)
+
+  if(!file.exists(extractedPath)){
+    if(!file.exists(downloadPath)){
+      dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
+      download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata2.tar.gz",
+                    destfile = downloadPath,
+                    method = method) # changed from "wget" to stop freakouts on mac
     }
   
-  filesToFix <- 
-    c("filenames.csv",  
-      "minc_summary_test_data.csv",  
-      "test_data_set.csv") %>%
-    file.path(extractedPath, .)
+    untar(downloadPath, exdir = dataPath, compressed = "gzip")
   
-  lapply(filesToFix, rectifyPaths)
+    rectifyPaths <-
+      function(file){
+        readLines(file) %>%
+          gsub("/tmp/rminctestdata/", extractedPath, .) %>%
+          writeLines(file)
+      
+        invisible(NULL)
+      }
+  
+    filesToFix <- 
+      c("filenames.csv",  
+        "minc_summary_test_data.csv",  
+        "test_data_set.csv") %>%
+      file.path(extractedPath, .)
+  
+    lapply(filesToFix, rectifyPaths)
+  }
   
   invisible(NULL)
 }

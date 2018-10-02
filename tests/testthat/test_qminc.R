@@ -17,22 +17,26 @@ test_parallel <-
     if(identical(Sys.getenv("NOT_CRAN"), "true")
        && !identical(Sys.getenv("TRAVIS"), "true")){
 
-      if(!file.exists("rminctestdata")){
+      if(!exists("dataPath")){
+        dataPath <- "."
+      }
+      
+      if(!file.exists(file.path(dataPath, "rminctestdata"))){
         
         if(getOption("verbose")){
-          getRMINCTestData("./")
+          getRMINCTestData(dataPath)
         } else {
-          capture.output(getRMINCTestData("./"), type = "message")
+          capture.output(getRMINCTestData(dataPath), type = "message")
         }
         
         on.exit({
-          unlink("rminctestdata", recursive = TRUE)
-          unlink("rminctestdata.tar.gz")
+          unlink(file.path(dataPath, "rminctestdata"), recursive = TRUE)
+          unlink(file.path("rminctestdata.tar.gz"))
         }, add = TRUE)
         
       }
       
-      dataPath <- file.path("rminctestdata/")
+      dataPath <- file.path(dataPath, "rminctestdata/")
       
       gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
       mask_file <- file.path(dataPath, "testminc-mask.mnc")          

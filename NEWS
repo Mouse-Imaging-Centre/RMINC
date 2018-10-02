@@ -1,5 +1,13 @@
 New in Version 1.5.*.*
 =======================
+
+2.1
+--
+- Fix resource passing in mincLmer
+- improve tag file handling
+- allow dataPath passing in testbed
+- convert RMINC github page to pkgdown (sweet)
+
 2.0
 --
 - Rewrite parallel docs to reflect change to batchtools

@@ -4,49 +4,59 @@ output: github_document
 
 ## RMINC 
 
-s a library for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files.
+s a library for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files. And much much more!
 
-## Document Outline 
-- **Development**
-- **Getting Help**
-    - Some of the latest tutorials from GitHub
-- **Examples**
-    - Analyzing volume differences in neuroanatomy with a single set of labels
-    - Analyzing differences in neuroanatomy with multiple sets of labels
-    - pMincApply
-- **Installation**
-   
-## Development
+## Installation
 
-The main development home for RMINC can be found here: RMINC on Github - that page includes access to the source code, downloads, bug reporting, and facilities for asking questions (and getting them answered, of course).
-Documentation
+The easiest way to get up and running is by using devtools:
 
-## Getting help
+```{r, eval = FALSE}
+devtools::install_github("Mouse-Imaging-Centre/RMINC"
+                       , upgrade_dependencies = FALSE)
+```
+
+or use the most recent development version
+
+```{r, eval = FALSE}
+devtools::install_github("Mouse-Imaging-Centre/RMINC@develop"
+                       , upgrade_dependencies = FALSE)
+```
+
+see the [INSTALL](https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/INSTALL) file
+for more details. Particularly you will need the c library libminc, available through
+the minc-toolkit. 
+
+## Getting Help
 
 The most thorough walk-through of RMINC functionality can be found in: https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/documentation/RMINC-userGuide.pdf
 
-Although some components may now be out of date
-
 The best place for function specific help is the manual, which is best accessed through `?`/`help` interfaces from within R
 
-RMINC Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
+## Tutorials
+
+Voxel-wise Statistics (somewhat out of date): https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
+
+How RMINC Parallel Works: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html
+ 
+RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
 
 Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html
 
-Exploring your data using the shiny app (launch_shinyRMINC):
+Analyzing Anatomy with Hierarchical Atlases: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html
 
- 
-### Instructions on how to use the shiny app:
-?launch_shinyRMINC
+## Walk Throughs
 
+### ROI based anatomical analyses
 
-Analyzing volume differences in neuroanatomy with a single set of labels
+This section presents a simplified ROI based analysis of neuroanatomy.
 
->  When you are analyzing structures, make sure that the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless
+Before you start it is import to make sure:
 
->  Use the Jacobian determinants that capture the absolute differences (in our case the *log-determinant-scaled* )
-
->  Use little blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the *log-determinant-scaled-fwhm0.1* )
+1. the label file you use accurately segments out your final non-linear model 
+  otherwise your analysis will be meaningless
+2. you use the Jacobian determinants that capture the absolute differences 
+  (in our case the *log-determinant-scaled* )
+3. you use little/no blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the *log-determinant-scaled-fwhm0.1* )
 
 
 To analyze individual structures in the brain, you will need two things: a set of registered images and an atlas that segments the final average of your registration pipeline into classified labels. This is known as a classified atlas. (Information about how you can align a segmented set of labels to your data set can be found here: Atlas to Atlas Segmentation) The main idea is the following: Through the registration pipeline we have information about the change in volume of the voxels for each of the individual mouse brains. This is captured in the Jacobian determinant files. Using the classified atlas, we can integrate the information captured in the Jacobian determinants to find out the volume of the structures for each of the individual input files.
@@ -162,7 +172,9 @@ anatLm(~ genotype, filenames, volumes_combined)
 anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 ```
 
-### pMincApply
+### Doing analyses in parallel
+
+These instructions are largely superseded by the [parallel tutorial](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html).
 
 pMincApply, just as mincApply, can be used to run any function on all voxels in your input files. The difference with mincApply, is that pMincApply can be parallelized (hence the p). You can use snowfall to run it locally using multiple cores on your machine, or sge to submit jobs to a batch system. Here is a short example of how to use pMincApply to run a function on your input files that is not implemented by any of the standard MINC functions.
 
@@ -207,68 +219,53 @@ leveneTest(voxel, gf$Strain, center=mean)[1,3]
 # function will directly refer to variables in the gf object
 # this function will return the F-value and p value from the Levene's Test
 # which comes from row 1, column 2 (as a numeric value) and column 3
-leveneTestForRMINC <- function(x) {
+leveneTestForRMINC <- function(x, gf) {
   fout <- as.numeric(leveneTest(x, gf$Strain, center=mean)[1,2])
   pout <- as.numeric(leveneTest(x, gf$Strain, center=mean)[1,3])
  return(c(fout, pout))
 }
- 
-###########################################################################################
-#################                      SNOWFALL                       #####################
-###########################################################################################
- 
-# Use the "global" argument to specify all variables and functions you need
-# Use the "packages" argument to specify all libraries
-# The mask will restrict the calculations to that area
-outLeveneTest <- pMincApply(gf$jacobians, quote(leveneTestForRMINC(x)),  mask="mask.mnc", workers=8, global=c("gf","leveneTestForRMINC"), packages="car")
+```
+
+
+### Local Parallel
+
+Run parallel on your local machine.
+it can be useful to set the environment variable
+MINC_CACHE_MB=1 or some other small number to save RAM
+
+```{r, eval = FALSE}
+outLeveneTest <-
+  pMincApply(gf$jacobians
+           , leveneTestForRMINC
+           , gf = gf
+           , mask="mask.mnc"
+           , local = TRUE
+           , batches = 4
+           , global=c("gf","leveneTestForRMINC")
+           , packages="car")
  
 # write your stats out to file
 mincWriteVolume(outLeveneTest, "f_values.mnc", 1)
 mincWriteVolume(outLeveneTest, "p_values.mnc", 2)
- 
-###########################################################################################
-#################                       SGE                           #####################
-###########################################################################################
- 
-# instead of running the pMincApply in parallel on your machine, you can also use sge:
- 
-outLeveneTest <- pMincApply(gf$jacobians, quote(leveneTestForRMINC(x)), mask="mask.mnc", workers=8, global=c("gf","leveneTestForRMINC"), packages="car", method="sge")
+```
+
+### Cluster Parallel 
+
+Instead of running the pMincApply in parallel on your machine
+you can also use a cluster. Clusters are configured and
+jobs are managed by the excellent `batchtools` package.
+See the parallel tutorial above for more details.
+
+```{r, eval = FALSE}
+outLeveneTest <-
+   pMincApply(gf$jacobians
+           , leveneTestForRMINC
+           , gf = gf
+           , mask="mask.mnc"
+           , local = FALSE
+           , batches = 4
+           , global=c("gf","leveneTestForRMINC")
+           , packages="car")
 ```
  
-## Installation
-Installing RMINC from a release:
-
-    Download the tarball from the Github RMINC website https://github.com/mcvaneede/RMINC/tree/master/releases 
-
-    By default, the library will be installed in /usr/share. If you want to change this location, the R_LIBS variable needs to be set:
-
-    export R_LIBS=/build/directory
-
-    Install the package (example is for the tarball version 0.5):
-
-    R CMD INSTALL RMINC_0.5.tar.gz --configure-args='--with-build-path=/install/directory/minc2'
-
-Installing RMINC using the current state of the package: 
-
-    Retrieve a copy of the bazaar repository of the RMINC library
-
-    git clone https://github.com/mcvaneede/RMINC.git RMINC
-
-    The R_LIBS variable determines where the library is installed. By default it will be installed under /usr/share. If you want to install the library somewhere else, the R_LIBS environment variable should be set.
-
-    export R_LIBS=/build/directory
-
-    Run autogen.sh
-
-    cd RMINC
-    ./autogen.sh
-    cd ..
-
-    Install the package
-
-    R CMD INSTALL RMINC --configure-args='--with-build-path=/install/directory/minc2'
-
-    If for some reason setting the R_LIBS environment variable does not work, you can also explicitly state where you want to install the library as follows:
-
-    R CMD INSTALL RMINC --library=/patch/to/library/tree --configure-args='--with-build-path=/install/directory/minc2
 

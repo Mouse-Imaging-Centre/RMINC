@@ -378,6 +378,7 @@ qMincApply <-
                     registry_dir = registry_dir,
                     packages = packages,
                     clobber = clobber,
+                    resources = resources,
                     conf_file = conf_file)
     
     on.exit({
@@ -391,7 +392,6 @@ qMincApply <-
              filenames, 
              fun = match.fun(fun), 
              ...,
-             resources = resources,
              slab_sizes = slab_sizes,
              batches = batches,
              cores = cores,
@@ -414,6 +414,7 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
                           packages = c("RMINC"),
                           registry_dir = getwd(),
                           clobber = FALSE,
+                          resources = list(),
                           conf_file = getOption("RMINC_BATCH_CONF")){
   
   if(! "RMINC" %in% packages)
@@ -427,6 +428,8 @@ qMincRegistry <- function(registry_name = "qMincApply_registry",
                  registry_dir,
                  packages = packages,
                  conf.file = conf_file)
+
+  qMinc_registry$default.resources[names(resources)] <- resources
   
   return(qMinc_registry)
 }
@@ -437,7 +440,6 @@ qMincMap <-
   function(registry, filenames, fun, ..., mask = NULL, 
            slab_sizes = NULL,
            batches = 4, tinyMask = FALSE, temp_dir = getwd(),
-           resources = list(),
            cores = 1){
     
     if(is.null(slab_sizes)){
@@ -465,7 +467,6 @@ qMincMap <-
              slab_sizes = slab_sizes,
              cores = cores,
              mask = new_mask_file,
-             resources = resources,
              tinyMask = tinyMask,
              temp_dir = temp_dir,
              collate = identity),

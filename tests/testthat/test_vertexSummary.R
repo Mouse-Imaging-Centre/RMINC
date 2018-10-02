@@ -2,8 +2,11 @@ library(testthat)
 #testthat test script for vertex summary functions
 # vertexMean, vertexSd, vertexVar, vertexSum 
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gftest <- read.csv(file.path(dataPath, "subject.csv"))
 
