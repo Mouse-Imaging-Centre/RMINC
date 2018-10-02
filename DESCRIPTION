@@ -56,6 +56,7 @@ SystemRequirements: lsof AND EITHER
 License: BSD_3_clause + file LICENSE
 LazyLoad: yes
 OS_type: unix
+BugReports: https://github.com/Mouse-Imaging-Centre/RMINC/issues
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
 RoxygenNote: 6.0.1

@@ -37,7 +37,10 @@ Exploring your data using the shiny app (launch_shinyRMINC):
 
  
 ### Instructions on how to use the shiny app:
-?launch_shinyRMINC
+
+Learn more about the arguments to the shiny app 
+[`?launch_shinyRMINC`](/reference/launch_shinyRMINC.html)
+
 
 
 Analyzing volume differences in neuroanatomy with a single set of labels

@@ -12,3 +12,5 @@
 ^index.md$
 ^Gemfile*$
 ^_config.yml$
+^_pkgdown\.yml$
+^docs$
