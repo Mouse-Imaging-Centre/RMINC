@@ -26,7 +26,7 @@ Tutorials
 
 RMINC provides learning material:
 
-Voxel-wise Statistics (somewhat out of data): https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
+Voxel-wise Statistics (somewhat out of date): https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
 
 How RMINC Parallel Works: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html
  
@@ -43,5 +43,6 @@ RMINC is continually evolving, you can try the newest development version with
 
 ```
 library(devtools)
-install_github("Mouse-Imaging-Centre/RMINC")
+install_github("Mouse-Imaging-Centre/RMINC@develop"
+  , upgrade_dependencies = FALSE)
 ``` 

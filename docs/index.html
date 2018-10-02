@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">RMINC</a>
-        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">1.5.2.0</span>
+        <span class="label label-default" data-toggle="tooltip" data-placement="bottom" title="Released package">1.5.2.1</span>
       </span>
     </div>
 
@@ -71,58 +71,47 @@
 <div id="rminc" class="section level2">
 <h2 class="hasAnchor">
 <a href="#rminc" class="anchor"></a>RMINC</h2>
-<p>s a library for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files.</p>
+<p>s a library for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files. And much much more!</p>
 </div>
-<div id="document-outline" class="section level2">
+<div id="installation" class="section level2">
 <h2 class="hasAnchor">
-<a href="#document-outline" class="anchor"></a>Document Outline</h2>
-<ul>
-<li><strong>Development</strong></li>
-<li>
-<strong>Getting Help</strong>
-<ul>
-<li>Some of the latest tutorials from GitHub</li>
-</ul>
-</li>
-<li>
-<strong>Examples</strong>
-<ul>
-<li>Analyzing volume differences in neuroanatomy with a single set of labels</li>
-<li>Analyzing differences in neuroanatomy with multiple sets of labels</li>
-<li>pMincApply</li>
-</ul>
-</li>
-<li><strong>Installation</strong></li>
-</ul>
-</div>
-<div id="development" class="section level2">
-<h2 class="hasAnchor">
-<a href="#development" class="anchor"></a>Development</h2>
-<p>The main development home for RMINC can be found here: RMINC on Github - that page includes access to the source code, downloads, bug reporting, and facilities for asking questions (and getting them answered, of course). Documentation</p>
+<a href="#installation" class="anchor"></a>Installation</h2>
+<p>The easiest way to get up and running is by using devtools:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools::<span class="kw">install_github</span>(<span class="st">"Mouse-Imaging-Centre/RMINC"</span>
+                       , <span class="dt">upgrade_dependencies =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<p>or use the most recent development version</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools::<span class="kw">install_github</span>(<span class="st">"Mouse-Imaging-Centre/RMINC@develop"</span>
+                       , <span class="dt">upgrade_dependencies =</span> <span class="ot">FALSE</span>)</code></pre></div>
+<p>see the <a href="https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/INSTALL">INSTALL</a> file for more details. Particularly you will need the c library libminc, available through the minc-toolkit.</p>
 </div>
 <div id="getting-help" class="section level2">
 <h2 class="hasAnchor">
-<a href="#getting-help" class="anchor"></a>Getting help</h2>
+<a href="#getting-help" class="anchor"></a>Getting Help</h2>
 <p>The most thorough walk-through of RMINC functionality can be found in: <a href="https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/documentation/RMINC-userGuide.pdf" class="uri">https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/documentation/RMINC-userGuide.pdf</a></p>
-<p>Although some components may now be out of date</p>
 <p>The best place for function specific help is the manual, which is best accessed through <code>?</code>/<code>help</code> interfaces from within R</p>
-<p>RMINC Visualization: <a href="https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html" class="uri">https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html</a></p>
+</div>
+<div id="tutorials" class="section level2">
+<h2 class="hasAnchor">
+<a href="#tutorials" class="anchor"></a>Tutorials</h2>
+<p>Voxel-wise Statistics (somewhat out of date): <a href="https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf" class="uri">https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf</a></p>
+<p>How RMINC Parallel Works: <a href="https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html" class="uri">https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html</a></p>
+<p>RMINC 2D Visualization: <a href="https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html" class="uri">https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html</a></p>
 <p>Visualizing 3D Objects with RMINC: <a href="https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html" class="uri">https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html</a></p>
-<p>Exploring your data using the shiny app (launch_shinyRMINC):</p>
-<div id="instructions-on-how-to-use-the-shiny-app" class="section level3">
+<p>Analyzing Anatomy with Hierarchical Atlases: <a href="https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html" class="uri">https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html</a></p>
+</div>
+<div id="walk-throughs" class="section level2">
+<h2 class="hasAnchor">
+<a href="#walk-throughs" class="anchor"></a>Walk Throughs</h2>
+<div id="roi-based-anatomical-analyses" class="section level3">
 <h3 class="hasAnchor">
-<a href="#instructions-on-how-to-use-the-shiny-app" class="anchor"></a>Instructions on how to use the shiny app:</h3>
-<p>Learn more about the arguments to the shiny app <a href="/reference/launch_shinyRMINC.html"><code><a href="reference/launch_shinyRMINC.html">?launch_shinyRMINC</a></code></a></p>
-<p>Analyzing volume differences in neuroanatomy with a single set of labels</p>
-<blockquote>
-<p>When you are analyzing structures, make sure that the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless</p>
-</blockquote>
-<blockquote>
-<p>Use the Jacobian determinants that capture the absolute differences (in our case the <em>log-determinant-scaled</em> )</p>
-</blockquote>
-<blockquote>
-<p>Use little blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the <em>log-determinant-scaled-fwhm0.1</em> )</p>
-</blockquote>
+<a href="#roi-based-anatomical-analyses" class="anchor"></a>ROI based anatomical analyses</h3>
+<p>This section presents a simplified ROI based analysis of neuroanatomy.</p>
+<p>Before you start it is import to make sure:</p>
+<ol style="list-style-type: decimal">
+<li>the label file you use accurately segments out your final non-linear model otherwise your analysis will be meaningless</li>
+<li>you use the Jacobian determinants that capture the absolute differences (in our case the <em>log-determinant-scaled</em> )</li>
+<li>you use little/no blurring, for instance for files with a 56 micron resolution use 100 micron blur (in our case the <em>log-determinant-scaled-fwhm0.1</em> )</li>
+</ol>
 <p>To analyze individual structures in the brain, you will need two things: a set of registered images and an atlas that segments the final average of your registration pipeline into classified labels. This is known as a classified atlas. (Information about how you can align a segmented set of labels to your data set can be found here: Atlas to Atlas Segmentation) The main idea is the following: Through the registration pipeline we have information about the change in volume of the voxels for each of the individual mouse brains. This is captured in the Jacobian determinant files. Using the classified atlas, we can integrate the information captured in the Jacobian determinants to find out the volume of the structures for each of the individual input files.</p>
 <p>The Jacobian determinant fields are fairly noisy if you use them unprocessed. For this reason we blur them before we do analysis on them. The amount of blurring you want to use depends on what kind of changes you want to capture. When looking at neuroanatomy it is important to use only a small amount of blurring, because you want to avoid smoothing out information around borders of structures. The mouse brains we generally look at have a resolution of 56 micron, and we do structural analysis on Jacobian determinants that have been blurred using a 100 micron kernel.</p>
 <p>A second thing to keep in mind is that the registration pipeline produces two types of Jacobian determinants. One that reflects relative changes (overall scaling or brain size differences have been taking out) and absolute changes which still contain the brain size differences. When analyzing neuroanatomical structures you want to use the determinants that reflect the absolute changes. Currently the naming convention for those files is as follows:</p>
@@ -203,9 +192,10 @@ volumes_combined &lt;-<span class="st"> </span><span class="kw"><a href="referen
 <span class="kw"><a href="reference/anatLm.html">anatLm</a></span>(~<span class="st"> </span>genotype, filenames, volumes_combined)
 <span class="kw"><a href="reference/anatFDR.html">anatFDR</a></span>(<span class="kw"><a href="reference/anatLm.html">anatLm</a></span>(~<span class="st"> </span>genotype, filenames, volumes_combined))</code></pre></div>
 </div>
-<div id="pmincapply" class="section level3">
+<div id="doing-analyses-in-parallel" class="section level3">
 <h3 class="hasAnchor">
-<a href="#pmincapply" class="anchor"></a>pMincApply</h3>
+<a href="#doing-analyses-in-parallel" class="anchor"></a>Doing analyses in parallel</h3>
+<p>These instructions are largely superseded by the <a href="https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html">parallel tutorial</a>.</p>
 <p>pMincApply, just as mincApply, can be used to run any function on all voxels in your input files. The difference with mincApply, is that pMincApply can be parallelized (hence the p). You can use snowfall to run it locally using multiple cores on your machine, or sge to submit jobs to a batch system. Here is a short example of how to use pMincApply to run a function on your input files that is not implemented by any of the standard MINC functions.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load the RMINC library</span>
 <span class="kw">library</span>(RMINC)
@@ -239,69 +229,44 @@ group  2  1.5514 0.2188
 <span class="co"># function will directly refer to variables in the gf object</span>
 <span class="co"># this function will return the F-value and p value from the Levene's Test</span>
 <span class="co"># which comes from row 1, column 2 (as a numeric value) and column 3</span>
-leveneTestForRMINC &lt;-<span class="st"> </span>function(x) {
+leveneTestForRMINC &lt;-<span class="st"> </span>function(x, gf) {
   fout &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/car/topics/leveneTest">leveneTest</a></span>(x, gf$Strain, <span class="dt">center=</span>mean)[<span class="dv">1</span>,<span class="dv">2</span>])
   pout &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/car/topics/leveneTest">leveneTest</a></span>(x, gf$Strain, <span class="dt">center=</span>mean)[<span class="dv">1</span>,<span class="dv">3</span>])
  <span class="kw">return</span>(<span class="kw">c</span>(fout, pout))
-}
- 
-###########################################################################################
-#################                      SNOWFALL                       #####################
-###########################################################################################
- 
-<span class="co"># Use the "global" argument to specify all variables and functions you need</span>
-<span class="co"># Use the "packages" argument to specify all libraries</span>
-<span class="co"># The mask will restrict the calculations to that area</span>
-outLeveneTest &lt;-<span class="st"> </span><span class="kw"><a href="reference/pMincApply.html">pMincApply</a></span>(gf$jacobians, <span class="kw">quote</span>(<span class="kw">leveneTestForRMINC</span>(x)),  <span class="dt">mask=</span><span class="st">"mask.mnc"</span>, <span class="dt">workers=</span><span class="dv">8</span>, <span class="dt">global=</span><span class="kw">c</span>(<span class="st">"gf"</span>,<span class="st">"leveneTestForRMINC"</span>), <span class="dt">packages=</span><span class="st">"car"</span>)
+}</code></pre></div>
+</div>
+<div id="local-parallel" class="section level3">
+<h3 class="hasAnchor">
+<a href="#local-parallel" class="anchor"></a>Local Parallel</h3>
+<p>Run parallel on your local machine. it can be useful to set the environment variable MINC_CACHE_MB=1 or some other small number to save RAM</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">outLeveneTest &lt;-
+<span class="st">  </span><span class="kw"><a href="reference/pMincApply.html">pMincApply</a></span>(gf$jacobians
+           , leveneTestForRMINC
+           , <span class="dt">gf =</span> gf
+           , <span class="dt">mask=</span><span class="st">"mask.mnc"</span>
+           , <span class="dt">local =</span> <span class="ot">TRUE</span>
+           , <span class="dt">batches =</span> <span class="dv">4</span>
+           , <span class="dt">global=</span><span class="kw">c</span>(<span class="st">"gf"</span>,<span class="st">"leveneTestForRMINC"</span>)
+           , <span class="dt">packages=</span><span class="st">"car"</span>)
  
 <span class="co"># write your stats out to file</span>
 <span class="kw"><a href="reference/mincWriteVolume.html">mincWriteVolume</a></span>(outLeveneTest, <span class="st">"f_values.mnc"</span>, <span class="dv">1</span>)
-<span class="kw"><a href="reference/mincWriteVolume.html">mincWriteVolume</a></span>(outLeveneTest, <span class="st">"p_values.mnc"</span>, <span class="dv">2</span>)
- 
-###########################################################################################
-#################                       SGE                           #####################
-###########################################################################################
- 
-<span class="co"># instead of running the pMincApply in parallel on your machine, you can also use sge:</span>
- 
-outLeveneTest &lt;-<span class="st"> </span><span class="kw"><a href="reference/pMincApply.html">pMincApply</a></span>(gf$jacobians, <span class="kw">quote</span>(<span class="kw">leveneTestForRMINC</span>(x)), <span class="dt">mask=</span><span class="st">"mask.mnc"</span>, <span class="dt">workers=</span><span class="dv">8</span>, <span class="dt">global=</span><span class="kw">c</span>(<span class="st">"gf"</span>,<span class="st">"leveneTestForRMINC"</span>), <span class="dt">packages=</span><span class="st">"car"</span>, <span class="dt">method=</span><span class="st">"sge"</span>)</code></pre></div>
+<span class="kw"><a href="reference/mincWriteVolume.html">mincWriteVolume</a></span>(outLeveneTest, <span class="st">"p_values.mnc"</span>, <span class="dv">2</span>)</code></pre></div>
 </div>
+<div id="cluster-parallel" class="section level3">
+<h3 class="hasAnchor">
+<a href="#cluster-parallel" class="anchor"></a>Cluster Parallel</h3>
+<p>Instead of running the pMincApply in parallel on your machine you can also use a cluster. Clusters are configured and jobs are managed by the excellent <code>batchtools</code> package. See the parallel tutorial above for more details.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">outLeveneTest &lt;-
+<span class="st">   </span><span class="kw"><a href="reference/pMincApply.html">pMincApply</a></span>(gf$jacobians
+           , leveneTestForRMINC
+           , <span class="dt">gf =</span> gf
+           , <span class="dt">mask=</span><span class="st">"mask.mnc"</span>
+           , <span class="dt">local =</span> <span class="ot">FALSE</span>
+           , <span class="dt">batches =</span> <span class="dv">4</span>
+           , <span class="dt">global=</span><span class="kw">c</span>(<span class="st">"gf"</span>,<span class="st">"leveneTestForRMINC"</span>)
+           , <span class="dt">packages=</span><span class="st">"car"</span>)</code></pre></div>
 </div>
-<div id="installation" class="section level2">
-<h2 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h2>
-<p>Installing RMINC from a release:</p>
-<pre><code>Download the tarball from the Github RMINC website https://github.com/mcvaneede/RMINC/tree/master/releases 
-
-By default, the library will be installed in /usr/share. If you want to change this location, the R_LIBS variable needs to be set:
-
-export R_LIBS=/build/directory
-
-Install the package (example is for the tarball version 0.5):
-
-R CMD INSTALL RMINC_0.5.tar.gz --configure-args='--with-build-path=/install/directory/minc2'</code></pre>
-<p>Installing RMINC using the current state of the package:</p>
-<pre><code>Retrieve a copy of the bazaar repository of the RMINC library
-
-git clone https://github.com/mcvaneede/RMINC.git RMINC
-
-The R_LIBS variable determines where the library is installed. By default it will be installed under /usr/share. If you want to install the library somewhere else, the R_LIBS environment variable should be set.
-
-export R_LIBS=/build/directory
-
-Run autogen.sh
-
-cd RMINC
-./autogen.sh
-cd ..
-
-Install the package
-
-R CMD INSTALL RMINC --configure-args='--with-build-path=/install/directory/minc2'
-
-If for some reason setting the R_LIBS environment variable does not work, you can also explicitly state where you want to install the library as follows:
-
-R CMD INSTALL RMINC --library=/patch/to/library/tree --configure-args='--with-build-path=/install/directory/minc2</code></pre>
 </div>
   </div>
 
