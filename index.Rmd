@@ -4,7 +4,7 @@ output: github_document
 
 ## RMINC 
 
-s a library for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files. And much much more!
+RMINC is a package for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files. And much much more!
 
 ## Installation
 
