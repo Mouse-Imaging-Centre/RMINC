@@ -4,7 +4,8 @@ output: github_document
 
 ## RMINC 
 
-RMINC is a package for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files. And much much more!
+RMINC is a package for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files. Supports getting
+and writing volumes, running voxel-wise linear models, correlations, correcting for multiple comparisons with False Discovery Rate control, and more.
 
 ## Installation
 
@@ -28,7 +29,7 @@ the minc-toolkit.
 
 ## Getting Help
 
-The best place for function specific help is the manual, which is best accessed through `?`/`help` interfaces from within R, or via the [references tab](/references) of this page. If you notice any bugs, or anything that can be improved in RMINC, we're
+The best place for function specific help is the manual, which is best accessed through `?`/`help` interfaces from within R, or via the [reference tab](/RMINC/reference) of this page. If you notice any bugs, or anything that can be improved in RMINC, we're
 pretty responsive on our [issues page](https://github.com/Mouse-Imaging-Centre/RMINC).
 
 ## Tutorials
