@@ -28,23 +28,22 @@ the minc-toolkit.
 
 ## Getting Help
 
-The most thorough walk-through of RMINC functionality can be found in: https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/documentation/RMINC-userGuide.pdf
-
-The best place for function specific help is the manual, which is best accessed through `?`/`help` interfaces from within R
+The best place for function specific help is the manual, which is best accessed through `?`/`help` interfaces from within R, or via the [references tab](/references) of this page. If you notice any bugs, or anything that can be improved in RMINC, we're
+pretty responsive on our [issues page](https://github.com/Mouse-Imaging-Centre/RMINC).
 
 ## Tutorials
 
-Voxel-wise Statistics (somewhat out of date): https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
-
-How RMINC Parallel Works: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html
- 
-RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
-
-Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html
-
-Analyzing Anatomy with Hierarchical Atlases: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html
+- [Voxel-wise Statistics](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf) (somewhat out of date).
+- [How RMINC Parallel Works](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html): 
+- [RMINC 2D Visualization](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html)
+- [Visualizing 3D Objects with RMINC](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html)
+- [Analyzing Anatomy with Hierarchical Atlases](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html)
 
 ## Walk Throughs
+
+These are quite old, so buyer beware. The tutorials are much more up to date. I highly recommend
+[Analyzing Anatomy with Hierarchical Atlases](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html) instead of the ROI based analysis, and [How RMINC Parallel Works](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html)
+instead of the parallel examples.
 
 ### ROI based anatomical analyses
 
