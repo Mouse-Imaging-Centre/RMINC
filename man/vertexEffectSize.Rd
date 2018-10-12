@@ -2,9 +2,15 @@
 % Please edit documentation in R/effectsize.R
 \name{vertexEffectSize}
 \alias{vertexEffectSize}
-\title{False Discovery Rates}
+\alias{mincEffectSize}
+\alias{anatEffectSize}
+\title{Effect Sizes}
 \usage{
 vertexEffectSize(buffer, columns = NULL)
+
+mincEffectSize(buffer, columns = NULL)
+
+anatEffectSize(buffer, columns = NULL)
 }
 \arguments{
 \item{buffer}{The results of a vertex/anat/mincLm run}
@@ -24,9 +30,16 @@ and variance of hedges g*
 This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
 for computing effect size of group comparisons from a GLM
 }
+\section{Functions}{
+\itemize{
+\item \code{mincEffectSize}: mincEffectSize
+
+\item \code{anatEffectSize}: anatEffectSize
+}}
+
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 # read the text file describing the dataset
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 # run a linear model relating the data in all voxels to Genotype

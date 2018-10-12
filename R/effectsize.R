@@ -120,7 +120,7 @@ vertexEffectSize <- function(buffer, columns = NULL)
   return(output)
 }
 
-#' @describeIn vertexEffectSize
+#' @describeIn vertexEffectSize mincEffectSize
 #' @export
 mincEffectSize <- function(buffer, columns = NULL) {
   eff_call <- match.call()
@@ -128,7 +128,7 @@ mincEffectSize <- function(buffer, columns = NULL) {
   eval(eff_call)
 }
 
-#' @describeIn vertexEffectSize
+#' @describeIn vertexEffectSize anatEffectSize
 #' @export
 anatEffectSize <- function(buffer, columns = NULL) {
   eff_call <- match.call()
