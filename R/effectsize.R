@@ -70,15 +70,17 @@ vertexEffectSize <- function(buffer, columns = NULL)
     }
   }
   
+  model_call <- attr(buffer, "call")
+  model_call[[1]] <- quote(model.matrix)
+  names(model_call)[names(model_call) == "formula"] <- ""
+  mod_mat <- eval(model_call)
+  conts <- attr(mod_mat, "contrasts")
+  if (is.null(conts))
+    stop("No categorical variables in model, cannot compute g* statistics")
+  if (!all(sapply(columns, function(x) any(grepl(x, updatedAttrs$dimnames[[2]])))))
+    stop("Columns not found in model")
+
   if (is.null(columns)) {
-    model_call <- attr(buffer, "call")
-    model_call[[1]] <- quote(model.matrix)
-    names(model_call)[names(model_call) == "formula"] <- ""
-    mod_mat <- eval(model_call)
-    conts <- attr(mod_mat, "contrasts")
-    if (is.null(conts))
-      stop("No categorical variables in model, cannot compute g statistics")
-    
     cat_vars <-
       names(conts)[vapply(conts, function(x)
         all(x == "contr.treatment"), logical(1))]
