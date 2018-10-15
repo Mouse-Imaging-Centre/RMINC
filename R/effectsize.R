@@ -1,13 +1,13 @@
 #' Effect Sizes
 #'
-#' Takes the output of a minc modelling function and computes the unbiased hedges g*
-#' and variance of hedges g*
+#' Takes the output of a minc modelling function and computes the unbiased
+#' hedges g* and variance of hedges g*
 #' @param buffer The results of a vertex/anat/mincLm run
-#' @param columns A vector of column names. By default the threshold will
+#' @param columns A vector of factor predictor names. By default the threshold will
 #' be computed for all factor columns.
 #' @details This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
-#' for computing effect size of group comparisons from a GLM
-#' @return A matrix with columns of hedgesg and hedgesg_var for each factor predictor in the GLM
+#' for computing effect size of group comparisons from a GLM.
+#' @return A matrix with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each factor predictor in the GLM
 #' or for each column supplied.
 #' @examples
 #' \dontrun{
@@ -22,7 +22,8 @@
 vertexEffectSize <- function(buffer, columns = NULL)
 {
   #Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
-  #Unbiased corrector function J from https://en.wikipedia.org/wiki/Effect_size#Hedges'_g
+  #Original unbiased corrector from paper replaced with
+  #unbiased corrector function J from https://en.wikipedia.org/wiki/Effect_size#Hedges'_g
   #Watch out for exploding gamma function
   J <- function(a) {
     out <- tryCatch({

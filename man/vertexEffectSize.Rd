@@ -15,20 +15,20 @@ anatEffectSize(buffer, columns = NULL)
 \arguments{
 \item{buffer}{The results of a vertex/anat/mincLm run}
 
-\item{columns}{A vector of column names. By default the threshold will
+\item{columns}{A vector of factor predictor names. By default the threshold will
 be computed for all factor columns.}
 }
 \value{
-A matrix with columns of hedgesg and hedgesg_var for each factor predictor in the GLM
+A matrix with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each factor predictor in the GLM
 or for each column supplied.
 }
 \description{
-Takes the output of a minc modelling function and computes the unbiased hedges g*
-and variance of hedges g*
+Takes the output of a minc modelling function and computes the unbiased
+hedges g* and variance of hedges g*
 }
 \details{
 This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
-for computing effect size of group comparisons from a GLM
+for computing effect size of group comparisons from a GLM.
 }
 \section{Functions}{
 \itemize{
