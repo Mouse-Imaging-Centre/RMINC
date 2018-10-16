@@ -58,10 +58,11 @@ mincFDR <- function(buffer, ...) {
 }
 #' @describeIn mincFDR mincSingleDim
 #' @export
-mincFDR.mincSingleDim <- function(buffer, df, mask = NULL, method = "qvalue", ...) {
+mincFDR.mincSingleDim <- function(buffer, df, mask = NULL, method = "fdr", ...) {
   if (is.null(df)) {
     stop("Error: need to specify the degrees of freedom")
   }
+  warning('default method has changed, specify method = "qvalue" to retain old implementation')
   # if (length(df) == 1) {
   #   df <- c(1,df)
   # }
