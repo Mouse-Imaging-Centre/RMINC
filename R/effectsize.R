@@ -81,13 +81,14 @@ vertexEffectSize <- function(buffer, predictors = NULL)
   cat_vars <-
     names(conts)[vapply(conts, function(x)
       all(x == "contr.treatment"), logical(1))]
+  
   if (is.null(conts))
     stop("No categorical variables in model, cannot compute g* statistics")
-  if (!all(sapply(predictors, function(x)
-    any(grepl(
-      x, updatedAttrs$dimnames[[2]]
-    )))))
+  
+  if (!is.null(predictors) &&
+      !all(predictors %in% colnames(updatedAttrs$model)))
     stop("Supplied predictors not found in model")
+  
   if (!all(conts == "contr.treatment"))
     stop(
       "Non-treatment factors present in model, effect size is not meaningful
