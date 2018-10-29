@@ -7,6 +7,10 @@
 #' be computed for all treatment-coded factor columns.
 #' @details This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
 #' for computing effect size of group comparisons from a GLM.
+#' 
+#' For now, interactions are explicitly excluded from being predictors. To get
+#' effect size for interactions, use the interaction() function to create a new
+#' treatment coded factor to use as a predictor.
 #' @return A matrix with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each factor predictor in the GLM
 #' or for each column supplied.
 #' @examples
@@ -94,9 +98,13 @@ vertexEffectSize <- function(buffer, predictors = NULL)
       "Non-treatment factors present in model, effect size is not meaningful
       for this configuration"
     )
+  
+  if (!is.null(predictors) && any(grepl(":", predictors)))
+      stop("Interactions in predictors are not currently supported, 
+           generate treatment contrasts using interaction()")
 
   if (is.null(predictors)) {
-    predictors <- grep(paste(cat_vars, collapse = "|"), updatedAttrs$dimnames[[2]], value = TRUE)
+    predictors <- grep(":", grep(paste(cat_vars, collapse = "|"), updatedAttrs$dimnames[[2]], value = TRUE), invert = TRUE, value = TRUE)
     predictors <- gsub("tvalue-", "", predictors, fixed = TRUE)
   }
 
@@ -106,8 +114,8 @@ vertexEffectSize <- function(buffer, predictors = NULL)
 
   for (var in cat_vars) {
     referencegroupsize[,  grep(var, predictors, value = TRUE)] <-
-      NROW(updatedAttrs$model[, grep(var, colnames(updatedAttrs$model))]) -
-      sum(updatedAttrs$model[, grep(var, colnames(updatedAttrs$model))])
+      NROW(updatedAttrs$model[, grep(":", grep(var, colnames(updatedAttrs$model), value = TRUE), invert = TRUE, value = TRUE)]) -
+      sum(updatedAttrs$model[, grep(":", grep(var, colnames(updatedAttrs$model), value = TRUE), invert = TRUE, value = TRUE)])
   }
 
   n.cols <- length(predictors)

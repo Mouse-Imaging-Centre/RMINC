@@ -29,6 +29,10 @@ hedges g* and variance of hedges g*
 \details{
 This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
 for computing effect size of group comparisons from a GLM.
+
+For now, interactions are explicitly excluded from being predictors. To get
+effect size for interactions, use the interaction() function to create a new
+treatment coded factor to use as a predictor.
 }
 \section{Functions}{
 \itemize{
