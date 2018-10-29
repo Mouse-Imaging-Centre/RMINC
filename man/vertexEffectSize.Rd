@@ -6,16 +6,16 @@
 \alias{anatEffectSize}
 \title{Effect Sizes}
 \usage{
-vertexEffectSize(buffer, columns = NULL)
+vertexEffectSize(buffer, predictors = NULL)
 
-mincEffectSize(buffer, columns = NULL)
+mincEffectSize(buffer, predictors = NULL)
 
-anatEffectSize(buffer, columns = NULL)
+anatEffectSize(buffer, predictors = NULL)
 }
 \arguments{
 \item{buffer}{The results of a vertex/anat/mincLm run}
 
-\item{columns}{A vector of factor predictor names. By default the threshold will
+\item{predictors}{A vector of factor predictor names. By default the effect size
 be computed for all factor columns.}
 }
 \value{
