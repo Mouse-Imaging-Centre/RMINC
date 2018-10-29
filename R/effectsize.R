@@ -49,6 +49,7 @@ vertexEffectSize <- function(buffer, predictors = NULL)
   # N = n1+n2
   # NN = n1*n2
 
+  #Scrub columns not needed
   originalMincAttrs <- mincAttributes(buffer)
   stattype <- originalMincAttrs$`stat-type`
   # Remove coefficients from buffer
@@ -77,6 +78,7 @@ vertexEffectSize <- function(buffer, predictors = NULL)
     }
   }
 
+  #Extract model, contrasts from model call
   model_call <- attr(buffer, "call")
   model_call[[1]] <- quote(model.matrix)
   names(model_call)[names(model_call) == "formula"] <- ""
@@ -86,6 +88,7 @@ vertexEffectSize <- function(buffer, predictors = NULL)
     names(conts)[vapply(conts, function(x)
       all(x == "contr.treatment"), logical(1))]
   
+  #Checking for assumptions regarding computing
   if (is.null(conts))
     stop("No categorical variables in model, cannot compute g* statistics")
   
@@ -103,11 +106,15 @@ vertexEffectSize <- function(buffer, predictors = NULL)
       stop("Interactions in predictors are not currently supported, 
            generate treatment contrasts using interaction()")
 
+  #If predictors aren't provided, ennumerate factors from the model
   if (is.null(predictors)) {
     predictors <- grep(":", grep(paste(cat_vars, collapse = "|"), updatedAttrs$dimnames[[2]], value = TRUE), invert = TRUE, value = TRUE)
     predictors <- gsub("tvalue-", "", predictors, fixed = TRUE)
   }
 
+  
+  #Compute reference group size, find number of total subjects, subtract all
+  #instaces of the treatment-coded factor, remaining number is reference group
   referencegroupsize <-
     matrix(1, nrow = 1, ncol = length(predictors))
   colnames(referencegroupsize) <- predictors
