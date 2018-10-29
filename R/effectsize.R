@@ -95,8 +95,7 @@ vertexEffectSize <- function(buffer, predictors = NULL)
     )
 
   if (is.null(predictors)) {
-    predictors <- lapply(updatedAttrs$dimnames, function(x)
-      grep(paste(cat_vars, collapse = "|"), x, value = TRUE))[[2]]
+    predictors <- grep(paste(cat_vars, collapse = "|"), updatedAttrs$dimnames[[2]], value = TRUE)
     predictors <- gsub("tvalue-", "", predictors, fixed = TRUE)
   }
 
