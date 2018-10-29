@@ -16,7 +16,7 @@ anatEffectSize(buffer, predictors = NULL)
 \item{buffer}{The results of a vertex/anat/mincLm run}
 
 \item{predictors}{A vector of factor predictor names. By default the effect size
-be computed for all factor columns.}
+be computed for all treatment-coded factor columns.}
 }
 \value{
 A matrix with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each factor predictor in the GLM

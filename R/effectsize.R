@@ -4,7 +4,7 @@
 #' hedges g* and variance of hedges g*
 #' @param buffer The results of a vertex/anat/mincLm run
 #' @param predictors A vector of factor predictor names. By default the effect size
-#' be computed for all factor columns.
+#' be computed for all treatment-coded factor columns.
 #' @details This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
 #' for computing effect size of group comparisons from a GLM.
 #' @return A matrix with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each factor predictor in the GLM
