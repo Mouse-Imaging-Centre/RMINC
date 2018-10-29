@@ -90,17 +90,14 @@ vertexEffectSize <- function(buffer, predictors = NULL)
   
   #Checking for assumptions regarding computing
   if (is.null(conts))
-    stop("No categorical variables in model, cannot compute g* statistics")
+    stop("No factors in model, cannot compute g* statistics")
+  
+  if (is.null(cat_vars))
+    stop("No treatment-coded factors in model, cannot compute g* statistics")
   
   if (!is.null(predictors) &&
       !all(predictors %in% colnames(updatedAttrs$model)))
     stop("Supplied predictors not found in model")
-  
-  if (!all(conts == "contr.treatment"))
-    stop(
-      "Non-treatment factors present in model, effect size is not meaningful
-      for this configuration"
-    )
   
   if (!is.null(predictors) && any(grepl(":", predictors)))
       stop("Interactions in predictors are not currently supported, 
