@@ -1256,7 +1256,9 @@ thresholds.minc_randomization <-
       `rownames<-`(paste0(probs * 100, "%"))
   }
 
-  
-
-
-
+#' @export
+`[.mincLm` <- function(x,i,j, drop = TRUE){
+ mc <- sys.call()
+ mc[[1]] <- quote(`[.anatModel`)
+ eval.parent(mc)
+}

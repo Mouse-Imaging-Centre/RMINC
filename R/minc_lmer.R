@@ -668,10 +668,3 @@ mincLogLikRatioParametricBootstrap <- function(logLikOutput, selection="random",
   attr(logLikOutput, "parametricBootstrapModel") <- lmodel
   return(logLikOutput)
 }
-
-#' @export
-`[.mincLm` <- function(x,i,j, drop = TRUE){
- mc <- match.call()
- mc[[1]] <- quote(`[.anatModel`)
- eval.parent(mc)
-}
