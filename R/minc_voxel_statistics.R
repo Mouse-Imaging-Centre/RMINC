@@ -1257,8 +1257,6 @@ thresholds.minc_randomization <-
   }
 
 #' @export
-`[.mincLm` <- function(x,i,j, drop = TRUE){
- mc <- sys.call()
- mc[[1]] <- quote(`[.anatModel`)
- eval.parent(mc)
+`[.mincLm` <- function(x,i,j, drop = FALSE){
+  `[.anatModel`(x,i,j, drop)
 }

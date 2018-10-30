@@ -416,7 +416,7 @@ print.anatModel <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...
 }
 
 #' @export
-`[.anatModel` <- function(x, i, j, drop = TRUE){
+`[.anatModel` <- function(x, i, j, drop = FALSE){
   orig_x <- x
   mdrop <- missing(drop)
   n_args <- nargs() - !mdrop
