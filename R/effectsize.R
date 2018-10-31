@@ -7,7 +7,7 @@
 #' be computed for all treatment-coded factor columns.
 #' @details This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
 #' for computing effect size of group comparisons from a GLM.
-#' 
+#'
 #' For now, interactions are explicitly excluded from being predictors. To get
 #' effect size for interactions, use the interaction() function to create a new
 #' treatment coded factor to use as a predictor.
@@ -48,7 +48,7 @@ vertexEffectSize <- function(buffer, predictors = NULL)
   # n2 reference group
   # N = n1+n2
   # NN = n1*n2
-
+  
   #Scrub columns not needed
   originalMincAttrs <- mincAttributes(buffer)
   stattype <- originalMincAttrs$`stat-type`
@@ -72,12 +72,12 @@ vertexEffectSize <- function(buffer, predictors = NULL)
         updatedAttrs$`stat-type`[-indicesToRemove]
       updatedAttrs$dimnames[[2]] <-
         updatedAttrs$dimnames[[2]][-indicesToRemove]
-
+      
       buffer <- buffer[, -indicesToRemove]
       buffer <- setMincAttributes(buffer, updatedAttrs)
     }
   }
-
+  
   #Extract model, contrasts from model call
   model_call <- attr(buffer, "call")
   model_call[[1]] <- quote(model.matrix)
@@ -104,28 +104,46 @@ vertexEffectSize <- function(buffer, predictors = NULL)
     stop("Supplied predictors are not treatment contrasts")
   
   if (!is.null(predictors) && any(grepl(":", predictors)))
-      stop("Interactions in predictors are not currently supported, 
-           generate treatment contrasts using interaction()")
-
+    stop(
+      "Interactions in predictors are not currently supported,
+      generate treatment contrasts using interaction()"
+    )
+  
   #If predictors aren't provided, ennumerate factors from the model
   if (is.null(predictors)) {
-    predictors <- grep(":", grep(paste(cat_vars, collapse = "|"), updatedAttrs$dimnames[[2]], value = TRUE), invert = TRUE, value = TRUE)
+    predictors <-
+      grep(
+        ":",
+        grep(
+          paste(cat_vars, collapse = "|"),
+          updatedAttrs$dimnames[[2]],
+          value = TRUE
+        ),
+        invert = TRUE,
+        value = TRUE
+      )
     predictors <- gsub("tvalue-", "", predictors, fixed = TRUE)
   }
-
+  
   
   #Compute reference group size, find number of total subjects, subtract all
   #instaces of the treatment-coded factor, remaining number is reference group
   referencegroupsize <-
     matrix(1, nrow = 1, ncol = length(predictors))
   colnames(referencegroupsize) <- predictors
-
+  
   for (var in cat_vars) {
     referencegroupsize[,  grep(var, predictors, value = TRUE)] <-
-      NROW(updatedAttrs$model[, grep(":", grep(var, colnames(updatedAttrs$model), value = TRUE), invert = TRUE, value = TRUE)]) -
-      sum(updatedAttrs$model[, grep(":", grep(var, colnames(updatedAttrs$model), value = TRUE), invert = TRUE, value = TRUE)])
+      NROW(updatedAttrs$model[, grep(":",
+                                     grep(var, colnames(updatedAttrs$model), value = TRUE),
+                                     invert = TRUE,
+                                     value = TRUE)]) -
+      sum(updatedAttrs$model[, grep(":",
+                                    grep(var, colnames(updatedAttrs$model), value = TRUE),
+                                    invert = TRUE,
+                                    value = TRUE)])
   }
-
+  
   n.cols <- length(predictors)
   n.row <- 0
   if (is.matrix(buffer)) {
@@ -152,10 +170,10 @@ vertexEffectSize <- function(buffer, predictors = NULL)
   }
   rownames(output) <- rownames(buffer)
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
-
+  
   # run the garbage collector...
   gcout <- gc()
-
+  
   return(output)
 }
 
