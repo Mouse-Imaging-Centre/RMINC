@@ -99,6 +99,10 @@ vertexEffectSize <- function(buffer, predictors = NULL)
       !all(predictors %in% colnames(updatedAttrs$model)))
     stop("Supplied predictors not found in model")
   
+  if (!is.null(predictors) &&
+      !all(grepl(paste(cat_vars, collapse = "|"), predictors)))
+    stop("Supplied predictors are not treatment contrasts")
+  
   if (!is.null(predictors) && any(grepl(":", predictors)))
       stop("Interactions in predictors are not currently supported, 
            generate treatment contrasts using interaction()")
