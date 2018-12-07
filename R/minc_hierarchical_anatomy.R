@@ -437,6 +437,7 @@ makeMICeDefsHierachical <- function(defs, abijson) {
 
   # split the definitions into one per line (i.e. left and right separate)
   ldefs <- lateralizeDefs(defs)
+  tree$Do(function(n){ n$name <- gsub("/", " and ", n$name)})
   # create the first version of the anatomical hierarchy
   mh <- addHierarchyToDefs(ldefs, tree)
   treeMH <- as.Node(mh)
