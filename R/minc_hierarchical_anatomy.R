@@ -273,13 +273,15 @@ addVolumesToHierarchy <- function(hdefs, volumes){
   volLabels <- as.integer(attributes(volumes)$anatIDs)
   hanat$Do(function(x) {
     if (isLeaf(x)) {
-      whichIndex <- which(volLabels == x$label)
-      x$volumes <- volumes[,whichIndex]
-      x$meanVolume <- mean(x$volumes)
+      if (x$label %in% volLabels) {
+        whichIndex <- which(volLabels == x$label)
+        x$volumes <- volumes[, whichIndex]
+        x$meanVolume <- mean(x$volumes)
+      }
     }
   })
   
-  hanat$Do(function(x) x$meanVolume <- Aggregate(x, "meanVolume", sum), traversal="post-order")
+  hanat$Do(function(x) x$meanVolume <- Aggregate(x, "meanVolume", function(x) sum(x,na.rm=TRUE)), traversal="post-order")
   hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", rowSums), 
            traversal="post-order", filterFun = isNotLeaf)
   return(hanat)
