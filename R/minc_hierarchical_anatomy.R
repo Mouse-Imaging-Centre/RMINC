@@ -280,8 +280,13 @@ addVolumesToHierarchy <- function(hdefs, volumes){
   })
   
   hanat$Do(function(x) x$meanVolume <- Aggregate(x, "meanVolume", sum), traversal="post-order")
-  hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", rowSums), 
+  if (dim(volumes)[[1]]==1){
+    hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", sum),
+             traversal="post-order", filterFun = isNotLeaf)
+  } else {
+    hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", rowSums),
            traversal="post-order", filterFun = isNotLeaf)
+  }
   return(hanat)
 }
 
