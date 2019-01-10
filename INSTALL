@@ -28,7 +28,24 @@ the brew package manager `brew install homebrew/science/hdf5`.
 
 If you find yourself in a position where you need to install these
 dependencies it is probably best to just install the toolkit as
-discussed above. The toolkit provides HDF5 for you. 
+discussed above. The toolkit provides HDF5 for you.
+
+My build can't find libminc!!
+-----------------------------
+
+RMINC tries very hard to find libminc for you. If it struggles,
+there are a couple ways to help it out. First you can specify
+a MINC_PATH, this is an environment variable that points to the
+top directory of your minc-toolkit install.
+
+Alternatively, if you're using devtools you can specify a
+configure flag to the install
+
+```
+devtools::install_github("Mouse-Imaging-Centre/RMINC"
+                        , args = "--configure-args='--with-build-path=<your-path-here>'"
+                        , upgrade_dependencies = FALSE)
+```
 
 OSX and MacOS
 --------------

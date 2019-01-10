@@ -1,14 +1,16 @@
 context("Single dim mincTFCE")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"))
 first_file <- gf$jacobians_0.2[1]
 
 first_vol <- mincGetVolume(first_file)
-
-tfce_vol <- mincTFCE(first_vol)
+local_env <- environment()
 
 #mincPlotSliceSeries(mincArray(tfce_vol))
 #mincPlotSliceSeries(mincArray(`likeVolume<-`(vtfce, first_file)))
@@ -30,7 +32,13 @@ example_values <-
     -5.47751264690862e-05)
   
 test_that("minc single dim TFCE works",{
-  expect_equal(example_values, tfce_vol[test_voxels])
+  skip_on_cran()
+  skip_on_travis()
+  
+  evalq({
+    tfce_vol <- mincTFCE(first_vol)
+    expect_equal(example_values, tfce_vol[test_voxels])
+  }, envir = local_env)
 })
 
 context("Multi dim TFCE")
@@ -40,32 +48,47 @@ test_multidim <-
   as.minc %>%
   `likeVolume<-`(first_file) 
 
-md_tfce <- mincTFCE(test_multidim)
+
 
 test_that("minc multi dim TFCE works", {
-  expect_equal(md_tfce[test_voxels,1], example_values)
-  expect_equal(md_tfce[test_voxels,2], example_values)
-  expect_equal(md_tfce[test_voxels,3], rep(0, length(example_values)))
+  skip_on_cran()
+  skip_on_travis()
+  
+  evalq({
+    md_tfce <- mincTFCE(test_multidim)
+    expect_equal(md_tfce[test_voxels,1], example_values)
+    expect_equal(md_tfce[test_voxels,2], example_values)
+    expect_equal(md_tfce[test_voxels,3], rep(0, length(example_values)))
+    expect_equal(likeVolume(md_tfce), likeVolume(test_multidim))
+  }, envir = local_env)
 })
 
 context("MincLm Randomization TFCE")
 
-verboseRun(lmod <- mincLm(jacobians_0.2 ~ Genotype, gf))
-verboseRun(randomization_results <- mincTFCE(lmod, R = 10))
-
 ## Really need a better test here
 test_that("lm randomization works", {
-  thresh <- thresholds(randomization_results)["1%", ]
-  maxes <- apply(randomization_results$tfce, 2, max)
-  expect_true(between(thresh[1], 40, 100)) #Reasonable bounds??
-  expect_true(between(thresh[2], .5, 5))    #Reasonable bounds??
-  expect_lt(maxes[1], thresh[1])
-  expect_gt(maxes[2], thresh[2])
+  evalq({
+    skip_on_cran()
+    skip_on_travis()
+    
+    verboseRun(lmod <- mincLm(jacobians_0.2 ~ Genotype, gf))
+    verboseRun(randomization_results <- mincTFCE(lmod, R = 10))
+    
+    thresh <- thresholds(randomization_results)["1%", ]
+    maxes <- apply(randomization_results$tfce, 2, max)
+    expect_true(between(thresh[1], 40, 100)) #Reasonable bounds??
+    expect_true(between(thresh[2], .5, 5))    #Reasonable bounds??
+    expect_lt(maxes[1], thresh[1])
+    expect_gt(maxes[2], thresh[2])
+  }, envir = local_env)
 })
 
 context("VertexTFCE numeric")
 
 test_that("Vertex TFCE approximately matches mincTFCE", {
+  skip_on_cran()
+  skip_on_travis()
+  
   tfce_vol <- mincTFCE(first_vol, d = .0027)
   vtfce <- vertexTFCE(first_vol, RMINC:::neighbour_list(15,15,15,6), weights = .001)
   expect_false(any(abs(vtfce - tfce_vol) > 1e-4))

@@ -1,5 +1,21 @@
 library(testthat)
 
+context("mincGetTagFile")
+
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
+
+matrix_3x4 <- mincGetTagFile(file.path(dataPath, "3rows_4cols.tag"))
+matrix_4x3 <- mincGetTagFile(file.path(dataPath, "4rows_3cols_2comments.tag"))
+
+test_that("mincGetTagFile works", {
+  expect_equal(matrix_3x4, matrix(c(0.15, 0.175, 0.175, 10.15, 10.20, 10.20, 0.35, 0.325, 0.35 , 0, 0, 1), nrow=3, ncol=4))
+  expect_equal(matrix_4x3, matrix(c(0.15, 0.175, 0.175, 0.2, 10.15, 10.2, 10.2, 0.25, 0.35, 0.325, 0.35, 5.75), nrow=4, ncol=3))
+})
+
 context("File Limits")
 
 test_that("File limit check works", {

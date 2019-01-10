@@ -1,3 +1,58 @@
+New in Version 1.5.*.*
+=======================
+
+2.1
+--
+- Fix resource passing in mincLmer
+- improve tag file handling
+- allow dataPath passing in testbed
+- convert RMINC github page to pkgdown (sweet)
+
+2.0
+--
+- Rewrite parallel docs to reflect change to batchtools
+- Add configuration passing for parallel functions
+- Rewrite of anatGetAll for multi-mode. Subject specific
+  atlases can be passed for computing summaries, useful
+  for DTI with MAGeT
+- Allow shinyRMINC to be run with mincSingleDim's
+- Allow shinyRMINC to use an FDR object to select thresholds
+- Add slider for dynamic upper limit setting in shinyRMINC
+- Mention the MINC_FILE_CACHE_MB variable in the docs to help
+  fix memory issues especially with parallel jobs
+- Implements a transposed vertexApply for subject specific
+  summaries
+- Allows colour setting in vis2D
+- Refactor 3D plotting code to improve legend placement
+- Better symmetric palettes for 3D plots
+- Fix the parallel memory variable for batchtools
+- Adds a timeout for lsof to stop NFS issues killing RMINC
+- Minor fix for new lmerTest
+- Expose mincRandomize (WIP sharp edges expected)
+- Nice new c++ API for working with minc volumes in RMINC
+  internals. 
+
+
+1.0
+--
+- Converts parallel backend to batchtools. No more
+NFS file locks on hpf
+- Improved vertexLmer df estimation robustness
+- Configurable legend height in slice series plots
+- Improved discrete legends in slice series plots
+- mincTFCE preserves likeVolume
+- Variety of miscellaneous bug fixes, see
+issue tracker for details.
+
+
+0.0
+--
+* Adds hierarchical atlas features
+* fixes pivoting bug in lm code
+* Adds weighting option to anatLm/*Lmer
+* Increases dplyr and lme4 version dependencies
+* Adds symmetric colour palettes to 3D plotting
+
 New in Version 1.4.4.*
 =======================
 0

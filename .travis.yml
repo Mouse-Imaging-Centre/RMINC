@@ -13,13 +13,12 @@ before_install: |
      wget http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb)
      sudo dpkg -i ../minc-toolkit-1.9.11-20160202-Ubuntu_14.04-x86_64.deb
      source /opt/minc-itk4/minc-toolkit-config.sh
-     Rscript -e "install.packages('survival')"
    fi
    
    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-     brew install gcc
-     mkdir $HOME/.R/; touch $HOME/.R/Makevars
-     echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' > $HOME/.R/Makevars
+     ## brew install gcc
+     ## mkdir $HOME/.R/; touch $HOME/.R/Makevars
+     ## echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' > $HOME/.R/Makevars
      (cd ../ ;
      wget http://packages.bic.mni.mcgill.ca/minc-toolkit/MacOSX/minc-toolkit-1.9.11-20160202-Darwin-10.11-x86_64.dmg)
      sudo hdiutil attach ../minc-toolkit-1.9.11-20160202-Darwin-10.11-x86_64.dmg
@@ -27,15 +26,7 @@ before_install: |
      source /opt/minc-itk4/minc-toolkit-config.sh
    fi
    
-#  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install libhdf5-dev; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew unlink cmake; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install cmake; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install homebrew/science/hdf5; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade gcc; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then mkdir $HOME/.R/; touch $HOME/.R/Makevars; fi
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' > $HOME/.R/Makevars; fi
 repos:
-  bioCsoft: http://bioconductor.org/packages/3.3/bioc
+  bioCsoft: http://bioconductor.org/packages/3.5/bioc
 
 

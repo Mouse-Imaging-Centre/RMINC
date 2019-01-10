@@ -1,0 +1,273 @@
+---
+title: "Anatomical hierarchies tutorial"
+author: "Jason Lerch"
+date: '2017-07-11'
+output: html_document
+---
+
+<style>
+pre {
+  overflow-x: auto;
+}
+pre code {
+  word-wrap: normal;
+  white-space: pre;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(width=1000)
+```
+
+## Introduction
+
+Brain anatomy is inherently hierarchical - i.e. the brain consists of grey matter and white matter, grey matter consists of the cortex, cerebellum, and other squishy bits, etc. RMINC 1.5 adds the ability to work with these hierarchies of anatomy. The initial implementation is still a bit limited, with the definition of the hierarchies coming from the [Allen Brain Institute](http://mouse.brain-map.org/static/atlas). 
+
+The underlying representations of hierarchical anatomies in RMINC comes from the wonderful [data.tree](https://cran.r-project.org/web/packages/data.tree/vignettes/data.tree.html) library. After the walk-through in this tutorial it's worth going back to the data.tree documentation to expand your knowledge of what you can do with this representation.
+
+## Working within hierarchies
+
+First, load the required libraries, as always.
+
+```{r}
+library(RMINC)
+library(tidyverse)
+library(data.tree)
+```
+
+Next, the data - again, nothing has changed from prior anatomical analyses so far - we load in the CSV file containing information about the scans in the study, and we also load in the label volume and its underlying average for visualization purposes (and it's fine to either use the one resampled for your study or the original version).
+
+```{r}
+# start with some data reading
+
+gfAB <- read.csv("/hpf/largeprojects/MICe/lqiu/collaborator_40um/Scott_enrichment/Scott_groupA-B_jacobians.csv")
+
+
+# add the blurred jacobians
+gfAB$relative02 <- sub('.mnc', '_fwhm0.2.mnc', gfAB$relative)
+gfAB$absolute02 <- sub('.mnc', '_fwhm0.2.mnc', gfAB$absolute)
+
+# add some reorganization of the data
+gfAB$treatment <- relevel(gfAB$treatment, ref="standard")
+gfAB$genotype <- relevel(gfAB$genotype, ref="wt")
+gfAB$sex <- gfAB$sex %>% recode('?' = "female")
+
+# load the volumes
+allvols <- anatGetAll(gfAB$labels, method="labels", defs="/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/mappings/DSURQE_40micron_R_mapping.csv", parallel=c("local", 7))
+
+# and read in the label and anatomical volumes
+labelVol <- mincArray(mincGetVolume("/hpf/largeprojects/MICe/tools/atlases//Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/ex-vivo/DSURQE_40micron_labels.mnc"))
+anatVol <- mincArray(mincGetVolume("/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/ex-vivo/DSURQE_40micron_average.mnc"))
+```
+
+Next it is time to make the definitions hierarchical. This will be identical for every study that uses this atlas, so there's a good chance we will simply include the hierarchical definitions as data files in RMINC in the future. 
+
+For rolling your own, the CSV file is the same as it's always been, except with an extra column giving the name of the corresponding structure in the Allen atlas. The allen.json file is obtained directly from the Allen institute, and contains their definition of anatomical hierarchies.
+
+```{r}
+
+abijson <- "/hpf/largeprojects/MICe/tools/atlases/Allen_Brain/Allen_hierarchy_definitions.json"
+defs <- "/hpf/largeprojects/MICe/tools/atlases/Dorr_2008_Steadman_2013_Ullmann_2013_Richards_2011_Qiu_2016_Egan_2015_40micron/mappings/DSURQE_40micron_R_mapping.csv"
+hdefs <- makeMICeDefsHierachical(defs, abijson)
+
+```
+
+With the hierarchies established, it's time to add the volumes to hierarchical tree.
+
+```{r}
+vols <- addVolumesToHierarchy(hdefs, allvols)
+```
+
+Let's see what that looks like. vols is a data.tree object. Let's print it:
+
+```{r}
+# the limit=NULL bit prints the entire hierarchy, rather than stopping after a certain amount
+print(vols, limit=NULL)
+```
+
+There's the hierarchy in all its glory. Let's add the mean volume of each structure:
+
+```{r}
+print(vols, "meanVolume", limit=NULL)
+```
+
+Those are a few too many digits - let's round the volume and thereby illustrate the use of a function to prettify printing.
+
+```{r}
+print(vols, v=function(x)round(x$meanVolume, 2), limit=NULL)
+```
+
+We can also directly access elements:
+
+```{r}
+vols$meanVolume
+```
+
+And walk the hierarchy with $ indexing:
+
+```{r}
+vols$`Basic cell groups and regions`$Cerebrum$`Cerebral cortex`$`Cortical plate`$`Hippocampal formation`$meanVolume
+```
+
+That is a bit tedious - the FindNode command can come to the rescue:
+
+```{r}
+print(FindNode(vols, "Hippocampal formation"), "meanVolume")
+```
+
+See how that just prints the subtree from the hippocampal formation onwards.
+
+Let's take a look:
+
+```{r}
+hanatView(vols)
+```
+
+The graph shown with the colours from the Allen atlas. Go ahead and use your mouse to zoom in.
+
+And just the hippomcampus
+
+```{r}
+hanatView(FindNode(vols, "Hippocampal formation"))
+```
+
+Let's colour that by volume
+
+```{r}
+hanatView(FindNode(vols, "Hippocampal formation"), "meanVolume", low=0, high=20)
+```
+
+And change the colour scheme:
+
+```{r}
+hanatView(FindNode(vols, "Hippocampal formation"), "meanVolume", low=0, high=20, colourScale=topo.colors(255))
+```
+
+Trees can also easily be turned back into volumes - in this case it takes only the leaves. Let's do that for the volumes:
+
+```{r}
+volvol <- hanatToVolume(vols, labelVol, "meanVolume")
+mincPlotSliceSeries(anatVol, volvol, low=0, high=10, begin=50, end=-50, legend="Volume")
+
+```
+
+This also works with subregions:
+
+```{r}
+volvol <- hanatToVolume(FindNode(vols, "Hippocampal formation"), labelVol, "meanVolume")
+mincPlotSliceSeries(anatVol, volvol, low=0, high=2, begin=150, end=-250, legend="Volume")
+```
+
+What about visualizing higher parts of the hierarchy? This is where pruning comes in - a word of caution, before we begin: pruning changes the underlying tree, so if you don't want that clone it first and work on the clone:
+
+```{r}
+# create a copy
+volsCopy <- Clone(vols)
+# keep the first four levels of the hierarchy
+Prune(volsCopy, function(x) x$level < 4)
+# print it out
+print(volsCopy, "meanVolume", limit=NULL)
+#visualize 
+volvol <- hanatToVolume(volsCopy, labelVol, "meanVolume")
+mincPlotSliceSeries(anatVol, volvol, low=0, high=50, begin=50, end=-50, legend="Volume")
+```
+
+Given that pruning takes a function, it can be much more complex too. Let's only keep structures above 5mm in size, but do it in such a way that if any siblings are below 5mm, we keep none from that level onwards.
+
+```{r}
+# notice the cloning again - leaves the initial vols intact
+volsCopy <- Clone(vols)
+# prune based on the criteria described above. The need to navigate is not to check on siblings that might have been pruned already
+Prune(volsCopy, function(x) x$meanVolume > 5 & all(lapply(Navigate(vols$root, x$path[2:length(x$path)])$siblings, function(y)y$meanVolume)>5))
+# print em
+print(volsCopy, "meanVolume", limit=NULL)
+# plot em
+volvol <- hanatToVolume(volsCopy, labelVol, "meanVolume")
+mincPlotSliceSeries(anatVol, volvol, low=5, high=50, begin=50, end=-50, legend="Volume")
+# and let's look at just the leaves
+volsCopy$Get("meanVolume", filterFun = isLeaf)
+```
+
+Lastly, lets compute an alternate value for each structure in the hierarchy - how about coefficient of variation?
+
+```{r}
+# the Do function does something at every node in the hierarchy
+vols$Do(function(x) {
+  x$sd <- sd(x$volumes) # volumes contains the matrix of input volumes
+  x$cov <- x$sd / x$meanVolume
+})
+# print it
+print(vols, "cov", limit=NULL)
+
+# show it at the finest level of detail:
+covvol <- hanatToVolume(vols, labelVol, "cov")
+mincPlotSliceSeries(anatVol, covvol, low=0, high=0.2, begin=50, end=-50, legend="COV")
+
+# and again just for the larger structures. This time let's pick 2mm as our cutoff
+# notice the cloning again - leaves the initial vols intact
+volsCopy <- Clone(vols)
+# prune based on the criteria described above. The need to navigate is not to check on siblings that might have been pruned already
+Prune(volsCopy, function(x) x$meanVolume > 2 & all(lapply(Navigate(vols$root, x$path[2:length(x$path)])$siblings, function(y)y$meanVolume)>2))
+# print it
+print(volsCopy, "cov", limit=NULL)
+
+# show it at the finest level of detail:
+covvol <- hanatToVolume(volsCopy, labelVol, "cov")
+mincPlotSliceSeries(anatVol, covvol, low=0, high=0.2, begin=50, end=-50, legend="COV")
+
+# and show the COV as a graph
+hanatView(vols, "cov", low=0, high=0.2)
+
+# and again as a graph - but this time colouring the edges with the ABI colours to help us orient ourselves
+hanatView(vols, "cov", low=0, high=0.2, edgeColourFromABI = T)
+
+# and one more time, to quickly pinpoint the most variable regions
+hanatView(vols, "cov", low=0.15, high=0.2, edgeColourFromABI = F)
+
+```
+
+
+## Statistical analyses within hierarchies
+
+How does one do stats on those volumes? Easy - there are hanat equivalents to all the usual, friendly functions
+
+```{r}
+hVs <- hanatLm(~genotype, gfAB, vols)
+stats <- hanatToVolume(hVs, labelVol, "tvalue.genotypets")
+mincPlotSliceSeries(anatVol, stats, low=2, high=5, symmetric=T, legend="t-stats", begin=50, end=-50)
+hanatView(hVs, "tvalue.genotypets", low=2, high=5, symmetric=T)
+```
+
+And FDR? Works the same way:
+
+```{r}
+hVs <- hanatFDR(hVs)
+thresholds(hVs)
+
+# as you can see, for every t value there is now a corresponding q value:
+names(hVs)
+```
+
+The main difference here is that rather than using the Benjamini & Hochberg (1995) method as is used for every other FDR invocation in RMINC, it uses the Benjamini and Yekutieli (2001) FDR algorithm, which is viable in the presence of dependence (as obviously exists in a hierarchy where higher level values are dependent on low levels).
+
+For sake of illustration, let's run it again as an ANOVA
+
+```{r}
+hA <- hanatAnova(~genotype, gfAB, vols)
+stats <- hanatToVolume(hA, labelVol, "genotype")
+mincPlotSliceSeries(anatVol, stats, low=4, high=25, symmetric=F, legend="F-stats", begin=50, end=-50)
+hanatView(hA, "genotype", low=4, high=25, symmetric=F)
+hA <- hanatFDR(hA)
+thresholds(hA)
+```
+
+And as a linear mixed effects model. This doesn't necessarily make sense for this particular dataset, but having information pooled across sex is not that unreasonable ...
+
+```{r}
+hLmer <- hanatLmer(~genotype + (1|sex), gfAB, vols)
+stats <- hanatToVolume(hLmer, labelVol, "tvalue.genotypets")
+mincPlotSliceSeries(anatVol, stats, low=2, high=5, symmetric=T, legend="t-stats", begin=50, end=-50)
+hanatView(hLmer, "tvalue.genotypets", low=2, high=5, symmetric=T)
+```
+

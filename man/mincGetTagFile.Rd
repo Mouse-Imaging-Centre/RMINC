@@ -10,7 +10,7 @@ mincGetTagFile(filename)
 \item{filename}{string containing filename to read}
 }
 \value{
-tags as a ntags by 7 matrix
+tags as a ntags by the number of fields in the input tag matrix
 }
 \description{
 read a tag file

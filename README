@@ -1,13 +1,9 @@
-Statistics for MINC volumes: A library to integrate voxel-based
-statistics for MINC volumes into the R environment.  Supports getting
-and writing of MINC volumes, running voxel-wise linear models,
-correlations, etc.; correcting for multiple comparisons using the
-False Discovery Rate, and more. With contributions from Jason Lerch,
-Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel. Some
-additional information can be found here:
-
-https://wiki.mouseimaging.ca/display/MICePub/RMINC
-
+A library for statistical analysis of neuroimaging data,
+focused on the MINC file format. Supports getting
+and writing volumes, running voxel-wise linear models,
+correlations, correcting for multiple comparisons with False Discovery Rate
+control, and more. With contributions from Jason Lerch,
+Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel
 
 Installation:
 -------------
@@ -30,13 +26,15 @@ Tutorials
 
 RMINC provides learning material:
 
-Voxel-wise Statistics: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
+Voxel-wise Statistics (somewhat out of date): https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf
 
 How RMINC Parallel Works: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html
  
 RMINC 2D Visualization: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html
 
 Visualizing 3D Objects with RMINC: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html
+
+Analyzing Anatomy with Hierarchical Atlases: https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html
 
 Development Version:
 ---------------------
@@ -45,5 +43,6 @@ RMINC is continually evolving, you can try the newest development version with
 
 ```
 library(devtools)
-install_github("Mouse-Imaging-Centre/RMINC")
+install_github("Mouse-Imaging-Centre/RMINC@develop"
+  , upgrade_dependencies = FALSE)
 ``` 

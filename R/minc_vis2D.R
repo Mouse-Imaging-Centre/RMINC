@@ -146,6 +146,7 @@ sliceSeriesLayout <-
 #' @param anatLow the minimum anatomy intensity to plot
 #' @param anatHigh the maximum antomy intensity to plot
 #' @param col colours for statistics or for the anatomy if statistics are not passed
+#' @param anatCol colours for the 
 #' @param begin the first slice to plot, defaults to 1
 #' @param end the last slice to plot, defaults to the last slice
 #' @param symmetric whether the statistics are symmetric (such as for t-statistics)
@@ -158,6 +159,7 @@ sliceSeriesLayout <-
 #' locator, defaults to every slice
 #' @param discreteStats Whether stats are discrete values and should should not have
 #' their range taken from their histogram if unsupplied.
+#' @param legendHeight What vertical fraction of the figure should the legend occupy
 #' @details 
 #' You can get a fuller tutorial on how to use the visualization tools by executing
 #' the following command:
@@ -182,6 +184,7 @@ mincPlotSliceSeries <-
            low = NULL, high = NULL,          # stat thresholding
            anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
            col =  heat.colors(255),
+           anatCol = gray.colors(255, start=0.0),
            begin = 1,                          # first slice
            end = (dim(anatomy)[dimension] - 1),# last slice 
            symmetric = FALSE,
@@ -189,7 +192,8 @@ mincPlotSliceSeries <-
            locator = !is.null(legend),
            plottitle = NULL, 
            indicatorLevels = NULL,
-           discreteStats = FALSE){
+           discreteStats = FALSE,
+           legendHeight = .5){
     
     if(length(dim(anatomy)) != 3) 
       stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -218,6 +222,7 @@ mincPlotSimpleSliceSeries <-
            anatLow = NULL, anatHigh = NULL, 
            begin = 1, 
            end = (dim(anatomy)[dimension] - 1),
+           anatCol = gray.colors(255, start=0.0),
            plottitle = NULL,
            legend = NULL,
            locator = !is.null(legend),
@@ -236,7 +241,7 @@ mincPlotSimpleSliceSeries <-
     lapply(slices, function(current_slice) {
       mincImage(anatomy, dimension, slice=current_slice,
                 low=anatRange[1], high=anatRange[2], 
-                axes = FALSE, underTransparent = TRUE)
+                axes = FALSE, underTransparent = TRUE, col = anatCol)
     })
     
     if(locator) plotLocator(dimension, anatomy, 
@@ -254,6 +259,7 @@ mincPlotStatsSliceSeries <-
            low = NULL, high = NULL,          # stat thresholding
            anatLow = NULL, anatHigh = NULL,  # anatomy thresholding
            col = heat.colors(255),
+           anatCol = gray.colors(255, start=0.0),
            begin = 1,                        # first slice
            end = dim(anatomy)[dimension] - 1,# last slice 
            symmetric = FALSE,
@@ -261,7 +267,8 @@ mincPlotStatsSliceSeries <-
            locator = !is.null(legend),
            plottitle = NULL, 
            indicatorLevels = c(900, 1200),
-           discreteStats = FALSE) {
+           discreteStats = FALSE,
+           legendHeight = .5) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
@@ -289,7 +296,7 @@ mincPlotStatsSliceSeries <-
       mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                                 low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
                                 anatHigh=anatRange[2], col=col, legend=NULL, 
-                                symmetric=symmetric)
+                                symmetric=symmetric, acol = anatCol)
     }
     
     #Add the plot locator if desired
@@ -299,7 +306,14 @@ mincPlotStatsSliceSeries <-
     #Add a legend for the statistics if desired
     if(!is.null(legend)){
       plot.new()
-      if (symmetric==TRUE) {
+
+      if(discreteStats){
+        labs <- statRange[1]:statRange[2]
+      } else {
+        labs <- statRange
+      }
+      
+      if (symmetric) {
         col <- colorRampPalette(c("red", "yellow"))(255)
         rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
         plotrix::color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), 
@@ -308,7 +322,7 @@ mincPlotStatsSliceSeries <-
                               col, gradient="y", align="rb", col="white")
       }
       else {
-        plotrix::color.legend(0.3, 0.25, 0.5, 0.75, c(low, high), 
+        plotrix::color.legend(.3, (1 - legendHeight) / 2, .5, 1 - (1 - legendHeight) / 2, labs, 
                                col, gradient="y", align="rb", col="white")
       }
       
@@ -428,7 +442,9 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
 #' @param symmetric whether the statistics are symmetric (such as for t-statistics)
 #' @param col colours for statistics
 #' @param rcol colours for negative statistics if using a symmetric statistic
+#' @param acol colours to use for the anatomy
 #' @param legend an optional string to name the legend, indicating desire for a legend
+#' @param legendTextColour an optional description of the text colour for the legend
 #' (or not)
 #' @return invisible NULL
 #' @export
@@ -439,7 +455,9 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           anatLow=min(anatomy, na.rm = TRUE), 
                           anatHigh=max(anatomy, na.rm = TRUE), 
                           symmetric=FALSE,
-                          col=NULL, rcol=NULL, legend=NULL) {
+                          col=NULL, rcol=NULL, legend=NULL,
+                          acol = gray.colors(255, start=0.0),
+                          legendTextColour="black") {
   
   if(length(dim(anatomy)) != 3) 
     stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -459,7 +477,7 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
     rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
   }
   
-  anatCols = gray.colors(255, start=0.0)
+  anatCols = acol
     
   mincImage(anatomy, dimension, slice, axes = FALSE, col=anatCols,
             low=anatLow, high=anatHigh)
@@ -480,21 +498,24 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                              0.05 * plotdims[4], 
                              0.99 * plotdims[2], 
                              0.45 * plotdims[4], 
-                             c(high*-1, low*-1), rev(rcol), gradient="y", align="rb")
+                             c(high*-1, low*-1), rev(rcol), gradient="y", align="rb",
+                            col=legendTextColour)
       plotrix::color.legend(0.97 * plotdims[2], 
                              0.55 * plotdims[4], 
                              0.99 * plotdims[2], 
                              0.95 * plotdims[4], 
-                             c(low, high), col, gradient="y", align="rb")
-      text(1.10, 0.5, labels=legend, srt=90)
+                             c(low, high), col, gradient="y", align="rb",
+                            col=legendTextColour)
+      text(1.05*plotdims[2], 0.5*plotdims[4], labels=legend, srt=90, col=legendTextColour)
     }
     else {
       plotrix::color.legend(0.97 * plotdims[2], 
                              0.25 * plotdims[4], 
                              0.99 * plotdims[2], 
                              0.75 * plotdims[4], 
-                             c(low, high), col, gradient="y", align="rb")
-      text(1.05, 0.5, labels=legend, srt=90)
+                             c(low, high), col, gradient="y", align="rb",
+                            col=legendTextColour)
+      text(1.05*plotdims[2], 0.5*plotdims[4], labels=legend, srt=90, col=legendTextColour)
     }
     opar <- par(no.readonly = TRUE) #I think this gets lost anyway
     par(xpd=T)

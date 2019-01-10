@@ -2,8 +2,11 @@ library(testthat)
 library(lme4)
 context("vertexLmer")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gftest <- read.csv(file.path(dataPath, "subject.csv"))
 
@@ -76,4 +79,36 @@ test_that("Likelihood Ratio Tests for vertexLmer Work", {
   }, envir = test_env)
 })
 
+
+context("vertexLmer - estimate DF")
+test_that("empty DF by default", {
+  evalq({
+    expect_that( attr(fast_lmer, "df"), is_equivalent_to(NULL))
+    expect_that( vertexFDR(fast_lmer), throws_error() )
+  }, envir = test_env)
+})
+
+
+test_that("DF within reasonable range", {
+  evalq({
+    verboseRun(fast_lmer_df <- vertexLmerEstimateDF(fast_lmer))
+    df <- attr(fast_lmer_df, "df")
+    expect_that( df[[2]], is_less_than(nrow(gftest)+1))
+    expect_that( df[[2]], is_more_than(1))
+  }, envir = test_env)
+})
+
+test_that("vertexLmer works with NAs", {
+  verboseRun({
+    gf_missing <- gftest
+    gf_missing[1, "Sex"] <- NA
+    
+    missing <- vertexLmer(testFilesLeft ~ Age + (1|Sex), gf_missing)
+    missing_dfs <- vertexLmerEstimateDF(missing)
+    df <- attr(missing_dfs, "df")
+  })
+  
+  expect_that( df[[2]], is_less_than(nrow(attr(missing, "data")) + 1))
+  expect_that( df[[2]], is_more_than(1))
+})
 

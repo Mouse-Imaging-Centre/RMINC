@@ -12,8 +12,7 @@
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}.
 #' Leaving this argument NULL runs sequentially and may take a long time. 
 
 #' @param REML whether to use use Restricted Maximum Likelihood or Maximum Likelihood
@@ -26,15 +25,22 @@
 #' @param safely whether or not to wrap the per-voxel lmer code in an exception catching
 #' block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 #' NA for the result.
-#' @param summary_type One of
+#' @param summary_type Either one of
 #' \itemize{
 #'   \item{fixef: default and equivalent to older versions of RMINC, returns fixed effect coefficients and t-values}
 #'   \item{ranef: returns random effect coefficients and t-values}
 #'   \item{both: both fixed and random effects}
 #'   \item{anova: return the F-statistic for each fixed effect}
-#'}
+#'} or a function to be used to generate the summary
+#' @param weights weights to be applied to each observation
 #' @param cleanup Whether or not to cleanup registry files after a queue parallelized 
 #' run
+#' @param resources A list of resources to use for the jobs, for example
+#' \code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+#' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+#' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+#' more examples
+#' @param conf_file A batchtools configuration file
 #' @return a matrix where rows correspond to number of voxels in the file and columns to
 #' the number of terms in the formula, with both the beta coefficient and the t-statistic
 #' being returned. In addition, an extra column keeps the log likelihood, and another
@@ -49,7 +55,10 @@
 #' \code{\link{mincLogLikRatioParametricBootstrap}}). For the most likely models - longitudinal
 #' models with a separate intercept or separate intercept and slope per subject - both of these
 #' approximations are likely correct. Be careful in using these approximations if
-#' using more complicated random effects structures.
+#' using more complicated random effects structures. \cr
+#' If you encounter memory issues, it could be due to minc file caching.
+#' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+#' a small value like 1.
 #'
 #' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
 #' @examples
@@ -84,7 +93,10 @@
 mincLmer <- function(formula, data, mask, parallel=NULL,
                      REML=TRUE, control=lmerControl(), start=NULL, 
                      verbose=0L, temp_dir = getwd(), safely = FALSE, 
-                     cleanup = TRUE, summary_type = c("fixef", "ranef", "both", "anova")) {
+                     cleanup = TRUE, summary_type = "fixef"
+                   , weights = NULL
+                   , resources = list()
+                   , conf_file = getOption("RMINC_BATCH_CONF")) {
   
   # the outside part of the loop - setting up various matrices, etc., whatever that is
   # constant for all voxels goes here
@@ -124,12 +136,17 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
   slab_dims <- minc.dimensions.sizes(lmod$fr[1,1])
   slab_dims[1] <- 1
   
-  summary_type <- match.arg(summary_type)
-  summary_fun <- switch(summary_type
+  summary_fun <- summary_type
+  if(is.character(summary_type) && length(summary_type) == 1)
+    summary_fun <- switch(summary_type
                         , fixef = fixef_summary
                         , ranef = ranef_summary
                         , both = effect_summary
-                        , anova = anova_summary)
+                        , anova = anova_summary
+                        , stop("invalid summary type specified"))
+
+  if(!is.function(summary_fun))
+    stop("summary_type must be a string specifying a summary, or a function")
   
   mincLmerOptimizeAndExtractSafely <-
     function(x, mincLmerList, summary_fun){
@@ -164,7 +181,11 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
                         batches = as.numeric(parallel[2]),
                         slab_sizes = slab_dims,
                         summary_fun = summary_fun,
-                        cleanup = cleanup)
+                        cleanup = cleanup,
+                        registry_name = new_file("mincLmer_registry"),
+                        resources = resources,
+                        conf_file = conf_file
+                        )
     } 
   }
   else {
@@ -190,16 +211,7 @@ mincLmer <- function(formula, data, mask, parallel=NULL,
   
   res_cols <- colnames(out)
   attr(out, "stat-type") <- ## Handle all possible output types
-    case_when(res_cols == "logLik" ~ "logLik"
-              , res_cols == "converged" ~ "converged"
-              , summary_type == "anova" ~ "flmer"
-              , grepl("^tvalue-", res_cols) & summary_type == "ranef" ~ "rand-tlmer"
-              , grepl("^beta-", res_cols) & summary_type == "ranef" ~ "rand-beta"
-              , grepl("^tvalue-", res_cols) ~ "tlmer"
-              , grepl("^beta-", res_cols) ~ "beta"
-              , grepl("^rand-beta-", res_cols) ~ "rand-beta"
-              , grepl("^rand-tvalue-", res_cols) ~ "rand-tlmer")
-  
+    check_stat_type(res_cols, summary_type)
 
   # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
   attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
@@ -251,32 +263,39 @@ mincLmerEstimateDF <- function(model) {
   nvoxels <- 50
   rvoxels <- mincSelectRandomVoxels(mask, nvoxels)
   dfs <- matrix(nrow=nvoxels, ncol=sum(attr(model, "stat-type") %in% "tlmer"))
+  original_data <- attr(model, "data")
+  
+  ## It seems LmerTest cannot compute the deviance function for mincLmers
+  ## in the current version, instead extract the model components from
+  ## the mincLmerList and re-fit the lmers directly at each structure,
+  ## Slower but yeilds the correct result
+  lmod <- mincLmerList[[1]]
+  LHS <- as.character(lmod$formula[[2]])
+  form <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
+  #environment(model_form) <- environment()
+  
+  filenames <- unique(mincLmerList[[1]]$fr[,1])
+  row_file_match <- match(original_data[[LHS]], filenames)
   
   for (i in 1:nvoxels) {
     rand_inds <- rvoxels[i,]
-    voxelData <- mincGetVoxel(mincLmerList[[1]]$fr[,1], rand_inds)
-    RMINC_DUMMY_LHS <- voxelData
+    voxel_data <- mincGetVoxel(filenames, rand_inds)
     
-    ## It seems LmerTest cannot compute the deviance function for mincLmers
-    ## in the current version, instead extract the model components from
-    ## the mincLmerList and re-fit the lmers directly at each structure,
-    ## Slower but yeilds the correct result
-    original_data <- attr(model, "data")
-    lmod <- mincLmerList[[1]]
-    
-    # Rebuild the environment of the formula, otherwise updating does not
-    # ensuring it can find both RMINC_DUMMY_LHS and original_data
-    lmod$formula <- update(lmod$formula, RMINC_DUMMY_LHS ~ .)
-    environment(lmod$formula) <- environment()
+    original_data$RMINC_DUMMY_LHS <- voxel_data[row_file_match]
+
+    ## Work around for slowness in recent lme4, fixed in upstream lme4
+    ## thanks to https://github.com/lme4/lme4/issues/410#issuecomment-311092416
+    model_env <- list2env(original_data)
+    environment(form) <- model_env
     
     mmod <-
-      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
+      lmerTest::lmer(form, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
       suppressMessages(
-        tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
+        tryCatch(summary(mmod)$coefficients[,"df"]
                  , error = function(e){ 
                    warning("Unable to estimate DFs for voxel ("
                            , paste0(rand_inds, collapse = ", ")
@@ -372,6 +391,23 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
                    fr = lmod$fr, mcout, lme4conv = cc)
   return(mmod)
 }
+
+check_stat_type <- function(stat, summary_type){
+  if(!is.character(summary_type))
+    summary_type <- "unknown"
+  
+  case_when(stat == "logLik" ~ "logLik"
+          , stat == "converged" ~ "converged"
+          , summary_type == "anova" ~ "flmer"
+          , grepl("^tvalue-", stat) & summary_type == "ranef" ~ "rand-tlmer"
+          , grepl("^beta-", stat) & summary_type == "ranef" ~ "rand-beta"
+          , grepl("^tvalue-", stat) ~ "tlmer"
+          , grepl("^beta-", stat) ~ "beta"
+          , grepl("^rand-beta-", stat) ~ "rand-beta"
+          , grepl("^rand-tvalue-", stat) ~ "rand-tlmer"
+          , TRUE ~ "unknown")
+  }
+  
 
 # takes a merMod object, gets beta, t, and logLikelihood values, and
 # returns them as a vector

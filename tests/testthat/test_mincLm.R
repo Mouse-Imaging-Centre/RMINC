@@ -1,8 +1,12 @@
 library(testthat)
+library(dplyr)
 context("mincLm - two group test")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 
@@ -52,7 +56,7 @@ verboseRun({
   rmincLmArray <- mincArray(rmincLm, "tvalue-SexM")
   maxPeak <- arrayInd(which.max(rmincLmArray), .dim=c(10,10,10))
   minPeak <- arrayInd(which.min(rmincLmArray), .dim=c(10,10,10))
-  minPeakFromPeaks <- as.integer(sortByCol(peaks, "value")[1,1:3])
+  minPeakFromPeaks <- as.integer(arrange(peaks, value)[1,1:3])
   maxPeakFromPeaks <- as.integer(peaks[1,1:3])
 })
 

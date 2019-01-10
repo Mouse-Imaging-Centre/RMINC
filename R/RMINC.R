@@ -9,13 +9,13 @@
 #' @import shiny
 #' @import Rcpp
 #' @import lme4
-#' @import BatchJobs
+#' @import batchtools
 #' @import methods
 #' @importFrom Matrix diag
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
 #'                       rgb
 #' @importFrom graphics abline contour hist layout mtext par plot.default
-#'                      plot.new rasterImage text segments points
+#'                      plot.new rasterImage text segments points plot
 #' @importFrom stats anova df.residual formula lm lm.fit
 #'                   logLik median model.matrix p.adjust pchisq
 #'                   pf predict pt pwilcox qchisq qf qt
@@ -27,6 +27,13 @@
 #' @importFrom grid plotViewport popViewport pushViewport
 #' @importFrom gridBase baseViewports
 #' @importFrom yaml yaml.load_file
+#' @importFrom data.tree FindNode Clone isLeaf Traverse Aggregate isNotLeaf
+#'                       SetGraphStyle FromListSimple as.Node
+#' @importFrom visNetwork visNetwork visNodes visEdges visHierarchicalLayout
+#'                        visPhysics
+#' @importFrom rjson fromJSON
+#' @importFrom purrr map map_df map2
+#' @importFrom rlang UQ quo
 #' @useDynLib RMINC, .registration = TRUE 
 #' @docType package
 #' @name RMINC
@@ -76,13 +83,13 @@ NULL
     
     op.RMINC <- list(
       RMINC_MASKED_VALUE = 
-        structure(0, class = "RMINC_MASKED_VALUE"),
-      RMINC_QUEUE = 
-        `if`(Sys.getenv("RMINC_QUEUE") == "",
-             Sys.getenv("RMINC_QUEUE"),
-             "multicore"),
-      RMINC_LABEL_DEFINITIONS =
+        structure(0, class = "RMINC_MASKED_VALUE")
+    , RMINC_LABEL_DEFINITIONS =
         Sys.getenv("RMINC_LABEL_DEFINITIONS")
+    , RMINC_BATCH_CONF =
+        `if`(Sys.getenv("RMINC_BATCH_CONF") == ""
+           , system.file("parallel/pbs_batchtools.R", package = "RMINC")
+           , Sys.getenv("RMINC_BATCH_CONF"))
     )
     
     toset <- !(names(op.RMINC) %in% names(op))
@@ -94,4 +101,5 @@ NULL
 # Silence warning about magrittr/dplyr dot
 # a la https://github.com/smbache/magrittr/issues/29
 utils::globalVariables(".")
+utils::globalVariables(".data")
 

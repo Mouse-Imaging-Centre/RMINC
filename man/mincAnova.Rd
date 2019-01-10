@@ -7,7 +7,8 @@
 Compute a sequential ANOVA at each voxel}
 \usage{
 mincAnova(formula, data = NULL, subset = NULL, mask = NULL,
-  maskval = NULL, parallel = NULL, cleanup = TRUE)
+  maskval = NULL, parallel = NULL, cleanup = TRUE,
+  conf_file = getOption("RMINC_BATCH_CONF"))
 }
 \arguments{
 \item{formula}{The anova formula. The left-hand term consists of the 
@@ -29,11 +30,12 @@ within 0.5 of the chosen value are considered selected.}
 Specified as a two element vector, with the first element corresponding to
 the type of parallelization, and the second to the number
 of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-and \link{configureMincParallel} for details.
+for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 Leaving this argument NULL runs sequentially.}
 
 \item{cleanup}{Whether or not to remove parallelization files}
+
+\item{conf_file}{A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}}
 }
 \value{
 Returns an array with the F-statistic for each model specified by 

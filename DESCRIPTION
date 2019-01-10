@@ -1,5 +1,5 @@
 Package: RMINC
-Version: 1.4.4.0
+Version: 1.5.2.1
 Date: 2017-05-31
 Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
 Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
@@ -8,30 +8,38 @@ Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkid
              person("Daniel", "Cassel", role = "aut"),
              person("Jim",  "Nikelski", role = "ctb", email = "nikelski@bic.mni.mcgill.ca"),
              person("Yohan", "Yee", role = "ctb", email = "yohan.yee@sickkids.ca"),
-             person("Miriam", "Friedel", role = "ctb"))
-Description: Tools for reading, writing, analyzing, and visualizing Medical Imaging NetCDF (MINC) files
-             with R. 
-Additional_Repositories: http://bioconductor.org/packages/3.3/bioc
+             person("Miriam", "Friedel", role = "ctb"),
+             person("Nick", "Wang", role = "ctb", email = "nick.wang@sickkids.ca"),
+             person("Gabriel", "Devenyi", role = "ctb", email = "gdevenyi@gmail.com"))      
+Description: Tools for reading, writing, analyzing, and visualizing Medical
+    Imaging NetCDF (MINC) files with R.
+Additional_repositories: http://bioconductor.org/packages/3.6/bioc
 Depends:
-    R (>= 3.0.1),
-    BatchJobs
+    R (>= 3.2)
 Imports:
-    dplyr,
-    tidyr,
-    lme4,
-    shiny,
+    batchtools,
+    dplyr (>= 0.7.6),
+    tidyr (>= 0.8.1),
+    lme4  (>= 1.1-13),
+    purrr (>= 0.2.5),
+    shiny (>= 1.1.0),
     methods,
     grDevices,
     graphics,
-    grid,
-    gridBase,
+    grid (>= 3.4.1),
+    gridBase (>= 0.4-7),
     utils,
     stats,
-    Rcpp,
+    Rcpp (>= 0.12.17),
     parallel,
-    Matrix,
-    tibble,
-    yaml
+    Matrix (>= 1.2-14),
+    tibble (>= 1.4.2),
+    yaml (>= 2.1.19),
+    data.tree (>= 0.7.6),
+    visNetwork (>= 2.0.4),
+    rjson (>= 0.2.20),
+    DT (>= 0.4),
+    rlang (>= 0.2.1)
 Suggests:
     rgl,
     plotrix,
@@ -40,10 +48,8 @@ Suggests:
     qvalue,
     testthat,
     igraph
-LinkingTo: 
-    Rcpp,
-SystemRequirements:
-    lsof AND EITHER
+LinkingTo: Rcpp
+SystemRequirements: lsof AND EITHER
     minc-toolkit-v2 (https://github.com/BIC-MNI/minc-toolkit-v2) OR
     cmake (> 2.6),
     git,
@@ -52,6 +58,7 @@ SystemRequirements:
 License: BSD_3_clause + file LICENSE
 LazyLoad: yes
 OS_type: unix
+BugReports: https://github.com/Mouse-Imaging-Centre/RMINC/issues
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
 RoxygenNote: 6.0.1

@@ -909,6 +909,12 @@ minc.get.volumes <- function(filenames) {
 #' data corresponding to a single file
 #' @export
 vertexTable <- function(filenames) {
+  if(is.factor(filenames))
+    filenames <- as.character(filenames)
+
+  if(!is.character(filenames))
+    stop("filenames must be either a character or factor vector")
+  
   nSubjects <- length(filenames)
   nvertices <- nrow(read.table(filenames[1]))
   output <- matrix(nrow=nvertices, ncol=nSubjects)
@@ -1126,17 +1132,28 @@ checkCurrentUlimit <- function(){
 tableOpenFiles <- function(){
   if(system("command -v lsof", ignore.stderr = TRUE, ignore.stdout = TRUE) != 0)
     stop("Unable to find external program lsof, please install and try again")
-  
+
   lsof_results <- 
-    paste("lsof -Ft -p ", Sys.getpid()) %>%
-    system(intern = TRUE, ignore.stderr = TRUE)
+    suppressWarnings(
+      paste("timeout 10 lsof -Ft -p ", Sys.getpid()) %>%
+        system(intern = TRUE, ignore.stderr = TRUE)
+    )
+
+  if(length(lsof_results) == 0)
+    stop("lsof timed")
     
   table(lsof_results)  
 }
 
 enoughAvailableFileDescriptors <- 
   function(n, error = TRUE){
-    available_fds <- checkCurrentUlimit() - sum(tableOpenFiles())
+    open_files <-
+      tryCatch(tableOpenFiles()
+             , error = function(e)
+               message("lsof timed out, continuing without "
+                     , "file descriptor checking"))
+    
+    available_fds <- checkCurrentUlimit() - sum(open_files)
     enough_avail <- (n <= available_fds)
     
     if(error & !enough_avail)
@@ -1178,12 +1195,15 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verbo
   setRMINCMaskedValue(0)
   Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
   
-  getRMINCTestData()
-
+  getRMINCTestData(dataPath = dataPath)
+  
+  tenv <- testthat::test_env() 
+  tenv$dataPath <- dataPath
+  
   # Run Tests
   rmincPath <- find.package("RMINC")
   cat("\n\nRunning tests in: ", paste(rmincPath,"/","user_tests/",sep=""), "\n\n\n")
-  testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), ...)
+  testReport <- testthat::test_dir(paste(rmincPath,"/","user_tests/",sep=""), env = tenv, ...)
   
   cat("\n*********************************************\n")
   cat("The RMINC test bed finished running all tests\n")
@@ -1206,32 +1226,34 @@ getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
 
   downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
   extractedPath <- file.path(dataPath, "rminctestdata/")
-  
-  if(!file.exists(downloadPath)){
-    dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
-    download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata2.tar.gz",
-                  destfile = downloadPath,
-                  method = method) # changed from "wget" to stop freakouts on mac
-  }
-  
-  untar(downloadPath, exdir = dataPath, compressed = "gzip")
-  
-  rectifyPaths <-
-    function(file){
-      readLines(file) %>%
-        gsub("/tmp/rminctestdata/", extractedPath, .) %>%
-        writeLines(file)
-      
-      invisible(NULL)
+
+  if(!file.exists(extractedPath)){
+    if(!file.exists(downloadPath)){
+      dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
+      download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata2.tar.gz",
+                    destfile = downloadPath,
+                    method = method) # changed from "wget" to stop freakouts on mac
     }
   
-  filesToFix <- 
-    c("filenames.csv",  
-      "minc_summary_test_data.csv",  
-      "test_data_set.csv") %>%
-    file.path(extractedPath, .)
+    untar(downloadPath, exdir = dataPath, compressed = "gzip")
   
-  lapply(filesToFix, rectifyPaths)
+    rectifyPaths <-
+      function(file){
+        readLines(file) %>%
+          gsub("/tmp/rminctestdata/", extractedPath, .) %>%
+          writeLines(file)
+      
+        invisible(NULL)
+      }
+  
+    filesToFix <- 
+      c("filenames.csv",  
+        "minc_summary_test_data.csv",  
+        "test_data_set.csv") %>%
+      file.path(extractedPath, .)
+  
+    lapply(filesToFix, rectifyPaths)
+  }
   
   invisible(NULL)
 }

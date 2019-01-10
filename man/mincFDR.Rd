@@ -15,7 +15,7 @@ mincFDR(buffer, ...)
 
 \method{mincFDR}{mincLogLikRatio}(buffer, mask = NULL, ...)
 
-\method{mincFDR}{mincLmer}(buffer, mask = NULL, ...)
+\method{mincFDR}{mincLmer}(buffer, mask = NULL, method = "fdr", ...)
 
 \method{mincFDR}{mincMultiDim}(buffer, columns = NULL, mask = NULL,
   df = NULL, method = "FDR", statType = NULL, ...)

@@ -77,34 +77,40 @@ Each of these can run sequentially, locally (multicore), or on a cluster.
 ## RMINC on a Cluster
 
 Using RMINC on a cluster is now relatively simple. Thanks to the wonderful 
-["BatchJobs"](https://github.com/tudo-r/BatchJobs/blob/master/README.md) package 
+["batchtools"](https://github.com/mllg/batchtools) package 
 RMINC can be configured to run on Torque, SGE, Slurm, ad-hoc SSH clusters and more. We and our collaborators typically 
 use Torque and SGE but using these other systems is possible with a little configuration effort. 
 
 ### Quick Start
 
-To setup RMINC to run on your cluster you can do one of the following:
+To setup RMINC to run on your cluster, you will typically set a default configuration file
+in a bash session before opening R.
 
-  1. Use RMINC's `configureMincParallel` with either  "pbs", "sge", or a custom configuration file.
-     Both the PBS (torque) and SGE options will load up default configurations that work well for our
-     system. Your mileage may vary.
-  2. Use BatchJobs `loadConfig` or `setConfig`, with a custom configuration.
-  
-For example:
-
-```{r, include=FALSE}
-setConfig(
-  list(default.resources = 
-         list(nodes = 1, vmem = "8G", walltime = "01:00:00", extras = "-l q=defdev.q")))
+```
+export RMINC_BATCH_CONF=/path/to/my/config.R
 ```
 
-```{r}
-## Tell RMINC to use the default SGE configuration
-configureMincParallel("sge")
+This file will likely look something like:
 
-## Quietly fit a mincLm using 6 SGE cores
+```{r, include=FALSE, eval = FALSE}
+cluster.functions <-
+  makeClusterFunctionsTORQUE(system.file("parallel/pbs_script.tmpl", package = "RMINC"))
+
+default.resources <-
+  list(nodes = 1,
+       memory = "8G",
+       walltime = "01:00:00")
+```
+
+In fact this is the default configuration that comes with RMINC, it assumes you are using a 
+torque cluster and each job will take under an hour, using less than 8 gigabytes of memory
+and using a single node. 
+
+Then to run a job you can do:
+
+```{r}
 suppressMessages(  
-  qmodel <- mincLm(jacobians_fixed_2 ~ Body.Weight, data = image_frame, parallel = c("sge", 6))
+  qmodel <- mincLm(jacobians_fixed_2 ~ Body.Weight, data = image_frame, parallel = c("pbs", 6))
 )
 
 ##  Check the results look the same as the local version
@@ -121,102 +127,89 @@ image_frame$jacobians_fixed_2[1] %>%
 ```
 
 As of RMINC 1.4.3 there is no configuration necessary within parallel function calls other than to specify the
-number of batches. The argument `parallel = c("sge", 6)` is splitting the job into 6 peices. The `"sge"` portion
-is checked to see if it is "local" or "snowfall", otherwise it is ignored, relying instead on BatchJobs configuration
+number of batches. The argument `parallel = c("pbs", 6)` is splitting the job into 6 peices. The `"pbs"` portion
+is checked to see if it is "local" or "snowfall", otherwise it is ignored, relying instead on batchtools configuration
 to control execution. This contrasts from earlier versions of RMINC.
 
 
 ### Site Configuration
 
-To make it so you do not need to configure BatchJobs each time you open an R session you can do one of
-the following:
-
-  1. Use BatchJobs [configuration files](https://github.com/tudo-r/BatchJobs/wiki/Configuration),
-     If you are configuring for your site this will likely involve editing the configuration files
-     in the BatchJobs package itself.
-  2. Use the Rprofile mechanisms (see `?Startup`) to load the following: 
-    ```{r, eval = FALSE}
-     setHook(packageEvent("RMINC", "attach"),
-           function(...) 
-              BatchJobs::loadConfig(system.file("parallel/pbs_BatchJobs.R", package = "RMINC")))
-    ```
-    
-For our setup, I organized a module that sets the `R_PROFILE` environment variable (in addition
-to the package libraries) that points to a file containing the above code. This instructs
-R to load the pbs configuration file when RMINC is attached.
-
-The default PBS configuration file looks like:
-
-```{r, eval = FALSE}
-cluster.functions <- makeClusterFunctionsTorque(system.file("parallel/pbs_script.tmpl", package = "RMINC"))
-default.resources <-
-  list(nodes = 1,
-       vmem = "8G",
-       walltime = "01:00:00")
-```
-
-
-It is R code that sets the `cluster.functions` and `default.resources` for BatchJobs. The function 
-`makeClusterFunctionsTorque` finds a template file that it fills in whenever a new job is created. The
-exampled PBS template looks like:
+To make it so you do not need to configure batchtools each time you open an R session you can add
+a line that looks like:
 
 ```
-## Job Resource Interface Definition
-##
-## nodes [integer|character]:  Argument to PBS -l nodes, may be an integer number of nodes, or a character vector
-##                             of a colon separated list of node arguments e.g "1:ppn=8" for a scinet node
-## walltime   [character(1)]:  Walltime for this job e.g. "01:00:00" for 1 hour
-## vmem       [character(1)]:  Memory for each job e.g. "2G" for 2 gigabytes
-## extra         [character]:  Extra lines to be added to the job script before calling R  
-## 'walltime' and 'memory' settings automatically determine the correct queue, you don't have to
-## select the queue yourself.
-## Default resources can be set in your .BatchJobs.R by defining the variable
-## 'default.resources' as a named list.
+export RMINC_BATCH_CONF=/path/to/my/conf.R
+```
+
+To your bashrc. The file pointed to by `RMINC_BATCH_CONF` is R code that sets 
+the `cluster.functions` and `default.resources` for batchtools. The function 
+`makeClusterFunctionsTORQUE` finds a template file that it fills in whenever a new 
+job is created. The example PBS template looks like:
+
+```
+#!/bin/bash
+<%
+## Check some resources and set sane defaults
+resources$walltime = resources$walltime
+resources$memory = resources$memory
+resources$ncpus = if (is.null(resources$ncpus)) 1L else asInt(resources$ncpus, lower = 1L)
+resources$modules = if (is.null(resources$modules)) character(0L) else assertCharacter(resources$modules, any.missing = FALSE)
+resources$omp.threads = if (is.null(resources$omp.threads)) 1L else asInt(resources$omp.threads, lower = 1L)
+resources$blas.threads = if (is.null(resources$blas.threads)) 1L else asInt(resources$blas.threads, lower = 1L)
 
 
-#PBS -N <%= job.name %>
-## merge standard error and output
-#PBS -j oe
-## direct streams to our logfile
+## first string of queue, selected by walltime
+#walltimes = 3600L * c(1L, 8L, 48L, 672L)
+#queue = c("short", "med", "long", "ultralong")[wf(resources$walltime <= walltimes)]
+
+## very ugly hack because we cannot log to data (nobackup) filesystem on lido,
+## only home fs is available
+## unfortunately there seems to be no generic solution
+## does log path start with /data/?
+log.file = log.file
+if (length(grep("^/data/", log.file)) > 0L) {
+  ## strip that
+  log.file = substr(log.file, 7L, nchar(log.file))
+  ## find next forward slash
+  i = regexpr("/", log.file)
+  if (i != -1) {
+    ## this must be "user": e.g. /data/bischl/...
+    user = substr(log.file, 1L, i-1L)
+    ## put together
+    log.file = sprintf("/home/%s/nobackup%s", user, substr(log.file, i, nchar(log.file)))
+  }
+}
+-%>
+
+#PBS -N <%= job.hash %>
 #PBS -o <%= log.file %>
-
-#PBS -l nodes=<%= resources$nodes %>,walltime=<%= resources$walltime %>,vmem=<%= resources$vmem %>
-## remove this line if your cluster does not support arrayjobs
-## Disable array jobs: #PBS -t 1-<%= arrayjobs %>
+#PBS -l walltime=<%= resources$walltime %>,nodes=<%=resources$nodes%>:ppn=1,vmem=<%= resources$memory %>
+#PBS -j oe
+<%= if (array.jobs) sprintf("#PBS -t 1-%i", nrow(jobs)) else "" %>
 #PBS -V  
-## Run R:
-## we merge R output with stdout from PBS, which gets then logged via -o option
-<% if(!is.null(resources$extra)) cat(resources$extra, sep = "\n") %>
-R CMD BATCH --no-save --no-restore "<%= rscript %>" /dev/stdout
+
+## export value of DEBUGME environemnt var to slave
+export DEBUGME=<%= Sys.getenv("DEBUGME") %>
+
+## run R
+Rscript -e 'batchtools::doJobCollection("<%= uri %>")'
 ```
 
-BatchJobs handles the job.name, log.file, and rscript portions of the template. Our default.resources
-configuration provides the nodes, walltime, and vmem.
+Batchtools handles the job.name, log.file, and rscript portions of the template. Our default.resources
+configuration provides the nodes, walltime, and memory.
 
 If you do not use PBS or SGE, you can find example configurations on 
-[BatchJobs' github](https://github.com/tudo-r/BatchJobs/tree/master/examples) 
+[batchtools' github](https://github.com/mllg/batchtools/tree/master/inst/templates) 
 
-If in the middle of a session you need to change you configuration you can always use
-`BatchJobs::setConfig`, `BatchJobs::loadConfig`, and `RMINC::configureMincParallel`. 
-For example to ask for twice as much walltime you can run:
+If in the middle of a session you need to change you configuration you can pass
+a `resources` argument explicitly to most parallel functions, or pass in an alternative
+configuration file with the `conf_file` argument.
 
-```{r, eval = FALSE}
-setConfig(
-  list(default.resources = 
-         list(nodes = 1, vmem = "8G", walltime = "02:00:00")))
-```
-
-I know the nested lists are cumbersome, but ideally reconfiguring mid-session should be rare.
-
-It is also important to note that with RMINC 1.4.3 nested parallelism (as is required for SciNet)
-has been discontinued. It introduced unnecessary fragility into the code. If enough users request
-this be supported it will be re-added to a future release.
 
 ```{r, include = FALSE}
 unlink("rminctestdata.tar.gz")
 unlink("rminctestdata/", recursive = TRUE)
 ```
-
 
 ## Internals For Intrepid Developers
 
@@ -259,8 +252,8 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
     if(!is.matrix(sub_matrix))
       sub_matrix <- matrix(sub_matrix, nrow = 1)
     
-    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
-      matrix(ncol = nrow(sub_matrix))
+    lapply(seq_len(nrow(sub_matrix))
+           , function(i) fun(sub_matrix[i,], ...)
   }
   
   if(is.null(parallel)){
@@ -276,32 +269,32 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL){
         }, mc.cores = n_groups) %>%
         Reduce(cbind, ., NULL)
     } else {
-      reg <- makeRegistry("matrixApply_registry")
+      reg <- qMincRegistry(new_file("matrixApply_registry"), conf_file = conf_file)
       on.exit( tenacious_remove_registry(reg) )
       
-      batchMap(reg, function(group){
+      ids <- batchMap(reg = reg, function(group){
         apply_fun(mat[group,])
       }, group = groups)
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       results <-
-        loadResults(reg, use.names = FALSE) %>%
-        Reduce(cbind, ., NULL)
+        reduceResults(c, init = NULL, reg = reg)
     }
   }
   
-  # The apply part (transpose to match output of mincApply)
-  results <- t(results)
-  
+  # Flesh out the object if a mask was used
   if(!is.null(mask)){
-    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
-    results_expanded[mask_lgl, ] <- results
+    mask_val <- getOption("RMINC_MASKED_VALUE")
+    results_expanded <- replicate(length(mask_lgl), getOption("RMINC_MASKED_VALUE"), simplify = FALSE)
+    results_expanded[mask_lgl] <- results
     results <- results_expanded
   }
   
-  if(ncol(results) == 1) dim(results) <- NULL
+  collate_fun <- match.fun(collate)
+  results <- collate(results)
+  
   
   results
 }
@@ -333,8 +326,8 @@ The next block is the engine of `matrixApply`, its a function that applies the u
     if(!is.matrix(sub_matrix))
       sub_matrix <- matrix(sub_matrix, nrow = 1)
     
-    apply(sub_matrix, 1, function(x) fun(x, ...)) %>%
-      matrix(ncol = nrow(sub_matrix))
+    lapply(seq_len(nrow(sub_matrix))
+           , function(i) fun(sub_matrix[i,], ...))
   }
 ```
 
@@ -357,16 +350,15 @@ if(is.null(parallel)){
       reg <- makeRegistry("matrixApply_registry")
       on.exit( tenacious_remove_registry(reg) )
       
-      batchMap(reg, function(group){
+      ids <- batchMap(reg = reg, function(group){
         apply_fun(mat[group,])
       }, group = groups)
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       results <-
-        loadResults(reg, use.names = FALSE) %>%
-        Reduce(cbind, ., NULL)
+        reduceResults(c, init = NULL, reg = reg)
     }
   }
 ```
@@ -382,7 +374,7 @@ The BatchJobs case follows the same logic, although a few more infrastructure fu
 BatchJobs registry is created with `makeRegistry` and registered for removal when the function ends. 
 `tenacious_remove_registry` works hard to ensure all evidence of a failed run is scrubbed from the system.
 The triplet of `batchMap`, `submitJobs`, and `waitForJobs` instructs the queue to start running the jobs
-and wait patiently for them to finish. The results are then loaded with `loadResults` and reduced as above.
+and wait patiently for them to finish. The results are then loaded with `reduceResults` and reduced as above.
 
 After this there is a little result coercion
 
@@ -391,13 +383,15 @@ After this there is a little result coercion
   results <- t(results)
   
   if(!is.null(mask)){
-    results_expanded <- matrix(0, nrow = length(mask_lgl), ncol = ncol(results))
-    results_expanded[mask_lgl, ] <- results
+    mask_val <- getOption("RMINC_MASKED_VALUE")
+    results_expanded <- replicate(length(mask_lgl), getOption("RMINC_MASKED_VALUE"), simplify = FALSE)
+    results_expanded[mask_lgl] <- results
     results <- results_expanded
   }
   
-  if(ncol(results) == 1) dim(results) <- NULL
-  
+  collate_fun <- match.fun(collate)
+  results <- collate(results)
+
   results
 ```
 
@@ -415,7 +409,7 @@ Implementing additional parallel functions will follow this general framework:
    with the appropriate information
 4. If `parallel[1]` is "local" run mclapply or its muffled variant on the engine function and the 
    grouping object
-5. Otherwise run the BatchJobs commands above
+5. Otherwise run the batchtools commands above
 6. Reduce the results to an appropriate format.
 
 Although it is possible `matrixApply` will work for your problem (potentially with a little transposition).

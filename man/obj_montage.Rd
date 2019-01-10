@@ -6,9 +6,9 @@
 \usage{
 obj_montage(left_obj, right_obj, left_map, right_map, output = NULL,
   colour_map, colour_range = NULL, colour_default = "grey",
-  colour_bar = TRUE, reverse = NULL, labels = FALSE,
-  palette = heat.colors(255), ..., add_normals = TRUE, colour_title = "",
-  close_on_output = TRUE)
+  colour_bar = TRUE, labels = FALSE, palette = heat.colors(255),
+  symmetric = FALSE, ..., plot_corners = c(100, 100, 900, 900), zoom = 1,
+  add_normals = TRUE, colour_title = "", close_on_output = TRUE)
 }
 \arguments{
 \item{left_obj}{A \code{bic_obj} probably created by \link{read_obj} with the left hemisphere
@@ -33,14 +33,20 @@ allowable labels/measures/statistics to be includedon the surface}
 
 \item{colour_bar}{Whether or not to draw a colour bar in the figure}
 
-\item{reverse}{Whether to have a positive and negative colour scale (not yet implemented)}
-
 \item{labels}{Whether or not the colour_map is a set of discrete labels}
 
 \item{palette}{A palette, AKA look-up-table, providing a linear colour scale for the colours in
 \code{colour_map}}
 
+\item{symmetric}{Whether to have a positive and negative colour scale (not yet implemented)}
+
 \item{...}{additonal parameters to be passed to \link{create_mesh}}
+
+\item{plot_corners}{The coordinates in pixels for the top left and bottom right corners of the
+the rgl device. \code{c(lx, ly, rx, ry)}}
+
+\item{zoom}{A zoom factor to apply to each subplot. This is the inverse of what you might expect
+for consistency with rgl. zoom > 1 zooms out, zoom < zooms in.}
 
 \item{add_normals}{Whether or not to add normals to the surface objects, see \link{create_mesh} for
 details}
@@ -51,7 +57,7 @@ details}
 TRUE}
 }
 \value{
-invisible NULL
+The subscenes invisibly.
 }
 \description{
 Plot the left and right hemispheres of brain colourized by two colour maps

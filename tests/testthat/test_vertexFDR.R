@@ -1,8 +1,11 @@
 library(testthat)
 context("vertexFDR")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gftest <- read.csv(file.path(dataPath, "subject.csv"))
 

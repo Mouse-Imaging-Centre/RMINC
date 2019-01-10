@@ -16,20 +16,17 @@ shinyUI(pageWithSidebar(
   sidebarPanel(
     conditionalPanel(
       'input.tab == "Slice Series" || input.tab == "Single Slice"',
-      sliderInput("low",
-                  "Lower Threshold",
+      sliderInput("range",
+                  "Threshold",
                   min = 0,
                   max = 15,
-                  step=0.01,
-                  value = 2)),
+                  step=0.1,
+                  value = c(2, 15)),
+      uiOutput("statsDescription")),
+    
     conditionalPanel(
       'input.tab == "Slice Series" || input.tab == "Single Slice"',
-      sliderInput("high",
-                  "Upper Threshold",
-                  min = 0,
-                  max = 15,
-                  step=0.01,
-                  value = 20)),
+      uiOutput("fdr_thresholds")),
     selectInput("statistic", "Statistic to display:", choices=c()),
                 #choices=c("Neonatal" = "Neonatal",
                 #          "Sex" = "mouse.gender")),
@@ -41,14 +38,9 @@ shinyUI(pageWithSidebar(
                             "axial" = 3))),
     conditionalPanel(
       'input.tab == "Slice Series"',
-      sliderInput("begin",
-                  "First slice",
-                  min=1, max=340, value=20)),
-    conditionalPanel(
-      'input.tab == "Slice Series"',
-      sliderInput("end",
-                  "Last slice",
-                  min=-340, max=-1, value=-20)),
+      sliderInput("sliceRange",
+                  "Slice Range",
+                  min=1, max=340, value=c(55, 280))),
     conditionalPanel(
       'input.tab == "Slice Series"',
       sliderInput("rows", "Number of rows",
@@ -96,6 +88,7 @@ shinyUI(pageWithSidebar(
       id="tab",
       tabPanel("Slice Series", plotOutput("seriesPlot", height="800px")),
       tabPanel("Single Slice",
+               style="background-color: black",
                fluidRow(
                  column(7,
                         plotOutput("coronalPlot", height="500px", click="plot_click")),

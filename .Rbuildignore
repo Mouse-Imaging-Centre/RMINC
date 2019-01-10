@@ -7,3 +7,10 @@
 ^.git$
 ^tests/testthat/test_torque_parallel.R$
 ^etc/.*$
+^Makefile$
+^index.Rmd$
+^index.md$
+^Gemfile*$
+^_config.yml$
+^_pkgdown\.yml$
+^docs$

@@ -9,16 +9,17 @@
 \usage{
 qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
   tinyMask = FALSE, slab_sizes = NULL, resources = list(),
-  packages = c("RMINC"), registry_name = "qMincApply_registry",
-  temp_dir = getwd(), cores = 1, wait = TRUE, cleanup = TRUE,
-  clobber = FALSE, collate = simplify2minc)
+  packages = c("RMINC"), registry_dir = getwd(),
+  registry_name = "qMincApply_registry", temp_dir = getwd(), cores = 1,
+  wait = TRUE, cleanup = TRUE, clobber = FALSE, collate = simplify2minc,
+  conf_file = getOption("RMINC_BATCH_CONF"))
 
 qMincRegistry(registry_name = "qMincApply_registry", packages = c("RMINC"),
-  registry_dir = file.path(getwd(), registry_name), clobber = FALSE)
+  registry_dir = getwd(), clobber = FALSE, resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF"))
 
 qMincMap(registry, filenames, fun, ..., mask = NULL, slab_sizes = NULL,
-  batches = 4, tinyMask = FALSE, temp_dir = getwd(), resources = list(),
-  cores = 1)
+  batches = 4, tinyMask = FALSE, temp_dir = getwd(), cores = 1)
 
 qMincReduce(registry, ignore_incompletes = FALSE, wait = FALSE,
   collate = simplify2minc)
@@ -44,18 +45,23 @@ multicore jobs, with the number of batches set to the number of cores.}
 \item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file 
 at a time defaults to one slice along the first dimension.}
 
-\item{resources}{The resources to request for each job, overrides the \code{default.resources}
-specified in the configuration list. See \link{configureMincParallel} for more on configuration}
+\item{resources}{A list of resources to request from the queueing system
+common examples including memory, walltime, and nodes see
+\code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+\code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+more examples}
 
 \item{packages}{packages to be loaded for each job in a registry}
 
-\item{registry_name}{The name to give your BatchJobs registry}
+\item{registry_dir}{where batchtools should create the registry}
+
+\item{registry_name}{a name for the registry}
 
 \item{temp_dir}{A directory to store files needed for the parallelization
 and job management}
 
 \item{cores}{the number of cores to parallelize across for each worker, defaults to 1
-but higher numbers may be useful for BatchJobs multicore or systems like SciNet that do
+but higher numbers may be useful for batchtools multicore or systems like SciNet that do
 not allocate single core jobs.}
 
 \item{wait}{Whether to wait for your results or return a registry object
@@ -68,7 +74,7 @@ to true}
 
 \item{collate}{A function to collate the returned list into another object type.}
 
-\item{registry_dir}{where qMincRegistry should create the registry}
+\item{conf_file}{A batchtools config file, defaults to \code{option("RMINC_BATCH_CONF")}}
 
 \item{registry}{a pre-existing job registry}
 
@@ -81,7 +87,7 @@ even if all jobs are not complete.}
 is called, the results are returned after collation with \code{collate}
 }
 \item{If \code{qMincApply} is called with \code{wait = FALSE} or if \code{qMincRegistry} or
-\code{qMincMap} are called  a BatchJobs registry is returned that can be used to 
+\code{qMincMap} are called  a batchtools registry is returned that can be used to 
 query job states, kill jobs, and collected results
 }
 }
@@ -89,7 +95,7 @@ query job states, kill jobs, and collected results
 \description{
 Split a minc apply job into batches and process it either locally
 or a true grid computing setup. Endeavours to provide an abstract
-and customizable interface for job scheduling based on the BatchJobs
+and customizable interface for job scheduling based on the batchtools
 package. Basic steps of the apply is to 
 \itemize{
 \item{create a registry with \link{qMincRegistry} where jobs are coordinated and 
@@ -109,12 +115,12 @@ maintaining the ability to access results when the jobs have finished.
 }
 \details{
 RMINC's batching facilities are inherited with little modification from
-the BatchJobs package, mostly just providing handy wrappers to handle registry
+the batchtools package, mostly just providing handy wrappers to handle registry
 creation, batching, submission, and reduction. The abstractions provided are very leaky
-and it is worth learning about BatchJobs to handle more complex situations. Formerly one
+and it is worth learning about batchtools to handle more complex situations. Formerly one
 could set the parallelization method from this function, this has been removed. 
 Controlling how and where to execute the parallel jobs is now handled by 
-\link{configureMincParallel}.
+the conf_file argument.
 }
 \section{Functions}{
 \itemize{

@@ -1,23 +1,26 @@
 #!/bin/bash
 
-# The name of the job, can be anything, simply used when displaying the list of running jobs
+## The name of the job, can be anything, simply used when displaying the list of running jobs
 #$ -N <%= job.name %>
-# Combining output/error messages into one file
-#$ -j y
-# Giving the name of the output log file
-#$ -o <%= log.file %>
-# One needs to tell the queue system to use the current directory as the working directory
-# Or else the script may fail as it will execute in your top level home directory /home/username
-#$ -cwd
-# use environment variables
-#$ -V
-# use bash
-#$ -S /bin/bash
-# set resources
-#$ -l h_vmem=<%= resources$vmem %> 
-#$ -l s_rt=<%= resources$walltime %>
-#$ -l h_rt=<%= resources$walltime %>
 
-# we merge R output with stdout from SGE, which gets then logged via -o option
-R CMD BATCH --no-save --no-restore "<%= rscript %>" /dev/stdout
+## Combining output/error messages into one file
+#$ -j y
+
+## Giving the name of the output log file
+#$ -o <%= log.file %>
+
+## One needs to tell the queue system to use the current directory as the working directory
+## Or else the script may fail as it will execute in your top level home directory /home/username
+#$ -cwd
+
+## Use environment variables
+#$ -V
+
+## Use correct queue
+#$ -q <%= resources$queue %>
+
+## Export value of DEBUGME environemnt var to slave
+<% if(!is.null(resources$extra)) cat(paste0(resources$extra, collapse = NULL)) %>
+
+Rscript -e 'batchtools::doJobCollection("<%= uri %>")'
 exit 0

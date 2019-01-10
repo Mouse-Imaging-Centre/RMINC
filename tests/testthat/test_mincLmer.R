@@ -3,12 +3,15 @@ library(lme4)
 
 context("mincLmer - basic test")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
 maskfile <- file.path(dataPath, "testminc-mask.mnc")
-
+ 
 # pick a voxel inside the mask
 voxelIndex <- 453 # for later comparisons
 gf$v <- mincGetVoxel(gf$jacobians_fixed_2, 4, 5, 2)
@@ -110,5 +113,19 @@ test_that("Exotic formulae work", {
   expect_that( df[[2]], is_less_than(nrow(gf)+1))
   expect_that( df[[2]], is_more_than(1))
 
+})
+
+test_that("mincLmer works with NAs", {
+  verboseRun({
+    gf_missing <- gf
+    gf_missing[1, "Sex"] <- NA
+    
+    missing <- mincLmer(jacobians_fixed_2 ~ Sex + (1|coil), gf_missing, mask=maskfile)
+    missing_dfs <- mincLmerEstimateDF(missing)
+    df <- attr(missing_dfs, "df")
+  })
+  
+  expect_that( df[[2]], is_less_than(nrow(attr(missing, "data"))+1))
+  expect_that( df[[2]], is_more_than(1))
 })
 

@@ -36,7 +36,11 @@ generally for internal use only.}
 \item{collate}{A function to (potentially) collapse the result list
 examples include link{unlist} and \link{simplify2array}, defaulting
 to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
-\code{mincSingleDim}, or \code{mincList} depending on the result structure.}
+\code{mincSingleDim}, or \code{mincList} depending on the result structure.
+\cr
+If you encounter memory issues, it could be due to minc file caching.
+Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+a small value like 1.}
 }
 \value{
 a list of results subject the the collate function

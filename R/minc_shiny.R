@@ -4,13 +4,18 @@
 #' various views, the ability to plot individual voxels, and get the output of
 #' the stats model at that voxel.
 #'
-#' @param statsoutput the output of mincLm or mincAnova
+#' @param statsoutput the output of mincLm, mincAnova, or mincLmer. Alternatively
+#' a single statistic volume. Must be compatible with \link{mincArray}
 #' @param anatVol the anatomical volume on which to display the statistics. Can
 #'   be passed a filename, a MINC volume (from mincGetVol), or a mincArray.
 #' @param volumes a matrix or data frame of volumes for plotting
 #' @param keepBetas whether to include the beta coefficients
 #' @param plotcolumns extra data to be used for plotting
 #' @param modelfunc optional modelling function
+#' @param singleStatType if passing a single statistic volume to \code{statsoutput}
+#' what statistic type is it. Stat-types "b", "t", and "tlmer" will get symmetric
+#' colour scales. All others will get one sided colour scales.
+#' @param fdr An optional mincFDR object for choosing thresholds.
 #' @param anatLow The lower threshold value for displaying the underlying anatomy
 #' @param anatHigh The upper threshold value for displaying the underlying anatomy
 #' @examples
@@ -21,8 +26,10 @@
 #'                   plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
 #' }
 #' @export
-launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL
-                              , anatLow = 700, anatHigh = 1400) {
+launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL
+                            , keepBetas=FALSE, plotcolumns=NULL, modelfunc=NULL
+                            , singleStatType = NULL, fdr = NULL
+                            , anatLow = 700, anatHigh = 1400) {
   gfs <- data.frame(filenames = attributes(statsoutput)$filenames)
   if (!is.null(plotcolumns)) {
     gfs <- cbind(gfs, plotcolumns)
@@ -43,8 +50,19 @@ launch_shinyRMINC <- function(statsoutput, anatVol, volumes=NULL, keepBetas=FALS
   }
   
   statsList <- list()
+
+  if(!inherits(statsoutput, "mincMultiDim")){
+    input_name <- deparse(substitute(statsoutput))
+    dim(statsoutput) <- c(length(statsoutput), 1)
+    class(statsoutput) <- c("mincMultiDim", "matrix")
+    attr(statsoutput, "stat-type") <- singleStatType
+    colnames(statsoutput) <- input_name
+  }
+  
   sType <- attributes(statsoutput)$`stat-type`
   cNames <- colnames(statsoutput)
+
+  
   cat("Converting to mincArray - might take a second or two\n")
   for (i in 1:length(cNames)) {
     if (keepBetas || sType[i] != "beta") {

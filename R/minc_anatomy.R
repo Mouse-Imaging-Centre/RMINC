@@ -112,17 +112,21 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #' Computes volumes, means, sums, and similar values across a
 #' segmented atlas
 #' @inheritParams anatGetAll_old
+#' @param atlas One of: NULL if the method is labels, a single atlas file for all subjects,
+#' or a vector of one atlas file per subject.
+#' @param method A string specifying the way information is to be computed at every voxel (default is "jacobians"). See the details section for the possible options and what they mean.
+#' @param side One of three choices, "right", "left", or "both" (the default) which specify what labels to obtain.
 #' @param strict check if any files differ in step sizes
 #' @param parallel how many processors to run on (default=single processor).
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' Leaving this argument NULL runs sequentially.
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 
 #' @details 
-#' anatGetAll needs a set of files along with an atlas and a set of
+#' anatGetAll needs a set of files, an atlas (unless method=="labels"), and a set of
 #' atlas definitions. In the end it will produce one value per label
 #' in the atlas for each of the input files. How that value is
 #' computed depends on the methods argument:
@@ -141,133 +145,134 @@ anatRenameRows <- function(anat, defs=getOption("RMINC_LABEL_DEFINITIONS")) {
 #'   \item{sums -}{ Each file contains an aribtrary number and the sum of all
 #'   voxels inside each label is computed.
 #'   }
-#'   \item{text -}{ Each file is a comma separated values text file and is simply
-#'   read in.
-#'   }
 #' }
+#' If multiple atlases are passed in each subject will have the summary computed
+#' with respect to their atlas.
 #' @return A matrix with ncols equal to the number of labels in the atlas and
 #' nrows equal to the number of files.
 #' @export
 anatGetAll <-
-  function(filenames, atlas = NULL, 
+  function(filenames, atlas = NULL,
            defs = getOption("RMINC_LABEL_DEFINITIONS"), 
-           method = c("jacobians", "labels", "sums", "means", "text"), 
+           method = c("jacobians", "labels", "sums", "means"), 
            side = c("both", "left", "right"),
            parallel = NULL, 
-           strict = TRUE){
+           strict = TRUE
+         , conf_file = getOption("RMINC_BATCH_CONF")){
     
     method <- match.arg(method)
     
     if(method != "labels" && is.null(atlas))
       stop("An atlas is required for all methods other than \"labels\" ")
-      
-    mincFileCheck(filenames)
+
+    if(method == "labels" && !is.null(atlas)){
+     stop("Cannot use labels with an atlas, please pass in label volumes as `filenames`")
+    }
     
-    ## Handle dispatch of worker functions
-    compute_summary <-
-      function(filenames){
-        switch(method
-               , labels =
-                   return(
-                     label_counts(filenames = filenames
-                                , defs = defs
-                                , side = side
-                                , strict = strict))
-               , test = 
-                   return(
-                     Reduce(function(acc, file){ cbind(acc, read.csv(file, header = FALSE)) }
-                            , filenames
-                            , NULL))
-               , #default
-                   return(
-                     anatomy_summary(filenames = filenames
-                                     , atlas = atlas
-                                     , method = method
-                                     , defs = defs
-                                     , side = side
-                                     , strict= strict)))
-        }
+    mincFileCheck(filenames)
+    filenames <- as.character(filenames)
+    if(!is.null(atlas)){
+      mincFileCheck(atlas)
+      atlas <- as.character(atlas)
+    } else {
+      atlas <- character(0)
+    }
+
+    compute_summary <- function(file_atlas_pairs){
+      atlas_get_all(file_atlas_pairs[[1]], file_atlas_pairs[[2]]
+                  , method = method)
+    }
+
+    result_rows <- filenames
     
     ## Special matrix reducer to ensure rows are bound by index
-    reduce_matrices <- 
-      function(mat_list){
-        mat_list %>%
-          lapply(function(m) tibble::rownames_to_column(as.data.frame(m))) %>%
-          Reduce(function(df, acc) full_join(df, acc, by = "rowname")
-                 , ., data_frame(rowname = character())) %>%
-          select_(~ -rowname) %>%
-          as.matrix
+    reduce_results <- 
+      function(res_list){
+        res_list %>%
+          map_df(function(r){
+            setNames(r, paste0("label_", names(r))) %>%
+              as.data.frame 
+          })
       }
     
     ## Handle parallelism choices
     if (is.null(parallel)) {
-      out <- compute_summary(filenames)
+      out <-
+        reduce_results(list(compute_summary(list(filenames, atlas))))
     }
     else {
       n_groups <- as.numeric(parallel[2])
-      groups <- split(seq_along(filenames), groupingVector(length(filenames), n_groups))
+
+      if(length(atlas) > 1){
+        atlas_groups <-
+          split(atlas
+              , groupingVector(length(atlas), n_groups))
+      } else {
+        atlas_groups <- list(atlas)
+      }
+
+      file_groups <-
+        split(filenames
+            , groupingVector(length(filenames), n_groups))
+
+      groups <- map2(file_groups, atlas_groups, list)
       # a vector with two elements: the methods followed by the # of workers
       if (parallel[1] %in% c("local", "snowfall")) {
         out <- 
-          parallel::mclapply(groups, function(group){
-            compute_summary(filenames[group])
+          failing_mclapply(groups, function(group){
+            compute_summary(group)
           }, mc.cores = n_groups) %>%
-          reduce_matrices %>%
-          `colnames<-`(filenames) %>%
-          setNA(0)
+          reduce_results
       }
       else {
-        reg <- makeRegistry("anatGet_registry")
+        reg <- qMincRegistry(new_file("anatGet_registry")
+                           , conf_file = conf_file)
         on.exit( tenacious_remove_registry(reg) )
         
         suppressWarnings( #Warning suppression for large env for function (>10mb)
-          batchMap(reg, function(group){
-            compute_summary(filenames[group])
+          ids <- batchMap(reg = reg, function(group){
+            compute_summary(group)
           }, group = groups)
         )
         
-        submitJobs(reg)
-        waitForJobs(reg)
+        submitJobs(ids, reg = reg)
+        waitForJobs(reg = reg)
         
         out <-
-          loadResults(reg, use.names = FALSE) %>%
-          reduce_matrices %>%
-          `colnames<-`(filenames) %>%
-          setNA(0)
-      } 
+          reduceResultsList(reg = reg) %>%
+          reduce_results
+      }
     }
-    
+
+    out <-
+      as.matrix(out) %>%
+      t %>%
+      `colnames<-`(result_rows) %>%
+      `rownames<-`(sub("label_", "", rownames(.))) %>%
+      .[order(as.numeric(rownames(.))),,drop=FALSE]
+
     missing_labels <- abs(rowSums(out)) == 0
-    
     ## Handle creating the label frame
     if(!is.null(defs)){
       label_frame <- create_labels_frame(defs, side = side)
-    } else if(!is.null(atlas)) {
+    } else {
       warning("No definitions provided, using indices from atlas \n",
               "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
-              " or set it as an environment variable")
-      atlas_vol <- mincGetVolume(atlas) %>% round %>% as.integer
-      uniq_labels <- unique(atlas_vol)
+              " or set it as an environment variable")      
+      labels <- rownames(out)
       label_frame <-
-        data_frame(Structure = as.character(uniq_labels)
-                   , label   = uniq_labels) 
-    } else {
-      warning("No definitions provided, using observed labels \n",
-              "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
-              " or set it as an environment variable")
-      uniq_labels <- which(!missing_labels)
-      label_frame <-
-        data_frame(Structure = as.character(uniq_labels)
-                   , label   = uniq_labels) 
-    }
+        data_frame(Structure = labels
+                 , label   = as.numeric(labels))
+    } 
     
     ## Dress up the results and do label error checking
-    create_anat_results(out, label_frame, filenames = filenames, atlas = atlas)
+    create_anat_results(out, label_frame, filenames = filenames, atlas = atlas
+                      , new_style = TRUE)
   }
 
 # Convert an RMINC style atlas label set to a nice data.frame
 create_labels_frame <-
-  function(defs, side = c("both", "left", "right"), keep_hierarchy = FALSE){
+  function(defs, side = c("both", "left", "right"), hierarchy = NULL){
     side <- match.arg(side)
     
     # if the definitions are given, check to see that we can read the 
@@ -281,16 +286,22 @@ create_labels_frame <-
     label_defs <- 
       read.csv(defs, stringsAsFactors = FALSE)
     
-    if("hierarchy" %in% names(label_defs) & keep_hierarchy){
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label, ~ hierarchy)
+    if(!is.null(hierarchy) && hierarchy %in% names(label_defs)){
+      label_defs <- 
+        select(label_defs
+               , !!! c("Structure"
+                       , "left.label"
+                       , "right.label"
+                       , hierarchy)) %>% ##new tidyeval
+        rename(hierarchy = !!hierarchy)
     } else {
-      label_defs <- select_(label_defs, ~ Structure, ~ left.label, ~ right.label)
+      label_defs <- select(label_defs, !!! c("Structure", "left.label", "right.label"))
     }
     
     label_defs <- 
       label_defs %>%
-      mutate_(both_sides = ~ right.label == left.label) %>%
-      gather_("hemisphere", "label", c("right.label", "left.label")) %>%
+      mutate(both_sides = .data$right.label == .data$left.label) %>%
+      gather("hemisphere", "label", c("right.label", "left.label")) %>%
       mutate_(Structure =
                 ~ ifelse(both_sides
                          , Structure
@@ -304,9 +315,9 @@ create_labels_frame <-
       mutate_(hierarchy = 
                 ~ with(.
                        , case_when(is.na(hierarchy) | hierarchy == "" ~ ""
-                                 , both_sides ~ hierarchy
-                                 , hemisphere == "right.label" ~ paste0("right ", hierarchy)
-                                 , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
+                                   , both_sides ~ hierarchy
+                                   , hemisphere == "right.label" ~ paste0("right ", hierarchy)
+                                   , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
     
     label_defs <-
       switch(side
@@ -324,17 +335,26 @@ create_labels_frame <-
 
 # create the results matrix from the c++ results and a label frame 
 create_anat_results <-
-  function(results, label_frame, filenames = NULL, atlas = NULL){
+  function(results, label_frame, filenames = NULL, atlas = NULL, new_style = FALSE){
     
     missing_labels <- abs(rowSums(results)) == 0
     if(nrow(results) == 1) stop("No structures found, check your atlas or label volumes")
-    
-    results <- 
-      as.data.frame(results) %>%
-      slice(-1) %>% #removes the zero label
-      mutate(indices = 1:n()) %>%
-      filter_(~ ! missing_labels[-1]) %>%
-      left_join(label_frame, by = c("indices" = "label"))
+
+    if(!new_style){
+      results <- 
+        as.data.frame(results) %>%
+        slice(-1) %>% #removes the zero label
+        mutate(indices = 1:n()) %>%
+        filter_(~ ! missing_labels[-1]) %>%
+        left_join(label_frame, by = c("indices" = "label"))
+    } else {
+      results <-
+        as.data.frame(results) %>%
+        (tibble::rownames_to_column)(var = "indices") %>%
+        slice(-1) %>%
+        mutate(indices = as.numeric(.data$indices)) %>%                           
+        left_join(label_frame, by = c("indices" = "label"))
+    }
     
     extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)
@@ -551,9 +571,9 @@ anatSummarize <-
     
     if(is.character(summarize_by) && length(summarize_by == 1)){
       summarize_by <- 
-        create_labels_frame(defs, keep_hierarchy = TRUE) %>%
+        create_labels_frame(defs, hierarchy = summarize_by) %>%
         select_(~ -label) %>%
-        rename_(label = "Structure", group = summarize_by)
+        rename_(label = "Structure", group = "hierarchy")
     }
     
     if(!discard_missing){
@@ -800,6 +820,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' @param data a data.frame containing variables in formula 
 #' @param anat an array of atlas labels vs subject data
 #' @param subset rows to be used, by default all are used
+#' @param weights An optional set of weights to use the regression, must be one per subject
 #' @return Returns an object containing the R-Squared,value,coefficients,F 
 #' and t statistcs that can be passed directly into anatFDR. Additionally
 #' has the attributes for model,stat type and degrees of freedom.
@@ -813,7 +834,7 @@ anatApply <- function(vols, grouping, method=mean) {
 #' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
 #' } 
 #' @export
-anatLm <- function(formula, data, anat, subset=NULL) {
+anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
   
   #INITIALIZATION
   matrixFound = FALSE
@@ -888,7 +909,14 @@ anatLm <- function(formula, data, anat, subset=NULL) {
     rows = colnames(mmatrix) 
     data.matrix.right = matrix()
   }
-  result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  
+  if(!is.null(weights)){
+    if(length(weights) != nrow(mmatrix)) stop("Incorrect number of weights supplied, need one per observation")
+    result <- .Call("vertex_wlm_loop",data.matrix.left,data.matrix.right,mmatrix,weights,PACKAGE="RMINC") 
+  } else {
+    result <- .Call("vertex_lm_loop",data.matrix.left,data.matrix.right,mmatrix,PACKAGE="RMINC") 
+  }
+  
   rownames(result) <- colnames(anat)
   
   # the order of return values is:
@@ -942,26 +970,28 @@ anatLm <- function(formula, data, anat, subset=NULL) {
 #' using more complicated random effects structures.
 #' @export 
 anatLmer <-
-  function(formula, data, anat, REML = TRUE,
-           control = lmerControl(), verbose = FALSE, 
-           start = NULL, parallel = NULL, safely = FALSE, 
-           summary_type = c("fixef", "ranef", "both", "anova")){
+  function(formula, data, anat, REML = TRUE
+         , control = lmerControl(), verbose = FALSE
+         , start = NULL, parallel = NULL, safely = FALSE
+         , summary_type = "fixef"
+         , weights = NULL
+         , resources = list()
+         , conf_file = getOption("RMINC_BATCH_CONF")){
     
     mc <- mcout <- match.call()
+    original_data <- data
     
-    # Allow the user to omit the LHS by inserting a normal random variable
-    mc$formula <- update(formula, RMINC_DUMMY_LHS ~ .)
-    environment(mc$formula) <- environment()
-    RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    # Add a dummy response column
+    mc$formula <- update(formula,  RMINC_DUMMY_LHS ~ .)
+    data$RMINC_DUMMY_LHS <- rnorm(nrow(data))
+    mc[["data"]] <- as.symbol("data")
     
     mc[[1]] <- quote(lme4::lFormula)
-    mc$data <- as.symbol("data")
     
     # remove lme4 unknown arguments, since lmer does not know about them and keeping them
     # generates obscure warning messages
-    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely")]
-    
-    lmod <- eval(mc)
+    mc <- mc[!names(mc) %in% c("anat", "subset", "parallel", "safely", "summary_type")]
+    lmod <- eval(mc, environment())
     
     # code ripped from lme4:::mkLmerDevFun
     rho <- new.env(parent = parent.env(environment()))
@@ -975,12 +1005,17 @@ anatLmer <-
     
     mincLmerList <- list(lmod, mcout, control, start, verbose, rho, REMLpass)
     
-    summary_type <- match.arg(summary_type)
-    summary_fun <- switch(summary_type
+    summary_fun <- summary_type
+    if(is.character(summary_type) && length(summary_type) == 1)
+      summary_fun <- switch(summary_type
                           , fixef = fixef_summary
                           , ranef = ranef_summary
                           , both = effect_summary
-                          , anova = anova_summary)
+                          , anova = anova_summary
+                          , stop("invalid summary type specified"))
+
+    if(!is.function(summary_fun))
+      stop("summary_type must be a string specifying a summary, or a function")
     
     mincLmerOptimizeAndExtractSafely <-
       function(x, mincLmerList, summary_fun){
@@ -993,24 +1028,28 @@ anatLmer <-
     
     out <- 
       matrixApply(t(anat)
-                  , optimizer_fun
-                  , mincLmerList = mincLmerList
-                  , summary_fun = summary_fun
-                  , parallel = parallel)
+                , optimizer_fun
+                , mincLmerList = mincLmerList
+                , summary_fun = summary_fun
+                , parallel = parallel
+                , resources = resources
+                , conf_file = conf_file)
     
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
     
-    termnames <- colnames(lmod$X)
-    betaNames <- paste("beta-", termnames, sep="")
-    tnames <- paste("tvalue-", termnames, sep="")
-    colnames(out) <- c(betaNames, tnames, "logLik", "converged")
+    #termnames <- colnames(lmod$X)
+    #betaNames <- paste("beta-", termnames, sep="")
+    #tnames <- paste("tvalue-", termnames, sep="")
+    #colnames(out) <- c(betaNames, tnames, "logLik", "converged")
     rownames(out) <- colnames(anat)
     
     # generate some random numbers for a single fit in order to extract some extra info
     mmod <- mincLmerOptimize(rnorm(length(lmod$fr[,1])), mincLmerList)
     
-    attr(out, "stat-type") <- c(rep("beta", length(betaNames)), rep("tlmer", length(tnames)),
-                                "logLik", "converged")
+    res_cols <- colnames(out)
+    attr(out, "stat-type") <- ## Handle all possible output types
+      check_stat_type(res_cols, summary_type)
+    
     # get the DF for future logLik ratio tests; code from lme4:::npar.merMod
     attr(out, "logLikDF") <- length(mmod@beta) + length(mmod@theta) + mmod@devcomp[["dims"]][["useSc"]]
     attr(out, "REML") <- REML
@@ -1031,50 +1070,57 @@ anatLmer <-
 #' produced by \link{anatLmer}. See \link{anatLmer} for more details
 #' on degrees of freedom estimation for linear mixed effects models
 #' @param model an \code{anatLmerModel}
+#' @param n number of structures to use for DF estimation
+#' @param verbose Whether or not to print progress
 #' @return the same model, now with degrees of freedom set
 #' @export
-anatLmerEstimateDF <- function(model) {
+anatLmerEstimateDF <- function(model, n=50, verbose = FALSE) {
   # set the DF based on the Satterthwaite approximation
-  
+    
   mincLmerList <- attr(model, "mincLmerList")
   anat <- attr(model, "anat")
+  original_data <- attr(model, "data")
+
+  ## It seems LmerTest cannot compute the deviance function for mincLmers
+  ## in the current version, instead extract the model components from
+  ## the mincLmerList and re-fit the lmers directly at each structure,
+  ## Slower but yeilds the correct result
+  lmod <- mincLmerList[[1]]
   
   # estimated DF depends on the input data. Rather than estimate separately at every structure,
   # instead select a small number of structures and estimate DF for those structures, then keep the
   # min
-  nstructures <- min(50, nrow(model))
+  nstructures <- min(n, nrow(model))
   rstructures <- sample(seq_len(nrow(model)), nstructures)
   dfs <- matrix(nrow = nstructures, ncol = sum(attr(model, "stat-type") %in% "tlmer"))
-  
-  for (i in seq_len(nstructures)) {
+
+  for(i in seq_len(nstructures)){
+    if(verbose) cat("Iteration ", i, " of ", n)
+    
     rand_ind <- rstructures[i]
     structureData <- anat[,rand_ind]
-    RMINC_DUMMY_LHS <- structureData
     
-    ## It seems LmerTest cannot compute the deviance function for mincLmers
-    ## in the current version, instead extract the model components from
-    ## the mincLmerList and re-fit the lmers directly at each structure,
-    ## Slower but yeilds the correct result
-    original_data <- attr(model, "data")
-    lmod <- mincLmerList[[1]]
-    
-    # Rebuild the environment of the formula, otherwise updating does not
-    # ensuring it can find both RMINC_DUMMY_LHS and original_data
-    environment(lmod$formula) <- environment()
+    original_data$RMINC_DUMMY_LHS <- structureData
+
+    ## Work around for slowness in recent lme4, fixed in upstream lme4
+    ## thanks to https://github.com/lme4/lme4/issues/410#issuecomment-311092416
+    model_env <- list2env(original_data)
+    form <- lmod$formula
+    environment(form) <- model_env
 
     mmod <-
-      lmerTest::lmer(lmod$formula, data = original_data, REML = lmod$REML,
+      lmerTest::lmer(form, REML = lmod$REML,
                      start = mincLmerList[[4]], control = mincLmerList[[3]],
                      verbose = mincLmerList[[5]])
     
     dfs[i,] <- 
       suppressMessages(
-        tryCatch(lmerTest::summary(mmod)$coefficients[,"df"]
-                 , error = function(e){ 
-                   warning("Unable to estimate DFs for structure "
-                           , colnames(anat)[rand_ind]
-                           , call. = FALSE)
-                   NA}))
+        tryCatch(summary(mmod)$coefficients[,"df"]
+               , error = function(e){ 
+                 warning("Unable to estimate DFs for structure "
+                       , colnames(anat)[rand_ind]
+                       , call. = FALSE)
+                 NA}))
   }
   
   df <- apply(dfs, 2, median, na.rm = TRUE)

@@ -135,6 +135,10 @@ mincCorrelation <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' examples include link{unlist} and \link{simplify2array}, defaulting
 #' to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
 #' \code{mincSingleDim}, or \code{mincList} depending on the result structure.
+#' \cr
+#' If you encounter memory issues, it could be due to minc file caching.
+#' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+#' a small value like 1.
 #' @return a list of results subject the the collate function
 #' @export
 mincApplyRCPP <- 
@@ -175,7 +179,7 @@ mincApplyRCPP <-
     masked_value <- getOption("RMINC_MASKED_VALUE")
     
     results_indexed <-
-      .Call("RMINC_rcpp_minc_apply",
+      .Call(`_RMINC_rcpp_minc_apply`,
             filenames,
             use_mask = use_mask,
             mask = mask,
@@ -185,8 +189,7 @@ mincApplyRCPP <-
             filter_masked = filter_masked,
             slab_sizes = slab_sizes,
             fun = apply_fun,
-            args = args,
-            PACKAGE = "RMINC")
+            args = args)
     
     # run the garbage collector...
     gcout <- gc()
@@ -239,6 +242,10 @@ mincApplyRCPP <-
 #' example, use mincLm rather than applying lm, and if lm has to
 #' really be applied, try to use lm.fit rather than plain lm.
 #' When using the pbs method, one can also set the options --> TMPDIR,MAX_NODES and WORKDIR
+#' \cr
+#' If you encounter memory issues, it could be due to minc file caching.
+#' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+#' a small value like 1.
 #' @return out The output is a matrix with the same number of rows a the
 #' file sizes and the same number of columns as output by the
 #' function that was applied. Cast into one of the MINC classes
@@ -368,10 +375,10 @@ voxel_anova_wrapper <- function(filenames, model_matrix, mask, mask_min, mask_ma
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @details This function computes a sequential ANOVA over a set of files.
 #' @return Returns an array with the F-statistic for each model specified by 
 #' formula with the following attributes: 
@@ -393,7 +400,7 @@ voxel_anova_wrapper <- function(filenames, model_matrix, mask, mask_min, mask_ma
 #' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE) {
+mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE, conf_file = getOption("RMINC_BATCH_CONF")) {
   
   #Don't move this otherwise the closure gets big
   parallel_mincAnova <- function(group, filenames, model_matrix, mask, mask_vol){
@@ -473,7 +480,7 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, 
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
-        quiet_mclapply(groups
+        failing_mclapply(groups
                        , parallel_mincAnova
                        , filenames = filenames
                        , model_matrix = mmatrix
@@ -483,10 +490,11 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, 
         Reduce(rbind, ., NULL) 
     }
     else {
-      reg <- makeRegistry("mincAnova_registry")
+      reg <- qMincRegistry(new_file("mincAnova_registry"), conf_file = conf_file)
       on.exit( if(cleanup) tenacious_remove_registry(reg), add = TRUE)
       
-      batchMap(reg
+      ids <-
+        batchMap(reg = reg
                , parallel_mincAnova
                , group = groups
                , more.args = list(filenames = filenames
@@ -494,12 +502,11 @@ mincAnova <- function(formula, data=NULL, subset=NULL, mask=NULL, maskval=NULL, 
                                   , mask = new_mask_file
                                   , mask_vol = mask_vol))
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       result <-
-        loadResults(reg, use.names = FALSE) %>%
-        Reduce(rbind, ., NULL) 
+        reduceResults(rbind, init = NULL, reg = reg)
     } 
     
     result_fleshed_out <- matrix(0
@@ -569,12 +576,16 @@ mincLm_c_wrapper <-
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-#' and \link{configureMincParallel} for details.
+#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @details This function computes a linear model at every voxel of a set of files. The function is a close cousin to lm, the key difference
 #' being that the left-hand side of the formula specification takes a series of filenames for MINC files.
+#' \cr
+#' If you encounter memory issues, it could be due to minc file caching.
+#' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+#' a small value like 1.
 #' @return mincLm returns a mincMultiDim object which contains a series of columns corresponding to the terms in the linear model. The first
 #' column is the F-statistic of the significance of the entire volume, the following columns contain the R-Squared term, the marginal t-statistics for each of the terms in the model along with their respective coefficients.
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
@@ -587,7 +598,10 @@ mincLm_c_wrapper <-
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 #' }
 #' @export
-mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, parallel = NULL, cleanup = TRUE) {
+mincLm <- function(formula, data=NULL,subset=NULL
+                 , mask=NULL, maskval=NULL, parallel = NULL
+                 , cleanup = TRUE
+                 , conf_file = getOption("RMINC_BATCH_CONF")) {
   
   #INITIALIZATION
   method <- "lm"
@@ -671,27 +685,27 @@ mincLm <- function(formula, data=NULL,subset=NULL , mask=NULL, maskval=NULL, par
     # a vector with two elements: the methods followed by the # of workers
     if (parallel[1] %in% c("local", "snowfall")) {
       result <- 
-        quiet_mclapply(groups
+        failing_mclapply(groups
                        , parallel_mincLm_c
                        , plm = parseLmOutput, mask = new_mask_file, mask_vol = mask_vol
                        , mc.cores = n_groups) %>%
         Reduce(rbind, ., NULL) 
     }
     else {
-      reg <- makeRegistry("mincLm_registry")
+      reg <- qMincRegistry(new_file("mincLm_registry"), conf_file = conf_file)
       on.exit( if(cleanup) tenacious_remove_registry(reg), add = TRUE)
       
-      batchMap(reg
+      ids <-
+        batchMap(reg = reg
                , parallel_mincLm_c
                , group = groups
                , more.args = list(plm = parseLmOutput, mask = new_mask_file, mask_vol = mask_vol))
       
-      submitJobs(reg)
-      waitForJobs(reg)
+      submitJobs(ids, reg = reg)
+      waitForJobs(reg = reg)
       
       result <-
-        loadResults(reg, use.names = FALSE) %>%
-        Reduce(rbind, ., NULL) 
+        reduceResults(rbind, init = NULL, reg = reg)
     } 
     
     result_fleshed_out <- matrix(0
@@ -884,8 +898,7 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 # Specified as a two element vector, with the first element corresponding to
 # the type of parallelization, and the second to the number
 # of processors to use. For local running set the first element to "local" or "snowfall"
-# for back-compatibility, anything else will be run with BatchJobs see \link{pMincApply}
-# and \link{configureMincParallel} for details.
+# for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
 # Leaving this argument NULL runs sequentially.
 
 #' Threshold Free Cluster Enhancement
@@ -910,8 +923,14 @@ mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' replacement)
 #' @param parallel A two component vector indicating how to parallelize the computation. If the 
 #' first element is "local" the computation will be run via the parallel package, otherwise it will
-#' be computed using BatchJobs, see \link{pMincApply} for details. The element should be numeric
+#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 #' indicating the number of jobs to split the computation into.
+#' @param resources A list of resources to use for the jobs, for example
+#' \code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+#' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+#' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+#' more examples
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 #' @param ... additional arguments for methods
 #' @return The behaviour of \code{mincTFCE} is to perform cluster free enhancement on a object,
 #' in the single dimensional case, a string denoting a minc file or a \code{mincSingleDim} object
@@ -935,10 +954,11 @@ mincTFCE <-
 #' @export 
 mincTFCE.mincSingleDim <-
   function(x, d = 0.1, E = .5, H = 2.0
-           , side = c("both", "positive", "negative")
-           , output_file = NULL
-           , keep = is.null(output_file)
-           , ...){
+         , side = c("both", "positive", "negative")
+         , output_file = NULL
+         , keep = is.null(output_file)
+         , conf_file = getOption("RMINC_BATCH_CONF")
+         , ...){
     
     volume  <- x
     side    <- match.arg(side)
@@ -979,18 +999,21 @@ mincTFCE.mincSingleDim <-
 #' @export
 mincTFCE.matrix <- 
   function(x, d = 0.1, E = .5, H = 2.0
-           , side = c("both", "positive", "negative")
-           , like_volume
-           , ...){
-    mapply(function(col_ind, d){
-      x[,col_ind] %>%
-        `class<-`(c("mincSingleDim", "numeric")) %>%
-        `likeVolume<-`(like_volume) %>%
-        setNA(0) %>%
-        setNaN(0) %>% 
-        mincTFCE(d = d, E = E, H = H, side = side)
-    }, col_ind = seq_len(ncol(x)), d = d) %>%
-      `colnames<-`(colnames(x))
+         , side = c("both", "positive", "negative")
+         , like_volume
+         , ...){
+      mapply(function(col_ind, d){
+        x[,col_ind] %>%
+          `class<-`(c("mincSingleDim", "numeric")) %>%
+          `likeVolume<-`(like_volume) %>%
+          setNA(0) %>%
+          setNaN(0) %>% 
+          mincTFCE(d = d, E = E, H = H, side = side)
+      }, col_ind = seq_len(ncol(x)), d = d) %>%
+      `colnames<-`(colnames(x)) %>%
+      `likeVolume<-`(like_volume)
+
+    
   }
 
 #' @describeIn mincTFCE mincMultiDim
@@ -1008,13 +1031,54 @@ mincTFCE.mincMultiDim <-
 getCall.mincLm <-
   function(x, ...) attributes(x)$call
 
+#' Run a permutation test on a \code{mincLm} result
+#'
+#' Run a permutation test on a \code{mincLm} result, computing
+#' the most extreme statistic under exchanged response variables.
+#' The randomization distribution of these extremal statistics is
+#' returbed.
+#' @param x A \code{mincLm} object.
+#' @param R number of randomizations to perform
+#' @param alternative Whether to consider a one-sided or two-sided alternative hypothesis. Default
+#' "two-sided", use "greater" for a one sided test.
+#' @param replace Sample with or without replacement for the randomization, defaults to FALSE (no
+#' replacement)
+#' @param parallel A two component vector indicating how to parallelize the computation. If the 
+#' first element is "local" the computation will be run via the parallel package, otherwise it will
+#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
+#' indicating the number of jobs to split the computation into.
+#' @param columns Which columns to compute extrema for, defaults to columns with `tvalue` in
+#' the name.
+#' @param resources A list of resources to use for the jobs, for example
+#' \code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
+#' \code{system.file("parallel/pbs_script.tmpl", package = "RMINC")} and
+#' \code{system.file("parallel/sge_script.tmpl", package = "RMINC")} for
+#' more examples
+#' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
+#' @return A list with the original object, the randomization distribution of extremal statistics
+#' and configuration args used for computing the distributions.
+#' @export
+mincRandomize <-
+  function(x
+         , R = 500
+         , alternative = c("two.sided", "greater")
+         , replace = FALSE, parallel = NULL
+         , columns = grep("tvalue-", colnames(x))
+         , resources = list()
+         , conf_file = getOption("RMINC_BATCH_CONF")){
+    UseMethod("mincRandomize")
+  }
 
+#' @describeIn mincRandomize mincLm
+#' @export
 mincRandomize.mincLm <- 
   function(x
-           , R = 500
-           , alternative = c("two.sided", "greater")
-           , replace = FALSE, parallel = NULL
-           , columns = grep("tvalue-", colnames(x))){
+         , R = 500
+         , alternative = c("two.sided", "greater")
+         , replace = FALSE, parallel = NULL
+         , columns = grep("tvalue-", colnames(x))
+         , resources = list()
+         , conf_file = getOption("RMINC_BATCH_CONF")){
     lmod          <- x
     alternative   <- match.arg(alternative)
     original_stats <- lmod[,columns]
@@ -1022,7 +1086,7 @@ mincRandomize.mincLm <-
     
     randomization_dist <-
       mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
-                         , alternative = alternative)
+                         , alternative = alternative, conf_file = conf_file, resources = resources)
     
     output <- list(stats = original_stats, randomization_dist = randomization_dist
                    , args = c(call = lmod_call, alternative = alternative))
@@ -1035,13 +1099,15 @@ mincRandomize.mincLm <-
 #' @export
 mincTFCE.mincLm <- 
   function(x
-           , R = 500
-           , alternative = c("two.sided", "greater")
-           , d = 0.1, E = .5, H = 2.0
-           , side = c("both", "positive", "negative")
-           , replace = FALSE
-           , parallel = NULL
-           , ...){
+         , R = 500
+         , alternative = c("two.sided", "greater")
+         , d = 0.1, E = .5, H = 2.0
+         , side = c("both", "positive", "negative")
+         , replace = FALSE
+         , parallel = NULL
+         , resources = list()
+         , conf_file = getOption("RMINC_BATCH_CONF")
+         , ...){
     
     lmod          <- x
     alternative   <- match.arg(alternative)
@@ -1055,10 +1121,12 @@ mincTFCE.mincLm <-
     
     randomization_dist <-
       mincRandomize_core(lmod, R = R, replace = replace, parallel = parallel, columns = columns
-                         , alternative = alternative
-                         , post_proc = mincTFCE.matrix
-                         , like_volume = like_vol
-                         , side = side, d = d, E = E, H = H)
+                       , alternative = alternative
+                       , post_proc = mincTFCE.matrix
+                       , like_volume = like_vol
+                       , side = side, d = d, E = E, H = H
+                       , resources = resources
+                       , conf_file = conf_file)
 
     output <- list(tfce = original_tfce, randomization_dist = randomization_dist
                    , args = list(call = lmod_call,
@@ -1070,11 +1138,13 @@ mincTFCE.mincLm <-
 
 mincRandomize_core <-
   function(x
-           , R = 500, replace = FALSE, parallel = NULL
-           , columns = grep("tvalue-", colnames(x))
-           , alternative = c("two.sided", "greater")
-           , post_proc = identity
-           , ...){
+         , R = 500, replace = FALSE, parallel = NULL
+         , columns = grep("tvalue-", colnames(x))
+         , alternative = c("two.sided", "greater")
+         , post_proc = identity
+         , resources = list()
+         , conf_file = getOption("RMINC_BATCH_CONF")
+         , ...){
     
     # Setup useful local variables
     lmod        <- x
@@ -1124,22 +1194,22 @@ mincRandomize_core <-
       
       if (parallel[1] %in% c("local", "snowfall")) {
         result <- 
-          quiet_mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
+          failing_mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
           Reduce(rbind, ., NULL) 
       }
       else {
-        reg <- makeRegistry("mincRandomize_registry")
+        reg <- qMincRegistry(new_file("mincRandomize_registry"), conf_file = conf_file)
         on.exit( tenacious_remove_registry(reg), add = TRUE)
         
         suppressWarnings( #Warning suppression for large env for bootmodel (>10mb)
-          batchMap(reg, boot_model, n = group_sizes)
+          ids <- batchMap(reg = reg, boot_model, n = group_sizes)
         )
         
-        submitJobs(reg)
-        waitForJobs(reg)
+        submitJobs(ids, reg = reg, resources = resources)
+        waitForJobs(reg = reg)
         
         result <-
-          reduceResultsMatrix(reg, fun = function(job, res) res, rows = TRUE)
+          reduceResults(rbind, reg = reg)
       } 
     }
     

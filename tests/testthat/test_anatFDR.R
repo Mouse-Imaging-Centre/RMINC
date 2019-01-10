@@ -1,8 +1,11 @@
 library(testthat)
 context("anatFDR")
 
-getRMINCTestData()
-dataPath <- file.path(tempdir(), "rminctestdata/")
+if(!exists("dataPath"))
+  dataPath <- tempdir()
+
+getRMINCTestData(dataPath)
+dataPath <- file.path(dataPath, "rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"))
 gf <- civet.getAllFilenames(gf,"ID","TEST",file.path(dataPath, "CIVET"),"TRUE","1.1.12")
@@ -120,4 +123,8 @@ test_that("anatFDR Three Factors Interaction",{
 	expect_that(rLmFDR6[1],is_equivalent_to(rmincFDR[1,7]))
 	expect_that(rLmFDR6[2],is_equivalent_to(rmincFDR[2,7]))
 	expect_that(rLmFDR6[3],is_equivalent_to(rmincFDR[3,7]))
+})
+
+test_that("rownames are preserved", {
+  expect_equal(rownames(rmincFDR), rownames(rmincLm))
 })

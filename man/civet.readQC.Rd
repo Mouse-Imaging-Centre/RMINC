@@ -7,7 +7,7 @@
 civet.readQC(dir, civetVersion = "1.1.12")
 }
 \arguments{
-\item{dir}{The CIVET output directory}
+\item{dir}{The CIVET QC directory, or vector of directories}
 
 \item{civetVersion}{the version of CIVET used, currently only supports
 1.1.12, 2.0.0, 2.1.0}
