@@ -900,15 +900,30 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
+
+extract_column<-function(filename, column=NULL) {
+  # determine file type and treat accordingly
+  ext=tools::file_ext(filename)
+  if(ext %in% c('gz','xz','bz2','GZ','XZ','BZ2')) # it's compressed file, but we don't care since it can be read
+  {
+    filename_=tools::file_path_sans_ext(filename)
+    ext=tools::file_ext(filename_)
+  }
+  if(ext %in% c('csv','CSV') )
+}
+
 #' Create a table of vertex values
 #' 
 #' Read files containing vertex data into a matrix
 #' 
 #' @param filenames paths to the vertex data files
+#'        suported extensions: .csv/.csv.gz - will assume it's  a comma-separated file with a header
+#'        everything else , assume a space separated file, possibly gzipped
+#' @param column -specify the column id (name or number) if input files have multiple columns
 #' @return a matrix where each `column` is a matrix of vertex
 #' data corresponding to a single file
 #' @export
-vertexTable <- function(filenames) {
+vertexTable <- function(filenames,column=NULL) {
   if(is.factor(filenames))
     filenames <- as.character(filenames)
 
