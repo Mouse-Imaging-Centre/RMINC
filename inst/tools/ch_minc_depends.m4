@@ -3,6 +3,14 @@ AC_DEFUN([MINC_SEARCH], [
   AC_MSG_NOTICE([Searching for libminc])
   
   AS_IF([test "x$MINC_FOUND" != "xyes"], [
+	AS_IF([test x$MINC_TOOLKIT != "x"], [
+      AC_MSG_NOTICE(MINC_TOOLKIT was specified)
+	  MINC_PATH="$MINC_TOOLKIT"
+      MINC_FOUND="yes"
+    ])
+  ])
+
+  AS_IF([test "x$MINC_FOUND" != "xyes"], [
     AS_IF([test x$MINC_PATH != "x"], [
       AC_MSG_NOTICE(MINC_PATH was specified)
       MINC_FOUND="yes"
@@ -115,16 +123,16 @@ AC_DEFUN([INSTALL_LIBMINC], [
 dnl This checks for the minc dependencies, called after minc2 is located or installed
 AC_DEFUN([CHECK_MINC_DEPENDS],
 [
+	MINC_SEARCH
+	
 	AC_CHECK_HEADER(zlib.h, , [AC_MSG_ERROR([zlib not found])])
-        AX_LIB_HDF5
+	AX_LIB_HDF5
 
 	CFLAGS="$CFLAGS $HDF5_CFLAGS"
         LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
         CPPFLAGS="$CPPFLAGS $HDF5_CPPFLAGS"
         LIBS="$LIBS $HDF5_LIBS"
 
-	MINC_SEARCH
-	
         AS_IF([test x$MINC_FOUND != "xyes"], [
 	   INSTALL_LIBMINC
 	])
@@ -177,7 +185,7 @@ AC_DEFUN([INSTALL_MINC_TOOLKIT],
              	  -DMT_BUILD_LITE:BOOL=ON \
                   -DMT_BUILD_SHARED_LIBS:BOOL=ON \
                	  -DMT_USE_OPENMP:BOOL=$USE_OMP \
-      		  -DCPACK_BINARY_DEB:BOOL=ON \
+         		  -DCPACK_BINARY_DEB:BOOL=ON \
                   -DCPACK_BINARY_NSIS:BOOL=OFF \
                	  -DCPACK_BINARY_RPM:BOOL=OFF \
                	  -DCPACK_BINARY_STGZ:BOOL=OFF \

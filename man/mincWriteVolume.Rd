@@ -12,8 +12,8 @@ mincWriteVolume(buffer, ...)
 \method{mincWriteVolume}{mincSingleDim}(buffer, output.filename,
   clobber = NULL, ...)
 
-\method{mincWriteVolume}{mincMultiDim}(buffer, output.filename, column = 1,
-  like.filename = NULL, clobber = NULL, ...)
+\method{mincWriteVolume}{mincMultiDim}(buffer, output.filename,
+  column = 1, like.filename = NULL, clobber = NULL, ...)
 
 \method{mincWriteVolume}{default}(buffer, output.filename, like.filename,
   clobber = NULL, ...)

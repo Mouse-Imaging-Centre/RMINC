@@ -4,10 +4,14 @@
 \alias{vertexTable}
 \title{Create a table of vertex values}
 \usage{
-vertexTable(filenames)
+vertexTable(filenames, column = 1)
 }
 \arguments{
-\item{filenames}{paths to the vertex data files}
+\item{filenames}{paths to the vertex data files
+suported extensions: .csv/.csv.gz - will assume it's  a comma-separated file with a header
+everything else , assume a space separated file, possibly gzipped}
+
+\item{column}{-specify the column id (name or number) if input files have multiple columns}
 }
 \value{
 a matrix where each `column` is a matrix of vertex

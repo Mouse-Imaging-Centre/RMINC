@@ -5,8 +5,8 @@
 \title{Vertex Mixed Effects Models}
 \usage{
 vertexLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
-  control = lmerControl(), start = NULL, verbose = 0L, safely = FALSE,
-  summary_type = "fixef")
+  control = lmerControl(), start = NULL, verbose = 0L,
+  safely = FALSE, summary_type = "fixef")
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}

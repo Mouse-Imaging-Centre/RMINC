@@ -22,36 +22,36 @@ NULL
 
 #' @describeIn vertexSummaries mean
 #' @export
-vertexMean <- function(filenames) 
+vertexMean <- function(filenames, column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames, column=column)
   return(rowMeans(vertexData))
   
 } 
 
 #' @describeIn vertexSummaries sum
 #' @export
-vertexSum <- function(filenames) 
+vertexSum <- function(filenames, column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames,column=column)
   return(rowSums(vertexData))
   
 } 
 
 #' @describeIn vertexSummaries var
 #' @export
-vertexVar <- function(filenames) 
+vertexVar <- function(filenames, column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames,column=column)
   return(apply(vertexData,1,var))
   
 } 
 
 #' @describeIn vertexSummaries standard deviation
 #' @export
-vertexSd<- function(filenames) 
+vertexSd<- function(filenames,column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames,column=column)
   return(apply(vertexData,1,sd))
   
 }
@@ -150,10 +150,10 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' }
 #' @export
 vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
-                      , collate = simplify_masked, transpose = FALSE) 
+                      , collate = simplify_masked, transpose = FALSE, column=1) 
 {
   # Load the data
-  vertexData <- vertexTable(filenames)
+  vertexData <- vertexTable(filenames, column=column)
   if(transpose)
     vertexData <- t(vertexData)
   
@@ -187,7 +187,7 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
 #' result = vertexAnova(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf)
 #' }
 #' @export 
-vertexAnova <- function(formula, data, subset=NULL) {
+vertexAnova <- function(formula, data, subset=NULL, column=1) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -199,7 +199,7 @@ vertexAnova <- function(formula, data, subset=NULL) {
   
   # Load Vertex Data from Files
   filenames <- as.character(mf[,1])
-  data.matrix <- vertexTable(filenames)
+  data.matrix <- vertexTable(filenames, column=column)
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
   
   attr(result, "model") <- as.matrix(mmatrix)
@@ -244,18 +244,21 @@ vertexAnova <- function(formula, data, subset=NULL) {
 #' result = vertexLm(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf) 
 #' }
 #' @export
-vertexLm <- function(formula, data, subset=NULL) {
+vertexLm <- function(formula, data, subset=NULL, column=1 ) {
   # Build model.frame
   m <- m_orig <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
+
   mf <- mf[c(1, m)]
+  
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
+  
   mf <- eval(mf, parent.frame())
+
   mincFileCheck(as.character(mf[,1]))
-  
-  
+
   if(length(grep("\\$",formula[[3]])) > 0) {
     stop("$ Not Permitted in Formula")  
   }
@@ -267,31 +270,33 @@ vertexLm <- function(formula, data, subset=NULL) {
   #      rows = rows,
   #      matrixFound = matrixFound,
   #      mmatrix = mmatrix)
-  parseLmOutput <- parseLmFormula(formula,data,mf)  
-  
+  parseLmOutput <- parseLmFormula(formula,data,mf)
+
   if(parseLmOutput$matrixFound) {
-    parseLmOutput$data.matrix.left  <- vertexTable(parseLmOutput$data.matrix.left)
-    parseLmOutput$data.matrix.right <- vertexTable(parseLmOutput$data.matrix.right)
+
+    parseLmOutput$data.matrix.left  <- vertexTable(parseLmOutput$data.matrix.left, column=column)
+    parseLmOutput$data.matrix.right <- vertexTable(parseLmOutput$data.matrix.right, column=column)
   }
   else {
+
     filenames <- as.character(mf[,1])
     parseLmOutput$mmatrix <- model.matrix(formula, mf)	
-    parseLmOutput$data.matrix.left <- vertexTable(filenames)
+    parseLmOutput$data.matrix.left <- vertexTable(filenames, column=column)
     parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
-  } 
-  
+  }
   result <- .Call("vertex_lm_loop",
                   parseLmOutput$data.matrix.left,
                   parseLmOutput$data.matrix.right,
                   parseLmOutput$mmatrix,
                   PACKAGE="RMINC") 
-  
+
   attr(result, "likeVolume") <- as.character(mf[,1])[1]
   attr(result, "model")      <- as.matrix(parseLmOutput$mmatrix)
   attr(result, "filenames")  <- as.character(mf[,1])
   attr(result, "stat-type")  <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2), "logLik")
   attr(result, "data")       <- data 
   attr(result, "call")       <- m_orig
+
   
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
@@ -309,7 +314,6 @@ vertexLm <- function(formula, data, subset=NULL) {
   
   # run the garbage collector...
   gcout <- gc()
-  
   return(result)
 }
 
@@ -440,7 +444,7 @@ vertexLmer <-
 #' }
 #' @export
 vertexLmerEstimateDF <-
-  function(model){
+  function(model, column=1){
     # set the DF based on the Satterthwaite approximation
     mincLmerList <- attr(model, "mincLmerList")
     mask <- attr(model, "mask")
@@ -456,7 +460,7 @@ vertexLmerEstimateDF <-
     initial_frame <- #unpack the lmerList object to get the raw data
       attr(model, "mincLmerList")[[1]]$fr
     
-    vertex_data <- vertexTable(initial_frame[,1])
+    vertex_data <- vertexTable(initial_frame[,1], column=column)
     
     # estimated DF depends on the input data. Rather than estimate separately at every structure,
     # instead select a small number of structures and estimate DF for those structures, then keep the
@@ -720,12 +724,13 @@ vertexTFCE.character <-
            , nsteps = 100
            , side = c("both", "positive", "negative")
            , weights = NULL
+           , column=1
            , ...){
     if(length(x) == 1){
       x <- as.numeric(readLines(x))
       vertexTFCE.numeric(x, surface, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
     } else {
-      x <- vertexTable(x)
+      x <- vertexTable(x,column=column)
       vertexTFCE.matrix(x, surface, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
     }
   }

@@ -8,6 +8,9 @@ m4_include([inst/tools/ch_minc_depends.m4])
 
 MINC_FOUND=""
 
+AC_ARG_VAR([MINC_TOOLKIT],[where to find minc-toolkit, default /opt/minc-itk4/])
+AC_ARG_VAR([MINC_PATH],[where to find libminc, default /opt/minc-itk4/])
+
 dnl This adds a --with-build-path option, adding the directories'
 dnl include to CPPFLAGS -I, lib to LDFLAGS and the rpath
 AC_ARG_WITH([build-path],

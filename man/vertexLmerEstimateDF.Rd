@@ -4,7 +4,7 @@
 \alias{vertexLmerEstimateDF}
 \title{Estimate the degrees of freedom for parameters in a vertexLmer model}
 \usage{
-vertexLmerEstimateDF(model)
+vertexLmerEstimateDF(model, column = 1)
 }
 \arguments{
 \item{model}{the output of mincLmer}
