@@ -956,7 +956,8 @@ vertexTable <- function(filenames, column=1) {
 #' Writes vertex data to a file with an optional header
 #' @param vertexData vertex data to be written
 #' @param filename full path to file where data shall be written
-#' @param headers Whether or not to write header information
+#' @param headers Whether or not to write header information (implies col.names=TRUE)
+#' @param col.names if column names should be written 
 #' @param mean.stats mean vertex data that may also be written
 #' @param gf glim matrix that can be written to the header
 #' @return A file is generated with the vertex data and optional headers
@@ -973,11 +974,16 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
     gf = NULL, col.names=FALSE)
 {
     append.file = TRUE
-    if (headers == TRUE) {
-      col.names=TRUE
+
+    if(headers == TRUE || col.names == TRUE)
+    {
       # get rid of parentheses, as they can cause trouble
         colnames(vertexData) <- gsub('[\\(\\)]', '', 
                                      colnames(vertexData), perl=T)
+    }
+
+    if (headers == TRUE) {
+        col.names = TRUE
         write("<header>", file = filename)
         if (is.object(mean.stats)) {
             write("<mean>", file = filename, append = TRUE)
@@ -1002,8 +1008,20 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
     else {
         append.file = FALSE
     }
-    readrd::write_delim(vertexData, path = filename, append = append.file, 
-        quote = FALSE, row.names = FALSE, col.names = col.names)
+    ext=tools::file_ext(filename)
+    if(ext %in% c('gz','xz','bz2','GZ','XZ','BZ2')) # it's compressed file, but we don't care since it can be read
+    {
+      filename_=tools::file_path_sans_ext(filename)
+      ext=tools::file_ext(filename_)
+    }
+    if(ext %in% c('csv','CSV') ) # assume there will be a column
+    {
+      readr::write_csv(tibble::as_data_frame(vertexData), path = filename, append = append.file, 
+          col_names = col.names)
+    } else {
+      readr::write_delim(tibble::as_data_frame(vertexData), path = filename, append = append.file, 
+          col_names = col.names)
+    }
 }
 
 

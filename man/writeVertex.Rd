@@ -12,11 +12,13 @@ writeVertex(vertexData, filename, headers = TRUE, mean.stats = NULL,
 
 \item{filename}{full path to file where data shall be written}
 
-\item{headers}{Whether or not to write header information}
+\item{headers}{Whether or not to write header information (implies col.names=TRUE)}
 
 \item{mean.stats}{mean vertex data that may also be written}
 
 \item{gf}{glim matrix that can be written to the header}
+
+\item{col.names}{if column names should be written}
 }
 \value{
 A file is generated with the vertex data and optional headers
