@@ -4,7 +4,7 @@
 \alias{vertexLm}
 \title{Calculates statistics and coefficients for linear model of specified vertex files}
 \usage{
-vertexLm(formula, data, subset = NULL)
+vertexLm(formula, data, subset = NULL, column = 1)
 }
 \arguments{
 \item{formula}{a model formula. The RHS of the formula may contain one term with filenames. If

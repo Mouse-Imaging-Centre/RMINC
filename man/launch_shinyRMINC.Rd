@@ -4,9 +4,10 @@
 \alias{launch_shinyRMINC}
 \title{launch a shiny based inspector}
 \usage{
-launch_shinyRMINC(statsoutput, anatVol, volumes = NULL, keepBetas = FALSE,
-  plotcolumns = NULL, modelfunc = NULL, singleStatType = NULL,
-  fdr = NULL, anatLow = 700, anatHigh = 1400)
+launch_shinyRMINC(statsoutput, anatVol, volumes = NULL,
+  keepBetas = FALSE, plotcolumns = NULL, modelfunc = NULL,
+  singleStatType = NULL, fdr = NULL, anatLow = 700,
+  anatHigh = 1400)
 }
 \arguments{
 \item{statsoutput}{the output of mincLm, mincAnova, or mincLmer. Alternatively

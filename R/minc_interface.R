@@ -900,8 +900,14 @@ minc.get.volumes <- function(filenames) {
   return(output)
 }
 
+#' Internal function to read in a table or csv file 
+#' potentially with many columns 
+#' and extract just the one we need
+#' @param filename path to the vertex data file
+#' @param column -specify the column id (name or number) if input files have multiple columns
+#' @return a vector of vertex data corresponding to the file
 
-extract_column<-function(filename, column=NULL) {
+extract_column<-function(filename, column=1) {
   # determine file type and treat accordingly
   ext=tools::file_ext(filename)
   if(ext %in% c('gz','xz','bz2','GZ','XZ','BZ2')) # it's compressed file, but we don't care since it can be read
@@ -909,7 +915,14 @@ extract_column<-function(filename, column=NULL) {
     filename_=tools::file_path_sans_ext(filename)
     ext=tools::file_ext(filename_)
   }
-  if(ext %in% c('csv','CSV') )
+  if(ext %in% c('csv','CSV') ) # assume there will be a column
+  {
+    # trat all columns as double
+    data_=readr::read_csv(filename,col_names=T,col_types = readr::cols(.default = readr::col_double()))
+  } else {
+    data_=readr::read_table(filename,col_names=F,col_types = readr::cols(.default = readr::col_double()))
+  }
+  return(as.matrix(data_[,column]))
 }
 
 #' Create a table of vertex values
@@ -923,7 +936,7 @@ extract_column<-function(filename, column=NULL) {
 #' @return a matrix where each `column` is a matrix of vertex
 #' data corresponding to a single file
 #' @export
-vertexTable <- function(filenames,column=NULL) {
+vertexTable <- function(filenames, column=1) {
   if(is.factor(filenames))
     filenames <- as.character(filenames)
 
@@ -931,10 +944,10 @@ vertexTable <- function(filenames,column=NULL) {
     stop("filenames must be either a character or factor vector")
   
   nSubjects <- length(filenames)
-  nvertices <- nrow(read.table(filenames[1]))
+  nvertices <- nrow(extract_column(filenames[1],column=column))
   output <- matrix(nrow=nvertices, ncol=nSubjects)
   for (i in 1:nSubjects) {
-    output[,i] <- as.matrix(read.table(filenames[i]))
+    output[,i] <- as.matrix(extract_column(filenames[i],column=column))
   }
   return(output)
 }
@@ -957,10 +970,11 @@ vertexTable <- function(filenames,column=NULL) {
 #' }
 #' @export
 writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL, 
-    gf = NULL) 
+    gf = NULL, col.names=FALSE)
 {
     append.file = TRUE
     if (headers == TRUE) {
+      col.names=TRUE
       # get rid of parentheses, as they can cause trouble
         colnames(vertexData) <- gsub('[\\(\\)]', '', 
                                      colnames(vertexData), perl=T)
@@ -988,8 +1002,8 @@ writeVertex <- function (vertexData, filename, headers = TRUE, mean.stats = NULL
     else {
         append.file = FALSE
     }
-    write.table(vertexData, file = filename, append = append.file, 
-        quote = FALSE, row.names = FALSE, col.names = headers)
+    readrd::write_delim(vertexData, path = filename, append = append.file, 
+        quote = FALSE, row.names = FALSE, col.names = col.names)
 }
 
 
@@ -1160,15 +1174,26 @@ tableOpenFiles <- function(){
   table(lsof_results)  
 }
 
+tableOpenFiles_proc <- function () {
+  # analyze /proc/<pid>/fd and potentially /proc/<pid>/map_files
+  table(list.files(file.path("/proc",Sys.getpid(),"fd")))
+  # map_files contains multiple references to the same file, 
+  # not sure how many file discriptors it correpsonds to
+  #list.files(file.path("/proc",Sys.getpid(),"map_files")) )
+}
+
 enoughAvailableFileDescriptors <- 
   function(n, error = TRUE){
-    open_files <-
-      tryCatch(tableOpenFiles()
-             , error = function(e)
-               message("lsof timed out, continuing without "
-                     , "file descriptor checking"))
+    open_limit=checkCurrentUlimit()
+    if(open_limit==Inf) return(TRUE)
+
+    open_files <-tableOpenFiles_proc() # why do we need table?
+      # tryCatch(tableOpenFiles()
+      #        , error = function(e)
+      #          message("lsof timed out, continuing without "
+      #                , "file descriptor checking"))
     
-    available_fds <- checkCurrentUlimit() - sum(open_files)
+    available_fds <- open_limit - sum(open_files)
     enough_avail <- (n <= available_fds)
     
     if(error & !enough_avail)
@@ -1282,7 +1307,6 @@ getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
 #' to the calling environment
 #' @export
 verboseRun <- function(expr,verbose = getOption("verbose", FALSE),env = parent.frame()) {
-
 	if(!verbose) {
 	  sink("/dev/null")
 	  on.exit(sink())

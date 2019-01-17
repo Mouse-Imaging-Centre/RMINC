@@ -7,8 +7,9 @@
 obj_montage(left_obj, right_obj, left_map, right_map, output = NULL,
   colour_map, colour_range = NULL, colour_default = "grey",
   colour_bar = TRUE, labels = FALSE, palette = heat.colors(255),
-  symmetric = FALSE, ..., plot_corners = c(100, 100, 900, 900), zoom = 1,
-  add_normals = TRUE, colour_title = "", close_on_output = TRUE)
+  symmetric = FALSE, ..., plot_corners = c(100, 100, 900, 900),
+  zoom = 1, add_normals = TRUE, colour_title = "",
+  close_on_output = TRUE)
 }
 \arguments{
 \item{left_obj}{A \code{bic_obj} probably created by \link{read_obj} with the left hemisphere
