@@ -278,6 +278,10 @@ addVolumesToHierarchy <- function(hdefs, volumes){
     stop("Your hierarchical definitions contain fewer leaves than regions in your volumes.\n",
          "Are you using the correct atlas labels?")
   }
+  if (any(is.na(volumes))) {
+    warning("At least one anatomical region has a value of NA.\n",
+            "That region's mean volume will be NA, and all of its parents too.")
+  }
   hanat <- Clone(hdefs)
   volLabels <- as.integer(attributes(volumes)$anatIDs)
   hanat$Do(function(x) {
