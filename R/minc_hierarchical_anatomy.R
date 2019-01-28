@@ -269,6 +269,11 @@ hanatLmerEstimateDF <- function(buffer, n=50) {
 #' hanat <- addVolumesToHierarchy(hdefs, allvols)
 #' }
 addVolumesToHierarchy <- function(hdefs, volumes){
+  #If hdefs$leafCount > regions in volumes, aggregation will fail as rowSums() is called on NULL volumes
+  if (hdefs$leafCount > dim(volumes)[[2]]){
+    stop("Your hierarchical definitions contain more leaves than regions in your volumes.\n",
+         "Consider pruning your hierarchy of subtrees that do not exist in your volumes.")
+  }
   hanat <- Clone(hdefs)
   volLabels <- as.integer(attributes(volumes)$anatIDs)
   hanat$Do(function(x) {
