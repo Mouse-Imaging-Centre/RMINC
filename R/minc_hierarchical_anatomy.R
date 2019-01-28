@@ -274,6 +274,10 @@ addVolumesToHierarchy <- function(hdefs, volumes){
     stop("Your hierarchical definitions contain more leaves than regions in your volumes.\n",
          "Consider pruning your hierarchy of subtrees that do not exist in your volumes.")
   }
+  if (hdefs$leafCount < dim(volumes)[[2]]){
+    stop("Your hierarchical definitions contain fewer leaves than regions in your volumes.\n",
+         "Are you using the correct atlas labels?")
+  }
   hanat <- Clone(hdefs)
   volLabels <- as.integer(attributes(volumes)$anatIDs)
   hanat$Do(function(x) {
