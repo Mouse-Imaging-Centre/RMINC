@@ -8,13 +8,13 @@
 \alias{vertexSd}
 \title{Create descriptive statistics across a series of vertex files}
 \usage{
-vertexMean(filenames)
+vertexMean(filenames, column = 1)
 
-vertexSum(filenames)
+vertexSum(filenames, column = 1)
 
-vertexVar(filenames)
+vertexVar(filenames, column = 1)
 
-vertexSd(filenames)
+vertexSd(filenames, column = 1)
 }
 \arguments{
 \item{filenames}{Filenames of the vertex volumes across which to create the

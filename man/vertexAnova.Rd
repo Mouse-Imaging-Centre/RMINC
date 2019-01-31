@@ -4,7 +4,7 @@
 \alias{vertexAnova}
 \title{Performs ANOVA on each vertex point specified}
 \usage{
-vertexAnova(formula, data, subset = NULL)
+vertexAnova(formula, data, subset = NULL, column = 1)
 }
 \arguments{
 \item{formula}{a model formula}
