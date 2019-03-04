@@ -358,13 +358,15 @@ create_anat_results <-
     
     extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
     if(length(extra_structures) != 0)
-      message("Extra Structures  found in files but not in labels: "
+      message(length(extra_structures), 
+              " extra Structures  found in files but not in labels: "
               , paste0(extra_structures, collapse = ", "))
     
     missing_structures <- 
       with(label_frame, Structure[! label %in% results$indices])
     if(length(missing_structures) != 0)
-      message("Missing Structures found in labels but not in any files: "
+      message(length(missing_structures),
+              " missing Structures found in labels but not in any files: "
               , paste0(missing_structures, collapse = ", "))
     
     results <- 
@@ -416,7 +418,7 @@ print.anatModel <- function(x, n = min(6, nrow(x)), width = min(6, ncol(x)), ...
 }
 
 #' @export
-`[.anatModel` <- function(x, i, j, drop = FALSE){
+`[.anatModel` <- function(x, i, j, drop = TRUE){
   orig_x <- x
   mdrop <- missing(drop)
   n_args <- nargs() - !mdrop

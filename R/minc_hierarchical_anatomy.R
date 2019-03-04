@@ -269,6 +269,19 @@ hanatLmerEstimateDF <- function(buffer, n=50) {
 #' hanat <- addVolumesToHierarchy(hdefs, allvols)
 #' }
 addVolumesToHierarchy <- function(hdefs, volumes){
+  #If hdefs$leafCount > regions in volumes, aggregation will fail as rowSums() is called on NULL volumes
+  if (hdefs$leafCount > dim(volumes)[[2]]){
+    stop("Your hierarchical definitions contain more leaves than regions in your volumes.\n",
+         "Consider pruning your hierarchy of subtrees that do not exist in your volumes.")
+  }
+  if (hdefs$leafCount < dim(volumes)[[2]]){
+    stop("Your hierarchical definitions contain fewer leaves than regions in your volumes.\n",
+         "Are you using the correct atlas labels?")
+  }
+  if (any(is.na(volumes))) {
+    warning("At least one anatomical region has a value of NA.\n",
+            "That region's mean volume will be NA, and all of its parents too.")
+  }
   hanat <- Clone(hdefs)
   volLabels <- as.integer(attributes(volumes)$anatIDs)
   hanat$Do(function(x) {

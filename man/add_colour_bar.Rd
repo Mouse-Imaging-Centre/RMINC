@@ -4,8 +4,9 @@
 \alias{add_colour_bar}
 \title{Add a colour bar for a mesh}
 \usage{
-add_colour_bar(mesh, title = "", lpos = 0.97, rpos = 0.99,
-  bpos = NULL, tpos = NULL, bpos2 = NULL, tpos2 = NULL)
+add_colour_bar(mesh, title = "", lpos = 0.97, rpos = 0.99, bpos = NULL,
+  tpos = NULL, bpos2 = NULL, tpos2 = NULL, nudge_title_y = 0.5,
+  nudge_title_x = 0.82, ...)
 }
 \arguments{
 \item{mesh}{A \code{obj_mesh} object created with \link{colour_mesh}}
@@ -33,6 +34,14 @@ defaults to .55}
 \item{tpos2}{the position for the top edge of the colour bar in fraction
 of the plot area. Only used in the symmetric case for the positive scale,
 defaults to .95}
+
+\item{nudge_title_y}{Offset text from the bottom of a colour bar by y, units are
+in proportions of the colour bar length}
+
+\item{nudge_title_x}{Offset text from the bottom of a colour bar by x, units are
+in proportions of the colour bar width}
+
+\item{...}{extra parameters to pass to \code{plotrix::color.legend} and \code{text}}
 }
 \description{
 Add a colour bar that corresponds to the colours in a given colourized mesh

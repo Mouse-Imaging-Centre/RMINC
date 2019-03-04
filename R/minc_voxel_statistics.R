@@ -1256,7 +1256,7 @@ thresholds.minc_randomization <-
       `rownames<-`(paste0(probs * 100, "%"))
   }
 
-#' @export
-`[.mincLm` <- function(x,i,j, drop = FALSE){
-  `[.anatModel`(x,i,j, drop)
-}
+  
+
+
+
