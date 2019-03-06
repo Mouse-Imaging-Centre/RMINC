@@ -41,17 +41,17 @@ civet.getFilenameCerebrumMask(scanID, baseDir, civetVersion = "1.1.9",
 civet.getFilenameSkullMask(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
 
-civet.getFilenameGrayMatterSurfaces(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameGrayMatterSurfaces(scanID, baseDir, civetVersion = "1.1.9",
+  fullPath = TRUE)
 
-civet.getFilenameWhiteMatterSurfaces(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameWhiteMatterSurfaces(scanID, baseDir, civetVersion = "1.1.9",
+  fullPath = TRUE)
 
 civet.getFilenameMidSurfaces(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
 
-civet.getFilenamesCorticalThickness(scanID, baseDir,
-  civetVersion = "1.1.9", smoothing = "20mm", fullPath = TRUE)
+civet.getFilenamesCorticalThickness(scanID, baseDir, civetVersion = "1.1.9",
+  smoothing = "20mm", fullPath = TRUE)
 
 civet.getFilenamesCorticalArea(scanID, baseDir, civetVersion = "1.1.9",
   smoothing = "40mm", fullPath = TRUE)
@@ -59,14 +59,14 @@ civet.getFilenamesCorticalArea(scanID, baseDir, civetVersion = "1.1.9",
 civet.getFilenamesCorticalVolume(scanID, baseDir, civetVersion = "1.1.9",
   smoothing = "40mm", fullPath = TRUE)
 
-civet.getFilenameMeanSurfaceCurvature(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameMeanSurfaceCurvature(scanID, baseDir, civetVersion = "1.1.9",
+  fullPath = TRUE)
 
 civet.getFilenameLinearTransform(scanID, baseDir, civetVersion = "1.1.9",
   fullPath = TRUE)
 
-civet.getFilenameNonlinearTransform(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameNonlinearTransform(scanID, baseDir, civetVersion = "1.1.9",
+  fullPath = TRUE)
 }
 \arguments{
 \item{scanID}{A string specifying the unique scan-id (and thus

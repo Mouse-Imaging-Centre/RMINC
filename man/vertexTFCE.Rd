@@ -10,21 +10,20 @@
 \usage{
 vertexTFCE(x, ...)
 
-\method{vertexTFCE}{numeric}(x, surface, E = 0.5, H = 2,
-  nsteps = 100, side = c("both", "positive", "negative"),
-  weights = NULL, ...)
+\method{vertexTFCE}{numeric}(x, surface, E = 0.5, H = 2, nsteps = 100,
+  side = c("both", "positive", "negative"), weights = NULL, ...)
 
 \method{vertexTFCE}{matrix}(x, surface, E = 0.5, H = 2, nsteps = 100,
   side = c("both", "positive", "negative"), weights = NULL, ...)
 
 \method{vertexTFCE}{vertexLm}(x, surface, R = 500,
-  alternative = c("two.sided", "greater"), E = 0.5, H = 2,
-  nsteps = 100, weights = NULL, side = c("both", "positive",
-  "negative"), replace = FALSE, parallel = NULL, ...)
+  alternative = c("two.sided", "greater"), E = 0.5, H = 2, nsteps = 100,
+  weights = NULL, side = c("both", "positive", "negative"),
+  replace = FALSE, parallel = NULL, ...)
 
-\method{vertexTFCE}{character}(x, surface, E = 0.5, H = 2,
-  nsteps = 100, side = c("both", "positive", "negative"),
-  weights = NULL, column = 1, ...)
+\method{vertexTFCE}{character}(x, surface, E = 0.5, H = 2, nsteps = 100,
+  side = c("both", "positive", "negative"), weights = NULL, column = 1,
+  ...)
 }
 \arguments{
 \item{x}{A numeric vector, a filepath to a set of values,
@@ -62,6 +61,8 @@ replacement)}
 first element is "local" the computation will be run via the parallel package, otherwise it will
 be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 indicating the number of jobs to split the computation into.}
+
+\item{column}{Which column to treat as the input from vertex files.}
 }
 \value{
 The behaviour of \code{vertexTFCE} is to perform cluster free enhancement on a object,

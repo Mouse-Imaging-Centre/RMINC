@@ -7,8 +7,8 @@
 \usage{
 hanatToVisGraph(hanatTree, colourVariable = "color_hex_triplet",
   colourScale = colorRampPalette(c("red", "yellow"))(255),
-  rColourScale = colorRampPalette(c("blue", "turquoise1"))(255),
-  low = NULL, high = NULL, symmetric = F, transparent = "#FDFDFD",
+  rColourScale = colorRampPalette(c("blue", "turquoise1"))(255), low = NULL,
+  high = NULL, symmetric = F, transparent = "#FDFDFD",
   edgeColourFromABI = F)
 
 hanatView(..., fontsize = 14, levelSeparation = 500)

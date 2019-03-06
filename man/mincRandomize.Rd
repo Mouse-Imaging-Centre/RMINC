@@ -11,8 +11,8 @@ mincRandomize(x, R = 500, alternative = c("two.sided", "greater"),
   conf_file = getOption("RMINC_BATCH_CONF"))
 
 \method{mincRandomize}{mincLm}(x, R = 500, alternative = c("two.sided",
-  "greater"), replace = FALSE, parallel = NULL,
-  columns = grep("tvalue-", colnames(x)), resources = list(),
+  "greater"), replace = FALSE, parallel = NULL, columns = grep("tvalue-",
+  colnames(x)), resources = list(),
   conf_file = getOption("RMINC_BATCH_CONF"))
 }
 \arguments{

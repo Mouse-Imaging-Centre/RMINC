@@ -27,6 +27,8 @@ structure. Defaults to \link{simplify_masked}}
 
 \item{transpose}{Whether to alternatively transpose the vertex matrix and apply a function to
 each subject}
+
+\item{column}{Which column to treat as the input from vertex files.}
 }
 \value{
 The a matrix with a row of results for each vertex
