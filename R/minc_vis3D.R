@@ -18,7 +18,9 @@
 #' @export
 read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
   
-  lines <- readLines(bic_obj)
+    lines <- readLines(bic_obj)
+    if(lines[[length(lines)]] != "")
+        lines <- c(lines, "")
   
   general_info <- lines[1]
   
