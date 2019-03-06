@@ -15,6 +15,9 @@
 #'   low=1, high=10, symmetric = F, begin=50, end=-50)
 #' }
 hanatToVolume <- function(anatTree, labelVolume, column) {
+  if(is.null(getElement(anatTree, column)))
+    stop(column, " doesn't seem to be in your anatomy tree")
+  
   out <- array(0, dim=dim(labelVolume))
   labels <- c()
   values <- c()
