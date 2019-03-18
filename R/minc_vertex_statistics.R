@@ -165,6 +165,33 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
   results
 }
 
+#' Apply a structure summary function across vertices
+#'
+#' This is a wrapper around vertexApply with `transpose` set to `TRUE`
+#' and `fun` wrapped in with `tapply` over atlas.
+#'
+#' @inheritParams vertexApply
+#' @param atlas The atlas to use to summarize vertices.
+#' @return  The a matrix with a row of results for each structure
+#' @export
+vertexAtlasApply <- function(filenames, atlas, fun, ..., mask = NULL
+                           , parallel = NULL, collate = simplify_masked
+                           , column = 1, atlas_column = 1){
+  
+  if(is.character(atlas) && length(atlas) == 1)
+    atlas <- extract_column(atlas, atlas_column)
+    
+  fun <- match.fun(fun)
+  wrapped_fun <- function(x, atlas, ...){
+    tapply(x, list(atlas), fun, ...)
+  }
+      
+  t(
+    vertexApply(filenames, wrapped_fun, atlas = atlas, ..., mask = mask
+              , transpose = TRUE, parallel = parallel, collate = collate
+              , column = column))
+}
+
 
 #' Performs ANOVA on each vertex point specified 
 #' @param formula a model formula
