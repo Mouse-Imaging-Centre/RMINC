@@ -6,6 +6,7 @@
 #' 
 #' @param filenames Filenames of the vertex volumes across which to create the
 #' descriptive statistic.
+#' @param column Which column to treat as the input from vertex files. 
 #' @return \item{out}{The output will be a single vector containing as many
 #' elements as there are vertices in the input files.}
 #' @seealso vertexLm
@@ -22,36 +23,36 @@ NULL
 
 #' @describeIn vertexSummaries mean
 #' @export
-vertexMean <- function(filenames) 
+vertexMean <- function(filenames, column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames, column=column)
   return(rowMeans(vertexData))
   
 } 
 
 #' @describeIn vertexSummaries sum
 #' @export
-vertexSum <- function(filenames) 
+vertexSum <- function(filenames, column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames,column=column)
   return(rowSums(vertexData))
   
 } 
 
 #' @describeIn vertexSummaries var
 #' @export
-vertexVar <- function(filenames) 
+vertexVar <- function(filenames, column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames,column=column)
   return(apply(vertexData,1,var))
   
 } 
 
 #' @describeIn vertexSummaries standard deviation
 #' @export
-vertexSd<- function(filenames) 
+vertexSd<- function(filenames,column=1) 
 {
-  vertexData = vertexTable(filenames)
+  vertexData = vertexTable(filenames,column=column)
   return(apply(vertexData,1,sd))
   
 }
@@ -139,6 +140,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' structure. Defaults to \link{simplify_masked}
 #' @param transpose Whether to alternatively transpose the vertex matrix and apply a function to
 #' each subject
+#' @param column Which column to treat as the input from vertex files. 
 #' @return  The a matrix with a row of results for each vertex
 #' @examples 
 #' \dontrun{
@@ -150,10 +152,10 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' }
 #' @export
 vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
-                      , collate = simplify_masked, transpose = FALSE) 
+                      , collate = simplify_masked, transpose = FALSE, column=1) 
 {
   # Load the data
-  vertexData <- vertexTable(filenames)
+  vertexData <- vertexTable(filenames, column=column)
   if(transpose)
     vertexData <- t(vertexData)
   
@@ -161,6 +163,33 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
   attr(results, "likeFile") <- filenames[1]
   
   results
+}
+
+#' Apply a structure summary function across vertices
+#'
+#' This is a wrapper around vertexApply with `transpose` set to `TRUE`
+#' and `fun` wrapped in with `tapply` over atlas.
+#'
+#' @inheritParams vertexApply
+#' @param atlas The atlas to use to summarize vertices.
+#' @return  The a matrix with a row of results for each structure
+#' @export
+vertexAtlasApply <- function(filenames, atlas, fun, ..., mask = NULL
+                           , parallel = NULL, collate = simplify_masked
+                           , column = 1, atlas_column = 1){
+  
+  if(is.character(atlas) && length(atlas) == 1)
+    atlas <- extract_column(atlas, atlas_column)
+    
+  fun <- match.fun(fun)
+  wrapped_fun <- function(x, atlas, ...){
+    tapply(x, list(atlas), fun, ...)
+  }
+      
+  t(
+    vertexApply(filenames, wrapped_fun, atlas = atlas, ..., mask = mask
+              , transpose = TRUE, parallel = parallel, collate = collate
+              , column = column))
 }
 
 
@@ -176,7 +205,8 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
 #' \item{dimnames}{ names of the dimensions for the statistic matrix}
 #' \item{stat-type}{ types of statistic used}
 #' \item{df}{ degrees of freedom of each statistic}
-#' } 
+#' }
+#' @param column Which column to treat as the input from vertex files. 
 #' @seealso mincAnova,anatAnova 
 #' @examples 
 #' \dontrun{
@@ -187,7 +217,7 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
 #' result = vertexAnova(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf)
 #' }
 #' @export 
-vertexAnova <- function(formula, data, subset=NULL) {
+vertexAnova <- function(formula, data, subset=NULL, column=1) {
   # Create Model
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
@@ -199,7 +229,7 @@ vertexAnova <- function(formula, data, subset=NULL) {
   
   # Load Vertex Data from Files
   filenames <- as.character(mf[,1])
-  data.matrix <- vertexTable(filenames)
+  data.matrix <- vertexTable(filenames, column=column)
   result <- .Call("vertex_anova_loop", data.matrix, mmatrix,attr(mmatrix, "assign"), PACKAGE="RMINC");
   
   attr(result, "model") <- as.matrix(mmatrix)
@@ -232,6 +262,7 @@ vertexAnova <- function(formula, data, subset=NULL) {
 #' so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
+#' @param column Which column to treat as the input from vertex files. 
 #' @return Returns an object containing the R-Squared value,beta coefficients, F 
 #' and t statistcs that can be passed directly into vertexFDR.
 #' @seealso mincLm,anatLm,vertexFDR 
@@ -244,18 +275,21 @@ vertexAnova <- function(formula, data, subset=NULL) {
 #' result = vertexLm(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf) 
 #' }
 #' @export
-vertexLm <- function(formula, data, subset=NULL) {
+vertexLm <- function(formula, data, subset=NULL, column=1 ) {
   # Build model.frame
   m <- m_orig <- match.call()
   mf <- match.call(expand.dots=FALSE)
   m <- match(c("formula", "data", "subset"), names(mf), 0)
+
   mf <- mf[c(1, m)]
+  
   mf$drop.unused.levels <- TRUE
   mf[[1]] <- as.name("model.frame")
+  
   mf <- eval(mf, parent.frame())
+
   mincFileCheck(as.character(mf[,1]))
-  
-  
+
   if(length(grep("\\$",formula[[3]])) > 0) {
     stop("$ Not Permitted in Formula")  
   }
@@ -267,31 +301,33 @@ vertexLm <- function(formula, data, subset=NULL) {
   #      rows = rows,
   #      matrixFound = matrixFound,
   #      mmatrix = mmatrix)
-  parseLmOutput <- parseLmFormula(formula,data,mf)  
-  
+  parseLmOutput <- parseLmFormula(formula,data,mf)
+
   if(parseLmOutput$matrixFound) {
-    parseLmOutput$data.matrix.left  <- vertexTable(parseLmOutput$data.matrix.left)
-    parseLmOutput$data.matrix.right <- vertexTable(parseLmOutput$data.matrix.right)
+
+    parseLmOutput$data.matrix.left  <- vertexTable(parseLmOutput$data.matrix.left, column=column)
+    parseLmOutput$data.matrix.right <- vertexTable(parseLmOutput$data.matrix.right, column=column)
   }
   else {
+
     filenames <- as.character(mf[,1])
     parseLmOutput$mmatrix <- model.matrix(formula, mf)	
-    parseLmOutput$data.matrix.left <- vertexTable(filenames)
+    parseLmOutput$data.matrix.left <- vertexTable(filenames, column=column)
     parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
-  } 
-  
+  }
   result <- .Call("vertex_lm_loop",
                   parseLmOutput$data.matrix.left,
                   parseLmOutput$data.matrix.right,
                   parseLmOutput$mmatrix,
                   PACKAGE="RMINC") 
-  
+
   attr(result, "likeVolume") <- as.character(mf[,1])[1]
   attr(result, "model")      <- as.matrix(parseLmOutput$mmatrix)
   attr(result, "filenames")  <- as.character(mf[,1])
   attr(result, "stat-type")  <- c("F", "R-squared", rep("beta",(ncol(result)-2)/2), rep("t",(ncol(result)-2)/2), "logLik")
   attr(result, "data")       <- data 
   attr(result, "call")       <- m_orig
+
   
   Fdf1 <- ncol(attr(result, "model")) -1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
@@ -309,7 +345,6 @@ vertexLm <- function(formula, data, subset=NULL) {
   
   # run the garbage collector...
   gcout <- gc()
-  
   return(result)
 }
 
@@ -321,6 +356,7 @@ vertexLm <- function(formula, data, subset=NULL) {
 #' an actual response variable.
 #' 
 #' @inheritParams mincLmer
+#' @param column Which column to treat as the input from vertex files. 
 #' @details \code{vertexLmer}, like its relative \link{mincLmer} provides an interface to running 
 #' linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
 #' in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
@@ -334,7 +370,7 @@ vertexLm <- function(formula, data, subset=NULL) {
 #' @export
 vertexLmer <-
   function(formula, data, mask=NULL, parallel=NULL,
-           REML=TRUE, control=lmerControl(), start=NULL,
+           REML=TRUE, column = 1, control=lmerControl(), start=NULL,
            verbose=0L, safely = FALSE, summary_type = "fixef") {
 
     mc <- mcout <- match.call()
@@ -385,11 +421,12 @@ vertexLmer <-
 
     out <- 
       vertexApply(lmod$fr[,1]
-                  , optimizer_fun
-                  , mincLmerList = mincLmerList
-                  , mask = mask
-                  , summary_fun = summary_fun
-                  , parallel = parallel)
+                , optimizer_fun
+                , mincLmerList = mincLmerList
+                , mask = mask
+                , column = column
+                , summary_fun = summary_fun
+                , parallel = parallel)
 
     ## Result post processing
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
@@ -425,7 +462,8 @@ vertexLmer <-
 #' within the mask and the median DF returned for every variable.
 #' 
 #' @param model the output of mincLmer
-#'
+#' @param column Which column to treat as the input from vertex files. 
+#' 
 #' @return the same mincLmer model, now with degrees of freedom set
 #'
 #' @seealso \code{\link{mincLmer}} for mixed effects modelling, \code{\link{mincFDR}}
@@ -440,7 +478,7 @@ vertexLmer <-
 #' }
 #' @export
 vertexLmerEstimateDF <-
-  function(model){
+  function(model, column=1){
     # set the DF based on the Satterthwaite approximation
     mincLmerList <- attr(model, "mincLmerList")
     mask <- attr(model, "mask")
@@ -456,7 +494,7 @@ vertexLmerEstimateDF <-
     initial_frame <- #unpack the lmerList object to get the raw data
       attr(model, "mincLmerList")[[1]]$fr
     
-    vertex_data <- vertexTable(initial_frame[,1])
+    vertex_data <- vertexTable(initial_frame[,1], column=column)
     
     # estimated DF depends on the input data. Rather than estimate separately at every structure,
     # instead select a small number of structures and estimate DF for those structures, then keep the
@@ -522,6 +560,7 @@ vertexLmerEstimateDF <-
 #' an igraph graph object of surface created by \link{obj_to_graph}, or an adjacency list (see details). 
 #' For the \code{matrix} and \link{vertexLm} cases, either a single surface object may be passed and
 #' used for each individual, or a vector of file names
+#' @param column Which column to treat as the input from vertex files. 
 #' @param nsteps The number of steps to discretize the TFCE computation over
 #' @inheritParams mincTFCE
 #' @param weights A weighting vector assigning area to vertices. The default varies by 
@@ -720,12 +759,13 @@ vertexTFCE.character <-
            , nsteps = 100
            , side = c("both", "positive", "negative")
            , weights = NULL
+           , column=1
            , ...){
     if(length(x) == 1){
       x <- as.numeric(readLines(x))
       vertexTFCE.numeric(x, surface, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
     } else {
-      x <- vertexTable(x)
+      x <- vertexTable(x,column=column)
       vertexTFCE.matrix(x, surface, E = E, H = H, nsteps = nsteps, side = side, weights = weights, ...)
     }
   }

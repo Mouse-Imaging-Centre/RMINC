@@ -21,7 +21,9 @@ subjectFile[8,1] = file.path(dataPath, "vertex2.txt")
 subjectFile[9,1] = file.path(dataPath, "vertex3.txt")
 subjectFile[10,1] = file.path(dataPath, "vertex1.txt")
 gftest$testFilesLeft <- (subjectFile)
-rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Sex,gftest) ",getOption("verbose"))
+
+#rmincLm <- verboseRun("vertexLm(testFilesLeft ~ Sex,gftest) ",getOption("verbose"))
+rmincLm <- vertexLm(testFilesLeft ~ Sex,gftest, column=1)
 
 gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[,1]~Sex,gftest))

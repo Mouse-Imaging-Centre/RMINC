@@ -5,8 +5,8 @@
 \title{Vertex Mixed Effects Models}
 \usage{
 vertexLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
-  control = lmerControl(), start = NULL, verbose = 0L, safely = FALSE,
-  summary_type = "fixef")
+  column = 1, control = lmerControl(), start = NULL, verbose = 0L,
+  safely = FALSE, summary_type = "fixef")
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}
@@ -23,6 +23,8 @@ for back-compatibility, anything else will be run with batchtools see \link{pMin
 Leaving this argument NULL runs sequentially and may take a long time.}
 
 \item{REML}{whether to use use Restricted Maximum Likelihood or Maximum Likelihood}
+
+\item{column}{Which column to treat as the input from vertex files.}
 
 \item{control}{lmer control function}
 

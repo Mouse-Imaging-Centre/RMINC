@@ -18,7 +18,9 @@
 #' @export
 read_obj <- function(bic_obj, use_civet_triangles = FALSE) {
   
-  lines <- readLines(bic_obj)
+    lines <- readLines(bic_obj)
+    if(lines[[length(lines)]] != "")
+        lines <- c(lines, "")
   
   general_info <- lines[1]
   
@@ -273,6 +275,7 @@ add_opacity <- function(mesh, a_map, a_range = c(.5,1), a_default = 1){
 #' @param colour_bar whether to draw a colour bar
 #' @param add whether or not to add this object to the current rgl device (if possible)
 #' defaults to opening a new device
+#' @param par A list of plot parameters to pass to \link{add_colour_bar}
 #' @param ... additional arguments to \link{create_mesh} including but not limited
 #' to colour, specular, and add_normals
 #' @return invisibly returns the mesh object
@@ -288,6 +291,7 @@ plot.bic_obj <-
            labels = FALSE,
            colour_bar = TRUE,
            add = FALSE,
+           par = list(),
            ...){
     
     if(!add) rgl::open3d()
@@ -318,7 +322,8 @@ plot.bic_obj <-
                                    palette = palette)
     
     mesh %>% rgl::shade3d(override = FALSE)
-    if(colour_bar && !is.null(colour_map)) mesh %>% add_colour_bar
+    if(colour_bar && !is.null(colour_map))
+      do.call("add_colour_bar", c(list(mesh = mesh), par))
     
     invisible(mesh)
   }
@@ -366,6 +371,12 @@ plot.obj_mesh <-
 #' @param tpos2 the position for the top edge of the colour bar in fraction
 #' of the plot area. Only used in the symmetric case for the positive scale,
 #' defaults to .95
+#' @param nudge_title_y Offset text from the bottom of a colour bar by y, units are
+#' in proportions of the colour bar length
+#' @param nudge_title_x Offset text from the bottom of a colour bar by x, units are
+#' in proportions of the colour bar width
+#' @param vertical whether to use a vertical or horizontal layout for the colour bar
+#' @param ... extra parameters to pass to \code{plotrix::color.legend} and \code{text}
 #' @export
 add_colour_bar <- function(mesh
                          , title = ""
@@ -374,47 +385,56 @@ add_colour_bar <- function(mesh
                          , bpos = NULL
                          , tpos = NULL
                          , bpos2 = NULL
-                         , tpos2 = NULL){
+                         , tpos2 = NULL
+                         , nudge_title_y = 0.5
+                         , nudge_title_x = 0.82
+                         , vertical = TRUE
+                         , ...
+                           ){
   if(is.null(mesh$legend)) stop("Your mesh has no colour information")
   with(mesh$legend, {
     rgl::bgplot3d({
       par(mar = c(4,8,4,2))
-      
+
+      bar_orientation <- `if`(vertical, "y", "x")      
       plot.new()
       if(!symmetric){
         if(is.null(bpos)) bpos <- .25
         if(is.null(tpos)) tpos <- .75
 
-        text_h <- bpos + (tpos - bpos) * .5
-        text_w <- rpos + (rpos - lpos) * .2
+        text_h <- bpos + (tpos - bpos) * nudge_title_y
+        text_w <- rpos + (rpos - lpos) * nudge_title_x
         
         plotrix::color.legend(lpos, 
                               bpos, 
                               rpos, 
                               tpos, 
-                              colour_range, palette, gradient="y", align="rb")
+                              colour_range, palette, gradient=bar_orientation, align="rb",
+                              ...)
 
-        text(text_w, text_h, labels=title, srt=-90)
+        text(text_w, text_h, labels=title, srt=-90, ...)
       } else {
         if(is.null(bpos)) bpos  <- .05
         if(is.null(tpos)) tpos  <- .45
         if(is.null(bpos2)) bpos2 <- .55
         if(is.null(tpos2)) tpos2 <- .95
 
-        text_h <- bpos + (tpos2 - bpos) * .5
-        text_w <- rpos + (rpos - lpos) * .2
+        text_h <- bpos + (tpos2 - bpos) * nudge_title_y
+        text_w <- rpos + (rpos - lpos) * nudge_title_x
         
         plotrix::color.legend(lpos,
                               bpos,
                               rpos,
                               tpos,
-                              -rev(colour_range), rev(palette$neg), gradient="y", align="rb")
+                              -rev(colour_range), rev(palette$neg), gradient=bar_orientation, align="rb",
+                              ...)
         plotrix::color.legend(lpos,
                               bpos2,
                               rpos,
                               tpos2,
-                              colour_range, palette$pos, gradient="y", align="rb")
-        text(text_w, text_h, labels=title, srt=-90)
+                              colour_range, palette$pos, gradient=bar_orientation, align="rb",
+                              ...)
+        text(text_w, text_h, labels=title, srt=-90, ...)
       }
     })
   })
@@ -439,13 +459,17 @@ add_colour_bar <- function(mesh
 #' @param ... additonal parameters to be passed to \link{create_mesh}
 #' @param add_normals Whether or not to add normals to the surface objects, see \link{create_mesh} for
 #' details
+#' @param par A list of plot parameters to pass to \link{add_colour_bar}
 #' @param plot_corners The coordinates in pixels for the top left and bottom right corners of the
 #' the rgl device. `c(lx, ly, rx, ry)`
+#' @param vertical Whether to use a vertical (default) or horizontal colour bar.
 #' @param zoom A zoom factor to apply to each subplot. This is the inverse of what you might expect
 #' for consistency with rgl. zoom > 1 zooms out, zoom < zooms in.
 #' @param colour_title legend title for the colour bar if requested
 #' @param close_on_output Whether or not to close the output after taking a snapshot, defaults to
 #' TRUE
+#' @param layout A function to generate an rgl subscene layout, generated with
+#' mfrow3d or layout3d. The function should take no arguments (a thunk).
 #' @details
 #' This function is designed to do a simple 6 angle plot for statistic maps of the left and right
 #' hemispheres of subject's brain. It defaults to leaving the rgl device open so that you can
@@ -467,6 +491,12 @@ obj_montage <- function(left_obj,
                         labels = FALSE,
                         palette = heat.colors(255),
                         symmetric = FALSE,
+                        par = list(),
+                        vertical = TRUE,
+                        layout =
+                          `if`(vertical,
+                               function() rgl::mfrow3d(3,2, byrow = TRUE),
+                               function() rgl::mfrow3d(2,3, byrow = FALSE)),
                         ...,
                         plot_corners = c(100, 100, 900, 900),
                         zoom = 1,
@@ -506,8 +536,9 @@ obj_montage <- function(left_obj,
   rgl::par3d(viewport = c(0,0,plot_corners[3] - plot_corners[1], plot_corners[4] - plot_corners[2]))
 
   parent_scene <- rgl::currentSubscene3d()
+  subscenes <- match.fun(layout)()
   
-  subscenes <- rgl::mfrow3d(3,2)
+
   left_or_right <- rep(c("left", "right"), 3)
   
   mapply(function(subscene, view_matrix, hemisphere){
@@ -524,9 +555,13 @@ obj_montage <- function(left_obj,
   rgl::useSubscene3d(parent_scene)
   
   if(colour_bar){
-    left_mesh %>% add_colour_bar(title = colour_title,
-                                 lpos = .40,
-                                 rpos = .46)
+    par$mesh <- left_mesh
+    if(is.null(par$title)) par$title <- colour_title
+    if(is.null(par$lpos))  par$lpos = .40
+    if(is.null(par$rpos))  par$lpos = .46
+    par$vertical <- vertical
+    
+    do.call("add_colour_bar", par)
   }
   
   if(!is.null(output)) rgl::snapshot3d(output)
