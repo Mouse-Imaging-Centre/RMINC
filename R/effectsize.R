@@ -5,7 +5,7 @@
 #' @param buffer The results of a vertex/anat/mincLm run
 #' @param predictors A vector of factor predictor names. By default the effect size
 #' be computed for all treatment-coded factor columns.
-#' @details This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
+#' @details This code implements the methods from Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591-05. https://doi.org/10.1111/j.1469-185X.2007.00027.x
 #' for computing effect size of group comparisons from a GLM.
 #'
 #' For now, interactions are explicitly excluded from being predictors. To get
@@ -25,7 +25,7 @@
 #' @export
 vertexEffectSize <- function(buffer, predictors = NULL)
 {
-  #Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591–605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
+  #Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591-605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
   #Original unbiased corrector from paper replaced with
   #unbiased corrector function J from https://en.wikipedia.org/wiki/Effect_size#Hedges'_g
   #Watch out for exploding gamma function

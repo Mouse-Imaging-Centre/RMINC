@@ -19,6 +19,8 @@ vertexSd(filenames, column = 1)
 \arguments{
 \item{filenames}{Filenames of the vertex volumes across which to create the
 descriptive statistic.}
+
+\item{column}{Which column to treat as the input from vertex files.}
 }
 \value{
 \item{out}{The output will be a single vector containing as many

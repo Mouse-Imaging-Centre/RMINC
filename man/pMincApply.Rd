@@ -10,8 +10,7 @@ pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
   walltime = NULL, workers = batches, temp_dir = getwd(),
   cleanup = TRUE, collate = simplify2minc,
   conf_file = getOption("RMINC_BATCH_CONF"),
-  registry_name = new_file("pMincApply_registry"),
-  registry_dir = getwd())
+  registry_name = new_file("pMincApply_registry"), registry_dir = getwd())
 }
 \arguments{
 \item{filenames}{Paths to the minc files to be applied accross}

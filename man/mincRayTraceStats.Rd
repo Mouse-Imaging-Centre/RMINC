@@ -9,9 +9,9 @@ mincRayTraceStats(v, anatomy.volume, statsbuffer, column = 1,
   image.max = 4000, output.width = 800, output.height = 800,
   place.inset = FALSE, inset = NULL, stats.largest.pos = NULL,
   stats.largest.neg = NULL, caption = "t-statistic", fdr = NULL,
-  slice.direction = "transverse",
-  outputfile = "ray_trace_crosshair.png", show.pos.and.neg = FALSE,
-  display = TRUE, clobber = NULL, tmpdir = "/tmp")
+  slice.direction = "transverse", outputfile = "ray_trace_crosshair.png",
+  show.pos.and.neg = FALSE, display = TRUE, clobber = NULL,
+  tmpdir = "/tmp")
 }
 \arguments{
 \item{v}{A mincVoxel indicating the voxel of interest.}

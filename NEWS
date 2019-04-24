@@ -1,5 +1,14 @@
 New in Version 1.5.*.*
 =======================
+2.2
+--
+- Improvements to vertex code (thanks @vfonov), now can
+  read single columns from vertex data files
+- Hedges G effect sizes (thanks @gdevenyi), currently
+  for (minc/vertex/anat)Lm
+- Better cortical figure layouting
+- vertexAtlasApply for wrapping a common `tapply` pattern.
+
 2.1
 --
 - Fix resource passing in mincLmer
@@ -10,7 +19,7 @@ New in Version 1.5.*.*
 2.0
 --
 - Rewrite parallel docs to reflect change to batchtools
-- Add configuration passing for parallel functuibs
+- Add configuration passing for parallel functions
 - Rewrite of anatGetAll for multi-mode. Subject specific
   atlases can be passed for computing summaries, useful
   for DTI with MAGeT

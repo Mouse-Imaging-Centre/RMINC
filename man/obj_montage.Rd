@@ -7,8 +7,10 @@
 obj_montage(left_obj, right_obj, left_map, right_map, output = NULL,
   colour_map, colour_range = NULL, colour_default = "grey",
   colour_bar = TRUE, labels = FALSE, palette = heat.colors(255),
-  symmetric = FALSE, ..., plot_corners = c(100, 100, 900, 900),
-  zoom = 1, add_normals = TRUE, colour_title = "",
+  symmetric = FALSE, par = list(), vertical = TRUE, layout = if
+  (vertical) function() rgl::mfrow3d(3, 2, byrow = TRUE) else function()
+  rgl::mfrow3d(2, 3, byrow = FALSE), ..., plot_corners = c(100, 100, 900,
+  900), zoom = 1, add_normals = TRUE, colour_title = "",
   close_on_output = TRUE)
 }
 \arguments{
@@ -40,6 +42,13 @@ allowable labels/measures/statistics to be includedon the surface}
 \code{colour_map}}
 
 \item{symmetric}{Whether to have a positive and negative colour scale (not yet implemented)}
+
+\item{par}{A list of plot parameters to pass to \link{add_colour_bar}}
+
+\item{vertical}{Whether to use a vertical (default) or horizontal colour bar.}
+
+\item{layout}{A function to generate an rgl subscene layout, generated with
+mfrow3d or layout3d. The function should take no arguments (a thunk).}
 
 \item{...}{additonal parameters to be passed to \link{create_mesh}}
 

@@ -12,15 +12,15 @@ mincTFCE(x, ...)
 
 \method{mincTFCE}{mincSingleDim}(x, d = 0.1, E = 0.5, H = 2,
   side = c("both", "positive", "negative"), output_file = NULL,
-  keep = is.null(output_file),
-  conf_file = getOption("RMINC_BATCH_CONF"), ...)
+  keep = is.null(output_file), conf_file = getOption("RMINC_BATCH_CONF"),
+  ...)
 
-\method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2,
-  side = c("both", "positive", "negative"), like_volume, ...)
+\method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2, side = c("both",
+  "positive", "negative"), like_volume, ...)
 
 \method{mincTFCE}{mincMultiDim}(x, d = 0.1, E = 0.5, H = 2,
-  side = c("both", "positive", "negative"),
-  like_volume = likeVolume(x), ...)
+  side = c("both", "positive", "negative"), like_volume = likeVolume(x),
+  ...)
 
 \method{mincTFCE}{mincLm}(x, R = 500, alternative = c("two.sided",
   "greater"), d = 0.1, E = 0.5, H = 2, side = c("both", "positive",

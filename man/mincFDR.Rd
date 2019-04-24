@@ -10,8 +10,8 @@
 \usage{
 mincFDR(buffer, ...)
 
-\method{mincFDR}{mincSingleDim}(buffer, df, mask = NULL,
-  method = "fdr", ...)
+\method{mincFDR}{mincSingleDim}(buffer, df, mask = NULL, method = "fdr",
+  ...)
 
 \method{mincFDR}{mincLogLikRatio}(buffer, mask = NULL, ...)
 

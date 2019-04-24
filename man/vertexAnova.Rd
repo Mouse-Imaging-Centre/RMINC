@@ -12,6 +12,8 @@ vertexAnova(formula, data, subset = NULL, column = 1)
 \item{data}{a data.frame containing variables in formula}
 
 \item{subset}{rows to be used, by default all are used}
+
+\item{column}{Which column to treat as the input from vertex files.}
 }
 \value{
 Returns an array with the F-statistic for each model specified by formula with the following attributes: 

@@ -8,6 +8,8 @@ vertexLmerEstimateDF(model, column = 1)
 }
 \arguments{
 \item{model}{the output of mincLmer}
+
+\item{column}{Which column to treat as the input from vertex files.}
 }
 \value{
 the same mincLmer model, now with degrees of freedom set

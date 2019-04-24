@@ -10,13 +10,13 @@
 qMincApply(filenames, fun, ..., mask = NULL, batches = 4,
   tinyMask = FALSE, slab_sizes = NULL, resources = list(),
   packages = c("RMINC"), registry_dir = getwd(),
-  registry_name = "qMincApply_registry", temp_dir = getwd(),
-  cores = 1, wait = TRUE, cleanup = TRUE, clobber = FALSE,
-  collate = simplify2minc, conf_file = getOption("RMINC_BATCH_CONF"))
+  registry_name = "qMincApply_registry", temp_dir = getwd(), cores = 1,
+  wait = TRUE, cleanup = TRUE, clobber = FALSE, collate = simplify2minc,
+  conf_file = getOption("RMINC_BATCH_CONF"))
 
-qMincRegistry(registry_name = "qMincApply_registry",
-  packages = c("RMINC"), registry_dir = getwd(), clobber = FALSE,
-  resources = list(), conf_file = getOption("RMINC_BATCH_CONF"))
+qMincRegistry(registry_name = "qMincApply_registry", packages = c("RMINC"),
+  registry_dir = getwd(), clobber = FALSE, resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF"))
 
 qMincMap(registry, filenames, fun, ..., mask = NULL, slab_sizes = NULL,
   batches = 4, tinyMask = FALSE, temp_dir = getwd(), cores = 1)

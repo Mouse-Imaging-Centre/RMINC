@@ -6,6 +6,7 @@
 #' 
 #' @param filenames Filenames of the vertex volumes across which to create the
 #' descriptive statistic.
+#' @param column Which column to treat as the input from vertex files. 
 #' @return \item{out}{The output will be a single vector containing as many
 #' elements as there are vertices in the input files.}
 #' @seealso vertexLm
@@ -170,6 +171,7 @@ matrixApply <- function(mat, fun, ..., mask = NULL, parallel = NULL
 #' structure. Defaults to \link{simplify_masked}
 #' @param transpose Whether to alternatively transpose the vertex matrix and apply a function to
 #' each subject
+#' @param column Which column to treat as the input from vertex files. 
 #' @return  The a matrix with a row of results for each vertex
 #' @examples 
 #' \dontrun{
@@ -194,6 +196,33 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
   results
 }
 
+#' Apply a structure summary function across vertices
+#'
+#' This is a wrapper around vertexApply with `transpose` set to `TRUE`
+#' and `fun` wrapped in with `tapply` over atlas.
+#'
+#' @inheritParams vertexApply
+#' @param atlas The atlas to use to summarize vertices.
+#' @return  The a matrix with a row of results for each structure
+#' @export
+vertexAtlasApply <- function(filenames, atlas, fun, ..., mask = NULL
+                           , parallel = NULL, collate = simplify_masked
+                           , column = 1, atlas_column = 1){
+  
+  if(is.character(atlas) && length(atlas) == 1)
+    atlas <- extract_column(atlas, atlas_column)
+    
+  fun <- match.fun(fun)
+  wrapped_fun <- function(x, atlas, ...){
+    tapply(x, list(atlas), fun, ...)
+  }
+      
+  t(
+    vertexApply(filenames, wrapped_fun, atlas = atlas, ..., mask = mask
+              , transpose = TRUE, parallel = parallel, collate = collate
+              , column = column))
+}
+
 
 #' Performs ANOVA on each vertex point specified 
 #' @param formula a model formula
@@ -207,7 +236,8 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
 #' \item{dimnames}{ names of the dimensions for the statistic matrix}
 #' \item{stat-type}{ types of statistic used}
 #' \item{df}{ degrees of freedom of each statistic}
-#' } 
+#' }
+#' @param column Which column to treat as the input from vertex files. 
 #' @seealso mincAnova,anatAnova 
 #' @examples 
 #' \dontrun{
@@ -263,6 +293,7 @@ vertexAnova <- function(formula, data, subset=NULL, column=1) {
 #' so only the + operator may be used, and only two terms may appear on the RHS
 #' @param data a data.frame containing variables in formula 
 #' @param subset rows to be used, by default all are used
+#' @param column Which column to treat as the input from vertex files. 
 #' @return Returns an object containing the R-Squared value,beta coefficients, F 
 #' and t statistcs that can be passed directly into vertexFDR.
 #' @seealso mincLm,anatLm,vertexFDR 
@@ -356,6 +387,7 @@ vertexLm <- function(formula, data, subset=NULL, column=1 ) {
 #' an actual response variable.
 #' 
 #' @inheritParams mincLmer
+#' @param column Which column to treat as the input from vertex files. 
 #' @details \code{vertexLmer}, like its relative \link{mincLmer} provides an interface to running 
 #' linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
 #' in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
@@ -369,7 +401,7 @@ vertexLm <- function(formula, data, subset=NULL, column=1 ) {
 #' @export
 vertexLmer <-
   function(formula, data, mask=NULL, parallel=NULL,
-           REML=TRUE, control=lmerControl(), start=NULL,
+           REML=TRUE, column = 1, control=lmerControl(), start=NULL,
            verbose=0L, safely = FALSE, summary_type = "fixef") {
 
     mc <- mcout <- match.call()
@@ -420,11 +452,12 @@ vertexLmer <-
 
     out <- 
       vertexApply(lmod$fr[,1]
-                  , optimizer_fun
-                  , mincLmerList = mincLmerList
-                  , mask = mask
-                  , summary_fun = summary_fun
-                  , parallel = parallel)
+                , optimizer_fun
+                , mincLmerList = mincLmerList
+                , mask = mask
+                , column = column
+                , summary_fun = summary_fun
+                , parallel = parallel)
 
     ## Result post processing
     out[is.infinite(out)] <- 0            #zero out infinite values produced by vcov
@@ -460,7 +493,8 @@ vertexLmer <-
 #' within the mask and the median DF returned for every variable.
 #' 
 #' @param model the output of mincLmer
-#'
+#' @param column Which column to treat as the input from vertex files. 
+#' 
 #' @return the same mincLmer model, now with degrees of freedom set
 #'
 #' @seealso \code{\link{mincLmer}} for mixed effects modelling, \code{\link{mincFDR}}
@@ -557,6 +591,7 @@ vertexLmerEstimateDF <-
 #' an igraph graph object of surface created by \link{obj_to_graph}, or an adjacency list (see details). 
 #' For the \code{matrix} and \link{vertexLm} cases, either a single surface object may be passed and
 #' used for each individual, or a vector of file names
+#' @param column Which column to treat as the input from vertex files. 
 #' @param nsteps The number of steps to discretize the TFCE computation over
 #' @inheritParams mincTFCE
 #' @param weights A weighting vector assigning area to vertices. The default varies by 

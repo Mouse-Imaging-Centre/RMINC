@@ -4,8 +4,8 @@
 \alias{mincLm}
 \title{Linear model at Every Voxel}
 \usage{
-mincLm(formula, data = NULL, subset = NULL, mask = NULL,
-  maskval = NULL, parallel = NULL, cleanup = TRUE,
+mincLm(formula, data = NULL, subset = NULL, mask = NULL, maskval = NULL,
+  parallel = NULL, cleanup = TRUE,
   conf_file = getOption("RMINC_BATCH_CONF"))
 }
 \arguments{
