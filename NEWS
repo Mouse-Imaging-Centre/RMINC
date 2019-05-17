@@ -1,5 +1,13 @@
 New in Version 1.5.*.*
 =======================
+2.2
+--
+- Improvements to vertex code (thanks @vfonov), now can
+  read single columns from vertex data files
+- Hedges G effect sizes (thanks @gdevenyi), currently
+  for (minc/vertex/anat)Lm
+- Better cortical figure layouting
+- vertexAtlasApply for wrapping a common `tapply` pattern.
 
 2.1
 --

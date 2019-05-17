@@ -4,7 +4,7 @@
 \alias{vertexLm}
 \title{Calculates statistics and coefficients for linear model of specified vertex files}
 \usage{
-vertexLm(formula, data, subset = NULL)
+vertexLm(formula, data, subset = NULL, column = 1)
 }
 \arguments{
 \item{formula}{a model formula. The RHS of the formula may contain one term with filenames. If
@@ -13,6 +13,8 @@ so only the + operator may be used, and only two terms may appear on the RHS}
 \item{data}{a data.frame containing variables in formula}
 
 \item{subset}{rows to be used, by default all are used}
+
+\item{column}{Which column to treat as the input from vertex files.}
 }
 \value{
 Returns an object containing the R-Squared value,beta coefficients, F 

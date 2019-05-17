@@ -6,7 +6,7 @@
 \usage{
 \method{plot}{bic_obj}(x, colour_map = NULL, colour_range = NULL,
   colour_default = "grey", symmetric = FALSE, palette = heat.colors(255),
-  labels = FALSE, colour_bar = TRUE, add = FALSE, ...)
+  labels = FALSE, colour_bar = TRUE, add = FALSE, par = list(), ...)
 }
 \arguments{
 \item{x}{A \code{bic_obj} probably created by \link{read_obj}}
@@ -31,6 +31,8 @@ allowable labels/measures/statistics to be includedon the surface}
 
 \item{add}{whether or not to add this object to the current rgl device (if possible)
 defaults to opening a new device}
+
+\item{par}{A list of plot parameters to pass to \link{add_colour_bar}}
 
 \item{...}{additional arguments to \link{create_mesh} including but not limited
 to colour, specular, and add_normals}

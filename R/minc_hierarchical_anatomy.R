@@ -15,6 +15,9 @@
 #'   low=1, high=10, symmetric = F, begin=50, end=-50)
 #' }
 hanatToVolume <- function(anatTree, labelVolume, column) {
+  if(is.null(getElement(anatTree, column)))
+    stop(column, " doesn't seem to be in your anatomy tree")
+  
   out <- array(0, dim=dim(labelVolume))
   labels <- c()
   values <- c()
@@ -269,19 +272,37 @@ hanatLmerEstimateDF <- function(buffer, n=50) {
 #' hanat <- addVolumesToHierarchy(hdefs, allvols)
 #' }
 addVolumesToHierarchy <- function(hdefs, volumes){
+  #If hdefs$leafCount > regions in volumes, aggregation will fail as rowSums() is called on NULL volumes
+  if (hdefs$leafCount > dim(volumes)[[2]]){
+    stop("Your hierarchical definitions contain more leaves than regions in your volumes.\n",
+         "Consider pruning your hierarchy of subtrees that do not exist in your volumes.")
+  }
+  if (hdefs$leafCount < dim(volumes)[[2]]){
+    stop("Your hierarchical definitions contain fewer leaves than regions in your volumes.\n",
+         "Are you using the correct atlas labels?")
+  }
+  if (any(is.na(volumes))) {
+    warning("At least one anatomical region has a value of NA.\n",
+            "That region's mean volume will be NA, and all of its parents too.")
+  }
   hanat <- Clone(hdefs)
   volLabels <- as.integer(attributes(volumes)$anatIDs)
   hanat$Do(function(x) {
     if (isLeaf(x)) {
       whichIndex <- which(volLabels == x$label)
-      x$volumes <- volumes[,whichIndex]
+      x$volumes <- volumes[, whichIndex]
       x$meanVolume <- mean(x$volumes)
     }
   })
   
   hanat$Do(function(x) x$meanVolume <- Aggregate(x, "meanVolume", sum), traversal="post-order")
-  hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", rowSums), 
+  if (dim(volumes)[[1]]==1){
+    hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", sum),
+             traversal="post-order", filterFun = isNotLeaf)
+  } else {
+    hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", rowSums),
            traversal="post-order", filterFun = isNotLeaf)
+  }
   return(hanat)
 }
 
@@ -437,6 +458,7 @@ makeMICeDefsHierachical <- function(defs, abijson) {
 
   # split the definitions into one per line (i.e. left and right separate)
   ldefs <- lateralizeDefs(defs)
+  tree$Do(function(n){ n$name <- gsub("/", " and ", n$name)})
   # create the first version of the anatomical hierarchy
   mh <- addHierarchyToDefs(ldefs, tree)
   treeMH <- as.Node(mh)
