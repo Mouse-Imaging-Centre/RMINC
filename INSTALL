@@ -59,7 +59,7 @@ you can use homebrew to install the Gnu Compiler Collection which
 comes with gfortran
 
 ```
-brew install gcc
+brew install gcc libssh2 libgit2 libomp
 ```
 
 Regardless of how you install gfortran you will need to tell
