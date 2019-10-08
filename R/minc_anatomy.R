@@ -178,6 +178,9 @@ anatGetAll <-
       atlas <- character(0)
     }
 
+    if(!is.null(defs)) #Read early to allow quick fail out
+      label_frame <- create_labels_frame(defs, side = side)
+
     compute_summary <- function(file_atlas_pairs){
       atlas_get_all(file_atlas_pairs[[1]], file_atlas_pairs[[2]]
                   , method = method)
@@ -252,10 +255,9 @@ anatGetAll <-
       .[order(as.numeric(rownames(.))),,drop=FALSE]
 
     missing_labels <- abs(rowSums(out)) == 0
-    ## Handle creating the label frame
-    if(!is.null(defs)){
-      label_frame <- create_labels_frame(defs, side = side)
-    } else {
+
+    ## Handle creating the label frame if no defs was provided
+    if(is.null(defs)){
       warning("No definitions provided, using indices from atlas \n",
               "to set a default label set options(RMINC_LABEL_DEFINITIONS),",
               " or set it as an environment variable")      
