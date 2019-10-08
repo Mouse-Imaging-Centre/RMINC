@@ -77,6 +77,9 @@ NULL
 ### Package initialization function, syncs environment vars and defines defaults
 .onLoad <-
   function(libname, pkgname){
+    empty_to_null <- function(x){
+      `if`(x == "", NULL, x)
+    }
     
     #Set default options taken from Hadley's r-packages book
     op <- options()
@@ -85,7 +88,7 @@ NULL
       RMINC_MASKED_VALUE = 
         structure(0, class = "RMINC_MASKED_VALUE")
     , RMINC_LABEL_DEFINITIONS =
-        Sys.getenv("RMINC_LABEL_DEFINITIONS")
+          empty_to_null(Sys.getenv("RMINC_LABEL_DEFINITIONS"))          
     , RMINC_BATCH_CONF =
         `if`(Sys.getenv("RMINC_BATCH_CONF") == ""
            , system.file("parallel/pbs_batchtools.R", package = "RMINC")
