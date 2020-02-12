@@ -26,5 +26,3 @@ before_install: |
      source /opt/minc/1.9.16/minc-toolkit-config.sh
    fi
    
-repos:
-  bioCsoft: http://bioconductor.org/packages/3.8/bioc
