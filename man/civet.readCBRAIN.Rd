@@ -6,7 +6,7 @@
 \usage{
 civet.readCBRAIN(path, prefix, subjects = NULL, atlas = "AAL",
   civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE,
-  flatten = TRUE, QCDir = "QC")
+  flatten = TRUE, QCDir = "QC", columnsToKeep = "subject")
 }
 \arguments{
 \item{path}{Path to the civet project}

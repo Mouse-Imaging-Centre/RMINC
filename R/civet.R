@@ -651,7 +651,7 @@ civet_filenames_2_0_0 <-
 #' @seealso \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr} 
 #' @export
 civet.readCBRAIN <-
-  function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE, flatten = TRUE, QCDir = "QC"){
+  function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE, flatten = TRUE, QCDir = "QC", columnsToKeep = "subject"){
     ## Check bad arguments
     if(readQC && readFiles && !flatten) stop("Can't merge QC when readFiles is TRUE and flatten is FALSE")
     
@@ -678,7 +678,7 @@ civet.readCBRAIN <-
     if(readFiles){
       results <- civet.readAllCivetFiles(atlas, results, civetVersion)
       if(flatten)
-        results <- civet.flattenForDplyr(results, "subject")
+        results <- civet.flattenForDplyr(results, columnsToKeep = columnsToKeep)
     }
     
     if(readQC){
