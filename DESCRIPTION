@@ -60,4 +60,4 @@ OS_type: unix
 BugReports: https://github.com/Mouse-Imaging-Centre/RMINC/issues
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

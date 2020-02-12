@@ -4,8 +4,9 @@
 \alias{vertexAtlasApply}
 \title{Apply a structure summary function across vertices}
 \usage{
-vertexAtlasApply(filenames, atlas, fun, ..., mask = NULL, parallel = NULL,
-  collate = simplify_masked, column = 1, atlas_column = 1)
+vertexAtlasApply(filenames, atlas, fun, ..., mask = NULL,
+  parallel = NULL, collate = simplify_masked, column = 1,
+  atlas_column = 1)
 }
 \arguments{
 \item{filenames}{vertex file names}

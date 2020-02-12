@@ -4,11 +4,14 @@
 \alias{getRMINCTestData}
 \title{Download Example Data}
 \usage{
-getRMINCTestData(dataPath = tempdir(), method = "libcurl")
+getRMINCTestData(dataPath = getOption("RMINC_DATA_DIR", tempdir()),
+  method = "libcurl")
 }
 \arguments{
 \item{dataPath}{The directory to download and unpack the test data 
-(unpacks in dataPath/rminctestdata)}
+(unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
+can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory
+is created.}
 
 \item{method}{Argument to pass to \link{download.file} typical options are \code{libcurl}
 and \code{wget}}
