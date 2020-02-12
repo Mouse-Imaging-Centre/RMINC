@@ -43,7 +43,6 @@ Suggests:
     rgl,
     plotrix,
     lmerTest,
-    BiocInstaller,
     qvalue,
     testthat,
     igraph
