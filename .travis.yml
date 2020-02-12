@@ -16,13 +16,11 @@ before_install: |
    fi
    
    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-     ## brew install gcc
-     ## mkdir $HOME/.R/; touch $HOME/.R/Makevars
-     ## echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' > $HOME/.R/Makevars
      (cd ../ ;
      wget http://packages.bic.mni.mcgill.ca/minc-toolkit/MacOSX/minc-toolkit-1.9.16-20180117-Darwin-10.8-x86_64.dmg)
      sudo hdiutil attach ../minc-toolkit-1.9.16-20180117-Darwin-10.8-x86_64.dmg
      sudo installer -package /Volumes/minc-toolkit-1.9.16-20180117-Darwin-x86_64/minc-toolkit-1.9.16-20180117-Darwin-x86_64.pkg -target /
      source /opt/minc/1.9.16/minc-toolkit-config.sh
+     Rscript -e "install.packages('digest')"
    fi
    
