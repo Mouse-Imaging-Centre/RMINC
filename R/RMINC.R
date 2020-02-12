@@ -88,11 +88,13 @@ NULL
       RMINC_MASKED_VALUE = 
         structure(0, class = "RMINC_MASKED_VALUE")
     , RMINC_LABEL_DEFINITIONS =
-          empty_to_null(Sys.getenv("RMINC_LABEL_DEFINITIONS"))          
+        empty_to_null(Sys.getenv("RMINC_LABEL_DEFINITIONS"))          
     , RMINC_BATCH_CONF =
         `if`(Sys.getenv("RMINC_BATCH_CONF") == ""
            , system.file("parallel/pbs_batchtools.R", package = "RMINC")
            , Sys.getenv("RMINC_BATCH_CONF"))
+    , RMINC_DATA_DIR =
+        empty_to_null(Sys.getenv("RMINC_DATA_DIR"))           
     )
     
     toset <- !(names(op.RMINC) %in% names(op))

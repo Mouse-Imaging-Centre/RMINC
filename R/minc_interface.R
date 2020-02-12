@@ -1234,12 +1234,14 @@ setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
 #' Whether or not to verbosely print test output, default is
 #' to print simplified results
 #' @param dataPath The directory to download and unpack the test data 
-#' (unpacks in dataPath/rminctestdata)
+#' (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
+#' can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory
+#' is created.
 #' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' @param ... additional parameter for \link[testthat]{test_dir}
 #' @return invisibly return the test results
 #' @export
-runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verboseTest = FALSE) {
+runRMINCTestbed <- function(..., dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl", verboseTest = FALSE) {
   
   original_opts <- options()
   old_env_vars <- Sys.getenv(c("TEST_Q_MINC", "NOT_CRAN", "TRAVIS"))
@@ -1276,11 +1278,13 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verbo
 #' The data can be downloaded manually from 
 #' \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
 #' @param dataPath The directory to download and unpack the test data 
-#' (unpacks in dataPath/rminctestdata)
+#' (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
+#' can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory
+#' is created.
 #' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' and \code{wget}
 #' @export
-getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
+getRMINCTestData <- function(dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl") {
 
   downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
   extractedPath <- file.path(dataPath, "rminctestdata/")
