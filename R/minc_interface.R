@@ -889,6 +889,58 @@ mincGetMask <- function(mask) {
 }
 
 
+#' Read a collection of minc volumes
+#'
+#' This reads a collection of `mincVolumes` into an optionally file-backed matrix
+#' @param filenames A character vector of minc filenames. All minc files must have the
+#' same shape.
+#' @param mask Either a character vector with a path to a mask file, a mincVolume, or a
+#' numeric/logical vector indicating which voxels to include in the table.
+#' @param file_backed logical, whether to use a file backed matrix for storing the table.
+#' @param ... Additional arguments to `bigstatr::FBM`
+#' @return If `file_backed` is `FALSE` return a matrix with ncol equal to the number of files.
+#' The number of rows is either the product of the volume dimensions, or if a mask is supplied,
+#' the number of voxels where the mask > 0.5. If `file_backed` is `TRUE` return an `FBM` object
+#' from the `bigstatr` package.
+#' @export
+mincTable <- function(filenames, mask = NULL, file_backed = FALSE, ...){
+  mask             <- mincGetMask(filenames)
+  nfiles          <- length(mask)
+  sizes            <- lapply(c(mask, filenames), minc.dimensions.sizes)
+  not_equals_first <- sapply(sizes, function(s) s != sizes[[1]])
+  
+  if(any(not_equals_first)){
+    stop("Some minc files supplied to mincTable are the wrong size:\n"
+       , paste(files[not_equals_first], collapse = ", ")
+       , "\n These don't match the reference volume:\n"
+       , filesnames[1])
+  }
+
+  if(!is.null(mask)){
+    mask_vol <- mincGetMask(mask)
+    nvox     <- sum(mask_vol > 0.5)
+  } else {
+    mask_vol <- NULL
+    nvox     <- prod(sizes[[1]])
+  }
+
+  if(file_backed){
+    outmat <- bigstatsr::FBM(nrow = nvox, ncol = nfiles, ...)
+  } else {
+    outmat <- matrix(nrow = nvox, ncol = nfiles)
+  }
+
+  for(i in seq_len(nfiles)){
+    vol <- mincGetVolume(filnames[i])
+    if(!is.null(mask_vol))
+      vol <- vol[mask_vol > 0.5]
+    
+    outmat[,i] <- vol
+  }
+
+  outmat                               
+}
+
 # create a 2D array of full volumes of all files specified.
 minc.get.volumes <- function(filenames) {
   sizes <- minc.dimensions.sizes(filenames[1])
