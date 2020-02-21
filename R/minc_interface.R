@@ -880,7 +880,7 @@ pt2 <- function(q, df,log.p=FALSE) {
 #' @param mask Either the path to a mask file or a numeric vector representing the mask
 #' @return a numeric mask vector
 mincGetMask <- function(mask) {
-  if (class(mask) == "character") {
+  if (inherits(mask, "character")) {
     return(mincGetVolume(mask))
   }
   else {
@@ -904,24 +904,28 @@ mincGetMask <- function(mask) {
 #' from the `bigstatr` package.
 #' @export
 mincTable <- function(filenames, mask = NULL, file_backed = FALSE, ...){
-  mask             <- mincGetMask(filenames)
-  nfiles          <- length(mask)
-  sizes            <- lapply(c(mask, filenames), minc.dimensions.sizes)
+  
+  nfiles           <- length(filenames)
+  sizes            <- lapply(filenames, minc.dimensions.sizes)
+  total_vox        <- prod(sizes[[1]])
   not_equals_first <- sapply(sizes, function(s) s != sizes[[1]])
   
   if(any(not_equals_first)){
     stop("Some minc files supplied to mincTable are the wrong size:\n"
-       , paste(files[not_equals_first], collapse = ", ")
+       , paste(filenames[not_equals_first], collapse = ", ")
        , "\n These don't match the reference volume:\n"
-       , filesnames[1])
+       , filenames[1])
   }
 
   if(!is.null(mask)){
-    mask_vol <- mincGetMask(mask)
-    nvox     <- sum(mask_vol > 0.5)
+    mask_vol <- mincGetMask(mask) > 0.5
+    if(length(mask_vol) != total_vox)
+      stop("Your mask is not the same size as your input files, ensure it has"
+         , "the same dimensions as ", filenames[1])    
+    nvox     <- sum(mask_vol)
   } else {
     mask_vol <- NULL
-    nvox     <- prod(sizes[[1]])
+    nvox     <- total_vox
   }
 
   if(file_backed){
@@ -930,10 +934,11 @@ mincTable <- function(filenames, mask = NULL, file_backed = FALSE, ...){
     outmat <- matrix(nrow = nvox, ncol = nfiles)
   }
 
+  
   for(i in seq_len(nfiles)){
-    vol <- mincGetVolume(filnames[i])
+    vol <- mincGetVolume(filenames[i])    
     if(!is.null(mask_vol))
-      vol <- vol[mask_vol > 0.5]
+      vol <- vol[mask_vol]
     
     outmat[,i] <- vol
   }
