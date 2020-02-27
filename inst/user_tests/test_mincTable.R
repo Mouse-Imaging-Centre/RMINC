@@ -1,1 +1,1 @@
-tests/testthat/test_mincTable.R
+../../tests/testthat/test_mincTable.R
