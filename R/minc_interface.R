@@ -1354,7 +1354,7 @@ getRMINCTestData <- function(dataPath = getOption("RMINC_DATA_DIR", tempdir()), 
                     method = method) # changed from "wget" to stop freakouts on mac
     }
   
-    untar(downloadPath, exdir = dataPath, compressed = "gzip")
+    untar(downloadPath, exdir = dataPath)
   
     rectifyPaths <-
       function(file){
