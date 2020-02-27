@@ -304,33 +304,32 @@ create_labels_frame <-
       label_defs %>%
       mutate(both_sides = .data$right.label == .data$left.label) %>%
       gather("hemisphere", "label", c("right.label", "left.label")) %>%
-      mutate_(Structure =
-                ~ ifelse(both_sides
-                         , Structure
-                         , ifelse(hemisphere == "right.label"
-                                  , paste0("right ", Structure)
-                                  , paste0("left ", Structure))))
+      mutate(Structure =
+                 ifelse(.data$both_sides
+                      , .data$Structure
+                      , ifelse(.data$hemisphere == "right.label"
+                             , paste0("right ", .data$Structure)
+                             , paste0("left ", .data$Structure))))
     
     if("hierarchy" %in% names(label_defs))
       label_defs <-
       label_defs %>%
-      mutate_(hierarchy = 
-                ~ with(.
-                       , case_when(is.na(hierarchy) | hierarchy == "" ~ ""
-                                   , both_sides ~ hierarchy
-                                   , hemisphere == "right.label" ~ paste0("right ", hierarchy)
-                                   , hemisphere == "left.label" ~ paste0("left ", hierarchy))))
+      mutate(hierarchy = 
+                 case_when(is.na(.data$hierarchy) | .data$hierarchy == "" ~ ""
+                         , both_sides ~ hierarchy
+                         , .data$hemisphere == "right.label" ~ paste0("right ", .data$hierarchy)
+                         , .data$hemisphere == "left.label" ~ paste0("left ", .data$hierarchy)))
     
     label_defs <-
       switch(side
-             , left  = filter_(label_defs, ~ both_sides | hemisphere == "left.label")
-             , right = filter_(label_defs, ~ both_sides | hemisphere == "right.label")
-             , both  = label_defs)
+           , left  = filter(label_defs, .data$both_sides | .data$hemisphere == "left.label")
+           , right = filter(label_defs, .data$both_sides | .data$hemisphere == "right.label")
+           , both  = label_defs)
     
     label_defs <-
       label_defs %>%
-      select_(~ -c(hemisphere, both_sides)) %>%
-      filter_(~ ! duplicated(label))
+      select(-c(.data$hemisphere, .data$both_sides)) %>%
+      filter(! duplicated(.data$label))
     
     label_defs
   }
@@ -347,7 +346,7 @@ create_anat_results <-
         as.data.frame(results) %>%
         slice(-1) %>% #removes the zero label
         mutate(indices = 1:n()) %>%
-        filter_(~ ! missing_labels[-1]) %>%
+        filter(! .data$missing_labels[-1]) %>%
         left_join(label_frame, by = c("indices" = "label"))
     } else {
       results <-
@@ -358,7 +357,7 @@ create_anat_results <-
         left_join(label_frame, by = c("indices" = "label"))
     }
     
-    extra_structures <- results %>% filter_(~ is.na(Structure)) %>% .$indices
+    extra_structures <- results %>% filter(is.na(.data$Structure)) %>% .$indices
     if(length(extra_structures) != 0)
       message(length(extra_structures), 
               " extra Structures  found in files but not in labels: "
@@ -373,14 +372,14 @@ create_anat_results <-
     
     results <- 
       results %>%
-      filter_(~ !is.na(Structure))
+      filter(!is.na(.data$Structure))
     
     label_inds <- results$indices
     structures <- results$Structure
     
     results <-
       results %>%
-      select_(~ -c(indices,Structure)) %>% 
+      select( -c(.data$indices,.data$Structure)) %>% 
       t %>%
       `colnames<-`(structures) %>%
       `rownames<-`(NULL)
@@ -576,16 +575,16 @@ anatSummarize <-
     if(is.character(summarize_by) && length(summarize_by == 1)){
       summarize_by <- 
         create_labels_frame(defs, hierarchy = summarize_by) %>%
-        select_(~ -label) %>%
+        select(- .data$label) %>%
         rename_(label = "Structure", group = "hierarchy")
     }
     
     if(!discard_missing){
       summarize_by <-
         summarize_by %>%
-        mutate_(group = ~ifelse(is.na(group) | group == "", label, group))
+        mutate(group = ifelse(is.na(.data$group) | .data$group == "", .data$label, .data$group))
     } else {
-      summarize_by <- summarize_by %>% filter_(~ group != "")
+      summarize_by <- summarize_by %>% filter(.data$group != "")
     }
     
     anat %>%
@@ -594,10 +593,10 @@ anatSummarize <-
       gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
       inner_join(summarize_by, by = "label") %>%
       group_by_("group", "rowname") %>%
-      summarize_(value = ~ sum(value)) %>%
+      summarize(value = sum(.data$value)) %>%
       spread_("group", "value") %>%
-      arrange_(~ as.numeric(rowname)) %>%
-      select_(~ -rowname) %>%
+      arrange(as.numeric(.data$rowname)) %>%
+      select(-.data$rowname) %>%
       as.matrix
   }
 

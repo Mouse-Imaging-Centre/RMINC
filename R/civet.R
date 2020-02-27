@@ -589,42 +589,41 @@ civet_filenames_2_0_0 <-
     thickness_method <- last(cnf$thickness_method) #not sure why config produces a vector of length two here
     thickness_dist <- cnf$thickness_kernel
     atlas <- cnf$atlas
-    
+          
     gf %>%
-      mutate_( #very iritating R CMD check can't handle dplyr code...
-        subject_prefixed = ~paste0(prefix, gf[,idvar])
-        , subject_path = ~file.path(basedir, gf[,idvar])
-        , leftGIFiles  = ~sprintf("%s/surfaces/%s_gi_left.dat", subject_path, subject_prefixed)
-        , rightGIFiles = ~sprintf("%s/surfaces/%s_gi_right.dat", subject_path, subject_prefixed)
+      mutate( #very iritating R CMD check can't handle dplyr code...
+        subject_prefixed = paste0(prefix, gf[,idvar])
+        , subject_path = file.path(basedir, gf[,idvar])
+        , leftGIFiles  = sprintf("%s/surfaces/%s_gi_left.dat", .data$subject_path, .data$subject_prefixed)
+        , rightGIFiles = sprintf("%s/surfaces/%s_gi_right.dat", .data$subject_path, .data$subject_prefixed)        
+        , leftlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_left.dat", .data$subject_path, .data$subject_prefixed, atlas)
+        , rightlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_right.dat", .data$subject_path, .data$subject_prefixed, atlas)
         
-        , leftlobeArea40mmFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_left.dat", subject_path, subject_prefixed, atlas)
-        , rightlobeArea40mmFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_right.dat", subject_path, subject_prefixed, atlas)
+        , leftlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_left.dat", .data$subject_path , .data$subject_prefixed, atlas, thickness_method, thickness_dist)
+        , rightlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_right.dat", .data$subject_path , .data$subject_prefixed, atlas, thickness_method, thickness_dist)
         
-        , leftlobeThicknessFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_left.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
-        , rightlobeThicknessFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_right.dat", subject_path , subject_prefixed, atlas, thickness_method, thickness_dist)
+        , leftlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_left.dat", .data$subject_path, .data$subject_prefixed, atlas)
+        , rightlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_right.dat", .data$subject_path, .data$subject_prefixed, atlas)
         
-        , leftlobeVolumeFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_left.dat", subject_path, subject_prefixed, atlas)
-        , rightlobeVolumeFiles  = ~sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_right.dat", subject_path, subject_prefixed, atlas)
+        , midSurfaceleftNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_left_native_area_40mm.txt", .data$subject_path, .data$subject_prefixed)
+        , midSurfacerightNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_right_native_area_40mm.txt", .data$subject_path, .data$subject_prefixed)
         
-        , midSurfaceleftNativeArea = ~sprintf("%s/surfaces/%s_mid_surface_rsl_left_native_area_40mm.txt", subject_path, subject_prefixed)
-        , midSurfacerightNativeArea = ~sprintf("%s/surfaces/%s_mid_surface_rsl_right_native_area_40mm.txt", subject_path, subject_prefixed)
+        , SurfaceleftNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_left_native_volume_40mm.txt", .data$subject_path, .data$subject_prefixed)
+        , SurfacerightNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_right_native_volume_40mm.txt", .data$subject_path, .data$subject_prefixed)
         
-        , SurfaceleftNativeVolume = ~sprintf("%s/surfaces/%s_surface_rsl_left_native_volume_40mm.txt", subject_path, subject_prefixed)
-        , SurfacerightNativeVolume = ~sprintf("%s/surfaces/%s_surface_rsl_right_native_volume_40mm.txt", subject_path, subject_prefixed)
+        , brain_volume = sprintf("%s/classify/%s_cls_volumes.dat", .data$subject_path , .data$subject_prefixed)
+        , cerebral_volume = sprintf("%s/thickness/%s_cerebral_volume.dat", .data$subject_path , .data$subject_prefixed)
         
-        , brain_volume = ~sprintf("%s/classify/%s_cls_volumes.dat", subject_path , subject_prefixed)
-        , cerebral_volume = ~sprintf("%s/thickness/%s_cerebral_volume.dat", subject_path , subject_prefixed)
+        , nativeRMS_RSLtlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", .data$subject_path, .data$subject_prefixed, thickness_method, thickness_dist) 
+        , nativeRMS_RSLtlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", .data$subject_path, .data$subject_prefixed,thickness_method, thickness_dist) 
         
-        , nativeRMS_RSLtlink_left = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path, subject_prefixed, thickness_method, thickness_dist) 
-        , nativeRMS_RSLtlink_right = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path, subject_prefixed,thickness_method, thickness_dist) 
+        , nativeRMStlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", .data$subject_path , .data$subject_prefixed, thickness_method, thickness_dist) 
+        , nativeRMStlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", .data$subject_path , .data$subject_prefixed, thickness_method, thickness_dist)
         
-        , nativeRMStlink_left = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", subject_path , subject_prefixed, thickness_method, thickness_dist) 
-        , nativeRMStlink_right = ~sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", subject_path , subject_prefixed, thickness_method, thickness_dist)
-        
-        , RSL_mean_curvature_left = ~sprintf("%s/curvature/%s_mid_surface_rsl_left_mean_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
-        , RSL_mean_curvature_right = ~sprintf("%s/curvature/%s_mid_surface_rsl_right_mean_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
-        , RSL_gaus_curvature_left = ~sprintf("%s/curvature/%s_mid_surface_rsl_left_gaus_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
-        , RSL_gaus_curvature_right = ~sprintf("%s/curvature/%s_mid_surface_rsl_right_gaus_curv_%smm.txt", subject_path , subject_prefixed, thickness_dist)
+        , RSL_mean_curvature_left = sprintf("%s/curvature/%s_mid_surface_rsl_left_mean_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
+        , RSL_mean_curvature_right = sprintf("%s/curvature/%s_mid_surface_rsl_right_mean_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
+        , RSL_gaus_curvature_left = sprintf("%s/curvature/%s_mid_surface_rsl_left_gaus_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
+        , RSL_gaus_curvature_right = sprintf("%s/curvature/%s_mid_surface_rsl_right_gaus_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
       )
   }
 
@@ -747,6 +746,7 @@ civet.vertexFilenames <-
 #' @export
 civet.vertexTable <- function(vertex_files){
   columns_to_collect <- setdiff(names(vertex_files), "ids")
+  column_syms <- lapply(columns_to_collect, as.symbol)
   
   n_vertices <- 
     getElement(vertex_files, columns_to_collect[1]) %>%
@@ -763,9 +763,9 @@ civet.vertexTable <- function(vertex_files){
     
   
   vertex_files %>%
-    gather_("measure", "file", columns_to_collect) %>%
-    mutate_(vertex_data = ~ lapply(file, read_or_NAs)) %>%
-    arrange_(~ ids) %>%
+    gather("measure", "file", !!!column_syms) %>%
+    mutate(vertex_data = lapply(.data$file, read_or_NAs)) %>%
+    arrange(.data$ids) %>%
     split(.$measure) %>%
     lapply(function(df){
       unlist(df$vertex_data) %>%
@@ -867,7 +867,7 @@ civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="
 		}
 		if(file.exists(dataFiles[j]))
 		{
-		  data_file <- read.table(dataFiles[j]) %>% filter_(~ V1 != "Total")
+		  data_file <- read.table(dataFiles[j]) %>% filter(.data$V1 != "Total")
 			labels <- data_file$V1
 			value <- data_file$V2
 			labels = as.numeric(as.character(labels))
@@ -1713,16 +1713,16 @@ civet_qc_1_1_12 <-
                  "SRRight", "SSLeft", "SSRight", "MeanCTLeft", "MeanCTRight", 
                  "MeanWM-T1", "StdDevWM-T1", "MeanGM-T1", "StdDevGM-T1", "GIleft", 
                  "GIright", "GIfull")) %>%
-      mutate_(
-        CSFcls_score   = ~ ifelse(between(CSFcls, 15, 80), "good", "med"),
-        GMcls_score    = ~ ifelse(between(GMcls, 15, 80), "good", "med"),
-        WMcls_score    = ~ ifelse(between(WMcls, 15, 80), "good", "med"),
-        WMsurf_score   = ~ good_med_bad(WMsurf, 10, 20),
-        GMsurf_score   = ~ good_med_bad(GMsurf, 10, 20),
-        SRLeft_score   = ~ good_med_bad(SRLeft, 250, 500),
-        SRRight_score  = ~ good_med_bad(SRRight, 250, 500),
-        SSLeft_score   = ~ good_med_bad(SSLeft, 250, 500),
-        SSRight_score  = ~ good_med_bad(SSRight, 250, 500)
+      mutate(
+        CSFcls_score   = ifelse(between(.data$CSFcls, 15, 80), "good", "med"),
+        GMcls_score    = ifelse(between(.data$GMcls, 15, 80), "good", "med"),
+        WMcls_score    = ifelse(between(.data$WMcls, 15, 80), "good", "med"),
+        WMsurf_score   = good_med_bad(.data$WMsurf, 10, 20),
+        GMsurf_score   = good_med_bad(.data$GMsurf, 10, 20),
+        SRLeft_score   = good_med_bad(.data$SRLeft, 250, 500),
+        SRRight_score  = good_med_bad(.data$SRRight, 250, 500),
+        SSLeft_score   = good_med_bad(.data$SSLeft, 250, 500),
+        SSRight_score  = good_med_bad(.data$SSRight, 250, 500)
       ) %>%
       cbind(
         rowwise(.) %>% 
@@ -1732,7 +1732,7 @@ civet_qc_1_1_12 <-
                unlist %>%
                `!=`("bad") %>%
                all) %>%
-          mutate_(QC_PASS = ~ unlist(QC_PASS))
+          mutate(QC_PASS = unlist(.$dataQC_PASS))
       )
   }
 
@@ -1774,14 +1774,14 @@ civet_qc_2_0_0 <-
       setNames(readLines(qc_file, n = 1) %>% strsplit(., ",") %>% first)
 
     qc_res %>%
-      mutate_(mask_score     = ~ rate_one_sided(MASK_ERROR)
-              , CSFcls_score   = ~ rate_symmetric(CSF_PERCENT)
-              , GMcls_score    = ~ rate_symmetric(GM_PERCENT)
-              , WMcls_score    = ~ rate_symmetric(WM_PERCENT)
-              , SRLeft_score   = ~ rate_cutoffs(LEFT_INTER, 50, 100)
-              , SRRight_score  = ~ rate_cutoffs(RIGHT_INTER, 50, 100)
-              , SSLeft_score   = ~ rate_cutoffs(LEFT_SURF_SURF, 50, 100)
-              , SSRight_score  = ~ rate_cutoffs(RIGHT_SURF_SURF, 50, 100)
+      mutate(mask_score     = rate_one_sided(.data$MASK_ERROR)
+           , CSFcls_score   = rate_symmetric(.data$CSF_PERCENT)
+           , GMcls_score    = rate_symmetric(.data$GM_PERCENT)
+           , WMcls_score    = rate_symmetric(.data$WM_PERCENT)
+           , SRLeft_score   = rate_cutoffs(.data$LEFT_INTER, 50, 100)
+           , SRRight_score  = rate_cutoffs(.data$RIGHT_INTER, 50, 100)
+           , SSLeft_score   = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100)
+           , SSRight_score  = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
       ) %>%
       cbind(
         rowwise(.) %>%
@@ -1791,31 +1791,9 @@ civet_qc_2_0_0 <-
                unlist %>%
                `!=`("bad") %>%
                all) %>%
-          mutate_(QC_PASS = ~ unlist(QC_PASS))
+          mutate(QC_PASS = unlist(.data$QC_PASS))
       )
-        
-    
-    # qc_res %>%
-    #   mutate_(mask_score     = ~ ifelse(MASK_ERROR  > 15, "bad", "good")
-    #           , CSFcls_score   = ~ ifelse(CSF_PERCENT > 19, "bad", "good")
-    #           , GMcls_score    = ~ ifelse(GM_PERCENT  < 45, "bad", "good")
-    #           , WMcls_score    = ~ ifelse(WM_PERCENT  > 38, "bad", "good")
-    #           , SRLeft_score   = ~ good_med_bad(LEFT_INTER, 250, 500)
-    #           , SRRight_score  = ~ good_med_bad(RIGHT_INTER, 250, 500)
-    #           , SSLeft_score   = ~ good_med_bad(LEFT_SURF_SURF, 250, 500)
-    #           , SSRight_score  = ~ good_med_bad(RIGHT_SURF_SURF, 250, 500)
-    #   ) %>%
-    #   cbind(
-    #     rowwise(.) %>% 
-    #       do(QC_PASS = 
-    #            as_data_frame(.) %>%
-    #            select(matches("_score")) %>% 
-    #            unlist %>%
-    #            `!=`("bad") %>%
-    #            all) %>%
-    #       mutate_(QC_PASS = ~ unlist(QC_PASS))
-    #   )
-  }
+  }     
 
 civet_qc_2_1_0 <- 
   function(dir){
@@ -1839,14 +1817,14 @@ civet_qc_2_1_0 <-
       read.csv(qc_file, stringsAsFactors = FALSE)
     
     qc_res %>%
-      mutate_(mask_score     = ~ rate_one_sided(MASK_ERROR)
-              , CSFcls_score   = ~ rate_symmetric(CSF_PERCENT)
-              , GMcls_score    = ~ rate_symmetric(GM_PERCENT)
-              , WMcls_score    = ~ rate_symmetric(WM_PERCENT)
-              , SRLeft_score   = ~ rate_cutoffs(LEFT_INTER, 50, 100)
-              , SRRight_score  = ~ rate_cutoffs(RIGHT_INTER, 50, 100)
-              , SSLeft_score   = ~ rate_cutoffs(LEFT_SURF_SURF, 50, 100)
-              , SSRight_score  = ~ rate_cutoffs(RIGHT_SURF_SURF, 50, 100)
+      mutate(mask_score     = rate_one_sided(.data$MASK_ERROR)
+           , CSFcls_score   = rate_symmetric(.data$CSF_PERCENT)
+           , GMcls_score    = rate_symmetric(.data$GM_PERCENT)
+           , WMcls_score    = rate_symmetric(.data$WM_PERCENT)
+           , SRLeft_score   = rate_cutoffs(.data$LEFT_INTER, 50, 100)
+           , SRRight_score  = rate_cutoffs(.data$RIGHT_INTER, 50, 100)
+           , SSLeft_score   = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100)
+           , SSRight_score  = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
       ) %>%
       cbind(
         rowwise(.) %>%
@@ -1856,6 +1834,6 @@ civet_qc_2_1_0 <-
                unlist %>%
                `!=`("bad") %>%
                all) %>%
-          mutate_(QC_PASS = ~ unlist(QC_PASS))
+          mutate(QC_PASS = unlist(.data$QC_PASS))
       )
   }

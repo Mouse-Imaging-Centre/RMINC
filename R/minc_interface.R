@@ -595,8 +595,8 @@ summary.mincQvals <- function(object, ...) {
     gather_("key", "value", names(.)) %>% 
     separate_("key", c("var", "stat"), sep=-2) %>% 
     spread_("var", "value") %>% 
-    mutate_(stat = ~ factor(stat, labels=paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20)))) %>%
-    select_(~ stat, ~ everything()) %>%
+    mutate(stat = factor(.data$stat, labels=paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20)))) %>%
+    select(.data$stat, everything()) %>%
     setNames(sub("_$","", names(.)))
 }
 
@@ -1374,7 +1374,7 @@ getRMINCTestData <- function(dataPath = getOption("RMINC_DATA_DIR", tempdir()), 
     lapply(filesToFix, rectifyPaths)
   }
   
-  invisible(NULL)
+  invisible(extractedPath)
 }
 
 #' Run function with/without output silenced
