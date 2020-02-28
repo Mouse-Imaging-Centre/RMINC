@@ -28,6 +28,8 @@ civet.readCBRAIN(path, prefix, subjects = NULL, atlas = "AAL",
 it in the legacy format}
 
 \item{QCDir}{The directory, or vector of directories of where to find QC tables}
+
+\item{columnsToKeep}{Additional columns from \link{civet.readAllFiles} to include in the output}
 }
 \value{
 A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
