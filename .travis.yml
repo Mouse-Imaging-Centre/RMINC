@@ -1,18 +1,66 @@
 matrix:
   include:
     -  os: linux
-       dist: trusty
+       dist: xenial
+       script: |
+         R CMD build .
+         R CMD INSTALL RMINC*.tar.gz
+         R CMD check --as-cran --no-install RMINC*.tar.gz
+         cat RMINC.Rcheck/00check.log         
+         Rscript -e "\
+         testr <- devtools::test(); \
+         testr <- as.data.frame(testr); \
+         if(any(testr\$error) || any(testr\$warning > 0)) \
+           stop('Found failing tests') \
+         "
+         pass=$?
+         if [[ $pass -ne 0 || $(grep -i "WARNING\|ERROR" RMINC.Rcheck/00check.log) != "" ]]; then
+           (exit 1)
+         else
+           (exit 0)
+         fi
     -  os: osx
+       script: |
+         R CMD build .
+         R CMD INSTALL RMINC*.tar.gz
+         R CMD check --as-cran --no-install RMINC*.tar.gz
+         cat RMINC.Rcheck/00check.log         
+         Rscript -e "\
+         testr <- devtools::test(); \
+         testr <- as.data.frame(testr); \
+         if(any(testr\$error) || any(testr\$warning > 0)) \
+           stop('Found failing tests') \
+         "
+         pass=$?
+         if [[ $pass -ne 0 || $(grep -i "WARNING\|ERROR" RMINC.Rcheck/00check.log) != "" ]]; then
+           (exit 1)
+         else
+           (exit 0)
+         fi
 
 language: r
+r_binary_packages:
+  - devtools
+  - roxygen2
+  - tidyverse
+  - lme4
 sudo: required
-       
+addons:
+  apt:
+    update: true
+    packages:
+      - libgl1-mesa-dev
+      - libglu1-mesa-dev
+      - freeglut3-dev
+env:
+  MINC_PATH=/opt/minc/1.9.17
+      
 before_install: |
    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
      (cd ../ ;
-     wget http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.16-20180117-Ubuntu_14.04-x86_64.deb )
-     sudo dpkg -i ../minc-toolkit-1.9.16-20180117-Ubuntu_14.04-x86_64.deb
-     source /opt/minc/1.9.16/minc-toolkit-config.sh
+     wget https://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.17-20190313-Ubuntu_16.04-x86_64.deb)
+     sudo dpkg -i ../minc-toolkit-1.9.17-20190313-Ubuntu_16.04-x86_64.deb
+     source /opt/minc/1.9.17/minc-toolkit-config.sh
    fi
    
    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
@@ -21,6 +69,7 @@ before_install: |
      sudo hdiutil attach ../minc-toolkit-1.9.16-20180117-Darwin-10.8-x86_64.dmg
      sudo installer -package /Volumes/minc-toolkit-1.9.16-20180117-Darwin-x86_64/minc-toolkit-1.9.16-20180117-Darwin-x86_64.pkg -target /
      source /opt/minc/1.9.16/minc-toolkit-config.sh
+     export LDFLAGS="$LDFLAGS -L$(brew --prefix zlib)/lib"
      Rscript -e "install.packages('digest')"
    fi
    
