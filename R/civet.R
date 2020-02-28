@@ -1718,12 +1718,12 @@ civet_qc_1_1_12 <-
         CSFcls_score   = ifelse(between(.data$CSFcls, 15, 80), "good", "med"),
         GMcls_score    = ifelse(between(.data$GMcls, 15, 80), "good", "med"),
         WMcls_score    = ifelse(between(.data$WMcls, 15, 80), "good", "med"),
-        WMsurf_score   = good_med_bad(.data$WMsurf, 10, 20),
-        GMsurf_score   = good_med_bad(.data$GMsurf, 10, 20),
-        SRLeft_score   = good_med_bad(.data$SRLeft, 250, 500),
-        SRRight_score  = good_med_bad(.data$SRRight, 250, 500),
-        SSLeft_score   = good_med_bad(.data$SSLeft, 250, 500),
-        SSRight_score  = good_med_bad(.data$SSRight, 250, 500)
+        WMsurf_score   = rate_cutoffs(.data$WMsurf, 10, 20),
+        GMsurf_score   = rate_cutoffs(.data$GMsurf, 10, 20),
+        SRLeft_score   = rate_cutoffs(.data$SRLeft, 250, 500),
+        SRRight_score  = rate_cutoffs(.data$SRRight, 250, 500),
+        SSLeft_score   = rate_cutoffs(.data$SSLeft, 250, 500),
+        SSRight_score  = rate_cutoffs(.data$SSRight, 250, 500)
       ) %>%
       cbind(
         rowwise(.) %>% 
