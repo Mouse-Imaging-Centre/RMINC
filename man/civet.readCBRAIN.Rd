@@ -29,10 +29,10 @@ it in the legacy format}
 
 \item{QCDir}{The directory, or vector of directories of where to find QC tables}
 
-\item{columnsToKeep}{Additional columns from \link{civet.readAllFiles} to include in the output}
+\item{columnsToKeep}{Additional columns from \link{civet.readAllCivetFiles} to include in the output}
 }
 \value{
-A data.frame in the format of \code{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
+A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
 the format of \link{civet.readAllCivetFiles} if \code{readFiles} is TRUE and \code{flatten} is FALSE. And a data.frame in
 the format of \link{civet.flattenForDplyr} if \code{readQC}, \code{readFiles}, and \code{flatten} are all TRUE (default)
 }
