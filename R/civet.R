@@ -645,7 +645,7 @@ civet_filenames_2_0_0 <-
 #' it in the legacy format
 #' @param QCDir The directory, or vector of directories of where to find QC tables
 #' @param columnsToKeep Additional columns from \link{civet.readAllFiles} to include in the output
-#' @return A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
+#' @return A data.frame in the format of \code{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
 #' the format of \link{civet.readAllCivetFiles} if \code{readFiles} is TRUE and \code{flatten} is FALSE. And a data.frame in
 #' the format of \link{civet.flattenForDplyr} if \code{readQC}, \code{readFiles}, and \code{flatten} are all TRUE (default)
 #' @seealso \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr} 
