@@ -29,6 +29,8 @@ indicating the number of jobs to split the computation into.}
 structure. Defaults to \link{simplify_masked}}
 
 \item{column}{Which column to treat as the input from vertex files.}
+
+\item{atlas_column}{If the atlas is a text file, which column holds the label}
 }
 \value{
 The a matrix with a row of results for each structure
