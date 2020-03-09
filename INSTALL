@@ -59,11 +59,12 @@ you can use homebrew to install the Gnu Compiler Collection which
 comes with gfortran
 
 ```
-brew install gcc libssh2 libgit2 libomp
+brew install gcc libssh2 libgit2 libomp libz
 ```
 
 Regardless of how you install gfortran you will need to tell
-R where to find it. If you installed via brew you can run
+R where to find it. If you installed via brew you can run the
+following in terminal 
 
 ```
 mkdir $HOME/.R/ ## Ignore the error if this directory already exists
@@ -78,6 +79,15 @@ library path. My best guess is
 ```
 echo 'FLIBS=-L/usr/local/gfortran/lib" >> $HOME/.R/Makevars'
 ```
+
+Additionally, recent mac versions have struggled to link libz in
+to RMINC. You will probably need to run the following in the terminal
+before opening R
+
+```
+export LDFLAGS="$LDFLAGS -L$(brew --prefix zlib)/lib"
+```
+
 
 If that works or doesn't let me know in the issues!
 
