@@ -4,6 +4,12 @@ suppressPackageStartupMessages({
   library(lme4)
 })
 
+handle_conv_warnings <- function(expr){
+  withCallingHandlers(expr, warning = function(w){
+    if(grepl("converge", w)) invokeRestart("muffleWarning")
+  })
+}
+
 context("anatLmer")
 
 if(!exists("dataPath"))
@@ -30,15 +36,15 @@ test_that("anatLmer works", {
                  method = "jacobians",
                  defs = labels)
     
-    suppressWarnings(
+    handle_conv_warnings(
       lmer_res_nlhs <- anatLmer( ~ Pain.sensitivity + (1|Genotype), 
                                  data = gf, anat = jacobians))
     
-    suppressWarnings(
+    handle_conv_warnings(
       lmer_res_lhs <- anatLmer(dummy ~ Pain.sensitivity + (1|Genotype), 
                                data = gf, anat = jacobians))
     
-    suppressWarnings({
+    handle_conv_warnings({
       lmer_ref <-
         apply(jacobians, 2, function(col){
           gf2 <- gf %>% mutate(resp = col)
@@ -55,7 +61,9 @@ test_that("anatLmer works", {
 
 test_that("anatLmer estimate DF returns sensible results", {
   evalq({
-    verboseRun(with_dfs <- anatLmerEstimateDF(lmer_res_nlhs))                  
+    handle_conv_warnings({
+      verboseRun(with_dfs <- anatLmerEstimateDF(lmer_res_nlhs))
+    })
     dfs <- attr(with_dfs, "df")
     expect_true(between(dfs[1], 1, 3))
     expect_true(all(between(dfs[2:4], 20, 31)))            
@@ -64,12 +72,14 @@ test_that("anatLmer estimate DF returns sensible results", {
 
 test_that("anatLmer exotic formulae work", {
   evalq({
-    verboseRun(
-      exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
+    handle_conv_warnings({
+      verboseRun(
+        exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
                               , data = gf, anat = jacobians)
-    )
+      )
     
-    verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer))
+      verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer))
+    })
     dfs <- attr(with_dfs, "df")
     expect_true(between(dfs[1], 1, 3))
     expect_true(all(between(dfs[2:4], 20, 31)))
@@ -78,12 +88,14 @@ test_that("anatLmer exotic formulae work", {
 
 test_that("anatLmer exotic formulae work", {
   evalq({
-    verboseRun(
-      exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
+    handle_conv_warnings({
+      verboseRun(
+        exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
                               , data = gf, anat = jacobians)
-    )
+      )
     
-    verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer))
+      verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer))
+    })
     dfs <- attr(with_dfs, "df")
     expect_true(between(dfs[1], 1, 3))
     expect_true(all(between(dfs[2:4], 20, 31)))
@@ -99,15 +111,17 @@ test_that("weighted lmer works", {
 
         a <- matrix(rnorm(60), ncol = 3)
 
-        weighted_lmer <- anatLmer( ~ x + (1 | g), data = d, anat = a, weights = d$w)
-
-        lmer_ref <-
+        handle_conv_warnings({
+          weighted_lmer <- anatLmer( ~ x + (1 | g), data = d, anat = a, weights = d$w)
+          
+          lmer_ref <-
             apply(a, 2, function(col){
-                d <- d %>% mutate(resp = col)
-                mod <- lmer(resp ~ x + (1 | g), data = d, weights = d$w)
-                RMINC:::fixef_summary(mod)
+              d <- d %>% mutate(resp = col)
+              mod <- lmer(resp ~ x + (1 | g), data = d, weights = d$w)
+              RMINC:::fixef_summary(mod)
             }) %>%
-          t
+            t
+        })
 
         expect_equivalent(unclass(weighted_lmer), lmer_ref)
     })

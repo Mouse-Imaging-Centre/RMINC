@@ -4,9 +4,9 @@
 \alias{add_colour_bar}
 \title{Add a colour bar for a mesh}
 \usage{
-add_colour_bar(mesh, title = "", lpos = 0.97, rpos = 0.99, bpos = NULL,
-  tpos = NULL, bpos2 = NULL, tpos2 = NULL, nudge_title_y = 0.5,
-  nudge_title_x = 0.82, vertical = TRUE, ...)
+add_colour_bar(mesh, title = "", lpos = 0.97, rpos = 0.99,
+  bpos = NULL, tpos = NULL, bpos2 = NULL, tpos2 = NULL,
+  nudge_title_y = 0.5, nudge_title_x = 0.82, vertical = TRUE, ...)
 }
 \arguments{
 \item{mesh}{A \code{obj_mesh} object created with \link{colour_mesh}}

@@ -146,13 +146,13 @@ summary.model_comparison <- function(object, ...){
   
   formula_strings <- sapply(attr(object, "formulae"), deparse)
   formula_table <- 
-    data_frame_(list(formula = ~formula_strings, model = ~as.character(seq_along(formula_strings))))
+    data_frame(formula = formula_strings, model = as.character(seq_along(formula_strings)))
   
   wins_frame <-
     full_join(formula_table, wins_table, by = "model") %>%
     setNA(0) %>%
-    select_(~model, ~formula, ~wins) %>%
-    arrange_(~wins)
+    select(.data$model, .data$formula, .data$wins) %>%
+    arrange(.data$wins)
   
   wins_frame
 }
