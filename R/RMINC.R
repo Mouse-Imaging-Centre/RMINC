@@ -12,6 +12,8 @@
 #' @import batchtools
 #' @import methods
 #' @importFrom Matrix diag
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Matrix Diagonal
 #' @importFrom grDevices colorRampPalette gray.colors heat.colors rainbow
 #'                       rgb
 #' @importFrom graphics abline contour hist layout mtext par plot.default

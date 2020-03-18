@@ -4,8 +4,10 @@
 \alias{lut_to_palette}
 \title{A tool that returns a color function/palette from color lookup files}
 \usage{
-lut_to_palette(lookup_table = system.file("luts/spectral", package =
-  "RMINC"), alpha = 1)
+lut_to_palette(
+  lookup_table = system.file("luts/spectral", package = "RMINC"),
+  alpha = 1
+)
 }
 \arguments{
 \item{lookup_table}{Either a path to the lookup table file, or the table itself}

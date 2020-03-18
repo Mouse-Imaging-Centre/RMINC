@@ -9,14 +9,18 @@
 \usage{
 mincWriteVolume(buffer, ...)
 
-\method{mincWriteVolume}{mincSingleDim}(buffer, output.filename,
-  clobber = NULL, ...)
+\method{mincWriteVolume}{mincSingleDim}(buffer, output.filename, clobber = NULL, ...)
 
-\method{mincWriteVolume}{mincMultiDim}(buffer, output.filename,
-  column = 1, like.filename = NULL, clobber = NULL, ...)
+\method{mincWriteVolume}{mincMultiDim}(
+  buffer,
+  output.filename,
+  column = 1,
+  like.filename = NULL,
+  clobber = NULL,
+  ...
+)
 
-\method{mincWriteVolume}{default}(buffer, output.filename, like.filename,
-  clobber = NULL, ...)
+\method{mincWriteVolume}{default}(buffer, output.filename, like.filename, clobber = NULL, ...)
 }
 \arguments{
 \item{buffer}{The data to be written to file. Usually the result of

@@ -3,7 +3,6 @@
 \docType{package}
 \name{RMINC}
 \alias{RMINC}
-\alias{RMINC-package}
 \title{RMINC: R interface to the MINC universe}
 \description{
 RMINC provides a means of accessing and performing statistical

@@ -4,8 +4,12 @@
 \alias{anatSummarize}
 \title{Summarize anatGetAll results by hierarchy}
 \usage{
-anatSummarize(anat, summarize_by = "hierarchy",
-  defs = getOption("RMINC_LABEL_DEFINITIONS"), discard_missing = FALSE)
+anatSummarize(
+  anat,
+  summarize_by = "hierarchy",
+  defs = getOption("RMINC_LABEL_DEFINITIONS"),
+  discard_missing = FALSE
+)
 }
 \arguments{
 \item{anat}{The results of a call to \link{anatGetAll}}

@@ -4,14 +4,29 @@
 \alias{pMincApply}
 \title{Parallel MincApply}
 \usage{
-pMincApply(filenames, fun, ..., mask = NULL, tinyMask = FALSE,
-  batches = 4, slab_sizes = NULL, method = NULL, local = FALSE,
-  cores = NULL, resources = list(), packages = NULL, vmem = NULL,
-  walltime = NULL, workers = batches, temp_dir = getwd(),
-  cleanup = TRUE, collate = simplify2minc,
+pMincApply(
+  filenames,
+  fun,
+  ...,
+  mask = NULL,
+  tinyMask = FALSE,
+  batches = 4,
+  slab_sizes = NULL,
+  method = NULL,
+  local = FALSE,
+  cores = NULL,
+  resources = list(),
+  packages = NULL,
+  vmem = NULL,
+  walltime = NULL,
+  workers = batches,
+  temp_dir = getwd(),
+  cleanup = TRUE,
+  collate = simplify2minc,
   conf_file = getOption("RMINC_BATCH_CONF"),
   registry_name = new_file("pMincApply_registry"),
-  registry_dir = getwd())
+  registry_dir = getwd()
+)
 }
 \arguments{
 \item{filenames}{Paths to the minc files to be applied accross}

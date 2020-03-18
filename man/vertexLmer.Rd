@@ -4,9 +4,19 @@
 \alias{vertexLmer}
 \title{Vertex Mixed Effects Models}
 \usage{
-vertexLmer(formula, data, mask = NULL, parallel = NULL, REML = TRUE,
-  column = 1, control = lmerControl(), start = NULL, verbose = 0L,
-  safely = FALSE, summary_type = "fixef")
+vertexLmer(
+  formula,
+  data,
+  mask = NULL,
+  parallel = NULL,
+  REML = TRUE,
+  column = 1,
+  control = lmerControl(),
+  start = NULL,
+  verbose = 0L,
+  safely = FALSE,
+  summary_type = "fixef"
+)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}

@@ -4,8 +4,12 @@
 \alias{vertexSelect}
 \title{Select Vertices From a Surface}
 \usage{
-vertexSelect(object = first(rgl::rgl.ids()$id), tolerance = 0.01,
-  multiples = FALSE, indicate = TRUE)
+vertexSelect(
+  object = first(rgl::rgl.ids()$id),
+  tolerance = 0.01,
+  multiples = FALSE,
+  indicate = TRUE
+)
 }
 \arguments{
 \item{object}{An rgl id for the object from which to choose vertices. Defaults to

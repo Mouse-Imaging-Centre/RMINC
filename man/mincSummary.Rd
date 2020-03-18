@@ -9,8 +9,13 @@
 \alias{mincCorrelation}
 \title{Minc Voxel Summary Functions}
 \usage{
-mincSummary(filenames, grouping = NULL, mask = NULL, method = "mean",
-  maskval = NULL)
+mincSummary(
+  filenames,
+  grouping = NULL,
+  mask = NULL,
+  method = "mean",
+  maskval = NULL
+)
 
 mincMean(filenames, grouping = NULL, mask = NULL, maskval = NULL)
 

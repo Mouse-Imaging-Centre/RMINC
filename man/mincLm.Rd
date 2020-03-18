@@ -4,9 +4,16 @@
 \alias{mincLm}
 \title{Linear model at Every Voxel}
 \usage{
-mincLm(formula, data = NULL, subset = NULL, mask = NULL,
-  maskval = NULL, parallel = NULL, cleanup = TRUE,
-  conf_file = getOption("RMINC_BATCH_CONF"))
+mincLm(
+  formula,
+  data = NULL,
+  subset = NULL,
+  mask = NULL,
+  maskval = NULL,
+  parallel = NULL,
+  cleanup = TRUE,
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
 }
 \arguments{
 \item{formula}{The linear model formula. The left-hand term consists of the MINC filenames over which to compute the models at every voxel.The RHS of the formula may contain one term with filenames. If so only the + operator may be used, and only two terms may appear on the RHS}

@@ -4,9 +4,17 @@
 \alias{mincApplyRCPP}
 \title{Perform Arbitrary calculations on a collection of mincVolumes}
 \usage{
-mincApplyRCPP(filenames, fun, ..., mask = NULL, maskval = NULL,
-  filter_masked = FALSE, slab_sizes = c(1, 1, 1),
-  return_indices = FALSE, collate = simplify2minc)
+mincApplyRCPP(
+  filenames,
+  fun,
+  ...,
+  mask = NULL,
+  maskval = NULL,
+  filter_masked = FALSE,
+  slab_sizes = c(1, 1, 1),
+  return_indices = FALSE,
+  collate = simplify2minc
+)
 }
 \arguments{
 \item{filenames}{The name of the files to apply over}

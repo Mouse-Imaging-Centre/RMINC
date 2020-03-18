@@ -4,8 +4,13 @@
 \alias{mincApply}
 \title{Apply arbitrary R function at every voxel}
 \usage{
-mincApply(filenames, function.string, mask = NULL, maskval = NULL,
-  reduce = FALSE)
+mincApply(
+  filenames,
+  function.string,
+  mask = NULL,
+  maskval = NULL,
+  reduce = FALSE
+)
 }
 \arguments{
 \item{filenames}{The MINC files over which to apply the function. Have to be

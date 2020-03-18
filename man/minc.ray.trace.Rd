@@ -4,11 +4,18 @@
 \alias{minc.ray.trace}
 \title{Call ray_trace to get an image of a rendered slice}
 \usage{
-minc.ray.trace(volume, output = "slice.rgb", size = c(400, 400),
-  slice = list(pos = 0, wv = "w", axis = "z"), threshold = NULL,
-  colourmap = "-spectral", background = NULL,
-  background.threshold = NULL, background.colourmap = "-gray",
-  display = TRUE)
+minc.ray.trace(
+  volume,
+  output = "slice.rgb",
+  size = c(400, 400),
+  slice = list(pos = 0, wv = "w", axis = "z"),
+  threshold = NULL,
+  colourmap = "-spectral",
+  background = NULL,
+  background.threshold = NULL,
+  background.colourmap = "-gray",
+  display = TRUE
+)
 }
 \arguments{
 \item{volume}{The filename of a volume to render.}

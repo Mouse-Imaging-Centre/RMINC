@@ -4,8 +4,13 @@
 \alias{create_mesh}
 \title{Create surface mesh for a bic_obj}
 \usage{
-create_mesh(bic_obj, color = "grey", specular = "black",
-  add_normals = TRUE, ...)
+create_mesh(
+  bic_obj,
+  color = "grey",
+  specular = "black",
+  add_normals = TRUE,
+  ...
+)
 }
 \arguments{
 \item{bic_obj}{A bic_obj to be converted to a mesh}

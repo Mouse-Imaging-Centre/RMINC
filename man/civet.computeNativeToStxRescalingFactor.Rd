@@ -4,8 +4,11 @@
 \alias{civet.computeNativeToStxRescalingFactor}
 \title{Compute Native to Stereotactic Rescaling Factor}
 \usage{
-civet.computeNativeToStxRescalingFactor(scanID, baseDir,
-  civetVersion = "1.1.9")
+civet.computeNativeToStxRescalingFactor(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9"
+)
 }
 \arguments{
 \item{scanID}{A string specifying the unique scan-id (and thus

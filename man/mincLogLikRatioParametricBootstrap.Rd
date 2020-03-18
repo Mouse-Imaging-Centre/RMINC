@@ -4,8 +4,12 @@
 \alias{mincLogLikRatioParametricBootstrap}
 \title{computes parametric bootstrap on mincLogLikRatio output}
 \usage{
-mincLogLikRatioParametricBootstrap(logLikOutput, selection = "random",
-  nsims = 500, nvoxels = 50)
+mincLogLikRatioParametricBootstrap(
+  logLikOutput,
+  selection = "random",
+  nsims = 500,
+  nvoxels = 50
+)
 }
 \arguments{
 \item{logLikOutput}{the output from mincLogLikRatio}

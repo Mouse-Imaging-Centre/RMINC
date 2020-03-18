@@ -4,8 +4,13 @@
 \alias{vertexLookup}
 \title{Vertex Lookup}
 \usage{
-vertexLookup(vertices, target, data_map = NULL, returns = c("index",
-  "coordinates"), coerce = as.numeric)
+vertexLookup(
+  vertices,
+  target,
+  data_map = NULL,
+  returns = c("index", "coordinates"),
+  coerce = as.numeric
+)
 }
 \arguments{
 \item{vertices}{A descendent of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns, 
