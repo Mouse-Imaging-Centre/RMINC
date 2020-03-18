@@ -4,8 +4,12 @@
 \alias{runRMINCTestbed}
 \title{Run Testbed}
 \usage{
-runRMINCTestbed(..., dataPath = getOption("RMINC_DATA_DIR", tempdir()),
-  method = "libcurl", verboseTest = FALSE)
+runRMINCTestbed(
+  ...,
+  dataPath = getOption("RMINC_DATA_DIR", tempdir()),
+  method = "libcurl",
+  verboseTest = FALSE
+)
 }
 \arguments{
 \item{...}{additional parameter for \link[testthat]{test_dir}}

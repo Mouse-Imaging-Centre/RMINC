@@ -4,9 +4,14 @@
 \alias{vertexFindPeaks}
 \title{Vertex find peaks}
 \usage{
-vertexFindPeaks(data_map, graph, mindist = 1, direction = c("both",
-  "positive", "negative"), threshold = 0, output = c("mask",
-  "indices"))
+vertexFindPeaks(
+  data_map,
+  graph,
+  mindist = 1,
+  direction = c("both", "positive", "negative"),
+  threshold = 0,
+  output = c("mask", "indices")
+)
 }
 \arguments{
 \item{data_map}{A vector or text file of values to search for peaks}

@@ -4,9 +4,18 @@
 \alias{mincImage}
 \title{Plot a slice from a MINC volume}
 \usage{
-mincImage(volume, dimension = 2, slice = NULL, low = min(volume,
-  na.rm = TRUE), high = max(volume, na.rm = TRUE), reverse = FALSE,
-  underTransparent = FALSE, col = gray.colors(255), add = FALSE, ...)
+mincImage(
+  volume,
+  dimension = 2,
+  slice = NULL,
+  low = min(volume, na.rm = TRUE),
+  high = max(volume, na.rm = TRUE),
+  reverse = FALSE,
+  underTransparent = FALSE,
+  col = gray.colors(255),
+  add = FALSE,
+  ...
+)
 }
 \arguments{
 \item{volume}{a MINC volume as returned by \code{\link{mincArray}}}

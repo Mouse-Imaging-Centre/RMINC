@@ -20,53 +20,120 @@
 \alias{civet.getFilenameNonlinearTransform}
 \title{Get Selected Civet Filenames}
 \usage{
-civet.getFilenameClassify(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameClassify(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameGrayMatterPve(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameGrayMatterPve(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameWhiteMatterPve(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameWhiteMatterPve(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameCsfPve(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameCsfPve(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameStxT1(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameStxT1(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameCerebrumMask(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameCerebrumMask(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameSkullMask(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameSkullMask(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameGrayMatterSurfaces(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameGrayMatterSurfaces(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameWhiteMatterSurfaces(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameWhiteMatterSurfaces(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameMidSurfaces(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameMidSurfaces(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenamesCorticalThickness(scanID, baseDir,
-  civetVersion = "1.1.9", smoothing = "20mm", fullPath = TRUE)
+civet.getFilenamesCorticalThickness(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  smoothing = "20mm",
+  fullPath = TRUE
+)
 
-civet.getFilenamesCorticalArea(scanID, baseDir, civetVersion = "1.1.9",
-  smoothing = "40mm", fullPath = TRUE)
+civet.getFilenamesCorticalArea(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  smoothing = "40mm",
+  fullPath = TRUE
+)
 
-civet.getFilenamesCorticalVolume(scanID, baseDir, civetVersion = "1.1.9",
-  smoothing = "40mm", fullPath = TRUE)
+civet.getFilenamesCorticalVolume(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  smoothing = "40mm",
+  fullPath = TRUE
+)
 
-civet.getFilenameMeanSurfaceCurvature(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameMeanSurfaceCurvature(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameLinearTransform(scanID, baseDir, civetVersion = "1.1.9",
-  fullPath = TRUE)
+civet.getFilenameLinearTransform(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 
-civet.getFilenameNonlinearTransform(scanID, baseDir,
-  civetVersion = "1.1.9", fullPath = TRUE)
+civet.getFilenameNonlinearTransform(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+)
 }
 \arguments{
 \item{scanID}{A string specifying the unique scan-id (and thus

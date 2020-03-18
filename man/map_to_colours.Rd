@@ -4,9 +4,14 @@
 \alias{map_to_colours}
 \title{Generate a vector of colours from a map}
 \usage{
-map_to_colours(colour_map, colour_range = NULL,
-  colour_default = "grey", symmetric = NULL, labels = FALSE,
-  palette = heat.colors(255))
+map_to_colours(
+  colour_map,
+  colour_range = NULL,
+  colour_default = "grey",
+  symmetric = NULL,
+  labels = FALSE,
+  palette = heat.colors(255)
+)
 }
 \arguments{
 \item{colour_map}{either a vector with a label/measure/statistic for every vertex

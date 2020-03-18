@@ -4,8 +4,12 @@
 \alias{mincFDRThresholdVector}
 \title{a utility function to compute thresholds}
 \usage{
-mincFDRThresholdVector(pvals, qvals, thresholdFunc = NULL,
-  p.thresholds = c(0.01, 0.05, 0.1, 0.15, 0.2))
+mincFDRThresholdVector(
+  pvals,
+  qvals,
+  thresholdFunc = NULL,
+  p.thresholds = c(0.01, 0.05, 0.1, 0.15, 0.2)
+)
 }
 \arguments{
 \item{pvals}{a vector of pvalues}

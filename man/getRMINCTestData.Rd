@@ -4,8 +4,10 @@
 \alias{getRMINCTestData}
 \title{Download Example Data}
 \usage{
-getRMINCTestData(dataPath = getOption("RMINC_DATA_DIR", tempdir()),
-  method = "libcurl")
+getRMINCTestData(
+  dataPath = getOption("RMINC_DATA_DIR", tempdir()),
+  method = "libcurl"
+)
 }
 \arguments{
 \item{dataPath}{The directory to download and unpack the test data 

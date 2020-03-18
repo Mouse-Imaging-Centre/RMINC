@@ -4,8 +4,14 @@
 \alias{writeVertex}
 \title{Writes vertex data to a file with an optional header}
 \usage{
-writeVertex(vertexData, filename, headers = TRUE, mean.stats = NULL,
-  gf = NULL, col.names = FALSE)
+writeVertex(
+  vertexData,
+  filename,
+  headers = TRUE,
+  mean.stats = NULL,
+  gf = NULL,
+  col.names = FALSE
+)
 }
 \arguments{
 \item{vertexData}{vertex data to be written}

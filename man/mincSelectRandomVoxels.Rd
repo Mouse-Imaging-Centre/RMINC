@@ -4,8 +4,7 @@
 \alias{mincSelectRandomVoxels}
 \title{selects a few random indices from a volume}
 \usage{
-mincSelectRandomVoxels(volumeFileName, nvoxels = 50, convert = TRUE,
-  ...)
+mincSelectRandomVoxels(volumeFileName, nvoxels = 50, convert = TRUE, ...)
 }
 \arguments{
 \item{volumeFileName}{the filename for a MINC volume}

@@ -4,9 +4,15 @@
 \alias{mincFindPeaks}
 \title{Finds peak values in a MINC file or volume}
 \usage{
-mincFindPeaks(inputStats, column = 1, direction = "both",
-  minDistance = NA, threshold = NA, posThreshold = NA,
-  negThreshold = NA)
+mincFindPeaks(
+  inputStats,
+  column = 1,
+  direction = "both",
+  minDistance = NA,
+  threshold = NA,
+  posThreshold = NA,
+  negThreshold = NA
+)
 }
 \arguments{
 \item{inputStats}{Either an RMINC object or a filename from which peaks are to be determined.}

@@ -4,8 +4,14 @@
 \alias{civet.vertexFilenames}
 \title{Assemble vertex files for a CIVET run}
 \usage{
-civet.vertexFilenames(gf, idvar, prefix, basedir, append = TRUE,
-  civetVersion = "1.1.9")
+civet.vertexFilenames(
+  gf,
+  idvar,
+  prefix,
+  basedir,
+  append = TRUE,
+  civetVersion = "1.1.9"
+)
 }
 \arguments{
 \item{gf}{Data Frame with subject information}

@@ -4,12 +4,22 @@
 \alias{mincPlotAnatAndStatsSlice}
 \title{Anatomy and Statistics Slice}
 \usage{
-mincPlotAnatAndStatsSlice(anatomy, statistics, slice = NULL,
-  dimension = 2, low = min(statistics, na.rm = TRUE),
-  high = max(statistics, na.rm = TRUE), anatLow = min(anatomy, na.rm =
-  TRUE), anatHigh = max(anatomy, na.rm = TRUE), symmetric = FALSE,
-  col = NULL, rcol = NULL, legend = NULL, acol = gray.colors(255,
-  start = 0), legendTextColour = "black")
+mincPlotAnatAndStatsSlice(
+  anatomy,
+  statistics,
+  slice = NULL,
+  dimension = 2,
+  low = min(statistics, na.rm = TRUE),
+  high = max(statistics, na.rm = TRUE),
+  anatLow = min(anatomy, na.rm = TRUE),
+  anatHigh = max(anatomy, na.rm = TRUE),
+  symmetric = FALSE,
+  col = NULL,
+  rcol = NULL,
+  legend = NULL,
+  acol = gray.colors(255, start = 0),
+  legendTextColour = "black"
+)
 }
 \arguments{
 \item{anatomy}{A minc array of the anatomy volume to plot}
