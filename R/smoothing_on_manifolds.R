@@ -72,17 +72,17 @@ filter_problematic_triangles = function(edge,manifold,k=1) {
         idxs[-which_verts]
 }
 
-# #' Clean up manifold mesh
-# #'
-# #' If mesh edge has 2+ attached triangles, keep the 2 triangles most well-connected triangles
-# #'
-# #' @param manifold A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
-# #' like \code{bic_obj} object produced by \link{read_obj}
-# #' @param k degrees-of-seperation for defining neighbours. Default is 1 (i.e. adjacent vertices)
-# #' @return A list of length 2 with names 'vertex_matrix' and 'triangle_matrix' 
-# #' similar to 'manifold' argument. Problematic triangles (if they exist) are removed from the mesh.
-# #' @details increasing k drastically slows down computation
-# #' @export
+#' Clean up manifold mesh
+#'
+#' If mesh edge has 2+ attached triangles, keep the 2 triangles most well-connected triangles
+#'
+#' @param manifold A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
+#' like \code{bic_obj} object produced by \link{read_obj}
+#' @param k degrees-of-seperation for defining neighbours. Default is 1 (i.e. adjacent vertices)
+#' @return A list of length 2 with names 'vertex_matrix' and 'triangle_matrix' 
+#' similar to 'manifold' argument. Problematic triangles (if they exist) are removed from the mesh.
+#' @details increasing k drastically slows down computation
+#' @export
 clean_up_manifold_triangles = function(manifold,k=1) {
    # clean up triangle mesh
    # for object to be a proper mesh, all edges must not have more than 2 attached triangles
@@ -272,25 +272,25 @@ find_laplace_beltrami_nonzero_elements = function(manifold) {
         list(edges = ret_edges, elements = ret_cot)
 }
 
-# #' Compute Laplace-Beltrami operator
-# #'
-# #' Discrete Laplace-Beltrami operator associated with a triangle-mesh manifold
-# #'
-# #' @param manifold A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
-# #' like \code{bic_obj} object produced by \link{read_obj}
-# #' @param vertex_matrix 3-by-N matrix denoting the position of the N vertices 
-# #' defining the triangle-mesh manifold. Similar to argument \code{vertices} in
-# #' \link{rgl::tmesh3d}. Required if \code{manifold} argument is not specified.
-# #' @param triangle_matrix 3-by-M matrix denoting the position of the M triangles
-# #' defining the triangle-mesh manifold. Elements of each column are indices of vertices 
-# #' defining the triangle (i.e. indices are columns of the vertex_matrix). Similar to
-# #' argument \code{indices} in \link{rgl::tmesh3d}. 
-# #' Required if \code{manifold} argument is not specified.
-# #' @return sparse square matrix representing the discrete Laplace-Beltrami operator
-# #' for the manifold
-# #' @details Either supply \code{manifold} argument OR \code{vertex_matrix} and \code{triangle_matrix}
-# #' arguments. 
-# #' @export
+#' Compute Laplace-Beltrami operator
+#'
+#' Discrete Laplace-Beltrami operator associated with a triangle-mesh manifold
+#'
+#' @param manifold A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
+#' like \code{bic_obj} object produced by \link{read_obj}
+#' @param vertex_matrix 3-by-N matrix denoting the position of the N vertices 
+#' defining the triangle-mesh manifold. Similar to argument \code{vertices} in
+#' \link{rgl::tmesh3d}. Required if \code{manifold} argument is not specified.
+#' @param triangle_matrix 3-by-M matrix denoting the position of the M triangles
+#' defining the triangle-mesh manifold. Elements of each column are indices of vertices 
+#' defining the triangle (i.e. indices are columns of the vertex_matrix). Similar to
+#' argument \code{indices} in \link{rgl::tmesh3d}. 
+#' Required if \code{manifold} argument is not specified.
+#' @return sparse square matrix representing the discrete Laplace-Beltrami operator
+#' for the manifold
+#' @details Either supply \code{manifold} argument OR \code{vertex_matrix} and \code{triangle_matrix}
+#' arguments. 
+#' @export
 laplace_beltrami_operator = function(
                                      manifold = NULL ,
                                      vertex_matrix = NULL ,
@@ -430,37 +430,37 @@ fwhm_to_tsim = function(fwhm) {
         ((fwhm)^2)/(8*log(2))
 }
 
-# #' Smoothing on manifold
-# #'
-# #' Smoothing scalar field on a triangle-mesh manifold
-# #'
-# #' @param manifold A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
-# #' like \code{bic_obj} object produced by \link{read_obj}
-# #' @param scalar_field a vector whose elements are values of the field at each manifold vertex
-# #' @param fwhm the degree of smoothing. It represents the full-width-half-maximum 
-# #' of the blurring kernel if the manifold had no curvature. Regardless of curvature,
-# #' higher the fwhm, the greater the amount of smoothing.
-# #' @return a vector whose elements are values of the smoothed field at each manifold vertex
-# #' @examples
-# #' \dontrun{
-# #' # Load an object
-# #' manifold = read_obj("/axiom2/projects/software/cortical-thickness/MWM/c57bl6_laplacian_grid_full_surface_simplified.obj")
-# #'
-# #' # Compute the laplace beltrami operator and attach it to the manifold
-# #' #  not necessary but will make future smoothing computations on the same manifold faster
-# #' manifold$laplace_beltrami_operator = laplace_beltrami_operator(manifold)
-# #'
-# #' # Generate some random uniform vertex data
-# #' init_stats = runif(ncol(manifold$vertex_matrix))
-# #'
-# #' # Smooth the stats on the manifold
-# #' smooth_stats = laplace_beltrami_smoothing(manifold,init_stats,0.2)
-# #' 
-# #' # Plot results
-# #' plot(manifold, init_stats, colour_range = c(.5,1))
-# #' plot(manifold, smooth_stats, colour_range = c(.5,1))
-# #'}
-# #' @export
+#' Smoothing on manifold
+#'
+#' Smoothing scalar field on a triangle-mesh manifold
+#'
+#' @param manifold A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
+#' like \code{bic_obj} object produced by \link{read_obj}
+#' @param scalar_field a vector whose elements are values of the field at each manifold vertex
+#' @param fwhm the degree of smoothing. It represents the full-width-half-maximum 
+#' of the blurring kernel if the manifold had no curvature. Regardless of curvature,
+#' higher the fwhm, the greater the amount of smoothing.
+#' @return a vector whose elements are values of the smoothed field at each manifold vertex
+#' @examples
+#' \dontrun{
+#' # Load an object
+#' manifold = read_obj("/axiom2/projects/software/cortical-thickness/MWM/c57bl6_laplacian_grid_full_surface_simplified.obj")
+#'
+#' # Compute the laplace beltrami operator and attach it to the manifold
+#' #  not necessary but will make future smoothing computations on the same manifold faster
+#' manifold$laplace_beltrami_operator = laplace_beltrami_operator(manifold)
+#'
+#' # Generate some random uniform vertex data
+#' init_stats = runif(ncol(manifold$vertex_matrix))
+#'
+#' # Smooth the stats on the manifold
+#' smooth_stats = laplace_beltrami_smoothing(manifold,init_stats,0.2)
+#' 
+#' # Plot results
+#' plot(manifold, init_stats, colour_range = c(.5,1))
+#' plot(manifold, smooth_stats, colour_range = c(.5,1))
+#'}
+#' @export
 laplace_beltrami_smoothing = function( manifold, scalar_field, fwhm , maxiter = 1000) {
         if (!'laplace_beltrami_operator' %in% names(manifold)) {
                 lbmat = laplace_beltrami_operator(manifold)
