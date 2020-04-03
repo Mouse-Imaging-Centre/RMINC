@@ -31,15 +31,17 @@ vertexEffectSize <- function(buffer, predictors = NULL)
   #Watch out for exploding gamma function
   J <- function(a) {
     out <- tryCatch({
-      return (gamma(a / 2) / (sqrt(a / 2) * gamma((a - 1) / 2)))
-    },
-    error = function(cond) {
-      return(1)
-    },
-    warning = function(cond) {
-      return(1)
+      gamma(a/2)/(sqrt(a/2) * gamma((a - 1)/2))
+    }, error = function(cond) {
+      1
+    }, warning = function(cond) {
+      1
     })
-    return(out)
+    if (is.nan(out)) {
+      return(1)
+    } else {
+      return(out)
+    }
   }
   # g_biased = t ( n1 + n2 ) / sqrt(n1*n2)*sqrt(df)
   # g_unbiased = g_biased * J(n1 + n2 - 2)
