@@ -4340,6 +4340,7 @@ fi
 
 	   echo Downloading libminc
 	   git clone --recursive https://github.com/BIC-MNI/libminc
+     (cd libminc && git checkout bcbccf97ddb5f483277cc701e33fd93803674597)
 
 fi
 
