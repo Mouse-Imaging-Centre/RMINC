@@ -82,6 +82,7 @@ AC_DEFUN([INSTALL_LIBMINC], [
 	AS_IF([test ! -d libminc], [
 	   echo Downloading libminc
 	   git clone --recursive https://github.com/BIC-MNI/libminc
+    (cd libminc && git checkout ffb5fb234a852ea7e8da8bb2b3b49f67acbe56ca)
 	])
 
 	AS_ECHO([Building libminc in $MINC_BUILD_PATH])
