@@ -595,8 +595,8 @@ summary.mincQvals <- function(object, ...) {
     gather_("key", "value", names(.)) %>% 
     separate_("key", c("var", "stat"), sep=-2) %>% 
     spread_("var", "value") %>% 
-    mutate_(stat = ~ factor(stat, labels=paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20)))) %>%
-    select_(~ stat, ~ everything()) %>%
+    mutate(stat = factor(.data$stat, labels=paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20)))) %>%
+    select(.data$stat, everything()) %>%
     setNames(sub("_$","", names(.)))
 }
 
@@ -880,7 +880,7 @@ pt2 <- function(q, df,log.p=FALSE) {
 #' @param mask Either the path to a mask file or a numeric vector representing the mask
 #' @return a numeric mask vector
 mincGetMask <- function(mask) {
-  if (class(mask) == "character") {
+  if (inherits(mask, "character")) {
     return(mincGetVolume(mask))
   }
   else {
@@ -888,6 +888,63 @@ mincGetMask <- function(mask) {
   }
 }
 
+
+#' Read a collection of minc volumes
+#'
+#' This reads a collection of `mincVolumes` into an optionally file-backed matrix
+#' @param filenames A character vector of minc filenames. All minc files must have the
+#' same shape.
+#' @param mask Either a character vector with a path to a mask file, a mincVolume, or a
+#' numeric/logical vector indicating which voxels to include in the table.
+#' @param file_backed logical, whether to use a file backed matrix for storing the table.
+#' @param ... Additional arguments to `bigstatr::FBM`
+#' @return If `file_backed` is `FALSE` return a matrix with ncol equal to the number of files.
+#' The number of rows is either the product of the volume dimensions, or if a mask is supplied,
+#' the number of voxels where the mask > 0.5. If `file_backed` is `TRUE` return an `FBM` object
+#' from the `bigstatr` package.
+#' @export
+mincTable <- function(filenames, mask = NULL, file_backed = FALSE, ...){
+  
+  nfiles           <- length(filenames)
+  sizes            <- lapply(filenames, minc.dimensions.sizes)
+  total_vox        <- prod(sizes[[1]])
+  not_equals_first <- sapply(sizes, function(s) s != sizes[[1]])
+  
+  if(any(not_equals_first)){
+    stop("Some minc files supplied to mincTable are the wrong size:\n"
+       , paste(filenames[not_equals_first], collapse = ", ")
+       , "\n These don't match the reference volume:\n"
+       , filenames[1])
+  }
+
+  if(!is.null(mask)){
+    mask_vol <- mincGetMask(mask) > 0.5
+    if(length(mask_vol) != total_vox)
+      stop("Your mask is not the same size as your input files, ensure it has"
+         , "the same dimensions as ", filenames[1])    
+    nvox     <- sum(mask_vol)
+  } else {
+    mask_vol <- NULL
+    nvox     <- total_vox
+  }
+
+  if(file_backed){
+    outmat <- bigstatsr::FBM(nrow = nvox, ncol = nfiles, ...)
+  } else {
+    outmat <- matrix(nrow = nvox, ncol = nfiles)
+  }
+
+  
+  for(i in seq_len(nfiles)){
+    vol <- mincGetVolume(filenames[i])    
+    if(!is.null(mask_vol))
+      vol <- vol[mask_vol]
+    
+    outmat[,i] <- vol
+  }
+
+  outmat                               
+}
 
 # create a 2D array of full volumes of all files specified.
 minc.get.volumes <- function(filenames) {
@@ -1234,12 +1291,14 @@ setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
 #' Whether or not to verbosely print test output, default is
 #' to print simplified results
 #' @param dataPath The directory to download and unpack the test data 
-#' (unpacks in dataPath/rminctestdata)
+#' (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
+#' can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory
+#' is created.
 #' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' @param ... additional parameter for \link[testthat]{test_dir}
 #' @return invisibly return the test results
 #' @export
-runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verboseTest = FALSE) {
+runRMINCTestbed <- function(..., dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl", verboseTest = FALSE) {
   
   original_opts <- options()
   old_env_vars <- Sys.getenv(c("TEST_Q_MINC", "NOT_CRAN", "TRAVIS"))
@@ -1276,11 +1335,13 @@ runRMINCTestbed <- function(..., dataPath = tempdir(), method = "libcurl", verbo
 #' The data can be downloaded manually from 
 #' \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
 #' @param dataPath The directory to download and unpack the test data 
-#' (unpacks in dataPath/rminctestdata)
+#' (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
+#' can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory
+#' is created.
 #' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' and \code{wget}
 #' @export
-getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
+getRMINCTestData <- function(dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl") {
 
   downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
   extractedPath <- file.path(dataPath, "rminctestdata/")
@@ -1293,7 +1354,7 @@ getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
                     method = method) # changed from "wget" to stop freakouts on mac
     }
   
-    untar(downloadPath, exdir = dataPath, compressed = "gzip")
+    untar(downloadPath, exdir = dataPath)
   
     rectifyPaths <-
       function(file){
@@ -1313,7 +1374,7 @@ getRMINCTestData <- function(dataPath = tempdir(), method = "libcurl") {
     lapply(filesToFix, rectifyPaths)
   }
   
-  invisible(NULL)
+  invisible(extractedPath)
 }
 
 #' Run function with/without output silenced

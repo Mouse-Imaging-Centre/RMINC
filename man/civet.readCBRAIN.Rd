@@ -6,7 +6,7 @@
 \usage{
 civet.readCBRAIN(path, prefix, subjects = NULL, atlas = "AAL",
   civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE,
-  flatten = TRUE, QCDir = "QC")
+  flatten = TRUE, QCDir = "QC", columnsToKeep = "subject")
 }
 \arguments{
 \item{path}{Path to the civet project}
@@ -28,6 +28,8 @@ civet.readCBRAIN(path, prefix, subjects = NULL, atlas = "AAL",
 it in the legacy format}
 
 \item{QCDir}{The directory, or vector of directories of where to find QC tables}
+
+\item{columnsToKeep}{Additional columns from \link{civet.readAllCivetFiles} to include in the output}
 }
 \value{
 A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in

@@ -354,7 +354,7 @@ mincLmerOptimizeCore <- function(rho, lmod, REMLpass, verbose, control, mcout, s
   # time it can stay outside the loop, but occasionally gives weird errors
   # if inside. So wrapped inside that reinit bit:
   if (reinit) {
-    form <- mcout[[2]]
+    form <- lmod$formula
     lmod$reTrms <- mkReTrms(findbars(form[[length(form)]]), lmod$fr)
     rho$pp <- do.call(merPredD$new, c(lmod$reTrms[c("Zt", "theta", 
                                                     "Lambdat", "Lind")],
@@ -463,10 +463,10 @@ ranef_summary <-
         
         t_mat <- 
           inner_join(group_se, e, by = c("group", "effect")) %>%
-          mutate_(tvalue = ~ beta / se
-                  , grouping = ~ group_name
-                  , se = ~ NULL) %>%
-          gather_("var", "value", c("tvalue", "beta")) %>%
+          mutate(tvalue = .data$beta / .data$se
+                  , grouping = group_name
+                  , se = NULL) %>%
+          gather("var", "value", c("tvalue", "beta")) %>%
           unite_("groupingXgroup", c("grouping", "group"), sep = "") %>%
           unite_("varXeffectXgroupingXgroup", c("var", "effect", "groupingXgroup"), sep = "-") %>%
           spread_("varXeffectXgroupingXgroup", "value") %>%

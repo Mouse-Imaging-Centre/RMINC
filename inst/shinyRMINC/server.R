@@ -202,14 +202,14 @@ shinyServer(function(input, output, clientData, session) {
                   , c("none"
                     , paste(rownames(tholds),
                             sprintf("%.3f", tholds[,input$statistic])
-                          , sep = "% - "))
+                          , sep = " - "))
                    , selected = "none")
     })
 
     observeEvent(input$fdr_thresh, {
       if(!is.null(fdr) && input$fdr_thresh != "none"){
-        thresh <- sub("% - .*", "", input$fdr_thresh)
-        updateSliderInput(session, "high", value = tholds[thresh, input$statistic])
+        thresh <- sub(" - .*", "", input$fdr_thresh)
+        updateSliderInput(session, "range", value = c(tholds[thresh, input$statistic], input$range[2]))
       }
     })
 

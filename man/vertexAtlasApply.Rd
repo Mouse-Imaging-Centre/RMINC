@@ -4,8 +4,9 @@
 \alias{vertexAtlasApply}
 \title{Apply a structure summary function across vertices}
 \usage{
-vertexAtlasApply(filenames, atlas, fun, ..., mask = NULL, parallel = NULL,
-  collate = simplify_masked, column = 1, atlas_column = 1)
+vertexAtlasApply(filenames, atlas, fun, ..., mask = NULL,
+  parallel = NULL, collate = simplify_masked, column = 1,
+  atlas_column = 1)
 }
 \arguments{
 \item{filenames}{vertex file names}
@@ -28,6 +29,8 @@ indicating the number of jobs to split the computation into.}
 structure. Defaults to \link{simplify_masked}}
 
 \item{column}{Which column to treat as the input from vertex files.}
+
+\item{atlas_column}{If the atlas is a text file, which column holds the label}
 }
 \value{
 The a matrix with a row of results for each structure

@@ -1,5 +1,24 @@
 New in Version 1.5.*.*
 =======================
+2.3
+--
+- Fixed mincLmer reinit (formula out of scope bug)
+- Improved mac install notes (issue #261)
+- Defaults RMINC_LABEL_DEFINITIONS to null instead of empty string
+  (issue #259)
+- anatGetAll fails faster if the label defs are broken (issue #260)
+- civet.readCBrain now supports `columnsToKeep` to pass to flattening
+  code
+- Add environment variable to configure where test data is located, useful
+  for systems where internet isn't available.
+- Improvement to FDR threshold selection in launch_shiny_RMINC
+- Code for reading in a matrix of minc files `mincTable`. Supports
+  file backed matrices for when your files are too big for your computers
+  memory.
+- Fixed reading QC for CIVET 1.1.12 experiments
+- Fixed and streamlined the continuous integration (travis) build scripts
+- Fixed all outstanding R CMD check and test issues
+
 2.2
 --
 - Improvements to vertex code (thanks @vfonov), now can

@@ -73,7 +73,9 @@ test_that("correlation", {
 
 
 gf_paired$vox_round <- round(gf_paired$vox,8)
-tw <- wilcox.test(vox_round~Strain,data=gf_paired)
+suppressWarnings(
+  tw <- wilcox.test(vox_round~Strain,data=gf_paired)
+)
 mw <- verboseRun("mincWilcoxon(gf_paired$jacobians_0.2,gf_paired $Strain)",getOption("verbose"))
 test_that("wilcoxon-ties", {
     expect_equivalent(tw[[1]], mw[1])

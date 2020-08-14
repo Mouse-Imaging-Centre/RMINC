@@ -142,6 +142,8 @@ test_that("mincLm Three Factors Interaction",{
 	expect_that(attr(rmincLm4,"df")[[2]],is_equivalent_to(rLm4$df[2]))
 })
 
+context("mincLm - Model Selection")
+
 test_that("Model Selection Works", {
   comp1 <- compare_models(rmincLm, rmincLm2, rmincLm3, rmincLm4, metric = AIC)
   comp2 <- compare_models(rmincLm, rmincLm2, rmincLm3, rmincLm4)
@@ -158,6 +160,7 @@ test_that("Model Selection Works", {
   expect_equal(as.numeric(summary(comp2)$wins), c(100, 100, 119, 981))
 })
 
+context("mincLm - Parallel")
 test_that("mincLm local multicore works", {
   skip_on_cran()
   skip_on_travis()
@@ -177,6 +180,7 @@ test_that("mincLm local multicore works", {
 # })
 
 ## Need a much better test here.
+context("mincLm - Randomize")
 test_that("mincLm randomize works", {
   verboseRun(rlm <- mincLm(voxel_left_file~Sex, gftest))
   verboseRun(rand <- RMINC:::mincRandomize.mincLm(rlm, R = 10))

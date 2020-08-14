@@ -1,5 +1,5 @@
 Package: RMINC
-Version: 1.5.2.2
+Version: 1.5.2.3
 Date: 2017-05-31
 Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
 Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
@@ -13,7 +13,7 @@ Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkid
              person("Gabriel", "Devenyi", role = "ctb", email = "gdevenyi@gmail.com"))      
 Description: Tools for reading, writing, analyzing, and visualizing Medical
     Imaging NetCDF (MINC) files with R.
-Additional_repositories: http://bioconductor.org/packages/3.6/bioc
+Additional_repositories: http://bioconductor.org/packages/3.10/bioc
 Depends:
     R (>= 3.2)
 Imports:
@@ -40,12 +40,12 @@ Imports:
     visNetwork (>= 2.0.4),
     rjson (>= 0.2.20),
     DT (>= 0.4),
-    rlang (>= 0.2.1)
+    rlang (>= 0.2.1),
+    bigstatsr
 Suggests:
     rgl,
     plotrix,
     lmerTest,
-    BiocInstaller,
     qvalue,
     testthat,
     igraph
@@ -62,4 +62,4 @@ OS_type: unix
 BugReports: https://github.com/Mouse-Imaging-Centre/RMINC/issues
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
