@@ -203,6 +203,7 @@ vertexApply <- function(filenames, fun, ..., mask = NULL, parallel = NULL
 #'
 #' @inheritParams vertexApply
 #' @param atlas The atlas to use to summarize vertices.
+#' @param atlas_column If the atlas is a text file, which column holds the label
 #' @return  The a matrix with a row of results for each structure
 #' @export
 vertexAtlasApply <- function(filenames, atlas, fun, ..., mask = NULL

@@ -148,30 +148,50 @@ test_that("AnatGetAll multi-atlas works", {
           , ~ mincWriteVolume(.x, output.filename = .y
                             , like.filename = gf$jacobians_0.2[1]))
     })
-    
+
+    # Test labels
     label_volume <-
-      verboseRun(anatGetAll(seg_files, method = "labels", defs = NULL))
+      expect_warning(
+        verboseRun(anatGetAll(seg_files, method = "labels", defs = NULL))
+      , "No definitions provided"
+      )
+    
     gold_volumes <-
       map2(segs, segs, ~ tapply(.x, .y, function(s) length(s) * (.1)^3)[-1]) %>%
       reduce(rbind)
     expect_equivalent(unanat(label_volume), gold_volumes)
-    
+
+    # Test means
     label_means <-
-      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "means")) 
+      expect_warning(
+        verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "means"))
+      , "No definitions provided"
+      )
+    
     gold_means <-
       map2(vals, segs, ~ tapply(.x,.y, function(s) mean(s))[-1]) %>%
       reduce(rbind)
     expect_equivalent(unanat(label_means), gold_means, tolerance = 10e-5)
 
+    # Test sums
     label_sums <-
-      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "sums")) 
+      expect_warning(
+        verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "sums"))
+      , "No definitions provided"
+      )
+    
     gold_sums <-
       map2(vals, segs, ~ tapply(.x,.y, function(s) sum(s))[-1]) %>%
       reduce(rbind)
     expect_equivalent(unanat(label_sums), gold_sums, tolerance = 10e-5)
 
+    # Test jacobians
     label_jacobians <-
-      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "jacobians")) 
+      expect_warning(
+        verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "jacobians"))
+      , "No definitions provided"
+      )
+    
     gold_jacobians <-
       map2(vals, segs, ~ tapply(.x,.y, function(s) sum(exp(s) * .1^3))[-1]) %>%
       reduce(rbind)
@@ -183,23 +203,35 @@ test_that("AnatGetAll multi-atlas works", {
 test_that("AnatGetAll local parallel works", {
   evalq({
     label_volume <-
-      verboseRun(anatGetAll(seg_files, method = "labels", defs = NULL
-                          , parallel = c("local", 2)))
+      expect_warning(
+        verboseRun(anatGetAll(seg_files, method = "labels", defs = NULL
+                            , parallel = c("local", 2)))
+      , "No definitions provided")
+    
     expect_equivalent(unanat(label_volume), gold_volumes)
     
     label_means <-
-      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "means"
-                          , parallel = c("local", 2))) 
+      expect_warning(
+        verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "means"
+                            , parallel = c("local", 2)))
+      , "No definitions provided")
+    
     expect_equivalent(unanat(label_means), gold_means, tolerance = 10e-5)
 
     label_sums <-
-      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "sums"
-                          , parallel = c("local", 2))) 
+      expect_warning(
+        verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "sums"
+                            , parallel = c("local", 2)))
+      , "No definitions provided")
+    
     expect_equivalent(unanat(label_sums), gold_sums, tolerance = 10e-5)
 
     label_jacobians <-
-      verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "jacobians"
-                          , parallel = c("local", 2))) 
+      expect_warning(
+        verboseRun(anatGetAll(val_files, seg_files, defs = NULL, method = "jacobians"
+                            , parallel = c("local", 2)))
+      , "No definitions provided")
+    
     expect_equivalent(unanat(label_jacobians), gold_jacobians, tolerance = 10e-5)
   }
 , envir = test_env)

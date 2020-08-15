@@ -5,8 +5,9 @@
 \title{Plot a BIC obj}
 \usage{
 \method{plot}{bic_obj}(x, colour_map = NULL, colour_range = NULL,
-  colour_default = "grey", symmetric = FALSE, palette = heat.colors(255),
-  labels = FALSE, colour_bar = TRUE, add = FALSE, par = list(), ...)
+  colour_default = "grey", symmetric = FALSE,
+  palette = heat.colors(255), labels = FALSE, colour_bar = TRUE,
+  add = FALSE, par = list(), ...)
 }
 \arguments{
 \item{x}{A \code{bic_obj} probably created by \link{read_obj}}
