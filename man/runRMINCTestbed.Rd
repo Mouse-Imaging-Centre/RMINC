@@ -7,6 +7,7 @@
 runRMINCTestbed(
   ...,
   dataPath = getOption("RMINC_DATA_DIR", tempdir()),
+  test_q_minc = TRUE,
   method = "libcurl",
   verboseTest = FALSE
 )
@@ -18,6 +19,8 @@ runRMINCTestbed(
 (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
 can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory
 is created.}
+
+\item{test_q_minc}{Whether or not to test the cluster code, defaults to TRUE.}
 
 \item{method}{Argument to pass to \link{download.file} typical options are \code{libcurl}}
 
