@@ -15,6 +15,8 @@ like \code{bic_obj} object produced by \link{read_obj}}
 \item{fwhm}{the degree of smoothing. It represents the full-width-half-maximum 
 of the blurring kernel if the manifold had no curvature. Regardless of curvature,
 higher the fwhm, the greater the amount of smoothing.}
+
+\item{maxiter}{int specifying the maximum number of iterations for the algorithm}
 }
 \value{
 a vector whose elements are values of the smoothed field at each manifold vertex
@@ -25,7 +27,10 @@ Smoothing scalar field on a triangle-mesh manifold
 \examples{
 \dontrun{
 # Load an object
-manifold = read_obj("/axiom2/projects/software/cortical-thickness/MWM/c57bl6_laplacian_grid_full_surface_simplified.obj")
+manifold =
+  read_obj(
+    file.path("/axiom2/projects/software/cortical-thickness/",
+              "MWM/c57bl6_laplacian_grid_full_surface_simplified.obj"))
 
 # Compute the laplace beltrami operator and attach it to the manifold
 #  not necessary but will make future smoothing computations on the same manifold faster

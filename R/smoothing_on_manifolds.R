@@ -280,11 +280,11 @@ find_laplace_beltrami_nonzero_elements = function(manifold) {
 #' like \code{bic_obj} object produced by \link{read_obj}
 #' @param vertex_matrix 3-by-N matrix denoting the position of the N vertices 
 #' defining the triangle-mesh manifold. Similar to argument \code{vertices} in
-#' \link{rgl::tmesh3d}. Required if \code{manifold} argument is not specified.
+#' \link[rgl:mesh3d]{rgl::tmesh3d}. Required if \code{manifold} argument is not specified.
 #' @param triangle_matrix 3-by-M matrix denoting the position of the M triangles
 #' defining the triangle-mesh manifold. Elements of each column are indices of vertices 
 #' defining the triangle (i.e. indices are columns of the vertex_matrix). Similar to
-#' argument \code{indices} in \link{rgl::tmesh3d}. 
+#' argument \code{indices} in \link[rgl:mesh3d]{rgl::tmesh3d}. 
 #' Required if \code{manifold} argument is not specified.
 #' @return sparse square matrix representing the discrete Laplace-Beltrami operator
 #' for the manifold
@@ -440,11 +440,15 @@ fwhm_to_tsim = function(fwhm) {
 #' @param fwhm the degree of smoothing. It represents the full-width-half-maximum 
 #' of the blurring kernel if the manifold had no curvature. Regardless of curvature,
 #' higher the fwhm, the greater the amount of smoothing.
+#' @param maxiter int specifying the maximum number of iterations for the algorithm
 #' @return a vector whose elements are values of the smoothed field at each manifold vertex
 #' @examples
 #' \dontrun{
 #' # Load an object
-#' manifold = read_obj("/axiom2/projects/software/cortical-thickness/MWM/c57bl6_laplacian_grid_full_surface_simplified.obj")
+#' manifold =
+#'   read_obj(
+#'     file.path("/axiom2/projects/software/cortical-thickness/",
+#'               "MWM/c57bl6_laplacian_grid_full_surface_simplified.obj"))
 #'
 #' # Compute the laplace beltrami operator and attach it to the manifold
 #' #  not necessary but will make future smoothing computations on the same manifold faster
