@@ -269,7 +269,7 @@ anatGetAll <-
     
     ## Dress up the results and do label error checking
     create_anat_results(out, label_frame, filenames = filenames, atlas = atlas
-                      , new_style = TRUE)
+                      , new_style = TRUE, definitions = defs)
   }
 
 # Convert an RMINC style atlas label set to a nice data.frame
@@ -336,7 +336,7 @@ create_labels_frame <-
 
 # create the results matrix from the c++ results and a label frame 
 create_anat_results <-
-  function(results, label_frame, filenames = NULL, atlas = NULL, new_style = FALSE){
+  function(results, label_frame, filenames = NULL, atlas = NULL, new_style = FALSE, definitions = NULL){
     
     missing_labels <- abs(rowSums(results)) == 0
     if(nrow(results) == 1) stop("No structures found, check your atlas or label volumes")
@@ -394,6 +394,8 @@ create_anat_results <-
     attr(results, "anatIDs") <- label_inds
     if(!is.null(atlas))     attr(results, "atlas") <- atlas
     if(!is.null(filenames)) attr(results, "input") <- filenames
+    if(!is.null(definitions)) attr(results, "definitions") <- definitions
+    
     class(results) <- c("anatUnilateral", "anatMatrix", "matrix")
     
     results
@@ -792,8 +794,9 @@ anatCombineStructures <- function(vols, method = "jacobians",
 #' @name anatApply
 #' @title Apply function over anat structure
 #' @param vols anatomy volumes
-#' @param grouping grouping with which to perform operations
+#' @param grouping a factor grouping with which to perform operations
 #' @param method The function which to apply [default mean]
+#' @param ... Extra arguments to the function passed to method
 #' @return  out: The output will be a single vector containing as many
 #'          elements as there are regions in the input variable by the number of groupings
 #' @examples 
@@ -805,7 +808,10 @@ anatCombineStructures <- function(vols, method = "jacobians",
 #' vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
 #' }
 #' @export
-anatApply <- function(vols, grouping, method=mean) {
+anatApply <- function(vols, grouping = NULL, method=mean, ...) {
+  if(is.null(grouping))
+    grouping <- factor(1)
+  
   ngroups <- length(levels(grouping))
   output <- matrix(nrow=ncol(vols), ncol=ngroups)
 
