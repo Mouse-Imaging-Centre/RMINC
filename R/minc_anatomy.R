@@ -1223,6 +1223,7 @@ anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
 #' @return Invisibly returns the created volume
 #' @export
 anatCreateVolume <- function(anat, filename, column=1) {
+  warning("This function is deprecated, please use anatToVolume instead.")
   labels <- read.csv(attr(anat, "definitions"))
   volume <- mincGetVolume(attr(anat, "atlas"))
   newvolume <- volume
@@ -1237,6 +1238,47 @@ anatCreateVolume <- function(anat, filename, column=1) {
   mincWriteVolume(newvolume, filename, attr(anat, "atlas"))
   
   return(invisible(newvolume))
+}
+
+#' Converts a column from an anatLm model into a volume for viewing or saving
+#'
+#' @param anat The anatModel
+#' @param labelVolume The volume containing the label definitions
+#' @param column String indicating which column to turn into a volume
+#' @param defs The path to the label definitions
+#'
+#' @return The volume with the values from the anatModel
+#' @export
+#'
+#' @examples \dontrun{
+#' labelVol <- mincArray(mincGetVolume("some-labels.mnc"))
+#' alm <- anatLm(~Sex, gfBasic, vols)
+#' statsvol <- anatToVolume(hLm, labelVol, "F.statistic")
+#' mincPlotSliceSeries(anatVol, statsvol, anatLow = 700, anatHigh = 1400, 
+#'   low=1, high=10, symmetric = F, begin=50, end=-50)
+#' }
+anatToVolume <- function(anat, labelVolume, column, defs = attr(anat, "definitions")){
+  labels <- c()
+  values <- c()
+  label_frame <- create_labels_frame(defs)
+  labels <- label_frame$label
+  values <- anat[label_frame$Structure, column]
+
+  dims <- dim(labelVolume)
+  if(is.null(dims)) dims <- length(labelVolume)
+
+  if (is.numeric(values)) {
+    out <- array(0, dim=dims)
+    replaceValues(labelVolume, out, labels, values)
+  }
+  else if (is.character(values)) {
+    labels <- c(labels, 0)
+    values <- c(values, NA)
+    out <- array("", dim=dims)
+    replaceColours(labelVolume, out, labels, values)
+  }
+
+  return(out)
 }
 
 #' anatSummaries

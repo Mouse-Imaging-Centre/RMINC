@@ -313,3 +313,24 @@ test_that("anatomy hierarchy works", {
     expect_equal(ncol(hier_res), 17)
   }, envir = test_env)
 })
+
+## Test anatToVolume
+test_that("Test anatToVolume works", {
+  evalq({
+    seg <- mincGetVolume(segmentation)
+    mlm <- anatLm(~ a, data.frame(a = new_jacobians[,1]), new_jacobians)
+    vol <- anatToVolume(mlm        
+                      , seg, 1, defs = labels)
+
+    #TODO create_labels_frame really needs to be tested
+    lf <- RMINC:::create_labels_frame(labels)
+    in_seg <- setdiff(unique(seg), 0)
+
+    corrects <-
+      lf %>%
+      dplyr::filter(label %in% in_seg) %>%
+      dplyr::mutate(correct = purrr::map2_lgl(Structure, label, ~ all(mlm[.x,1] == vol[seg == .y])))
+
+    expect_true(all(corrects$correct))
+    }, envir = test_env)
+})
