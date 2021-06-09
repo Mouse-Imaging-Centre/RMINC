@@ -645,19 +645,22 @@ civet_filenames_2_0_0 <-
 #' it in the legacy format
 #' @param QCDir The directory, or vector of directories of where to find QC tables
 #' @param columnsToKeep Additional columns from \link{civet.readAllCivetFiles} to include in the output
+#' @param confFile A configuration file produced by CBRAIN, defaults to the first .yml file amongst the subjects.
 #' @return A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
 #' the format of \link{civet.readAllCivetFiles} if \code{readFiles} is TRUE and \code{flatten} is FALSE. And a data.frame in
 #' the format of \link{civet.flattenForDplyr} if \code{readQC}, \code{readFiles}, and \code{flatten} are all TRUE (default)
 #' @seealso \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr} 
 #' @export
 civet.readCBRAIN <-
-  function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE, readQC = TRUE, flatten = TRUE, QCDir = "QC", columnsToKeep = "subject"){
+    function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE
+           , readQC = TRUE, flatten = TRUE, QCDir = "QC", columnsToKeep = "subject"
+           , confFile = Sys.glob(paste0(path, "/*/*.yml"))[1]
+             ){
     ## Check bad arguments
     if(readQC && readFiles && !flatten) stop("Can't merge QC when readFiles is TRUE and flatten is FALSE")
     
-    ## Find a config file
-    cnf_file <- Sys.glob(paste0(path, "/*/*.yml"))[1]
-    cnf <- yaml.load_file(cnf_file)
+    ## Load the config file
+    cnf <- yaml.load_file(confFile)
     
     if(is.null(subjects)){
       subjects <- list.files(path) %>% setdiff(c("QC", "scripts", "stats", "analysis"))

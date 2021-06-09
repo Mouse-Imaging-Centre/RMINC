@@ -14,7 +14,8 @@ civet.readCBRAIN(
   readQC = TRUE,
   flatten = TRUE,
   QCDir = "QC",
-  columnsToKeep = "subject"
+  columnsToKeep = "subject",
+  confFile = Sys.glob(paste0(path, "/*/*.yml"))[1]
 )
 }
 \arguments{
@@ -39,6 +40,8 @@ it in the legacy format}
 \item{QCDir}{The directory, or vector of directories of where to find QC tables}
 
 \item{columnsToKeep}{Additional columns from \link{civet.readAllCivetFiles} to include in the output}
+
+\item{confFile}{A configuration file produced by CBRAIN, defaults to the first .yml file amongst the subjects.}
 }
 \value{
 A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
