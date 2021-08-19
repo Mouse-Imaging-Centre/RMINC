@@ -1294,11 +1294,12 @@ setNaN <- function(x, val){ x[is.nan(x)] <- val; x}
 #' (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
 #' can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory
 #' is created.
+#' @param test_q_minc Whether or not to test the cluster code, defaults to TRUE.
 #' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' @param ... additional parameter for \link[testthat]{test_dir}
 #' @return invisibly return the test results
 #' @export
-runRMINCTestbed <- function(..., dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl", verboseTest = FALSE) {
+runRMINCTestbed <- function(..., dataPath = getOption("RMINC_DATA_DIR", tempdir()), test_q_minc = TRUE, method = "libcurl", verboseTest = FALSE) {
   
   original_opts <- options()
   old_env_vars <- Sys.getenv(c("TEST_Q_MINC", "NOT_CRAN", "TRAVIS"))
@@ -1310,7 +1311,8 @@ runRMINCTestbed <- function(..., dataPath = getOption("RMINC_DATA_DIR", tempdir(
   if(verboseTest) options(verbose = TRUE)
   
   setRMINCMaskedValue(0)
-  Sys.setenv(TEST_Q_MINC = "yes", NOT_CRAN = "true", TRAVIS = "")
+  test_q_minc <- `if`(test_q_minc, "yes", "") 
+  Sys.setenv(TEST_Q_MINC = test_q_minc, NOT_CRAN = "true", TRAVIS = "")
   
   getRMINCTestData(dataPath = dataPath)
   

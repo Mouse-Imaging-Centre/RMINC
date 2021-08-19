@@ -5,15 +5,27 @@
 \alias{mincRandomize.mincLm}
 \title{Run a permutation test on a \code{mincLm} result}
 \usage{
-mincRandomize(x, R = 500, alternative = c("two.sided", "greater"),
-  replace = FALSE, parallel = NULL, columns = grep("tvalue-",
-  colnames(x)), resources = list(),
-  conf_file = getOption("RMINC_BATCH_CONF"))
+mincRandomize(
+  x,
+  R = 500,
+  alternative = c("two.sided", "greater"),
+  replace = FALSE,
+  parallel = NULL,
+  columns = grep("tvalue-", colnames(x)),
+  resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
 
-\method{mincRandomize}{mincLm}(x, R = 500, alternative = c("two.sided",
-  "greater"), replace = FALSE, parallel = NULL,
-  columns = grep("tvalue-", colnames(x)), resources = list(),
-  conf_file = getOption("RMINC_BATCH_CONF"))
+\method{mincRandomize}{mincLm}(
+  x,
+  R = 500,
+  alternative = c("two.sided", "greater"),
+  replace = FALSE,
+  parallel = NULL,
+  columns = grep("tvalue-", colnames(x)),
+  resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
 }
 \arguments{
 \item{x}{A \code{mincLm} object.}

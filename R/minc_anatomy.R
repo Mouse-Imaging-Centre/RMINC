@@ -269,7 +269,7 @@ anatGetAll <-
     
     ## Dress up the results and do label error checking
     create_anat_results(out, label_frame, filenames = filenames, atlas = atlas
-                      , new_style = TRUE)
+                      , new_style = TRUE, definitions = defs)
   }
 
 # Convert an RMINC style atlas label set to a nice data.frame
@@ -336,7 +336,7 @@ create_labels_frame <-
 
 # create the results matrix from the c++ results and a label frame 
 create_anat_results <-
-  function(results, label_frame, filenames = NULL, atlas = NULL, new_style = FALSE){
+  function(results, label_frame, filenames = NULL, atlas = NULL, new_style = FALSE, definitions = NULL){
     
     missing_labels <- abs(rowSums(results)) == 0
     if(nrow(results) == 1) stop("No structures found, check your atlas or label volumes")
@@ -394,6 +394,8 @@ create_anat_results <-
     attr(results, "anatIDs") <- label_inds
     if(!is.null(atlas))     attr(results, "atlas") <- atlas
     if(!is.null(filenames)) attr(results, "input") <- filenames
+    if(!is.null(definitions)) attr(results, "definitions") <- definitions
+    
     class(results) <- c("anatUnilateral", "anatMatrix", "matrix")
     
     results
@@ -792,8 +794,9 @@ anatCombineStructures <- function(vols, method = "jacobians",
 #' @name anatApply
 #' @title Apply function over anat structure
 #' @param vols anatomy volumes
-#' @param grouping grouping with which to perform operations
+#' @param grouping a factor grouping with which to perform operations
 #' @param method The function which to apply [default mean]
+#' @param ... Extra arguments to the function passed to method
 #' @return  out: The output will be a single vector containing as many
 #'          elements as there are regions in the input variable by the number of groupings
 #' @examples 
@@ -805,7 +808,10 @@ anatCombineStructures <- function(vols, method = "jacobians",
 #' vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
 #' }
 #' @export
-anatApply <- function(vols, grouping, method=mean) {
+anatApply <- function(vols, grouping = NULL, method=mean, ...) {
+  if(is.null(grouping))
+    grouping <- factor(1)
+  
   ngroups <- length(levels(grouping))
   output <- matrix(nrow=ncol(vols), ncol=ngroups)
 
@@ -872,7 +878,6 @@ anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
       matrixName = formula[[2]]
       matrixFound = TRUE
       data.matrix.left <- t(anat[mf[,"(rowcount)"],])
-      #data.matrix.left <- vertexTable(filenames)
       data.matrix.right <- t(term)
     }  
   }
@@ -903,7 +908,11 @@ anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
     rows = append(rows,matrixName)
   }	
   
-  
+  if(matrixFound){
+    stop("A term in your model is a matrix, this use of `anatLm` is deprecated, "
+       , "Please merge the two anatomy matrices using rowbind or similar and use a group "
+       , "add a group indicator to your `data.frame`")
+  }
   
   # Call subroutine based on whether matrix was found
   if(!matrixFound) {    	
@@ -1217,6 +1226,7 @@ anatAnova <- function(formula, data=NULL, anat=NULL, subset=NULL) {
 #' @return Invisibly returns the created volume
 #' @export
 anatCreateVolume <- function(anat, filename, column=1) {
+  warning("This function is deprecated, please use anatToVolume instead.")
   labels <- read.csv(attr(anat, "definitions"))
   volume <- mincGetVolume(attr(anat, "atlas"))
   newvolume <- volume
@@ -1231,6 +1241,47 @@ anatCreateVolume <- function(anat, filename, column=1) {
   mincWriteVolume(newvolume, filename, attr(anat, "atlas"))
   
   return(invisible(newvolume))
+}
+
+#' Converts a column from an anatLm model into a volume for viewing or saving
+#'
+#' @param anat The anatModel
+#' @param labelVolume The volume containing the label definitions
+#' @param column String indicating which column to turn into a volume
+#' @param defs The path to the label definitions
+#'
+#' @return The volume with the values from the anatModel
+#' @export
+#'
+#' @examples \dontrun{
+#' labelVol <- mincArray(mincGetVolume("some-labels.mnc"))
+#' alm <- anatLm(~Sex, gfBasic, vols)
+#' statsvol <- anatToVolume(hLm, labelVol, "F.statistic")
+#' mincPlotSliceSeries(anatVol, statsvol, anatLow = 700, anatHigh = 1400, 
+#'   low=1, high=10, symmetric = F, begin=50, end=-50)
+#' }
+anatToVolume <- function(anat, labelVolume, column, defs = attr(anat, "definitions")){
+  labels <- c()
+  values <- c()
+  label_frame <- create_labels_frame(defs)
+  labels <- label_frame$label
+  values <- anat[label_frame$Structure, column]
+
+  dims <- dim(labelVolume)
+  if(is.null(dims)) dims <- length(labelVolume)
+
+  if (is.numeric(values)) {
+    out <- array(0, dim=dims)
+    replaceValues(labelVolume, out, labels, values)
+  }
+  else if (is.character(values)) {
+    labels <- c(labels, 0)
+    values <- c(values, NA)
+    out <- array("", dim=dims)
+    replaceColours(labelVolume, out, labels, values)
+  }
+
+  return(out)
 }
 
 #' anatSummaries

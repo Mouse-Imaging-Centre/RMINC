@@ -4,8 +4,7 @@
 \alias{check_step_sizes}
 \title{Check file step sizes}
 \usage{
-check_step_sizes(filenames, atlas = NULL, strict = FALSE,
-  tolerance = 1e-05)
+check_step_sizes(filenames, atlas = NULL, strict = FALSE, tolerance = 1e-05)
 }
 \arguments{
 \item{filenames}{A character vector of minc file names}

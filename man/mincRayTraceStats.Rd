@@ -4,14 +4,30 @@
 \alias{mincRayTraceStats}
 \title{Create an image of a statistical peak.}
 \usage{
-mincRayTraceStats(v, anatomy.volume, statsbuffer, column = 1,
-  like.filename = NULL, mask = NULL, image.min = -1000,
-  image.max = 4000, output.width = 800, output.height = 800,
-  place.inset = FALSE, inset = NULL, stats.largest.pos = NULL,
-  stats.largest.neg = NULL, caption = "t-statistic", fdr = NULL,
+mincRayTraceStats(
+  v,
+  anatomy.volume,
+  statsbuffer,
+  column = 1,
+  like.filename = NULL,
+  mask = NULL,
+  image.min = -1000,
+  image.max = 4000,
+  output.width = 800,
+  output.height = 800,
+  place.inset = FALSE,
+  inset = NULL,
+  stats.largest.pos = NULL,
+  stats.largest.neg = NULL,
+  caption = "t-statistic",
+  fdr = NULL,
   slice.direction = "transverse",
-  outputfile = "ray_trace_crosshair.png", show.pos.and.neg = FALSE,
-  display = TRUE, clobber = NULL, tmpdir = "/tmp")
+  outputfile = "ray_trace_crosshair.png",
+  show.pos.and.neg = FALSE,
+  display = TRUE,
+  clobber = NULL,
+  tmpdir = "/tmp"
+)
 }
 \arguments{
 \item{v}{A mincVoxel indicating the voxel of interest.}

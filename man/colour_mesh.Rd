@@ -4,9 +4,15 @@
 \alias{colour_mesh}
 \title{Colourize a mesh}
 \usage{
-colour_mesh(mesh, colour_map, colour_range = NULL,
-  colour_default = "grey", symmetric = NULL, labels = FALSE,
-  palette = heat.colors(255))
+colour_mesh(
+  mesh,
+  colour_map,
+  colour_range = NULL,
+  colour_default = "grey",
+  symmetric = NULL,
+  labels = FALSE,
+  palette = heat.colors(255)
+)
 }
 \arguments{
 \item{mesh}{\link[rgl]{mesh3d} object ideally produced by \link{create_mesh}}

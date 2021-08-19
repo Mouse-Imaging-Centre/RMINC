@@ -119,3 +119,12 @@ test_that("Weighted anatLm works", {
   expect_equivalent(sapply(lmods, AIC), AIC(alm))
 })
 
+context("Matrix mode")
+
+test_that("Test that passing a matrix on the RHS fails", {
+  d <- data.frame(y = rnorm(10))
+  d$x <- scale(rnorm(10))
+
+  expect_error(anatLm(~ x, data = d, anat = as.matrix(d$y)), "matrix")
+})
+

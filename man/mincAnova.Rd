@@ -6,9 +6,16 @@
  
 Compute a sequential ANOVA at each voxel}
 \usage{
-mincAnova(formula, data = NULL, subset = NULL, mask = NULL,
-  maskval = NULL, parallel = NULL, cleanup = TRUE,
-  conf_file = getOption("RMINC_BATCH_CONF"))
+mincAnova(
+  formula,
+  data = NULL,
+  subset = NULL,
+  mask = NULL,
+  maskval = NULL,
+  parallel = NULL,
+  cleanup = TRUE,
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
 }
 \arguments{
 \item{formula}{The anova formula. The left-hand term consists of the 

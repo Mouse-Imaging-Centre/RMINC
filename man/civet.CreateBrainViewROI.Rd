@@ -4,8 +4,12 @@
 \alias{civet.CreateBrainViewROI}
 \title{civet.CreateBrainViewROI}
 \usage{
-civet.CreateBrainViewROI(atlasFile, atlasVertices, region,
-  civetVersion = "1.1.12")
+civet.CreateBrainViewROI(
+  atlasFile,
+  atlasVertices,
+  region,
+  civetVersion = "1.1.12"
+)
 }
 \arguments{
 \item{atlasFile}{File with Atlas label (string-label(int)) mappings}

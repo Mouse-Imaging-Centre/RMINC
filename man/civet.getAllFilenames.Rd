@@ -4,8 +4,15 @@
 \alias{civet.getAllFilenames}
 \title{civet.getAllFilenames}
 \usage{
-civet.getAllFilenames(gf, idvar, prefix, basedir, append = TRUE,
-  civetVersion = "1.1.9", cnf = NULL)
+civet.getAllFilenames(
+  gf,
+  idvar,
+  prefix,
+  basedir,
+  append = TRUE,
+  civetVersion = "1.1.9",
+  cnf = NULL
+)
 }
 \arguments{
 \item{gf}{Data Frame with subject information}

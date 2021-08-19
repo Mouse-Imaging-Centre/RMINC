@@ -4,8 +4,16 @@
 \alias{vertexApply}
 \title{Apply function over vertex Files}
 \usage{
-vertexApply(filenames, fun, ..., mask = NULL, parallel = NULL,
-  collate = simplify_masked, transpose = FALSE, column = 1)
+vertexApply(
+  filenames,
+  fun,
+  ...,
+  mask = NULL,
+  parallel = NULL,
+  collate = simplify_masked,
+  transpose = FALSE,
+  column = 1
+)
 }
 \arguments{
 \item{filenames}{vertex file names}

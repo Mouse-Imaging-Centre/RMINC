@@ -1,8 +1,9 @@
 library(testthat)
 context("vertexLm")
 
-if(!exists("dataPath"))
-  dataPath <- tempdir()
+dataPath="/home/vfonov/src/RMINC/tests/testthat/dataPath"
+#if(!exists("dataPath"))
+#  dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
@@ -76,6 +77,23 @@ test_that("vertexLm Two Factors for .csv.gz file",{
 	expect_that(rmincLm[1,6],is_equivalent_to(rmincLm2[1,6]))
 	expect_that(attr(rmincLm,"df")[[2]],is_equivalent_to(attr(rmincLm2,"df")[[2]]))
 })
+
+
+context("writeVertexLm")
+writeVertex(rmincLm,file.path(dataPath, "test_lm_no_col_names.txt"),col.names=F,header=F)
+writeVertex(rmincLm,file.path(dataPath, "test_lm_with_col_names.txt"),col.names=T,header=F)
+writeVertex(rmincLm,file.path(dataPath, "test_lm_with_col_names.csv"),col.names=T,header=F)
+writeVertex(rmincLm,file.path(dataPath, "test_lm_with_header.txt"),col.names=F,header=T)
+writeVertex(rmincLm,file.path(dataPath, "test_lm_with_col_names_gz.csv.gz"),col.names=T,header=F)
+
+test_that("writeVertexLm", {
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_lm_no_col_names.txt")), "e959ba23a46866f5b9ffafb514c7eb93")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_lm_with_col_names.txt")), "733e1cf1fc8ca06012f7799ae8bc8f06")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_lm_with_col_names.csv")), "1ac7012c8dc8f717a88cc9e2e3f38ba9")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_lm_with_header.txt")), "b79cc94435bffd6a11a8a4b659408d04")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_lm_with_col_names_gz.csv.gz")), "f294190f168801e74a4e756efd6446d5")
+})
+
 
 
 
