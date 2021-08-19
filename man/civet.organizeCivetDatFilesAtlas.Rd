@@ -4,8 +4,7 @@
 \alias{civet.organizeCivetDatFilesAtlas}
 \title{Organizes CIVET .dat files based on an Atlas}
 \usage{
-civet.organizeCivetDatFilesAtlas(atlasFile, dataFiles,
-  civetVersion = "1.1.12")
+civet.organizeCivetDatFilesAtlas(atlasFile, dataFiles, civetVersion = "1.1.12")
 }
 \arguments{
 \item{atlasFile}{Character path to a key to the atlas used when running civet.

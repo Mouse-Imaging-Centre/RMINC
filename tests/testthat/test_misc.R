@@ -29,7 +29,7 @@ test_that("File checking code all fails", {
   skip_if_not(is.finite(cur_ulim))
   
   frame <- 
-    data_frame(
+    tibble(
       files = rep("", cur_ulim + 1)
       , group = rep(c("a", "b"), length.out = cur_ulim + 1))
   

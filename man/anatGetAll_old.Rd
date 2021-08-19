@@ -4,9 +4,14 @@
 \alias{anatGetAll_old}
 \title{Get values given a set of files and an atlas}
 \usage{
-anatGetAll_old(filenames, atlas, method = "jacobians",
-  defs = getOption("RMINC_LABEL_DEFINITIONS"), dropLabels = TRUE,
-  side = "both")
+anatGetAll_old(
+  filenames,
+  atlas,
+  method = "jacobians",
+  defs = getOption("RMINC_LABEL_DEFINITIONS"),
+  dropLabels = TRUE,
+  side = "both"
+)
 }
 \arguments{
 \item{filenames}{A vector of filenames (strings) which contain the

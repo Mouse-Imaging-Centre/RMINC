@@ -4,8 +4,13 @@
 \alias{mincTriplanarSlicePlot}
 \title{Plot Slice Along Each Axis}
 \usage{
-mincTriplanarSlicePlot(anatomy, statistics, slice = NULL,
-  layoutMatrix = NULL, ...)
+mincTriplanarSlicePlot(
+  anatomy,
+  statistics,
+  slice = NULL,
+  layoutMatrix = NULL,
+  ...
+)
 }
 \arguments{
 \item{anatomy}{a \link{mincArray} object containing the source anatomy}

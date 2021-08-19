@@ -4,14 +4,16 @@
 \alias{anatApply}
 \title{Apply function over anat structure}
 \usage{
-anatApply(vols, grouping, method = mean)
+anatApply(vols, grouping = NULL, method = mean, ...)
 }
 \arguments{
 \item{vols}{anatomy volumes}
 
-\item{grouping}{grouping with which to perform operations}
+\item{grouping}{a factor grouping with which to perform operations}
 
 \item{method}{The function which to apply [default mean]}
+
+\item{...}{Extra arguments to the function passed to method}
 }
 \value{
 out: The output will be a single vector containing as many

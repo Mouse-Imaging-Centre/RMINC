@@ -4,8 +4,16 @@
 \alias{mincPlotPeak}
 \title{Plotting of peaks}
 \usage{
-mincPlotPeak(peak, anatomy, statistics, dim = 2, crossCol = "green",
-  crossSize = 4, plotFunction = NULL, ...)
+mincPlotPeak(
+  peak,
+  anatomy,
+  statistics,
+  dim = 2,
+  crossCol = "green",
+  crossSize = 4,
+  plotFunction = NULL,
+  ...
+)
 }
 \arguments{
 \item{peak}{a row from \code{\link{mincFindPeaks}}}

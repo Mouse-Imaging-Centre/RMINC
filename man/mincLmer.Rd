@@ -4,11 +4,23 @@
 \alias{mincLmer}
 \title{mincified version of lmer from lme4}
 \usage{
-mincLmer(formula, data, mask, parallel = NULL, REML = TRUE,
-  control = lmerControl(), start = NULL, verbose = 0L,
-  temp_dir = getwd(), safely = FALSE, cleanup = TRUE,
-  summary_type = "fixef", weights = NULL, resources = list(),
-  conf_file = getOption("RMINC_BATCH_CONF"))
+mincLmer(
+  formula,
+  data,
+  mask,
+  parallel = NULL,
+  REML = TRUE,
+  control = lmerControl(),
+  start = NULL,
+  verbose = 0L,
+  temp_dir = getwd(),
+  safely = FALSE,
+  cleanup = TRUE,
+  summary_type = "fixef",
+  weights = NULL,
+  resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}

@@ -10,22 +10,52 @@
 \usage{
 mincTFCE(x, ...)
 
-\method{mincTFCE}{mincSingleDim}(x, d = 0.1, E = 0.5, H = 2,
-  side = c("both", "positive", "negative"), output_file = NULL,
-  keep = is.null(output_file),
-  conf_file = getOption("RMINC_BATCH_CONF"), ...)
-
-\method{mincTFCE}{matrix}(x, d = 0.1, E = 0.5, H = 2,
-  side = c("both", "positive", "negative"), like_volume, ...)
-
-\method{mincTFCE}{mincMultiDim}(x, d = 0.1, E = 0.5, H = 2,
+\method{mincTFCE}{mincSingleDim}(
+  x,
+  d = 0.1,
+  E = 0.5,
+  H = 2,
   side = c("both", "positive", "negative"),
-  like_volume = likeVolume(x), ...)
+  output_file = NULL,
+  keep = is.null(output_file),
+  conf_file = getOption("RMINC_BATCH_CONF"),
+  ...
+)
 
-\method{mincTFCE}{mincLm}(x, R = 500, alternative = c("two.sided",
-  "greater"), d = 0.1, E = 0.5, H = 2, side = c("both", "positive",
-  "negative"), replace = FALSE, parallel = NULL, resources = list(),
-  conf_file = getOption("RMINC_BATCH_CONF"), ...)
+\method{mincTFCE}{matrix}(
+  x,
+  d = 0.1,
+  E = 0.5,
+  H = 2,
+  side = c("both", "positive", "negative"),
+  like_volume,
+  ...
+)
+
+\method{mincTFCE}{mincMultiDim}(
+  x,
+  d = 0.1,
+  E = 0.5,
+  H = 2,
+  side = c("both", "positive", "negative"),
+  like_volume = likeVolume(x),
+  ...
+)
+
+\method{mincTFCE}{mincLm}(
+  x,
+  R = 500,
+  alternative = c("two.sided", "greater"),
+  d = 0.1,
+  E = 0.5,
+  H = 2,
+  side = c("both", "positive", "negative"),
+  replace = FALSE,
+  parallel = NULL,
+  resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF"),
+  ...
+)
 }
 \arguments{
 \item{x}{Either a character vector with a single filename, a \code{mincSingleDim} object,

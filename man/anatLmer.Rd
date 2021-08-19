@@ -4,10 +4,21 @@
 \alias{anatLmer}
 \title{Anatomy Linear Mixed Effects Model}
 \usage{
-anatLmer(formula, data, anat, REML = TRUE, control = lmerControl(),
-  verbose = FALSE, start = NULL, parallel = NULL, safely = FALSE,
-  summary_type = "fixef", weights = NULL, resources = list(),
-  conf_file = getOption("RMINC_BATCH_CONF"))
+anatLmer(
+  formula,
+  data,
+  anat,
+  REML = TRUE,
+  control = lmerControl(),
+  verbose = FALSE,
+  start = NULL,
+  parallel = NULL,
+  safely = FALSE,
+  summary_type = "fixef",
+  weights = NULL,
+  resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
 }
 \arguments{
 \item{formula}{the lmer formula, filenames go on left hand side}

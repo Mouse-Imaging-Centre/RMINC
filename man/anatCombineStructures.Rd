@@ -4,8 +4,11 @@
 \alias{anatCombineStructures}
 \title{Combine left and right volumes}
 \usage{
-anatCombineStructures(vols, method = "jacobians",
-  defs = getOption("RMINC_LABEL_DEFINITIONS"))
+anatCombineStructures(
+  vols,
+  method = "jacobians",
+  defs = getOption("RMINC_LABEL_DEFINITIONS")
+)
 }
 \arguments{
 \item{vols}{Matrix output from call to anatGetAll}

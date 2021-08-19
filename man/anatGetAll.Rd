@@ -4,11 +4,16 @@
 \alias{anatGetAll}
 \title{Faster AnatGet}
 \usage{
-anatGetAll(filenames, atlas = NULL,
-  defs = getOption("RMINC_LABEL_DEFINITIONS"), method = c("jacobians",
-  "labels", "sums", "means"), side = c("both", "left", "right"),
-  parallel = NULL, strict = TRUE,
-  conf_file = getOption("RMINC_BATCH_CONF"))
+anatGetAll(
+  filenames,
+  atlas = NULL,
+  defs = getOption("RMINC_LABEL_DEFINITIONS"),
+  method = c("jacobians", "labels", "sums", "means"),
+  side = c("both", "left", "right"),
+  parallel = NULL,
+  strict = TRUE,
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
 }
 \arguments{
 \item{filenames}{A vector of filenames (strings) which contain the

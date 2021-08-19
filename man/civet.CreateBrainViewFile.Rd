@@ -4,8 +4,13 @@
 \alias{civet.CreateBrainViewFile}
 \title{Create a brain view file}
 \usage{
-civet.CreateBrainViewFile(dataFile, atlasFile, atlasVertices,
-  outputFileName, civetVersion = "1.1.12")
+civet.CreateBrainViewFile(
+  dataFile,
+  atlasFile,
+  atlasVertices,
+  outputFileName,
+  civetVersion = "1.1.12"
+)
 }
 \arguments{
 \item{dataFile}{Either the name of a file with atlas labeling or an R array with atlas labeling}

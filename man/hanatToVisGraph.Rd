@@ -5,11 +5,17 @@
 \alias{hanatView}
 \title{Turns an anatomical tree into a nodes and edges for visNetwork plotting}
 \usage{
-hanatToVisGraph(hanatTree, colourVariable = "color_hex_triplet",
+hanatToVisGraph(
+  hanatTree,
+  colourVariable = "color_hex_triplet",
   colourScale = colorRampPalette(c("red", "yellow"))(255),
   rColourScale = colorRampPalette(c("blue", "turquoise1"))(255),
-  low = NULL, high = NULL, symmetric = F, transparent = "#FDFDFD",
-  edgeColourFromABI = F)
+  low = NULL,
+  high = NULL,
+  symmetric = F,
+  transparent = "#FDFDFD",
+  edgeColourFromABI = F
+)
 
 hanatView(..., fontsize = 14, levelSeparation = 500)
 }
