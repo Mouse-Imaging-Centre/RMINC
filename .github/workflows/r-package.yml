@@ -4,9 +4,9 @@ name: R package
 
 on:
   push:
-    branches: [main, develop]
+    branches: [master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [master, develop]
 
 jobs:
   build:
@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        r-version: ["3.6.3", "4.1.1"]
+        r-version: ["4.1.1"]
 
     steps:
       - uses: actions/checkout@v3
@@ -29,12 +29,18 @@ jobs:
           needs: check
       - name: Installing dependencies
         run: |
-              sudo apt-get -y install libminc-dev
-              wget --quiet http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.18-20220625-Ubuntu_20.04-x86_64.deb
-              sudo dpkg -i minc-toolkit-1.9.18-20220625-Ubuntu_20.04-x86_64.deb
+          sudo apt-get -y install libminc-dev
+          wget --quiet http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.18-20220625-Ubuntu_20.04-x86_64.deb
+          sudo dpkg -i minc-toolkit-1.9.18-20220625-Ubuntu_20.04-x86_64.deb
+          source /opt/minc/1.9.18/minc-toolkit-config.sh
+          git clone --recursive https://github.com/Mouse-Imaging-Centre/minc-stuffs.git
+          cd minc-stuffs
+          ./autogen.sh
+          ./configure --with-build-path=/opt/minc/1.9.18/
+          sudo make
+          sudo make install
+          sudo python setup.py install      
       - name: Running R CMD Check
-        uses: r-lib/actions/check-r-package@v2
-      - name: Test
         run: |
-              source /opt/minc/1.9.18/minc-toolkit-config.sh
-              Rscript -e "test(RMINC)"
+          source /opt/minc/1.9.18/minc-toolkit-config.sh
+          Rscript -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), build_args = "--no-manual", error_on = "warning", check_dir = "check")'
