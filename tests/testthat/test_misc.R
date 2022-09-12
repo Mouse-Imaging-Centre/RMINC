@@ -6,7 +6,7 @@ if(!exists("dataPath"))
   dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
 matrix_3x4 <- mincGetTagFile(file.path(dataPath, "3rows_4cols.tag"))
 matrix_4x3 <- mincGetTagFile(file.path(dataPath, "4rows_3cols_2comments.tag"))

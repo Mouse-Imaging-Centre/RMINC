@@ -6,9 +6,9 @@ if(!exists("dataPath"))
   dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
 
 voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0,0,0)
 voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0,0,0)

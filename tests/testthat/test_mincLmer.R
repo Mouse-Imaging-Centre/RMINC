@@ -13,9 +13,9 @@ if(!exists("dataPath"))
   dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
 maskfile <- file.path(dataPath, "testminc-mask.mnc")
  
 # pick a voxel inside the mask

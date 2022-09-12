@@ -5,9 +5,9 @@ if(!exists("dataPath"))
   dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"))
+gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"), stringsAsFactors = TRUE)
 gf <- civet.getAllFilenames(gf,"ID","TEST",file.path(dataPath, "CIVET"),"TRUE","1.1.12")
 gf <- civet.readAllCivetFiles(file.path(dataPath, "AAL.csv"),gf)
 

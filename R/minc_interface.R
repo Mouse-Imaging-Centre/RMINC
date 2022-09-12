@@ -1346,12 +1346,12 @@ runRMINCTestbed <- function(..., dataPath = getOption("RMINC_DATA_DIR", tempdir(
 getRMINCTestData <- function(dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl") {
 
   downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
-  extractedPath <- file.path(dataPath, "rminctestdata/")
+  extractedPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
   if(!file.exists(extractedPath)){
     if(!file.exists(downloadPath)){
       dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
-      download.file("https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata2.tar.gz",
+      download.file("https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/master.tar.gz",
                     destfile = downloadPath,
                     method = method) # changed from "wget" to stop freakouts on mac
     }
