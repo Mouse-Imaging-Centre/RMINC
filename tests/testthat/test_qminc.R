@@ -22,27 +22,26 @@ test_parallel <-
       if (!exists("dataPath")) {
         dataPath <- "."
       }
-
-      if (!file.exists(file.path(dataPath, "rminctestdata"))) {
-        if (getOption("verbose")) {
+      
+      if(!file.exists(file.path(dataPath, "RMINC-test-data-main/rminctestdata"))){
+        
+        if(getOption("verbose")){
           getRMINCTestData(dataPath)
         } else {
           capture.output(getRMINCTestData(dataPath), type = "message")
         }
-
-        on.exit(
-          {
-            unlink(file.path(dataPath, "rminctestdata"), recursive = TRUE)
-            unlink(file.path("rminctestdata.tar.gz"))
-          },
-          add = TRUE
-        )
+        
+        on.exit({
+          unlink(file.path(dataPath, "RMINC-test-data-main/rminctestdata"), recursive = TRUE)
+          unlink(file.path("rminctestdata.tar.gz"))
+        }, add = TRUE)
+        
       }
-
-      dataPath <- file.path(dataPath, "rminctestdata/")
-
+      
+      dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
+      
       gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
-      mask_file <- file.path(dataPath, "testminc-mask.mnc")
+      mask_file <- file.path(dataPath, "testminc-mask.mnc")          
     }
 
     test_that("Test sequential, multicore, and queue applies work", {

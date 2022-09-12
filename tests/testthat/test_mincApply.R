@@ -6,7 +6,7 @@ if (!exists("dataPath")) {
 }
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
 gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
 

@@ -6,7 +6,7 @@ if (!exists("dataPath")) {
 }
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
 gftest <- read.csv(file.path(dataPath, "subject.csv"), stringsAsFactors = TRUE)
 
@@ -34,17 +34,17 @@ for (i in c("vertex1.txt", "vertex2.txt", "vertex3.txt", "vertex4.txt")) {
 }
 
 gftest2 <- read.csv(file.path(dataPath, "subject.csv"), stringsAsFactors = TRUE)
-subjectFile2 = matrix(data = NA, nrow = 10, 1)
-subjectFile2[1, 1] = file.path(dataPath, "vertex2.csv.gz")
-subjectFile2[2, 1] = file.path(dataPath, "vertex3.csv.gz")
-subjectFile2[3, 1] = file.path(dataPath, "vertex4.csv.gz")
-subjectFile2[4, 1] = file.path(dataPath, "vertex3.csv.gz")
-subjectFile2[5, 1] = file.path(dataPath, "vertex1.csv.gz")
-subjectFile2[6, 1] = file.path(dataPath, "vertex2.csv.gz")
-subjectFile2[7, 1] = file.path(dataPath, "vertex4.csv.gz")
-subjectFile2[8, 1] = file.path(dataPath, "vertex2.csv.gz")
-subjectFile2[9, 1] = file.path(dataPath, "vertex3.csv.gz")
-subjectFile2[10, 1] = file.path(dataPath, "vertex1.csv.gz")
+subjectFile2 = matrix(data=NA,nrow=10,1)
+subjectFile2[1,1] = file.path(dataPath, "vertex2.csv.gz")
+subjectFile2[2,1] = file.path(dataPath, "vertex3.csv.gz")
+subjectFile2[3,1] = file.path(dataPath, "vertex4.csv.gz")
+subjectFile2[4,1] = file.path(dataPath, "vertex3.csv.gz")
+subjectFile2[5,1] = file.path(dataPath, "vertex1.csv.gz")
+subjectFile2[6,1] = file.path(dataPath, "vertex2.csv.gz")
+subjectFile2[7,1] = file.path(dataPath, "vertex4.csv.gz")
+subjectFile2[8,1] = file.path(dataPath, "vertex2.csv.gz")
+subjectFile2[9,1] = file.path(dataPath, "vertex3.csv.gz")
+subjectFile2[10,1] = file.path(dataPath, "vertex1.csv.gz")
 gftest2$testFilesLeft <- (subjectFile2)
 
 rmincLm <- verboseRun(

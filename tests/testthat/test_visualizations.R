@@ -8,7 +8,7 @@ if (!exists("dataPath")) {
 }
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 likeVol <- file.path(dataPath, "testsummaryminc1.mnc")
 
 uniformData <-

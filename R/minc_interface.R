@@ -1542,22 +1542,18 @@ runRMINCTestbed <- function(
 #' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' and \code{wget}
 #' @export
-getRMINCTestData <- function(
-  dataPath = getOption("RMINC_DATA_DIR", tempdir()),
-  method = "libcurl"
-) {
-  downloadPath <- file.path(dataPath, "rminctestdata.zip")
-  extractedPath <- file.path(dataPath, "rminctestdata/")
+getRMINCTestData <- function(dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl") {
+
+  downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
+  extractedPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
   if (!file.exists(extractedPath)) {
     # Download test data
     if (!file.exists(downloadPath)) {
       dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
-      download.file(
-        "https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/refs/heads/main.zip",
-        destfile = downloadPath,
-        method = method
-      ) # changed from "wget" to stop freakouts on mac
+      download.file("https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/master.tar.gz",
+                    destfile = downloadPath,
+                    method = method) # changed from "wget" to stop freakouts on mac
     }
 
     # Extract test data
