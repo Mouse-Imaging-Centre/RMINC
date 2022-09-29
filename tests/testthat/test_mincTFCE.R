@@ -69,7 +69,7 @@ context("MincLm Randomization TFCE")
 test_that("lm randomization works", {
   evalq({
     skip_on_cran()
-    skip_on_travis()
+    skip_on_ci()
     
     verboseRun(lmod <- mincLm(jacobians_0.2 ~ Genotype, gf))
     verboseRun(randomization_results <- mincTFCE(lmod, R = 10))
