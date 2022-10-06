@@ -4,13 +4,15 @@ Date: 2017-05-31
 Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
 Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
              person("Chris", "Hammill", role = c("aut", "cre"), email = "cfhammill@gmail.com"),
-             person("Matthijs", "van Eede", role = "aut", email = "matthijs.vaneede@sickkids.ca"),
+             person("Matthijs", "van Eede", role = "aut"),
              person("Daniel", "Cassel", role = "aut"),
              person("Jim",  "Nikelski", role = "ctb", email = "nikelski@bic.mni.mcgill.ca"),
-             person("Yohan", "Yee", role = "ctb", email = "yohan.yee@sickkids.ca"),
+             person("Yohan", "Yee", role = "ctb"),
              person("Miriam", "Friedel", role = "ctb"),
-             person("Nick", "Wang", role = "ctb", email = "nick.wang@sickkids.ca"),
-             person("Gabriel", "Devenyi", role = "ctb", email = "gdevenyi@gmail.com"))      
+             person("Nick", "Wang", role = "ctb"),
+             person("Gabriel", "Devenyi", role = "ctb", email = "gdevenyi@gmail.com"),
+	     person("Benjamin", "Darwin", role = "ctb")
+	     person("Bilal", "Syed", role = "ctb"))
 Description: Tools for reading, writing, analyzing, and visualizing Medical
     Imaging NetCDF (MINC) files with R.
 Additional_repositories: http://bioconductor.org/packages/3.10/bioc
@@ -55,7 +57,7 @@ SystemRequirements: lsof AND EITHER
     cmake (> 2.6),
     git,
     linux_apt: libhdf5-dev
-    mac_brew: homebrew/science/hdf5
+    mac_brew: homebrew/hdf5
 License: BSD_3_clause + file LICENSE
 LazyLoad: yes
 OS_type: unix
