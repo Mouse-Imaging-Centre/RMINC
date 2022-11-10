@@ -11,7 +11,7 @@ Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkid
              person("Miriam", "Friedel", role = "ctb"),
              person("Nick", "Wang", role = "ctb"),
              person("Gabriel", "Devenyi", role = "ctb", email = "gdevenyi@gmail.com"),
-	     person("Benjamin", "Darwin", role = "ctb")
+	     person("Benjamin", "Darwin", role = "ctb"),
 	     person("Bilal", "Syed", role = "ctb"))
 Description: Tools for reading, writing, analyzing, and visualizing Medical
     Imaging NetCDF (MINC) files with R.
