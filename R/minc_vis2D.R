@@ -75,7 +75,9 @@ getSlice <- function(volume, slice, dimension) {
   return(list(slice=outs, asp=outa))
 }
 
-plotLocator <- function(dimension, anatomy, indicatorLevels, slices){
+plotLocator <- function(dimension, anatomy, 
+                        indicatorLevels, slices, locatorCol = "white", sliceCol="yellow",
+                        anatomyMask=NULL){
   d <- dim(anatomy)
   if(length(d) != 3) stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
   
@@ -83,14 +85,14 @@ plotLocator <- function(dimension, anatomy, indicatorLevels, slices){
   locatorSlice <- ceiling(d[locatorDimension] / 2)
   
   mincContour(anatomy, dimension=locatorDimension, 
-              slice=locatorSlice, col="white", levels=indicatorLevels, 
-              axes=F, drawlabels=F)
+              slice=locatorSlice, col=locatorCol, levels=indicatorLevels, 
+              axes=F, drawlabels=F,volumeMask=anatomyMask)
   
   if (dimension %in% 1:2) {
-    abline(v=slices, col="yellow")
+    abline(v=slices, col=sliceCol)
   }
   else {
-    abline(h=slices, col="yellow")
+    abline(h=slices, col=sliceCol)
   }
   
   invisible(NULL)
@@ -99,7 +101,7 @@ plotLocator <- function(dimension, anatomy, indicatorLevels, slices){
 sliceSeriesLayout <-
   function(anatomy, dimension, mfrow, begin, end, plottitle, legend, locator){
     nslices <- prod(mfrow)
-    par(bg = "black")
+    #par(bg = "transparent") # TO allow using user-specified color
     if (locator || !is.null(legend)) { # use the layout function
       # create a layout matrix - sets up a matrix that is the same as par(mfrow=) would be,
       # and then adds on an extra column for the slice locator and the legend
@@ -193,7 +195,13 @@ mincPlotSliceSeries <-
            plottitle = NULL, 
            indicatorLevels = NULL,
            discreteStats = FALSE,
-           legendHeight = .5){
+           legendHeight = .5,
+           legendCol = "white",
+           titleCol = legendCol,
+           locatorCol="white",
+           sliceCol="yellow",
+           anatomyMask = NULL
+           ){
     
     if(length(dim(anatomy)) != 3) 
       stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -226,11 +234,16 @@ mincPlotSimpleSliceSeries <-
            plottitle = NULL,
            legend = NULL,
            locator = !is.null(legend),
-           indicatorLevels = NULL){
+           indicatorLevels = NULL,
+           locatorCol="white",
+           sliceCol="yellow",
+           anatomyMask = NULL){
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
-  
+    
+    #
+
     slices <- sliceSeriesLayout(anatomy, dimension, mfrow, 
                                 begin, end, plottitle, legend, locator)
     
@@ -241,11 +254,14 @@ mincPlotSimpleSliceSeries <-
     lapply(slices, function(current_slice) {
       mincImage(anatomy, dimension, slice=current_slice,
                 low=anatRange[1], high=anatRange[2], 
-                axes = FALSE, underTransparent = TRUE, col = anatCol)
+                axes = FALSE, underTransparent = TRUE, col = anatCol,
+                volumeMask = anatomyMask
+                )
     })
     
     if(locator) plotLocator(dimension, anatomy, 
-                            indicatorLevels, slices)
+                            indicatorLevels, slices, locatorCol, sliceCol,
+                            anatomyMask=anatomyMask)
     
     if (!is.null(plottitle))
       mtext(plottitle, outer=T, side=3, line=-1, col="white", cex=2)
@@ -266,9 +282,14 @@ mincPlotStatsSliceSeries <-
            legend = NULL,
            locator = !is.null(legend),
            plottitle = NULL, 
-           indicatorLevels = c(900, 1200),
+           indicatorLevels = NULL,
            discreteStats = FALSE,
-           legendHeight = .5) {
+           legendHeight = .5,
+           legendCol="white",
+           titleCol=legendCol,
+           locatorCol="white",
+           sliceCol="yellow",
+           anatomyMask = NULL ) {
     
     opar <- par(no.readonly = TRUE)
     on.exit(par(opar))
@@ -296,12 +317,15 @@ mincPlotStatsSliceSeries <-
       mincPlotAnatAndStatsSlice(anatomy, statistics, dimension, slice=slices[i],
                                 low=statRange[1], high=statRange[2], anatLow=anatRange[1], 
                                 anatHigh=anatRange[2], col=col, legend=NULL, 
-                                symmetric=symmetric, acol = anatCol)
+                                symmetric=symmetric, acol = anatCol,
+                                anatomyMask=anatomyMask)
     }
     
     #Add the plot locator if desired
     if(locator) plotLocator(dimension, anatomy, 
-                            indicatorLevels, slices)
+                            indicatorLevels, slices,
+                            locatorCol, sliceCol,
+                            anatomyMask=anatomyMask)
     
     #Add a legend for the statistics if desired
     if(!is.null(legend)){
@@ -317,21 +341,21 @@ mincPlotStatsSliceSeries <-
         col <- colorRampPalette(c("red", "yellow"))(255)
         rcol <- colorRampPalette(c("blue", "turquoise1"))(255)
         plotrix::color.legend(0.3, 0.05, 0.5, 0.45, c(high*-1, low*-1), 
-                              rev(rcol), gradient="y", align="rb", col="white")
+                              rev(rcol), gradient="y", align="rb", col=legendCol)
         plotrix::color.legend(0.3, 0.55, 0.5, 0.95, c(low, high), 
-                              col, gradient="y", align="rb", col="white")
+                              col, gradient="y", align="rb", col=legendCol)
       }
       else {
         plotrix::color.legend(.3, (1 - legendHeight) / 2, .5, 1 - (1 - legendHeight) / 2, labs, 
-                               col, gradient="y", align="rb", col="white")
+                               col, gradient="y", align="rb", col=legendCol)
       }
       
-      text(0.85, 0.5, labels=legend, srt=90, col="white", cex=2)
+      text(0.85, 0.5, labels=legend, srt=90, col=legendCol, cex=2)
     }
     
     #Add a title if desired
     if (!is.null(plottitle)) {
-      mtext(plottitle, outer=T, side=3, line=-1, col="white", cex=2)
+      mtext(plottitle, outer=T, side=3, line=-1, col=titleCol, cex=2)
     }
     
     return(invisible(NULL))
@@ -445,6 +469,7 @@ mincTriplanarSlicePlot <- function(anatomy, statistics, slice=NULL,
 #' @param acol colours to use for the anatomy
 #' @param legend an optional string to name the legend, indicating desire for a legend
 #' @param legendTextColour an optional description of the text colour for the legend
+#' @param anatomyMask optional mask for anatomy 
 #' (or not)
 #' @return invisible NULL
 #' @export
@@ -457,7 +482,8 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
                           symmetric=FALSE,
                           col=NULL, rcol=NULL, legend=NULL,
                           acol = gray.colors(255, start=0.0),
-                          legendTextColour="black") {
+                          legendTextColour="black",
+                          anatomyMask=NULL) {
   
   if(length(dim(anatomy)) != 3) 
     stop("anatomy must be 3 dimensional, you may be missing a call to mincArray")
@@ -479,8 +505,8 @@ mincPlotAnatAndStatsSlice <- function(anatomy, statistics, slice=NULL,
   
   anatCols = acol
     
-  mincImage(anatomy, dimension, slice, axes = FALSE, col=anatCols,
-            low=anatLow, high=anatHigh)
+  mincImage(anatomy, dimension, slice, axes = FALSE, col=anatCols, underTransparent = TRUE,
+            low=anatLow, high=anatHigh, volumeMask=anatomyMask)
   
   mincImage(statistics, dimension, slice, axes = FALSE, add = TRUE, col=col, underTransparent = TRUE,
             low = low, high = high)
@@ -563,11 +589,20 @@ mincImage <- function(volume, dimension=2, slice=NULL,
                       reverse=FALSE, underTransparent=FALSE, 
                       col = gray.colors(255),
                       add = FALSE,
+                      volumeMask = NULL,
                       ...) {
   if(length(dim(volume)) != 3) 
     stop("volume must be 3 dimensional, you may be missing a call to mincArray")
+  if(!is.null(volumeMask) && length(dim(volumeMask)) != 3)
+    stop("volumeMask must be 3 dimensional, you may be missing a call to mincArray")
+  if(!is.null(volumeMask) && dim(volumeMask) != dim(volume))
+    stop("volumeMask and volume size mismatch")
+
   
   s <- getSlice(volume, slice, dimension)
+  if(!is.null(volumeMask))
+    sm <- getSlice(volumeMask, slice, dimension)
+
   # reverse means multiply scaling by -1
   if (reverse) { m <- -1 } else { m <- 1 }
   
@@ -596,7 +631,11 @@ mincImage <- function(volume, dimension=2, slice=NULL,
     colourDepth <- length(col)
 
     paletteScaledSlice <- scaleSliceToPalette(s$slice, low, high, col)
-    
+
+    # set masked out values to the lowest value (1) if mask is present
+    if(!is.null(volumeMask))
+      paletteScaledSlice[sm$slice<1]=NA
+
     colourizedSlice <- col[paletteScaledSlice]
     dim(colourizedSlice) <- sliceDims
     
@@ -663,6 +702,7 @@ scaleSliceToPalette <-
 #' @param volume the output of mincArray
 #' @param dimension the dimension (from 1 to 3)
 #' @param slice the slice number
+#' @param volumeMask the output of mincArray , for the mask
 #' @param ... other parameters to pass on to \code{\link{contour}}
 #'
 #' @export
@@ -672,12 +712,21 @@ scaleSliceToPalette <-
 #' mincImage(mincArray(anatVol), slice=100, col=gray.colors(255))
 #' mincContour(mincArray(anatVol), slice=100, add=T, col=rainbow(2), levels=c(1000, 1400))
 #' }
-mincContour <- function(volume, dimension=2, slice=NULL, ...) {
+mincContour <- function(volume, dimension=2, slice=NULL,volumeMask=NULL, ...) {
   
   if(length(dim(volume)) != 3) 
     stop("volume must be 3 dimensional, you may be missing a call to mincArray")
-  
+  if(!is.null(volumeMask) && length(dim(volumeMask)) != 3) 
+    stop("volumeMask must be 3 dimensional, you may be missing a call to mincArray")
+  if(!is.null(volumeMask) && dim(volumeMask) != dim(volumeMask)) 
+    stop("volume and volumeMask size mismatch")
+
   s <- getSlice(volume, slice, dimension)
+  if(!is.null(volumeMask))
+  {
+    sm <- getSlice(volumeMask, slice, dimension)
+    s$slice[sm$slice<1] <- min(s$slice, na.rm = TRUE) # TODO: should use some special value here?
+  }
   sliceDims <- dim(s$slice)
   contour(1:sliceDims[1], 1:sliceDims[2], s$slice, asp=1, ...)
 }
