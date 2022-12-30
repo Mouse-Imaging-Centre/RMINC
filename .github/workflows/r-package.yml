@@ -1,0 +1,46 @@
+# This workflow will install R dependencies and run tests with a variety of R versions.
+
+name: R package
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        r-version: ["4.1.1"]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.r-version }}
+      - name: Setup R dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+      - name: Installing dependencies
+        run: |
+          sudo apt-get -y install libminc-dev
+          wget --quiet http://packages.bic.mni.mcgill.ca/minc-toolkit/Debian/minc-toolkit-1.9.18-20220625-Ubuntu_20.04-x86_64.deb
+          sudo dpkg -i minc-toolkit-1.9.18-20220625-Ubuntu_20.04-x86_64.deb
+          source /opt/minc/1.9.18/minc-toolkit-config.sh
+          git clone --recursive https://github.com/Mouse-Imaging-Centre/minc-stuffs.git
+          cd minc-stuffs
+          ./autogen.sh
+          ./configure --with-build-path=/opt/minc/1.9.18/
+          sudo make
+          sudo make install
+          sudo python setup.py install      
+      - name: Running R CMD Check
+        run: |
+          source /opt/minc/1.9.18/minc-toolkit-config.sh
+          Rscript -e 'rcmdcheck::rcmdcheck(args = c("--no-manual", "--as-cran"), build_args = "--no-manual", error_on = "warning", check_dir = "check")'

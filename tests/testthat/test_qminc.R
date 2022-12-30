@@ -21,7 +21,7 @@ test_parallel <-
         dataPath <- "."
       }
       
-      if(!file.exists(file.path(dataPath, "rminctestdata"))){
+      if(!file.exists(file.path(dataPath, "RMINC-test-data-main/rminctestdata"))){
         
         if(getOption("verbose")){
           getRMINCTestData(dataPath)
@@ -30,15 +30,15 @@ test_parallel <-
         }
         
         on.exit({
-          unlink(file.path(dataPath, "rminctestdata"), recursive = TRUE)
+          unlink(file.path(dataPath, "RMINC-test-data-main/rminctestdata"), recursive = TRUE)
           unlink(file.path("rminctestdata.tar.gz"))
         }, add = TRUE)
         
       }
       
-      dataPath <- file.path(dataPath, "rminctestdata/")
+      dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
       
-      gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+      gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
       mask_file <- file.path(dataPath, "testminc-mask.mnc")          
     }
 

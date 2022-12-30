@@ -7,9 +7,9 @@ if(!exists("dataPath"))
   dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"))
+gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"), stringsAsFactors = TRUE)
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 0, 0, 0)
 
 #Calculate mean, sd, variance, and sum 

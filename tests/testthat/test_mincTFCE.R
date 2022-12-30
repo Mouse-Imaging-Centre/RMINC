@@ -4,9 +4,9 @@ if(!exists("dataPath"))
   dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
-dataPath <- file.path(dataPath, "rminctestdata/")
+dataPath <- file.path(dataPath, "RMINC-test-data-main/rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"))
+gf <- read.csv(file.path(dataPath, "minc_summary_test_data.csv"), stringsAsFactors = TRUE)
 first_file <- gf$jacobians_0.2[1]
 
 first_vol <- mincGetVolume(first_file)
@@ -69,7 +69,7 @@ context("MincLm Randomization TFCE")
 test_that("lm randomization works", {
   evalq({
     skip_on_cran()
-    skip_on_travis()
+    skip_on_ci()
     
     verboseRun(lmod <- mincLm(jacobians_0.2 ~ Genotype, gf))
     verboseRun(randomization_results <- mincTFCE(lmod, R = 10))
