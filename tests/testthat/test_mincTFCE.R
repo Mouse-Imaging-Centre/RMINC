@@ -35,6 +35,9 @@ test_that("minc single dim TFCE works",{
   skip_on_cran()
   skip_on_travis()
   
+  has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) != ""
+  skip_if_not(has_mincstuffs)
+  
   evalq({
     tfce_vol <- mincTFCE(first_vol)
     expect_equal(example_values, tfce_vol[test_voxels])
@@ -54,7 +57,11 @@ test_that("minc multi dim TFCE works", {
   skip_on_cran()
   skip_on_travis()
   
+  has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) != ""
+  skip_if_not(has_mincstuffs)
+  
   evalq({
+    
     md_tfce <- mincTFCE(test_multidim)
     expect_equal(md_tfce[test_voxels,1], example_values)
     expect_equal(md_tfce[test_voxels,2], example_values)
@@ -70,6 +77,9 @@ test_that("lm randomization works", {
   evalq({
     skip_on_cran()
     skip_on_travis()
+    
+    has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) != ""
+    skip_if_not(has_mincstuffs)
     
     verboseRun(lmod <- mincLm(jacobians_0.2 ~ Genotype, gf))
     verboseRun(randomization_results <- mincTFCE(lmod, R = 10))
@@ -89,6 +99,9 @@ test_that("Vertex TFCE approximately matches mincTFCE", {
   skip_on_cran()
   skip_on_travis()
   
+  has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) != ""
+  skip_if_not(has_mincstuffs)
+  
   tfce_vol <- mincTFCE(first_vol, d = .0027)
   vtfce <- vertexTFCE(first_vol, RMINC:::neighbour_list(15,15,15,6), weights = .001)
   expect_false(any(abs(vtfce - tfce_vol) > 1e-4))
@@ -97,3 +110,4 @@ test_that("Vertex TFCE approximately matches mincTFCE", {
 
 # mincPlotSliceSeries(mincArray(tfce_vol))
 # mincPlotSliceSeries(mincArray(`likeVolume<-`(vtfce, first_file)))
+
