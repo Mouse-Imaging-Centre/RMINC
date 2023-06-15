@@ -1,9 +1,10 @@
 library(testthat)
 context("anatApply")
 
-if(!exists("dataPath"))
+if(!exists("dataPath")) {
   dataPath <- tempdir()
-
+}
+  
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
