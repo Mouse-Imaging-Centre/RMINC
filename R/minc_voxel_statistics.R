@@ -38,6 +38,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }
+  
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -76,6 +77,14 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
 #' @describeIn mincSummary mean
 #' @export
 mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+
   result <- mincSummary(filenames, grouping, mask, method="mean", maskval=maskval)
   return(result)
 }
@@ -83,6 +92,14 @@ mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @describeIn mincSummary Variance
 #' @export
 mincVar <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+  
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   return(result)
 }
@@ -90,6 +107,14 @@ mincVar <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @describeIn mincSummary Sum
 #' @export
 mincSum <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+  
   result <- mincSummary(filenames, grouping, mask, method="sum", maskval=maskval)
   return(result)
 }
@@ -97,6 +122,14 @@ mincSum <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @describeIn mincSummary Standard Deviation
 #' @export
 mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+  
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   result <- sqrt(result)
   return(result)
@@ -779,6 +812,7 @@ mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   # the grouping for a t test should only contain 2 groups. Should 
   # also be converted to a factor if it's not.
   if( ! is.factor(grouping) ){
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
     grouping <- as.factor(grouping)
   }
   if(length(levels(grouping)) != 2 ){
@@ -825,6 +859,7 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   # group 1 is paired with element 1 from group 2 etc.), the groups need to have 
   # the same length.
   if( ! is.factor(grouping) ){
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
     grouping <- as.factor(grouping)
   }
   if(length(levels(grouping)) != 2 ){
@@ -873,6 +908,10 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' }
 #' @export
 mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  if( ! is.factor(grouping) ){
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+    grouping <- as.factor(grouping)
+  }
   result <- mincSummary(filenames, grouping, mask, method="wilcoxon", maskval=maskval)
   result <- as.matrix(result);
   attr(result, "likeVolume") <- filenames[1]
