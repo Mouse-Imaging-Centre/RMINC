@@ -25,6 +25,6 @@ except dimension information
 }
 \section{Functions}{
 \itemize{
-\item \code{setMincAttributes}: setter
-}}
+\item \code{setMincAttributes()}: setter
 
+}}
