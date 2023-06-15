@@ -170,39 +170,39 @@ filename(s).
 }
 \section{Functions}{
 \itemize{
-\item \code{civet.getFilenameClassify}: Tissue classification
+\item \code{civet.getFilenameClassify()}: Tissue classification
 
-\item \code{civet.getFilenameGrayMatterPve}: gray matter pve
+\item \code{civet.getFilenameGrayMatterPve()}: gray matter pve
 
-\item \code{civet.getFilenameWhiteMatterPve}: white matter pve
+\item \code{civet.getFilenameWhiteMatterPve()}: white matter pve
 
-\item \code{civet.getFilenameCsfPve}: csf pve
+\item \code{civet.getFilenameCsfPve()}: csf pve
 
-\item \code{civet.getFilenameStxT1}: Standard to T1 transform
+\item \code{civet.getFilenameStxT1()}: Standard to T1 transform
 
-\item \code{civet.getFilenameCerebrumMask}: brain mask
+\item \code{civet.getFilenameCerebrumMask()}: brain mask
 
-\item \code{civet.getFilenameSkullMask}: skull mask
+\item \code{civet.getFilenameSkullMask()}: skull mask
 
-\item \code{civet.getFilenameGrayMatterSurfaces}: gray matter surfaces
+\item \code{civet.getFilenameGrayMatterSurfaces()}: gray matter surfaces
 
-\item \code{civet.getFilenameWhiteMatterSurfaces}: white matter surfaces
+\item \code{civet.getFilenameWhiteMatterSurfaces()}: white matter surfaces
 
-\item \code{civet.getFilenameMidSurfaces}: mid surfaces
+\item \code{civet.getFilenameMidSurfaces()}: mid surfaces
 
-\item \code{civet.getFilenamesCorticalThickness}: cortical thickness
+\item \code{civet.getFilenamesCorticalThickness()}: cortical thickness
 
-\item \code{civet.getFilenamesCorticalArea}: cortical area
+\item \code{civet.getFilenamesCorticalArea()}: cortical area
 
-\item \code{civet.getFilenamesCorticalVolume}: cortical volume
+\item \code{civet.getFilenamesCorticalVolume()}: cortical volume
 
-\item \code{civet.getFilenameMeanSurfaceCurvature}: surface curvature
+\item \code{civet.getFilenameMeanSurfaceCurvature()}: surface curvature
 
-\item \code{civet.getFilenameLinearTransform}: linear transform
+\item \code{civet.getFilenameLinearTransform()}: linear transform
 
-\item \code{civet.getFilenameNonlinearTransform}: non-linear transform
+\item \code{civet.getFilenameNonlinearTransform()}: non-linear transform
+
 }}
-
 \examples{
 
 \dontrun{

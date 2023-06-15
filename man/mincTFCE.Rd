@@ -119,12 +119,12 @@ to allow a hybrid cluster/voxel analysis to be performed.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincSingleDim}: mincSingleDim
+\item \code{mincTFCE(mincSingleDim)}: mincSingleDim
 
-\item \code{matrix}: matrix
+\item \code{mincTFCE(matrix)}: matrix
 
-\item \code{mincMultiDim}: mincMultiDim
+\item \code{mincTFCE(mincMultiDim)}: mincMultiDim
 
-\item \code{mincLm}: mincLm
+\item \code{mincTFCE(mincLm)}: mincLm
+
 }}
-

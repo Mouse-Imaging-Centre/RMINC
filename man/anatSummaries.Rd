@@ -29,15 +29,15 @@ These functions are used to compute the mean, standard deviation,
 }
 \section{Functions}{
 \itemize{
-\item \code{anatMean}: mean
+\item \code{anatMean()}: mean
 
-\item \code{anatSum}: sum
+\item \code{anatSum()}: sum
 
-\item \code{anatVar}: variance
+\item \code{anatVar()}: variance
 
-\item \code{anatSd}: standard deviation
+\item \code{anatSd()}: standard deviation
+
 }}
-
 \examples{
 \dontrun{
 getRMINCTestData() 

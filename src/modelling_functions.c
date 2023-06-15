@@ -1,6 +1,14 @@
+#ifndef  USE_FC_LEN_T
+# define USE_FC_LEN_T
+#endif
+
 #include "minc_reader.h"
 #include "R_ext/Lapack.h"
 #include "R_ext/Applic.h"
+
+#ifndef FCONE
+# define FCONE
+#endif
 
 /* minimum computation to speed up bits of qvalue */
 
@@ -538,7 +546,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   // definite matrix A using the Cholesky factorization A =
   // U**T*U or A = L*L**T computed by DPOTRF
   int info;
-  F77_CALL(dpotri)("Upper", &p, x, &n, &info);
+  F77_CALL(dpotri)("Upper", &p, x, &n, &info FCONE);
 
   if (info != 0) {
     UNPROTECT(nprot);

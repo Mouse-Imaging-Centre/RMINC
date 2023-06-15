@@ -317,6 +317,11 @@ test_that("anatomy hierarchy works", {
 ## Test anatToVolume
 test_that("Test anatToVolume works", {
   evalq({
+    
+    verboseRun(
+      new_jacobians <- anatGetAll(gf$jacobians_0.2, defs = labels, atlas = segmentation, method = "jacobians")
+    )
+    
     seg <- mincGetVolume(segmentation)
     mlm <- anatLm(~ a, data.frame(a = new_jacobians[,1]), new_jacobians)
     vol <- anatToVolume(mlm        
@@ -334,3 +339,4 @@ test_that("Test anatToVolume works", {
     expect_true(all(corrects$correct))
     }, envir = test_env)
 })
+

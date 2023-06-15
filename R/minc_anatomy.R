@@ -809,8 +809,14 @@ anatCombineStructures <- function(vols, method = "jacobians",
 #' }
 #' @export
 anatApply <- function(vols, grouping = NULL, method=mean, ...) {
-  if(is.null(grouping))
+  if(is.null(grouping)) {
     grouping <- factor(1)
+  }
+
+  if (!is.factor(grouping)) {
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+    grouping <- as.factor(grouping)
+  }
   
   ngroups <- length(levels(grouping))
   output <- matrix(nrow=ncol(vols), ncol=ngroups)
@@ -878,7 +884,6 @@ anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
       matrixName = formula[[2]]
       matrixFound = TRUE
       data.matrix.left <- t(anat[mf[,"(rowcount)"],])
-      #data.matrix.left <- vertexTable(filenames)
       data.matrix.right <- t(term)
     }  
   }
@@ -909,7 +914,11 @@ anatLm <- function(formula, data, anat, subset=NULL, weights = NULL) {
     rows = append(rows,matrixName)
   }	
   
-  
+  if(matrixFound){
+    stop("A term in your model is a matrix, this use of `anatLm` is deprecated, "
+       , "Please merge the two anatomy matrices using rowbind or similar and use a group "
+       , "add a group indicator to your `data.frame`")
+  }
   
   # Call subroutine based on whether matrix was found
   if(!matrixFound) {    	

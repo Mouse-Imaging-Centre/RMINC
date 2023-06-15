@@ -1,7 +1,15 @@
+#ifndef  USE_FC_LEN_T
+# define USE_FC_LEN_T
+#endif
+
 #include <stdio.h>
 #include "modelling_functions.h"
 #include "R_ext/Lapack.h"
 #include "R_ext/Applic.h"
+
+#ifndef FCONE
+# define FCONE
+#endif
 
 SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients, 
               double *residuals, double *effects, 
@@ -125,7 +133,7 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   // definite matrix A using the Cholesky factorization A =
   // U**T*U or A = L*L**T computed by DPOTRF
   int info;
-  F77_CALL(dpotri)("Upper", &p, x, &n, &info);
+  F77_CALL(dpotri)("Upper", &p, x, &n, &info FCONE);
   
   if (info != 0) {
     UNPROTECT(nprot);

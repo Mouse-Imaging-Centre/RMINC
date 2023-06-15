@@ -83,15 +83,15 @@ This function uses the \code{qvalue} package to compute the
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincSingleDim}: mincSingleDim
+\item \code{mincFDR(mincSingleDim)}: mincSingleDim
 
-\item \code{mincLogLikRatio}: mincLogLikRatio
+\item \code{mincFDR(mincLogLikRatio)}: mincLogLikRatio
 
-\item \code{mincLmer}: mincLmer
+\item \code{mincFDR(mincLmer)}: mincLmer
 
-\item \code{mincMultiDim}: mincMultiDim
+\item \code{mincFDR(mincMultiDim)}: mincMultiDim
+
 }}
-
 \examples{
 \dontrun{
 getRMINCTestData() 

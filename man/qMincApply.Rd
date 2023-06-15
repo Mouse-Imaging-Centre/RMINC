@@ -157,13 +157,13 @@ the conf_file argument.
 }
 \section{Functions}{
 \itemize{
-\item \code{qMincRegistry}: registry
+\item \code{qMincRegistry()}: registry
 
-\item \code{qMincMap}: map
+\item \code{qMincMap()}: map
 
-\item \code{qMincReduce}: reduce
+\item \code{qMincReduce()}: reduce
+
 }}
-
 \seealso{
 \url{https://www.jstatsoft.org/article/view/v064i11} \link{pMincApply} \link{mcMincApply}
 }

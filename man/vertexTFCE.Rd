@@ -124,12 +124,12 @@ using the \link[igraph]{as_adj_list} from the igraph library.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{numeric}: numeric
+\item \code{vertexTFCE(numeric)}: numeric
 
-\item \code{matrix}: matrix
+\item \code{vertexTFCE(matrix)}: matrix
 
-\item \code{vertexLm}: vertexLm
+\item \code{vertexTFCE(vertexLm)}: vertexLm
 
-\item \code{character}: character
+\item \code{vertexTFCE(character)}: character
+
 }}
-

@@ -32,15 +32,15 @@ variance of every vertex in a set of vertex files.
 }
 \section{Functions}{
 \itemize{
-\item \code{vertexMean}: mean
+\item \code{vertexMean()}: mean
 
-\item \code{vertexSum}: sum
+\item \code{vertexSum()}: sum
 
-\item \code{vertexVar}: var
+\item \code{vertexVar()}: var
 
-\item \code{vertexSd}: standard deviation
+\item \code{vertexSd()}: standard deviation
+
 }}
-
 \examples{
 
 \dontrun{

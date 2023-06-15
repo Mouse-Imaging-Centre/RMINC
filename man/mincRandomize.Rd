@@ -66,6 +66,6 @@ returbed.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincLm}: mincLm
-}}
+\item \code{mincRandomize(mincLm)}: mincLm
 
+}}
