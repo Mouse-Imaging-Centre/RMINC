@@ -236,14 +236,13 @@ SEXP get_minc_separations(SEXP filename) {
   mihandle_t         hvol;
   const char *filepath = CHAR(asChar(filename));
   midimhandle_t dimensions[3];
-  double* voxel_separations = malloc(3 * sizeof(double));
+  double* voxel_separations = (double *)R_alloc(3, sizeof(double));
   SEXP output = PROTECT(allocVector(REALSXP, 3));
   
   result = miopen_volume(filepath,
                          MI2_OPEN_READ, &hvol);
-  
+
   if (result != MI_NOERROR) {
-    miclose_volume(hvol);
     error("Error opening input file: %s.\n", filepath);
   }
   
@@ -316,7 +315,7 @@ void get_hyperslab(char **filename, int *start, int *count, double *slab) {
 				 MI_TYPE_DOUBLE, 
 				 (misize_t *) tmp_start, 
 				 (misize_t *) tmp_count, 
-				 slab)
+	    			 slab)
       < 0) {
     error("Could not get hyperslab.\n");
   }

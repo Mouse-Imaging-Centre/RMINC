@@ -3,7 +3,8 @@ focused on the MINC file format. Supports getting
 and writing volumes, running voxel-wise linear models,
 correlations, correcting for multiple comparisons with False Discovery Rate
 control, and more. With contributions from Jason Lerch,
-Chris Hammill, Jim Nikelski, Matthijs van Eede and Daniel Cassel
+Chris Hammill, Jim Nikelski, Matthijs van Eede, Daniel Cassel,
+Yohan Yee, Gabe Devenyi, and Darren Fernandes.
 
 Installation:
 -------------
