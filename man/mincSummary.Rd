@@ -61,17 +61,17 @@ rather than performing it across all volumes as is the default.
 }
 \section{Functions}{
 \itemize{
-\item \code{mincMean}: mean
+\item \code{mincMean()}: mean
 
-\item \code{mincVar}: Variance
+\item \code{mincVar()}: Variance
 
-\item \code{mincSum}: Sum
+\item \code{mincSum()}: Sum
 
-\item \code{mincSd}: Standard Deviation
+\item \code{mincSd()}: Standard Deviation
 
-\item \code{mincCorrelation}: Correlation
+\item \code{mincCorrelation()}: Correlation
+
 }}
-
 \examples{
 \dontrun{
 getRMINCTestData() 

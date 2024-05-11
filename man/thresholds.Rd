@@ -29,8 +29,8 @@ Get Probability Thresholds
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincQvals}: mincQvals
+\item \code{thresholds(mincQvals)}: mincQvals
 
-\item \code{minc_randomization}: minc_randomization
+\item \code{thresholds(minc_randomization)}: minc_randomization
+
 }}
-

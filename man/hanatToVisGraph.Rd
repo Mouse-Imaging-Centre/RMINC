@@ -52,6 +52,6 @@ Turns an anatomical tree into a nodes and edges for visNetwork plotting
 }
 \section{Functions}{
 \itemize{
-\item \code{hanatView}: Directly view the graph
-}}
+\item \code{hanatView()}: Directly view the graph
 
+}}

@@ -38,6 +38,7 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }
+  
   if (is.null(maskval)) {
     minmask = 1
     maxmask = 99999999
@@ -76,6 +77,14 @@ mincSummary <- function(filenames, grouping=NULL, mask=NULL, method="mean", mask
 #' @describeIn mincSummary mean
 #' @export
 mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+
   result <- mincSummary(filenames, grouping, mask, method="mean", maskval=maskval)
   return(result)
 }
@@ -83,6 +92,14 @@ mincMean <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @describeIn mincSummary Variance
 #' @export
 mincVar <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+  
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   return(result)
 }
@@ -90,6 +107,14 @@ mincVar <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @describeIn mincSummary Sum
 #' @export
 mincSum <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+  
   result <- mincSummary(filenames, grouping, mask, method="sum", maskval=maskval)
   return(result)
 }
@@ -97,6 +122,14 @@ mincSum <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
 #' @describeIn mincSummary Standard Deviation
 #' @export
 mincSd <- function(filenames, grouping=NULL, mask=NULL, maskval=NULL) {
+  
+  if(!is.null(grouping)) {
+    if (!is.factor(grouping)) {
+      warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+      grouping <- as.factor(grouping)
+    }
+  }
+  
   result <- mincSummary(filenames, grouping, mask, method="var", maskval=maskval)
   result <- sqrt(result)
   return(result)
@@ -227,20 +260,22 @@ mincApplyRCPP <-
 #' only works for mincApply, not pMincApply.
 #' @param reduce Whether to filter masked voxels from the resulting object
 #' @details mincApply allows one to execute any R function at every voxel of a
-#' set of files. There are two variants: mincApply, which works
-#' inside the current R session.
-#' Unless the function to be applied takes a single argument a
-#' wrapper function has to be written. This is illustrated in the
-#' examples; briefly, the wrapper function takes a single argument,
-#' called 'x', which will take on the voxel values at every voxel.
-#' The function has to be turned into a string; the quote function
-#' can be very handy. The output of this function also has to be a
+#' set of files. mincApply runs in the current R process; see also 
+#' pMincApply and qMincApply for parallel variants.
+#' Unless the function to be applied takes a single argument,
+#' which will take on the voxel values at every voxel, a
+#' wrapper function has to be written.  The mincApply function also 
+#' supports passing, instead of a function, a quoted expression containing
+#' a free variable 'x', again taking on all voxel values;
+#' this is illustrated in the examples.  (Not this is not supported by pMincApply.)
+#' The output of this function also has to be a
 #' simple vector or scalar.
 #' Note that interpreted R can be very slow. Mindnumbingly slow. It
 #' therefore pays to write optimal functions or, whenever available,
 #' use the optimized equivalents. In other words and to give one
-#' example, use mincLm rather than applying lm, and if lm has to
-#' really be applied, try to use lm.fit rather than plain lm.
+#' example, use mincLm rather than applying lm, and if lm must
+#' be applied, try to use lm.fit rather than plain lm.
+#' Also consider using parallel apply methods.
 #' When using the pbs method, one can also set the options --> TMPDIR,MAX_NODES and WORKDIR
 #' \cr
 #' If you encounter memory issues, it could be due to minc file caching.
@@ -260,7 +295,7 @@ mincApplyRCPP <-
 #' ### run the whole thing in parallel on the local machine
 #' testFunc <- function (x) { return(c(1,2))}
 #' pout <- pMincApply(gf$jacobians_fixed_2, 
-#'                    quote(testFunc(x)),
+#'                    testFunc,
 #'                    workers = 4,
 #'                    global = c('gf','testFunc'))
 #' mincWriteVolume(pout, "pmincOut.mnc")
@@ -271,7 +306,7 @@ mincApplyRCPP <-
 #' testFunc <- function (x) { return(c(1,2))}
 #' options(TMPDIR="/localhd/$PBS_ID")
 #' pout <- pMincApply(gf$jacobians_fixed_2, 
-#'                    quote(testFunc(x)),
+#'                    testFunc,
 #'                    workers = 4,
 #'                    method="pbs",
 #'                    global = c('gf','testFunc'))
@@ -284,7 +319,7 @@ mincApplyRCPP <-
 #' options(MAX_NODES=8)
 #' options(TMP_DIR="/tmp")
 #' pout <- pMincApply(gf$jacobians_fixed_2, 
-#'                    quote(testFunc(x)),
+#'                    testFunc),
 #'                    modules=c("intel","openmpi","R/3.1.1"),
 #'                    workers = 4,
 #'                    method="pbs",
@@ -777,6 +812,7 @@ mincTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   # the grouping for a t test should only contain 2 groups. Should 
   # also be converted to a factor if it's not.
   if( ! is.factor(grouping) ){
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
     grouping <- as.factor(grouping)
   }
   if(length(levels(grouping)) != 2 ){
@@ -823,6 +859,7 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
   # group 1 is paired with element 1 from group 2 etc.), the groups need to have 
   # the same length.
   if( ! is.factor(grouping) ){
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
     grouping <- as.factor(grouping)
   }
   if(length(levels(grouping)) != 2 ){
@@ -871,6 +908,10 @@ mincPairedTtest <- function(filenames, grouping, mask=NULL, maskval=NULL) {
 #' }
 #' @export
 mincWilcoxon <- function(filenames, grouping, mask=NULL, maskval=NULL) {
+  if( ! is.factor(grouping) ){
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+    grouping <- as.factor(grouping)
+  }
   result <- mincSummary(filenames, grouping, mask, method="wilcoxon", maskval=maskval)
   result <- as.matrix(result);
   attr(result, "likeVolume") <- filenames[1]

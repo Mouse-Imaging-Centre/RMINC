@@ -12,9 +12,10 @@ handle_conv_warnings <- function(expr){
 
 context("anatLmer")
 
-if(!exists("dataPath"))
+if(!exists("dataPath")) {
   dataPath <- tempdir()
-
+}
+  
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
@@ -72,25 +73,16 @@ test_that("anatLmer estimate DF returns sensible results", {
 
 test_that("anatLmer exotic formulae work", {
   evalq({
-    handle_conv_warnings({
-      verboseRun(
-        exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
-                              , data = gf, anat = jacobians)
-      )
     
-      verboseRun(with_dfs <- anatLmerEstimateDF(exotic_lmer))
-    })
-    dfs <- attr(with_dfs, "df")
-    expect_true(between(dfs[1], 1, 3))
-    expect_true(all(between(dfs[2:4], 20, 31)))
-  }, envir = anat_env)
-})
-
-test_that("anatLmer exotic formulae work", {
-  evalq({
+    jacobians <-
+      anatGetAll(gf$jacobians_0.2, 
+                 atlas = segmentation, 
+                 method = "jacobians",
+                 defs = labels)
+    
     handle_conv_warnings({
       verboseRun(
-        exotic_lmer <- anatLmer(~ I(factor(as.numeric(Pain.sensitivity) - 1)) + (1 | Genotype)
+        exotic_lmer <- anatLmer(~ I(factor(as.numeric(as.factor(Pain.sensitivity)) - 1)) + (1 | Genotype)
                               , data = gf, anat = jacobians)
       )
     
