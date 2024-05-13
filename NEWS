@@ -1,5 +1,14 @@
 New in Version 1.5.*.*
 =======================
+3.0
+--
+- Disabled buggy matrix mode of anatLm
+- Add explicit configuration file to civet.readCBRAIN
+- Fixed segfault in minc.separation.sizes
+- Add heat smoothing on surface meshes (thanks @DJFernandes)
+- Improved numerical stability in effect size code
+
+
 2.3
 --
 - Fixed mincLmer reinit (formula out of scope bug)

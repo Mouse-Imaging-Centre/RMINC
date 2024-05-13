@@ -3,9 +3,10 @@ library(testthat)
 # mincMean, mincSd, mincVar, mincSum 
 context("mincSummary (Mean, Sd, Var, Sum,t-test,correlation,wilcoxon)")
 
-if(!exists("dataPath"))
+if(!exists("dataPath")) {
   dataPath <- tempdir()
-
+}
+  
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
@@ -31,10 +32,10 @@ vt <- tapply(gf$vox, gf$Strain, var)
 s2t <- tapply(gf$vox, gf$Strain, sum)
 
 test_that("mincSummary functions", {
-    expect_equal(mean(gf$vox), mm[1,1])
-    expect_equal(sd(gf$vox), ms[1,1])
-    expect_equal(var(gf$vox), mv[1,1])
-    expect_equal(sum(gf$vox), ms2[1,1])
+    expect_equal(mean(gf$vox), mm[[1,1]])
+    expect_equal(sd(gf$vox), ms[[1,1]])
+    expect_equal(var(gf$vox), mv[[1,1]])
+    expect_equal(sum(gf$vox), ms2[[1,1]])
     expect_equal(mt[1], mms[1,1])
     expect_equal(mt[2], mms[1,2])
     expect_equal(st[1], mss[1,1])

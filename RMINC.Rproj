@@ -16,5 +16,5 @@ BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source --no-lock --no-test-load
 PackageBuildBinaryArgs: --no-multiarch --with-keep.source
-PackageCheckArgs: --install-args="--preclean --no-lock" --as-cran
+PackageCheckArgs: --install-args="--preclean" --as-cran
 PackageRoxygenize: rd,collate,namespace

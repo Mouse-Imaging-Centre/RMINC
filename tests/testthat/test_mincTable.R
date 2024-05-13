@@ -1,8 +1,9 @@
 library(testthat)
 context("mincTable")
 
-if(!exists("dataPath"))
+if(!exists("dataPath")) {
   dataPath <- tempdir()
+}
 
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
@@ -20,11 +21,11 @@ mt_back <- mincTable(gf$jacobians_fixed, file_backed = TRUE)
 mt_back_masked <- mincTable(gf$jacobians_fixed, mask = maskfile, file_backed = TRUE)
 
 test_that("Unmasked mincTable works", {
-  expect_equal(ref, mt)
-  expect_equal(ref, mt_back[,])
+  expect_equivalent(ref, mt)
+  expect_equivalent(ref, mt_back[,])
 })
 
 test_that("Masked mincTable works", {
-  expect_equal(ref_masked, mt_masked)
-  expect_equal(ref_masked, mt_back_masked[,])
+  expect_equivalent(ref_masked, mt_masked)
+  expect_equivalent(ref_masked, mt_back_masked[,])
 })

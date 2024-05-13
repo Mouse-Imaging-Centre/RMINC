@@ -55,13 +55,13 @@ can be viewed or manipulated with the standard MINC tools
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincSingleDim}: mincSingleDim
+\item \code{mincWriteVolume(mincSingleDim)}: mincSingleDim
 
-\item \code{mincMultiDim}: mincMultiDim
+\item \code{mincWriteVolume(mincMultiDim)}: mincMultiDim
 
-\item \code{default}: default
+\item \code{mincWriteVolume(default)}: default
+
 }}
-
 \examples{
 \dontrun{
 getRMINCTestData()

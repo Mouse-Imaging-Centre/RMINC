@@ -24,8 +24,8 @@ Retrieve or edit the history of a MINC Volume
 }
 \section{Functions}{
 \itemize{
-\item \code{minc.get.history}: retrieve
+\item \code{minc.get.history()}: retrieve
 
-\item \code{minc.append.history}: append
+\item \code{minc.append.history()}: append
+
 }}
-
