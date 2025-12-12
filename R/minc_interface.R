@@ -1131,7 +1131,7 @@ parseLmFormula <- function(formula,data,mf)
   else {
     for (nTerm in 2:length(formula[[3]])){
       # Skip if it is an interaction term
-      if(length(formula[[3]][[nTerm]] > 1))
+      if(length(formula[[3]][[nTerm]]) > 1)
         next
       rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
       # Skip if it is a formula symbol (i.e. *)
