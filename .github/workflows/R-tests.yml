@@ -1,0 +1,68 @@
+name: R Tests
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libhdf5-dev \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            freeglut3-dev \
+            cmake \
+            git \
+            lsof \
+            autoconf
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::devtools, any::rcmdcheck
+
+      - name: Build and install package
+        run: |
+          R CMD build .
+          R CMD INSTALL RMINC*.tar.gz
+
+      - name: Run R CMD check
+        run: |
+          R CMD check --as-cran --no-install RMINC*.tar.gz
+          cat RMINC.Rcheck/00check.log
+
+      - name: Run tests
+        run: |
+          Rscript -e "\
+          testr <- devtools::test(); \
+          testr <- as.data.frame(testr); \
+          if(any(testr\$error) || any(testr\$warning > 0)) \
+            stop('Found failing tests') \
+          "
+
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-results
+          path: RMINC.Rcheck/
