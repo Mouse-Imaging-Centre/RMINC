@@ -49,8 +49,13 @@ jobs:
       - name: Run R CMD check
         run: |
           R CMD check --as-cran --no-install RMINC*.tar.gz
-          cat RMINC.Rcheck/00check.log
 
+      - name: Show R CMD check log
+        if: always()
+        run: |
+          if [ -f RMINC.Rcheck/00check.log ]; then
+            cat RMINC.Rcheck/00check.log
+          fi
       - name: Run tests
         run: |
           Rscript -e "\
