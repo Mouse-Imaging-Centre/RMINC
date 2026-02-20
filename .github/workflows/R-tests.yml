@@ -39,7 +39,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::devtools, any::rcmdcheck
+          extra-packages: any::devtools
 
       - name: Build and install package
         run: |
