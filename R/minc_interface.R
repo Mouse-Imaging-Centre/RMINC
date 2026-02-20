@@ -1131,7 +1131,7 @@ parseLmFormula <- function(formula,data,mf)
   else {
     for (nTerm in 2:length(formula[[3]])){
       # Skip if it is an interaction term
-      if(length(formula[[3]][[nTerm]] > 1))
+      if(length(formula[[3]][[nTerm]]) > 1)
         next
       rCommand = paste("term <- data$",formula[[3]][[nTerm]],sep="")
       # Skip if it is a formula symbol (i.e. *)
@@ -1344,20 +1344,27 @@ runRMINCTestbed <- function(..., dataPath = getOption("RMINC_DATA_DIR", tempdir(
 #' and \code{wget}
 #' @export
 getRMINCTestData <- function(dataPath = getOption("RMINC_DATA_DIR", tempdir()), method = "libcurl") {
-
-  downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
+  
+  downloadPath <- file.path(dataPath, "rminctestdata.zip")
   extractedPath <- file.path(dataPath, "rminctestdata/")
 
   if(!file.exists(extractedPath)){
+    
+    # Download test data
     if(!file.exists(downloadPath)){
       dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
-      download.file("https://mouseimagingcenter.atlassian.net/wiki/download/attachments/9240640/rminctestdata2.tar.gz",
+      download.file("https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/refs/heads/main.zip",
                     destfile = downloadPath,
                     method = method) # changed from "wget" to stop freakouts on mac
     }
   
-    untar(downloadPath, exdir = dataPath)
+    # Extract test data
+    utils::unzip(downloadPath, exdir = dataPath)
+    
+    # Move test data path one directory up, to play nice with the path specs in the testthat test_*.R scripts
+    file.rename(file.path(dataPath, "RMINC-test-data-main/rminctestdata/"), file.path(dataPath, "rminctestdata/"))
   
+    # Fix hardcoded paths
     rectifyPaths <-
       function(file){
         readLines(file) %>%

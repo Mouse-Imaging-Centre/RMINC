@@ -2,9 +2,8 @@ library(testthat)
 #testthat test script for vertex summary functions
 # vertexMean, vertexSd, vertexVar, vertexSum 
 
-if(!exists("dataPath"))
-  dataPath <- tempdir()
-
+if(!exists("dataPath")) 
+    dataPath <- tempdir()
 
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
@@ -79,6 +78,23 @@ test_that("vertexMean.csv", {
 })
 
 
+context("writeVertexMean")
+writeVertex(vm,file.path(dataPath, "test_mean_no_col_names.txt"),col.names=F,header=F)
+writeVertex(vm,file.path(dataPath, "test_mean_with_col_names.txt"),col.names=T,header=F)
+writeVertex(vm,file.path(dataPath, "test_mean_with_col_names.csv"),col.names=T,header=F)
+writeVertex(vm,file.path(dataPath, "test_mean_with_header.txt"),col.names=F,header=T)
+writeVertex(vm,file.path(dataPath, "test_mean_with_col_names_gz.csv.gz"),col.names=T,header=F)
+
+test_that("writeVertexMean", {
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_mean_no_col_names.txt")), "7cd5da918fb95bb99ed0a30b5d794ddf")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_mean_with_col_names.txt")), "0eb3b6a54bddc917f0f8e677a2905a57")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_mean_with_col_names.csv")), "0eb3b6a54bddc917f0f8e677a2905a57")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_mean_with_header.txt")), "19f6023459df8f953fe086ec32177485")
+    expect_equivalent(tools::md5sum(file.path(dataPath, "test_mean_with_col_names_gz.csv.gz")), "2f4e3b87f7bb2a01f0615f1a949823bd")
+})
+
+
+
 context("vertexSum")
 
 #Calculate sum
@@ -136,3 +152,6 @@ test_that("vertexSd", {
     expect_equal(sd(gftest$testLeft[,2]), vsd2[2])
     expect_equal(sd(gftest$testLeft[,3]), vsd2[3])	
 })
+
+
+# Test saving results of the vertex summary into file

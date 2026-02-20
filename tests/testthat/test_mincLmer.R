@@ -136,7 +136,7 @@ test_that("Local parallel mincLmer works", {
 test_that("Exotic formulae work", {
   handle_conv_warnings({
     verboseRun({
-      exotic <- mincLmer(jacobians_fixed_2 ~ I(factor(as.numeric(Sex) - 1)) + (1|coil), gf, mask=maskfile)
+      exotic <- mincLmer(jacobians_fixed_2 ~ I(factor(as.numeric(as.factor(Sex)) - 1)) + (1|coil), gf, mask=maskfile)
       exotic_dfs <- mincLmerEstimateDF(exotic)
       df <- attr(exotic_dfs, "df")
     })

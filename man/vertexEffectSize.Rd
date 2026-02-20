@@ -36,11 +36,11 @@ treatment coded factor to use as a predictor.
 }
 \section{Functions}{
 \itemize{
-\item \code{mincEffectSize}: mincEffectSize
+\item \code{mincEffectSize()}: mincEffectSize
 
-\item \code{anatEffectSize}: anatEffectSize
+\item \code{anatEffectSize()}: anatEffectSize
+
 }}
-
 \examples{
 \dontrun{
 getRMINCTestData()

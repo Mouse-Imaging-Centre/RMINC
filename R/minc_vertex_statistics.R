@@ -25,36 +25,67 @@ NULL
 #' @export
 vertexMean <- function(filenames, column=1) 
 {
-  vertexData = vertexTable(filenames, column=column)
-  return(rowMeans(vertexData))
-  
+  m_orig <- match.call()
+  vertexData <- vertexTable(filenames, column=column)
+  result <- as.matrix(rowMeans(vertexData))
+
+  attr(result, "likeVolume") <- as.character(filenames[1])
+  attr(result, "filenames")  <- as.character(filenames)
+  attr(result, "stat-type")  <- c("mean")
+  attr(result, "call")       <- m_orig
+
+  colnames(result) <- c("mean")
+
+  return(result)
 } 
 
 #' @describeIn vertexSummaries sum
 #' @export
 vertexSum <- function(filenames, column=1) 
 {
+  m_orig <- match.call()
   vertexData = vertexTable(filenames,column=column)
-  return(rowSums(vertexData))
-  
+  result <- as.matrix(rowSums(vertexData))
+  attr(result, "likeVolume") <- as.character(filenames[1])
+  attr(result, "filenames")  <- as.character(filenames)
+  attr(result, "stat-type")  <- c("sum")
+  attr(result, "call")       <- m_orig
+
+  colnames(result) <- c("sum")
+
+  return(result)
 } 
 
 #' @describeIn vertexSummaries var
 #' @export
 vertexVar <- function(filenames, column=1) 
 {
+  m_orig <- match.call()
   vertexData = vertexTable(filenames,column=column)
-  return(apply(vertexData,1,var))
-  
+  result<-as.matrix(apply(vertexData,1,var))
+  attr(result, "likeVolume") <- as.character(filenames[1])
+  attr(result, "filenames")  <- as.character(filenames)
+  attr(result, "stat-type")  <- c("var")
+  attr(result, "call")       <- m_orig
+
+  colnames(result) <- c("var")
+  return(result)
 } 
 
 #' @describeIn vertexSummaries standard deviation
 #' @export
 vertexSd<- function(filenames,column=1) 
 {
+  m_orig <- match.call()
   vertexData = vertexTable(filenames,column=column)
-  return(apply(vertexData,1,sd))
-  
+  result<-as.matrix(apply(vertexData,1,sd))
+  attr(result, "likeVolume") <- as.character(filenames[1])
+  attr(result, "filenames")  <- as.character(filenames)
+  attr(result, "stat-type")  <- c("sd")
+  attr(result, "call")       <- m_orig
+
+  colnames(result) <- c("sd")
+  return(result)
 }
 
 ### Helper function for applying over rows of a potentially 

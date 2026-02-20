@@ -467,9 +467,9 @@ ranef_summary <-
                   , grouping = group_name
                   , se = NULL) %>%
           gather("var", "value", c("tvalue", "beta")) %>%
-          unite_("groupingXgroup", c("grouping", "group"), sep = "") %>%
-          unite_("varXeffectXgroupingXgroup", c("var", "effect", "groupingXgroup"), sep = "-") %>%
-          spread_("varXeffectXgroupingXgroup", "value") %>%
+          unite("groupingXgroup", c("grouping", "group"), sep = "") %>%
+          unite("varXeffectXgroupingXgroup", c("var", "effect", "groupingXgroup"), sep = "-") %>%
+          spread("varXeffectXgroupingXgroup", "value") %>%
           as.matrix %>%
           .[1,]
       }, e = eff, group_name = names(eff), SIMPLIFY = FALSE) %>%

@@ -4,9 +4,15 @@
 #' with the correct spatial dimensions assigned. While this might in the future happen
 #' at the time those objects are created, for the moment this utility function
 #' works with older style RMINC objects and extract what you need.
+#' 
+#' At times data is computed within a mask; for example mincTable matrices
+#' can be extracted from masked data. In that case if the mask volume
+#' is passed as an argument then the data will will be reinserted into
+#' those parts of the mask volume greater than zero.
 #'
 #' @param volume The input volume (from mincLm, mincGetVolume, etc.)
 #' @param dimIndex The index into a multidimensional object
+#' @param maskVolume The optional mask from which the data was created
 #'
 #' @note R uses Fortran indexing, so dimension assignment is c(dim[3], dim[2], dim[1])
 #' once dimensions are obtained from any libminc functions (which use C indexing)
@@ -22,7 +28,7 @@
 #' vs <- mincLm(jacobians ~ genotype, gf)
 #' tvol <- mincArray(vs, 6)
 #' }
-mincArray <- function(volume, dimIndex=1) {
+mincArray <- function(volume, dimIndex=1, maskVolume=NULL) {
   # 1d file with no dimensions (such as the output of mincGetVolume)
   if (is.null(dim(volume))) {
     outvol <- volume
@@ -38,8 +44,22 @@ mincArray <- function(volume, dimIndex=1) {
   else {
     outvol <- volume
   }
-  # we now have a 1d vector - get it's dimensions from the sizes attribute, or read it from the likeVolume
-  if (! is.null(attr(volume, "sizes"))) {
+  # we now have a 1d vector 
+  # if there's a maskVolume present assume that the values need to be reinserted
+  # into the mask first
+  if (!is.null(maskVolume)) {
+    tmpout <- maskVolume
+    tmpout[maskVolume > 0] <- outvol
+    outvol <- tmpout
+  }
+  
+  # get it's dimensions from the sizes attribute, or read it from the likeVolume or maskVolume
+  if (!is.null(maskVolume)) {
+    if (length(dim(maskVolume)) !=3) {
+      stop("maskVolume must have 3 dimensions (i.e. be a mincArray itself)")
+    }
+  }
+  else if (! is.null(attr(volume, "sizes"))) {
     sizes <- attr(volume, "sizes")
     dim(outvol) <- c(sizes[3], sizes[2], sizes[1]) # C to Fortran dim ordering
   }

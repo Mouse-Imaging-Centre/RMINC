@@ -809,8 +809,14 @@ anatCombineStructures <- function(vols, method = "jacobians",
 #' }
 #' @export
 anatApply <- function(vols, grouping = NULL, method=mean, ...) {
-  if(is.null(grouping))
+  if(is.null(grouping)) {
     grouping <- factor(1)
+  }
+
+  if (!is.factor(grouping)) {
+    warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
+    grouping <- as.factor(grouping)
+  }
   
   ngroups <- length(levels(grouping))
   output <- matrix(nrow=ncol(vols), ncol=ngroups)

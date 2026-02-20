@@ -24,6 +24,6 @@ Mask files control which voxels to perform operations on
 }
 \section{Functions}{
 \itemize{
-\item \code{maskFile<-}: setter
-}}
+\item \code{maskFile(x) <- value}: setter
 
+}}
