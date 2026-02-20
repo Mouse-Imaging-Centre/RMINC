@@ -11,7 +11,12 @@ permissions:
 
 jobs:
   R-CMD-check:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -24,7 +29,8 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: Install system dependencies
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
@@ -36,6 +42,11 @@ jobs:
             git \
             lsof \
             autoconf
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install hdf5 cmake autoconf
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -56,6 +67,7 @@ jobs:
           if [ -f RMINC.Rcheck/00check.log ]; then
             cat RMINC.Rcheck/00check.log
           fi
+
       - name: Run tests
         run: |
           Rscript -e "\
@@ -69,5 +81,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: check-results
+          name: check-results-${{ matrix.os }}
           path: RMINC.Rcheck/
