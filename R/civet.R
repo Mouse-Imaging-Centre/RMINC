@@ -1,42 +1,48 @@
 #' Check for a known Civet Version
-#' 
+#'
 #' As different versions of Civet may reflect changes in filename or directory
 #' structure, it is important that the civet.* functions be validated for each
 #' new version of Civet.  This function checks whether a given Civet version
 #' number has been validated for use by these routines.
-#' 
+#'
 #' If the passed Civet version cannot be validated, a warning message is sent
 #' to std output.
-#' 
+#'
 #' @param civetVersion A string specifying the Civet version number, e.g.,
 #' \dQuote{1.1.7}
 #' @return Nothing is returned.
 #' @author Jim Nikelski \email{nikelski@@bic.mni.mcgill.ca}
 #' @examples
-#' 
+#'
 #' \dontrun{
 #' civetVersion <- "1.1.8"
 #' civet.checkVersion(civetVersion)
 #' }
 #' @export
 civet.checkVersion <- function(civetVersion) {
-	if (! civetVersion %in% c("1.1.12", "1.1.9", "1.1.7")) {
-		warning(sprintf("This function has not been tested with Civet version %s. Use at your own risk.", civetVersion), immediate.=TRUE)
-	}
-	return
+  if (!civetVersion %in% c("1.1.12", "1.1.9", "1.1.7")) {
+    warning(
+      sprintf(
+        "This function has not been tested with Civet version %s. Use at your own risk.",
+        civetVersion
+      ),
+      immediate. = TRUE
+    )
+  }
+  return
 }
 
 
 #' Get Selected Civet Filenames
-#' 
+#'
 #' Returns either one or more Civet filenames, depending on file type.
-#' 
+#'
 #' The purpose of this function is to facilitate writing code requiring
 #' manipulation of Civet products.  To this purpose, we have written a number
 #' of convenience functions which, given the type of file desired and a path to
 #' the Civet output directory, are able to determine and return the actual
 #' filename(s).
-#' 
+#'
 #' @param scanID A string specifying the unique scan-id (and thus
 #' sub-directory) within the Civet root output directory.
 #' @param baseDir A string specifying the Civet root output directory.  This
@@ -54,25 +60,25 @@ civet.checkVersion <- function(civetVersion) {
 #' string, whereas multiple filenames are returned as named lists.
 #' @author Jim Nikelski \email{nikelski@@bic.mni.mcgill.ca}
 #' @examples
-#' 
+#'
 #' \dontrun{
 #' library(RMINC)
-#' 
+#'
 #' # set Civet root path and scan-identifier
 #' basePath <- "~/tmp/ADNI/civet/pipeOut"
 #' scanID = "0221-M-AD"
-#' 
+#'
 #' # get the name of the aggregate tissue classification volume
 #' # ... and then read it
 #' classifyVolname <- civet.getFilenameClassify(scanID, basePath)
 #' classifyVol <- mincIO.readVolume(classifyVolname)
-#' 
-#' # get the left and right gray matter surface filenames and then 
+#'
+#' # get the left and right gray matter surface filenames and then
 #' # ... print the names
 #' gmSurfName <- civet.getFilenameGrayMatterSurfaces(scanID, basePath)
 #' print(gmSurfName$left)
 #' print(gmSurfName$right)
-#' 
+#'
 #' # get the various transformation file filenames
 #' lin.xfmName <- civet.getFilenameLinearTransform(scanID, basePath)
 #' print(lin.xfmName)
@@ -80,394 +86,481 @@ civet.checkVersion <- function(civetVersion) {
 #' print(nlin.xfmNames$xfm)		# name of the nlin xfm file
 #' print(nlin.xfmNames$grid)		# name of the nlin grid file
 #' }
-#' @name civet.getFilename 
+#' @name civet.getFilename
 NULL
 
 #' @describeIn civet.getFilename Tissue classification
 #' @export
-civet.getFilenameClassify <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# create the scan-level root dir name
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	
-	# get a list of matching filenames in the classify dir, and return
-	classifyDir <- file.path(scanRoot, 'classify')
-	files <- list.files(classifyDir, pattern=glob2rx("*_classify.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(classifyDir, files)
-	}
-	
-	return(files)
+civet.getFilenameClassify <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # create the scan-level root dir name
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+
+  # get a list of matching filenames in the classify dir, and return
+  classifyDir <- file.path(scanRoot, 'classify')
+  files <- list.files(classifyDir, pattern = glob2rx("*_classify.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(classifyDir, files)
+  }
+
+  return(files)
 }
 
 
 #' @describeIn civet.getFilename gray matter pve
 #' @export
-civet.getFilenameGrayMatterPve <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	classifyDir <- file.path(scanRoot, 'classify')
-	files <- list.files(classifyDir, pattern=glob2rx("*_pve_gm.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(classifyDir, files)
-	}
-	
-	return(files)
+civet.getFilenameGrayMatterPve <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  classifyDir <- file.path(scanRoot, 'classify')
+  files <- list.files(classifyDir, pattern = glob2rx("*_pve_gm.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(classifyDir, files)
+  }
+
+  return(files)
 }
 
 #' @describeIn civet.getFilename white matter pve
 #' @export
-civet.getFilenameWhiteMatterPve <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	classifyDir <- file.path(scanRoot, 'classify')
-	files <- list.files(classifyDir, pattern=glob2rx("*_pve_wm.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(classifyDir, files)
-	}
-	
-	return(files)
+civet.getFilenameWhiteMatterPve <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  classifyDir <- file.path(scanRoot, 'classify')
+  files <- list.files(classifyDir, pattern = glob2rx("*_pve_wm.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(classifyDir, files)
+  }
+
+  return(files)
 }
 
 #' @describeIn civet.getFilename csf pve
 #' @export
-civet.getFilenameCsfPve <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	classifyDir <- file.path(scanRoot, 'classify')
-	files <- list.files(classifyDir, pattern=glob2rx("*_pve_csf.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(classifyDir, files)
-	}
-	
-	return(files)
+civet.getFilenameCsfPve <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
 
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  classifyDir <- file.path(scanRoot, 'classify')
+  files <- list.files(classifyDir, pattern = glob2rx("*_pve_csf.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(classifyDir, files)
+  }
+
+  return(files)
 }
 
 #' @describeIn civet.getFilename Standard to T1 transform
 #' @export
-civet.getFilenameStxT1 <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	finalDir <- file.path(scanRoot, 'final')
-	files <- list.files(finalDir, pattern=glob2rx("*_t1_final.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(finalDir, files)
-	}
-	
-	return(files)
+civet.getFilenameStxT1 <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  finalDir <- file.path(scanRoot, 'final')
+  files <- list.files(finalDir, pattern = glob2rx("*_t1_final.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(finalDir, files)
+  }
+
+  return(files)
 }
 
 
 #' @describeIn civet.getFilename brain mask
 #' @export
-civet.getFilenameCerebrumMask <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	maskDir <- file.path(scanRoot, 'mask')
-	files <- list.files(maskDir, pattern=glob2rx("*_brain_mask.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(maskDir, files)
-	}
-	
-	return(files)
+civet.getFilenameCerebrumMask <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  maskDir <- file.path(scanRoot, 'mask')
+  files <- list.files(maskDir, pattern = glob2rx("*_brain_mask.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(maskDir, files)
+  }
+
+  return(files)
 }
 
 #' @describeIn civet.getFilename skull mask
 #' @export
-civet.getFilenameSkullMask <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	maskDir <- file.path(scanRoot, 'mask')
-	files <- list.files(maskDir, pattern=glob2rx("*_skull_mask.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(maskDir, files)
-	}
-	
-	return(files)
+civet.getFilenameSkullMask <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  maskDir <- file.path(scanRoot, 'mask')
+  files <- list.files(maskDir, pattern = glob2rx("*_skull_mask.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(maskDir, files)
+  }
+
+  return(files)
 }
 
 
 #' @describeIn civet.getFilename gray matter surfaces
 #' @export
-civet.getFilenameGrayMatterSurfaces <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	surfacesDir <- file.path(scanRoot, 'surfaces')
-	
-	# do we have rsl files? (we can get this in earlier Civet versions)
-	files <- list.files(surfacesDir, pattern=glob2rx("*_gray_surface_rsl_*.obj"))
-	# ... if not, look for non-resampled surfaces 
-	if ( length(files) == 0 ) {
-		files <- list.files(surfacesDir, pattern=glob2rx("*_gray_surface_*.obj"))
-	}
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(surfacesDir, files)
-	}
-	
-	return(list(left=files[1], right=files[2]))
+civet.getFilenameGrayMatterSurfaces <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  surfacesDir <- file.path(scanRoot, 'surfaces')
+
+  # do we have rsl files? (we can get this in earlier Civet versions)
+  files <- list.files(
+    surfacesDir,
+    pattern = glob2rx("*_gray_surface_rsl_*.obj")
+  )
+  # ... if not, look for non-resampled surfaces
+  if (length(files) == 0) {
+    files <- list.files(surfacesDir, pattern = glob2rx("*_gray_surface_*.obj"))
+  }
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(surfacesDir, files)
+  }
+
+  return(list(left = files[1], right = files[2]))
 }
 
 #' @describeIn civet.getFilename white matter surfaces
 #' @export
-civet.getFilenameWhiteMatterSurfaces <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	surfacesDir <- file.path(scanRoot, 'surfaces')
-	
-	# do we have rsl files? (we can get this in earlier Civet versions)
-	files <- list.files(surfacesDir, pattern=glob2rx("*_white_surface_rsl_*_calibrated_*.obj"))
-	# ... if not, look for non-resampled surfaces 
-	if ( length(files) == 0 ) {
-		files <- list.files(surfacesDir, pattern=glob2rx("*_white_surface_*_calibrated_*.obj"))
-	}
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(surfacesDir, files)
-	}
-	
-	return(list(left=files[1], right=files[2]))
+civet.getFilenameWhiteMatterSurfaces <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  surfacesDir <- file.path(scanRoot, 'surfaces')
+
+  # do we have rsl files? (we can get this in earlier Civet versions)
+  files <- list.files(
+    surfacesDir,
+    pattern = glob2rx("*_white_surface_rsl_*_calibrated_*.obj")
+  )
+  # ... if not, look for non-resampled surfaces
+  if (length(files) == 0) {
+    files <- list.files(
+      surfacesDir,
+      pattern = glob2rx("*_white_surface_*_calibrated_*.obj")
+    )
+  }
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(surfacesDir, files)
+  }
+
+  return(list(left = files[1], right = files[2]))
 }
 
 #' @describeIn civet.getFilename mid surfaces
 #' @export
-civet.getFilenameMidSurfaces <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	surfacesDir <- file.path(scanRoot, 'surfaces')
-	
-	# do we have rsl files? (we can get this in earlier Civet versions)
-	files <- list.files(surfacesDir, pattern=glob2rx("*_mid_surface_rsl_*.obj"))
-	# ... if not, look for non-resampled surfaces 
-	if ( length(files) == 0 ) {
-		files <- list.files(surfacesDir, pattern=glob2rx("*_mid_surface_*.obj"))
-	}
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(surfacesDir, files)
-	}
-	
-	return(list(left=files[1], right=files[2]))
+civet.getFilenameMidSurfaces <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  surfacesDir <- file.path(scanRoot, 'surfaces')
+
+  # do we have rsl files? (we can get this in earlier Civet versions)
+  files <- list.files(surfacesDir, pattern = glob2rx("*_mid_surface_rsl_*.obj"))
+  # ... if not, look for non-resampled surfaces
+  if (length(files) == 0) {
+    files <- list.files(surfacesDir, pattern = glob2rx("*_mid_surface_*.obj"))
+  }
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(surfacesDir, files)
+  }
+
+  return(list(left = files[1], right = files[2]))
 }
 
 
 #' @describeIn civet.getFilename cortical thickness
 #' @export
-civet.getFilenamesCorticalThickness <- 
-  function(scanID
-           , baseDir
-           , civetVersion="1.1.9"
-           , smoothing = "20mm"
-           , fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	ctDir <- file.path(scanRoot, 'thickness')
-	
-	file_pattern <- paste0("native_rms_tlink_", smoothing, ".*\\.txt")
-	
-	files <- list.files(ctDir, pattern = file_pattern)
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(ctDir, files)
-	}
-	
-	return(list(left=files[1], right=files[2]))
-}
+civet.getFilenamesCorticalThickness <-
+  function(
+    scanID,
+    baseDir,
+    civetVersion = "1.1.9",
+    smoothing = "20mm",
+    fullPath = TRUE
+  ) {
+    #
+    # check whether the Civet version has been tested
+    civet.checkVersion(civetVersion)
+
+    # get a list of matching filenames in the classify dir, and return
+    baseDir <- path.expand(baseDir)
+    scanRoot <- file.path(baseDir, scanID)
+    ctDir <- file.path(scanRoot, 'thickness')
+
+    file_pattern <- paste0("native_rms_tlink_", smoothing, ".*\\.txt")
+
+    files <- list.files(ctDir, pattern = file_pattern)
+
+    # fully-qualified path requested?
+    if (fullPath) {
+      files <- file.path(ctDir, files)
+    }
+
+    return(list(left = files[1], right = files[2]))
+  }
 
 #' @describeIn civet.getFilename cortical area
 #' @export
-civet.getFilenamesCorticalArea <- 
-  function(scanID
-           , baseDir
-           , civetVersion="1.1.9"
-           , smoothing = "40mm"
-           , fullPath=TRUE) {
-  #
-  # check whether the Civet version has been tested
-  civet.checkVersion(civetVersion)
-  
-  # get a list of matching filenames in the classify dir, and return
-  baseDir <- path.expand(baseDir)
-  scanRoot <- file.path(baseDir, scanID)
-  ctDir <- file.path(scanRoot, 'surfaces')
-  
-  file_pattern <- paste0("mid_surface_rsl_(right|left)_native_area_", smoothing, "\\.txt")
-  
-  files <- list.files(ctDir, pattern = file_pattern)
-  
-  # fully-qualified path requested?
-  if ( fullPath ) {
-    files <- file.path(ctDir, files)
+civet.getFilenamesCorticalArea <-
+  function(
+    scanID,
+    baseDir,
+    civetVersion = "1.1.9",
+    smoothing = "40mm",
+    fullPath = TRUE
+  ) {
+    #
+    # check whether the Civet version has been tested
+    civet.checkVersion(civetVersion)
+
+    # get a list of matching filenames in the classify dir, and return
+    baseDir <- path.expand(baseDir)
+    scanRoot <- file.path(baseDir, scanID)
+    ctDir <- file.path(scanRoot, 'surfaces')
+
+    file_pattern <- paste0(
+      "mid_surface_rsl_(right|left)_native_area_",
+      smoothing,
+      "\\.txt"
+    )
+
+    files <- list.files(ctDir, pattern = file_pattern)
+
+    # fully-qualified path requested?
+    if (fullPath) {
+      files <- file.path(ctDir, files)
+    }
+
+    return(list(left = files[1], right = files[2]))
   }
-  
-  return(list(left=files[1], right=files[2]))
-}
 
 #' @describeIn civet.getFilename cortical volume
 #' @export
-civet.getFilenamesCorticalVolume <- 
-  function(scanID
-           , baseDir
-           , civetVersion="1.1.9"
-           , smoothing = "40mm"
-           , fullPath=TRUE) {
-  #
-  # check whether the Civet version has been tested
-  civet.checkVersion(civetVersion)
-  
-  # get a list of matching filenames in the classify dir, and return
-  baseDir <- path.expand(baseDir)
-  scanRoot <- file.path(baseDir, scanID)
-  ctDir <- file.path(scanRoot, 'surfaces')
-  
-  file_pattern <- paste0("surface_rsl_(right|left)_native_volume_", smoothing, ".*\\.txt")
-  
-  files <- list.files(ctDir, pattern = file_pattern)
-  
-  # fully-qualified path requested?
-  if ( fullPath ) {
-    files <- file.path(ctDir, files)
+civet.getFilenamesCorticalVolume <-
+  function(
+    scanID,
+    baseDir,
+    civetVersion = "1.1.9",
+    smoothing = "40mm",
+    fullPath = TRUE
+  ) {
+    #
+    # check whether the Civet version has been tested
+    civet.checkVersion(civetVersion)
+
+    # get a list of matching filenames in the classify dir, and return
+    baseDir <- path.expand(baseDir)
+    scanRoot <- file.path(baseDir, scanID)
+    ctDir <- file.path(scanRoot, 'surfaces')
+
+    file_pattern <- paste0(
+      "surface_rsl_(right|left)_native_volume_",
+      smoothing,
+      ".*\\.txt"
+    )
+
+    files <- list.files(ctDir, pattern = file_pattern)
+
+    # fully-qualified path requested?
+    if (fullPath) {
+      files <- file.path(ctDir, files)
+    }
+
+    return(list(left = files[1], right = files[2]))
   }
-  
-  return(list(left=files[1], right=files[2]))
-}
 
 #' @describeIn civet.getFilename surface curvature
 #' @export
-civet.getFilenameMeanSurfaceCurvature <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	ctDir <- file.path(scanRoot, 'thickness')
-	files <- list.files(ctDir, pattern=glob2rx("*_native_mc_rsl_20mm_*.txt"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(ctDir, files)
-	}
-	
-	return(list(left=files[1], right=files[2]))
+civet.getFilenameMeanSurfaceCurvature <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  ctDir <- file.path(scanRoot, 'thickness')
+  files <- list.files(ctDir, pattern = glob2rx("*_native_mc_rsl_20mm_*.txt"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(ctDir, files)
+  }
+
+  return(list(left = files[1], right = files[2]))
 }
 
 #' @describeIn civet.getFilename linear transform
 #' @export
-civet.getFilenameLinearTransform <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	xfmDir <- file.path(scanRoot, 'transforms/linear')
-	files <- list.files(xfmDir, pattern=glob2rx("*_t1_tal.xfm"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		files <- file.path(xfmDir, files)
-	}
-	
-	return(files)
+civet.getFilenameLinearTransform <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  xfmDir <- file.path(scanRoot, 'transforms/linear')
+  files <- list.files(xfmDir, pattern = glob2rx("*_t1_tal.xfm"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    files <- file.path(xfmDir, files)
+  }
+
+  return(files)
 }
 
 #' @describeIn civet.getFilename non-linear transform
 #' @export
-civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1.1.9", fullPath=TRUE) {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	xfmDir <- file.path(scanRoot, 'transforms/nonlinear')
-	file.xfm <- list.files(xfmDir, pattern=glob2rx("*_nlfit_It.xfm"))
-	file.grid <- list.files(xfmDir, pattern=glob2rx("*_nlfit_It_grid_*.mnc"))
-	
-	# fully-qualified path requested?
-	if ( fullPath ) {
-		file.xfm <- file.path(xfmDir, file.xfm)
-		file.grid <- file.path(xfmDir, file.grid)
-	}
+civet.getFilenameNonlinearTransform <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9",
+  fullPath = TRUE
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
 
-	return(list(xfm=file.xfm, grid=file.grid))
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
+  xfmDir <- file.path(scanRoot, 'transforms/nonlinear')
+  file.xfm <- list.files(xfmDir, pattern = glob2rx("*_nlfit_It.xfm"))
+  file.grid <- list.files(xfmDir, pattern = glob2rx("*_nlfit_It_grid_*.mnc"))
+
+  # fully-qualified path requested?
+  if (fullPath) {
+    file.xfm <- file.path(xfmDir, file.xfm)
+    file.grid <- file.path(xfmDir, file.grid)
+  }
+
+  return(list(xfm = file.xfm, grid = file.grid))
 }
 
 
@@ -480,159 +573,537 @@ civet.getFilenameNonlinearTransform <- function(scanID, baseDir, civetVersion="1
 #' @param prefix Prefix specified when CIVET was run
 #' @param basedir directory where all CIVET output was stored
 #' @param append Whether to append the results to the input gf
-#' @param civetVersion Version of CIVET 
+#' @param civetVersion Version of CIVET
 #' @param cnf A list of configuration information used to parse CIVET files produced by CBRAIN. Unnecessary for
 #' CIVETs < 2. Should be read from CBRAIN yaml config file, but can be input manually as a list containing
 #' thickness_method (tlink or laplacian), thickness_kernel (in mm), and atlas as either AAL or DKT
-#' @details Prior to running, read.csv  may be called to generate the input argument gf. 
-#' The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf. 
+#' @details Prior to running, read.csv  may be called to generate the input argument gf.
+#' The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf.
 #' Currently only CIVET versions 1.1.9 and 1.1.12 are supported.
-#' @return gf is returned with CIVET filenames 
+#' @return gf is returned with CIVET filenames
 #' @seealso civet.readAllCivetFiles
 #' @examples
 #' \dontrun{
-#' getRMINCTestData() 
+#' getRMINCTestData()
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 #' }
 #' @export
-civet.getAllFilenames <- function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9", cnf=NULL) {
-	# designed for use with CIVET 1.1.9 and CIVET 1.1.12
-  if(!civetVersion %in% c("1.1.9", "1.1.12", "2.0.0", "2.1.0")){
-    warning("Unsure how to deal with directory structure for civet version: ", civetVersion,
-            "\n trying the 2.0.0 approach")
+civet.getAllFilenames <- function(
+  gf,
+  idvar,
+  prefix,
+  basedir,
+  append = TRUE,
+  civetVersion = "1.1.9",
+  cnf = NULL
+) {
+  # designed for use with CIVET 1.1.9 and CIVET 1.1.12
+  if (!civetVersion %in% c("1.1.9", "1.1.12", "2.0.0", "2.1.0")) {
+    warning(
+      "Unsure how to deal with directory structure for civet version: ",
+      civetVersion,
+      "\n trying the 2.0.0 approach"
+    )
   }
-	
-	filename_generator <-
-	  switch(civetVersion
-	         , "1.1.9" = civet_filenames_1_1_9
-	         , "1.1.12" = civet_filenames_1_1_12
-	         , civet_filenames_2_0_0) #used for 2.0.0, 2.1.0, and unknowns
-	
-	filename_generator(gf = gf, idvar = idvar, prefix = prefix, basedir = basedir, append = append, civetVersion = civetVersion, cnf = cnf)
+
+  filename_generator <-
+    switch(
+      civetVersion,
+      "1.1.9" = civet_filenames_1_1_9,
+      "1.1.12" = civet_filenames_1_1_12,
+      civet_filenames_2_0_0
+    ) #used for 2.0.0, 2.1.0, and unknowns
+
+  filename_generator(
+    gf = gf,
+    idvar = idvar,
+    prefix = prefix,
+    basedir = basedir,
+    append = append,
+    civetVersion = civetVersion,
+    cnf = cnf
+  )
 }
 
 civet_filenames_1_1_12 <-
-  function(gf, idvar, prefix, basedir, ...){
-    ids <- gf[,idvar]
-    
+  function(gf, idvar, prefix, basedir, ...) {
+    ids <- gf[, idvar]
+
     # create the scan-level root dir names
-    b <- paste(basedir, "/", ids, "/", sep="")
-    
+    b <- paste(basedir, "/", ids, "/", sep = "")
+
     # insert fully-qualified file names
-    filenames.df <- data.frame(leftGIFiles=rep(0,nrow(gf)))
-    
-    filenames.df$leftGIFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_gi_left.dat",sep = "")
-    filenames.df$rightGIFiles <- paste(b, "surfaces/", prefix, "_", ids, "_gi_right.dat",sep = "")
-    filenames.df$leftlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_left.dat",sep = "")
-    filenames.df$rightlobeArea40mmFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_areas_40mm_right.dat",sep = "")
-    filenames.df$leftlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat",sep = "")
-    filenames.df$rightlobeThicknessFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat",sep = "")
-    filenames.df$leftlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_left.dat",sep = "")
-    filenames.df$rightlobeVolumeFiles  <- paste(b, "surfaces/", prefix, "_", ids, "_lobe_volumes_40mm_right.dat",sep = "")
-    filenames.df$midSurfaceleftNativeArea = paste(b, "surfaces/", prefix, "_", ids, "_mid_surface_rsl_left_native_area_40mm.txt",sep = "")
-    filenames.df$midSurfacerightNativeArea = paste(b,"surfaces/", prefix, "_", ids, "_mid_surface_rsl_right_native_area_40mm.txt",sep = "")
-    filenames.df$SurfaceleftNativeVolume = paste(b, "surfaces/", prefix, "_", ids, "_surface_rsl_left_native_volume_40mm.txt",sep = "")
-    filenames.df$SurfacerightNativeVolume = paste(b,"surfaces/", prefix, "_", ids, "_surface_rsl_right_native_volume_40mm.txt",sep = "") 
-    
-    filenames.df$brain_volume = paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat",sep = "")
-    filenames.df$cerebral_volume = paste(b, "thickness/", prefix, "_", ids, "_cerebral_volume.dat",sep = "")
-    filenames.df$nativeRMS_RSLtlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt",sep = "") 
-    filenames.df$nativeRMS_RSLtlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt",sep = "") 
-    filenames.df$nativeRMStlink20mmleft = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_left.txt",sep = "") 
-    filenames.df$nativeRMStlink20mmright = paste(b,"thickness/", prefix, "_", ids, "_native_rms_tlink_20mm_right.txt",sep = "") 
-    
-    
+    filenames.df <- data.frame(leftGIFiles = rep(0, nrow(gf)))
+
+    filenames.df$leftGIFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_gi_left.dat",
+      sep = ""
+    )
+    filenames.df$rightGIFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_gi_right.dat",
+      sep = ""
+    )
+    filenames.df$leftlobeArea40mmFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_areas_40mm_left.dat",
+      sep = ""
+    )
+    filenames.df$rightlobeArea40mmFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_areas_40mm_right.dat",
+      sep = ""
+    )
+    filenames.df$leftlobeThicknessFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_thickness_tlink_20mm_left.dat",
+      sep = ""
+    )
+    filenames.df$rightlobeThicknessFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_thickness_tlink_20mm_right.dat",
+      sep = ""
+    )
+    filenames.df$leftlobeVolumeFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_volumes_40mm_left.dat",
+      sep = ""
+    )
+    filenames.df$rightlobeVolumeFiles <- paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_volumes_40mm_right.dat",
+      sep = ""
+    )
+    filenames.df$midSurfaceleftNativeArea = paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_mid_surface_rsl_left_native_area_40mm.txt",
+      sep = ""
+    )
+    filenames.df$midSurfacerightNativeArea = paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_mid_surface_rsl_right_native_area_40mm.txt",
+      sep = ""
+    )
+    filenames.df$SurfaceleftNativeVolume = paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_surface_rsl_left_native_volume_40mm.txt",
+      sep = ""
+    )
+    filenames.df$SurfacerightNativeVolume = paste(
+      b,
+      "surfaces/",
+      prefix,
+      "_",
+      ids,
+      "_surface_rsl_right_native_volume_40mm.txt",
+      sep = ""
+    )
+
+    filenames.df$brain_volume = paste(
+      b,
+      "classify/",
+      prefix,
+      "_",
+      ids,
+      "_cls_volumes.dat",
+      sep = ""
+    )
+    filenames.df$cerebral_volume = paste(
+      b,
+      "thickness/",
+      prefix,
+      "_",
+      ids,
+      "_cerebral_volume.dat",
+      sep = ""
+    )
+    filenames.df$nativeRMS_RSLtlink20mmleft = paste(
+      b,
+      "thickness/",
+      prefix,
+      "_",
+      ids,
+      "_native_rms_rsl_tlink_20mm_left.txt",
+      sep = ""
+    )
+    filenames.df$nativeRMS_RSLtlink20mmright = paste(
+      b,
+      "thickness/",
+      prefix,
+      "_",
+      ids,
+      "_native_rms_rsl_tlink_20mm_right.txt",
+      sep = ""
+    )
+    filenames.df$nativeRMStlink20mmleft = paste(
+      b,
+      "thickness/",
+      prefix,
+      "_",
+      ids,
+      "_native_rms_tlink_20mm_left.txt",
+      sep = ""
+    )
+    filenames.df$nativeRMStlink20mmright = paste(
+      b,
+      "thickness/",
+      prefix,
+      "_",
+      ids,
+      "_native_rms_tlink_20mm_right.txt",
+      sep = ""
+    )
+
     gf$CIVETFILES = filenames.df
-    
+
     return(gf)
   }
 
 civet_filenames_1_1_9 <-
-  function(gf, idvar, prefix, basedir, append, ...){
-    ids <- gf[,idvar]
-    
+  function(gf, idvar, prefix, basedir, append, ...) {
+    ids <- gf[, idvar]
+
     # create the scan-level root dir names
-    b <- paste(basedir, "/", ids, "/", sep="")
-    
+    b <- paste(basedir, "/", ids, "/", sep = "")
+
     # insert fully-qualified file names
-    filenames.df <- data.frame(leftGIFiles=rep(0,nrow(gf)))
-    
-    filenames.df$tissue <- paste(b, "classify/", prefix, "_", ids, "_cls_volumes.dat", sep="")
-    filenames.df$structures <- paste(b, "segment/", prefix, "_", ids, "_masked.dat", sep="")
-    filenames.df$left.thickness <- paste(b, "thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_left.txt", sep="")
-    filenames.df$right.thickness <- paste(b, "thickness/", prefix, "_", ids, "_native_rms_rsl_tlink_20mm_right.txt", sep="")
-    filenames.df$rightROIthickness <- paste(b, "segment/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_right.dat", sep="")
-    filenames.df$leftROIthickness <- paste(b, "segment/", prefix, "_", ids, "_lobe_thickness_tlink_20mm_left.dat", sep="")
-    filenames.df$rightROIarea <- paste(b, "segment/", prefix, "_", ids, "_lobe_areas_right.dat", sep="")
-    filenames.df$leftROIarea <- paste(b, "segment/", prefix, "_", ids, "_lobe_areas_left.dat", sep="")
-    filenames.df$GMVBM <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_gm.mnc", sep="")
-    filenames.df$WMVBM <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_wm.mnc", sep="")
-    filenames.df$CSFVBM <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_csf.mnc", sep="")
-    filenames.df$GMVBMsym <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_gm_sym.mnc", sep="")
-    filenames.df$WMVBMsym <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_wm_sym.mnc", sep="")
-    filenames.df$CSFVBMsym <- paste(b, "VBM/", prefix, "_", ids, "_smooth_8mm_csf_sym.mnc", sep="")
-    
+    filenames.df <- data.frame(leftGIFiles = rep(0, nrow(gf)))
+
+    filenames.df$tissue <- paste(
+      b,
+      "classify/",
+      prefix,
+      "_",
+      ids,
+      "_cls_volumes.dat",
+      sep = ""
+    )
+    filenames.df$structures <- paste(
+      b,
+      "segment/",
+      prefix,
+      "_",
+      ids,
+      "_masked.dat",
+      sep = ""
+    )
+    filenames.df$left.thickness <- paste(
+      b,
+      "thickness/",
+      prefix,
+      "_",
+      ids,
+      "_native_rms_rsl_tlink_20mm_left.txt",
+      sep = ""
+    )
+    filenames.df$right.thickness <- paste(
+      b,
+      "thickness/",
+      prefix,
+      "_",
+      ids,
+      "_native_rms_rsl_tlink_20mm_right.txt",
+      sep = ""
+    )
+    filenames.df$rightROIthickness <- paste(
+      b,
+      "segment/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_thickness_tlink_20mm_right.dat",
+      sep = ""
+    )
+    filenames.df$leftROIthickness <- paste(
+      b,
+      "segment/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_thickness_tlink_20mm_left.dat",
+      sep = ""
+    )
+    filenames.df$rightROIarea <- paste(
+      b,
+      "segment/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_areas_right.dat",
+      sep = ""
+    )
+    filenames.df$leftROIarea <- paste(
+      b,
+      "segment/",
+      prefix,
+      "_",
+      ids,
+      "_lobe_areas_left.dat",
+      sep = ""
+    )
+    filenames.df$GMVBM <- paste(
+      b,
+      "VBM/",
+      prefix,
+      "_",
+      ids,
+      "_smooth_8mm_gm.mnc",
+      sep = ""
+    )
+    filenames.df$WMVBM <- paste(
+      b,
+      "VBM/",
+      prefix,
+      "_",
+      ids,
+      "_smooth_8mm_wm.mnc",
+      sep = ""
+    )
+    filenames.df$CSFVBM <- paste(
+      b,
+      "VBM/",
+      prefix,
+      "_",
+      ids,
+      "_smooth_8mm_csf.mnc",
+      sep = ""
+    )
+    filenames.df$GMVBMsym <- paste(
+      b,
+      "VBM/",
+      prefix,
+      "_",
+      ids,
+      "_smooth_8mm_gm_sym.mnc",
+      sep = ""
+    )
+    filenames.df$WMVBMsym <- paste(
+      b,
+      "VBM/",
+      prefix,
+      "_",
+      ids,
+      "_smooth_8mm_wm_sym.mnc",
+      sep = ""
+    )
+    filenames.df$CSFVBMsym <- paste(
+      b,
+      "VBM/",
+      prefix,
+      "_",
+      ids,
+      "_smooth_8mm_csf_sym.mnc",
+      sep = ""
+    )
+
     # append names to the input glim, if desired
-    if ( append == TRUE) {
+    if (append == TRUE) {
       filenames.df <- cbind(gf, filenames.df)
     }
-    
+
     return(filenames.df)
   }
 
 civet_filenames_2_0_0 <-
-  function(gf, idvar, prefix, basedir, cnf, ...){
-    
+  function(gf, idvar, prefix, basedir, cnf, ...) {
     # Read CBRAIN config, hackable as a list containing thickness_method (tlink or laplacian)
     # thickness_kernel (in mm), and atlas as either AAL or DKT
     thickness_method <- last(cnf$thickness_method) #not sure why config produces a vector of length two here
     thickness_dist <- cnf$thickness_kernel
     atlas <- cnf$atlas
-          
+
     gf %>%
-      mutate( #very iritating R CMD check can't handle dplyr code...
-        subject_prefixed = paste0(prefix, gf[,idvar])
-        , subject_path = file.path(basedir, gf[,idvar])
-        , leftGIFiles  = sprintf("%s/surfaces/%s_gi_left.dat", .data$subject_path, .data$subject_prefixed)
-        , rightGIFiles = sprintf("%s/surfaces/%s_gi_right.dat", .data$subject_path, .data$subject_prefixed)        
-        , leftlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_left.dat", .data$subject_path, .data$subject_prefixed, atlas)
-        , rightlobeArea40mmFiles  = sprintf("%s/surfaces/%s_%s_lobe_areas_40mm_right.dat", .data$subject_path, .data$subject_prefixed, atlas)
-        
-        , leftlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_left.dat", .data$subject_path , .data$subject_prefixed, atlas, thickness_method, thickness_dist)
-        , rightlobeThicknessFiles  = sprintf("%s/surfaces/%s_%s_lobe_thickness_%s_%smm_right.dat", .data$subject_path , .data$subject_prefixed, atlas, thickness_method, thickness_dist)
-        
-        , leftlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_left.dat", .data$subject_path, .data$subject_prefixed, atlas)
-        , rightlobeVolumeFiles  = sprintf("%s/surfaces/%s_%s_lobe_volumes_40mm_right.dat", .data$subject_path, .data$subject_prefixed, atlas)
-        
-        , midSurfaceleftNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_left_native_area_40mm.txt", .data$subject_path, .data$subject_prefixed)
-        , midSurfacerightNativeArea = sprintf("%s/surfaces/%s_mid_surface_rsl_right_native_area_40mm.txt", .data$subject_path, .data$subject_prefixed)
-        
-        , SurfaceleftNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_left_native_volume_40mm.txt", .data$subject_path, .data$subject_prefixed)
-        , SurfacerightNativeVolume = sprintf("%s/surfaces/%s_surface_rsl_right_native_volume_40mm.txt", .data$subject_path, .data$subject_prefixed)
-        
-        , brain_volume = sprintf("%s/classify/%s_cls_volumes.dat", .data$subject_path , .data$subject_prefixed)
-        , cerebral_volume = sprintf("%s/thickness/%s_cerebral_volume.dat", .data$subject_path , .data$subject_prefixed)
-        
-        , nativeRMS_RSLtlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", .data$subject_path, .data$subject_prefixed, thickness_method, thickness_dist) 
-        , nativeRMS_RSLtlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", .data$subject_path, .data$subject_prefixed,thickness_method, thickness_dist) 
-        
-        , nativeRMStlink_left = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt", .data$subject_path , .data$subject_prefixed, thickness_method, thickness_dist) 
-        , nativeRMStlink_right = sprintf("%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt", .data$subject_path , .data$subject_prefixed, thickness_method, thickness_dist)
-        
-        , RSL_mean_curvature_left = sprintf("%s/curvature/%s_mid_surface_rsl_left_mean_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
-        , RSL_mean_curvature_right = sprintf("%s/curvature/%s_mid_surface_rsl_right_mean_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
-        , RSL_gaus_curvature_left = sprintf("%s/curvature/%s_mid_surface_rsl_left_gaus_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
-        , RSL_gaus_curvature_right = sprintf("%s/curvature/%s_mid_surface_rsl_right_gaus_curv_%smm.txt", .data$subject_path , .data$subject_prefixed, thickness_dist)
+      mutate(
+        #very iritating R CMD check can't handle dplyr code...
+        subject_prefixed = paste0(prefix, gf[, idvar]),
+        subject_path = file.path(basedir, gf[, idvar]),
+        leftGIFiles = sprintf(
+          "%s/surfaces/%s_gi_left.dat",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        rightGIFiles = sprintf(
+          "%s/surfaces/%s_gi_right.dat",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        leftlobeArea40mmFiles = sprintf(
+          "%s/surfaces/%s_%s_lobe_areas_40mm_left.dat",
+          .data$subject_path,
+          .data$subject_prefixed,
+          atlas
+        ),
+        rightlobeArea40mmFiles = sprintf(
+          "%s/surfaces/%s_%s_lobe_areas_40mm_right.dat",
+          .data$subject_path,
+          .data$subject_prefixed,
+          atlas
+        ),
+        leftlobeThicknessFiles = sprintf(
+          "%s/surfaces/%s_%s_lobe_thickness_%s_%smm_left.dat",
+          .data$subject_path,
+          .data$subject_prefixed,
+          atlas,
+          thickness_method,
+          thickness_dist
+        ),
+        rightlobeThicknessFiles = sprintf(
+          "%s/surfaces/%s_%s_lobe_thickness_%s_%smm_right.dat",
+          .data$subject_path,
+          .data$subject_prefixed,
+          atlas,
+          thickness_method,
+          thickness_dist
+        ),
+        leftlobeVolumeFiles = sprintf(
+          "%s/surfaces/%s_%s_lobe_volumes_40mm_left.dat",
+          .data$subject_path,
+          .data$subject_prefixed,
+          atlas
+        ),
+        rightlobeVolumeFiles = sprintf(
+          "%s/surfaces/%s_%s_lobe_volumes_40mm_right.dat",
+          .data$subject_path,
+          .data$subject_prefixed,
+          atlas
+        ),
+        midSurfaceleftNativeArea = sprintf(
+          "%s/surfaces/%s_mid_surface_rsl_left_native_area_40mm.txt",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        midSurfacerightNativeArea = sprintf(
+          "%s/surfaces/%s_mid_surface_rsl_right_native_area_40mm.txt",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        SurfaceleftNativeVolume = sprintf(
+          "%s/surfaces/%s_surface_rsl_left_native_volume_40mm.txt",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        SurfacerightNativeVolume = sprintf(
+          "%s/surfaces/%s_surface_rsl_right_native_volume_40mm.txt",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        brain_volume = sprintf(
+          "%s/classify/%s_cls_volumes.dat",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        cerebral_volume = sprintf(
+          "%s/thickness/%s_cerebral_volume.dat",
+          .data$subject_path,
+          .data$subject_prefixed
+        ),
+        nativeRMS_RSLtlink_left = sprintf(
+          "%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_method,
+          thickness_dist
+        ),
+        nativeRMS_RSLtlink_right = sprintf(
+          "%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_method,
+          thickness_dist
+        ),
+        nativeRMStlink_left = sprintf(
+          "%s/thickness/%s_native_rms_rsl_%s_%smm_left.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_method,
+          thickness_dist
+        ),
+        nativeRMStlink_right = sprintf(
+          "%s/thickness/%s_native_rms_rsl_%s_%smm_right.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_method,
+          thickness_dist
+        ),
+        RSL_mean_curvature_left = sprintf(
+          "%s/curvature/%s_mid_surface_rsl_left_mean_curv_%smm.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_dist
+        ),
+        RSL_mean_curvature_right = sprintf(
+          "%s/curvature/%s_mid_surface_rsl_right_mean_curv_%smm.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_dist
+        ),
+        RSL_gaus_curvature_left = sprintf(
+          "%s/curvature/%s_mid_surface_rsl_left_gaus_curv_%smm.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_dist
+        ),
+        RSL_gaus_curvature_right = sprintf(
+          "%s/curvature/%s_mid_surface_rsl_right_gaus_curv_%smm.txt",
+          .data$subject_path,
+          .data$subject_prefixed,
+          thickness_dist
+        )
       )
   }
 
 
 #' Read a CBRAIN project in R
-#' 
+#'
 #' Simplified file input for CBRAIN projects. Attempts to use as much information as possible from the directory structure
 #' and internal CBRAIN config files to find and read the correct CIVET results for CIVET 2.0.0 and 2.1.0
-#' 
+#'
 #' @param path Path to the civet project
 #' @param prefix The prefix used to create the subject names
 #' @param atlas Either AAL (default), DKT, or a path to the specific atlas used
@@ -649,98 +1120,123 @@ civet_filenames_2_0_0 <-
 #' @return A data.frame in the format of \link{civet.getAllFilenames} if \code{readFiles} is FALSE. A data.frame in
 #' the format of \link{civet.readAllCivetFiles} if \code{readFiles} is TRUE and \code{flatten} is FALSE. And a data.frame in
 #' the format of \link{civet.flattenForDplyr} if \code{readQC}, \code{readFiles}, and \code{flatten} are all TRUE (default)
-#' @seealso \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr} 
+#' @seealso \link{civet.getAllFilenames} \link{civet.readAllCivetFiles} \link{civet.flattenForDplyr}
 #' @export
 civet.readCBRAIN <-
-    function(path, prefix, subjects = NULL, atlas = "AAL", civetVersion = "2.1.0", readFiles = TRUE
-           , readQC = TRUE, flatten = TRUE, QCDir = "QC", columnsToKeep = "subject"
-           , confFile = Sys.glob(paste0(path, "/*/*.yml"))[1]
-             ){
+  function(
+    path,
+    prefix,
+    subjects = NULL,
+    atlas = "AAL",
+    civetVersion = "2.1.0",
+    readFiles = TRUE,
+    readQC = TRUE,
+    flatten = TRUE,
+    QCDir = "QC",
+    columnsToKeep = "subject",
+    confFile = Sys.glob(paste0(path, "/*/*.yml"))[1]
+  ) {
     ## Check bad arguments
-    if(readQC && readFiles && !flatten) stop("Can't merge QC when readFiles is TRUE and flatten is FALSE")
-    
+    if (readQC && readFiles && !flatten) {
+      stop("Can't merge QC when readFiles is TRUE and flatten is FALSE")
+    }
+
     ## Load the config file
     cnf <- yaml.load_file(confFile)
-    
-    if(is.null(subjects)){
-      subjects <- list.files(path) %>% setdiff(c("QC", "scripts", "stats", "analysis"))
+
+    if (is.null(subjects)) {
+      subjects <- list.files(path) %>%
+        setdiff(c("QC", "scripts", "stats", "analysis"))
     }
-    
+
     subject_frame <- data.frame(subject = subjects)
-    
+
     results <-
-      civet.getAllFilenames(gf = subject_frame, idvar = "subject", prefix = prefix, basedir = path, civetVersion = civetVersion, cnf = cnf)
-    
-    if(atlas %in% c("AAL", "DKT") & civetVersion %in% c("2.0.0", "2.1.0")){
+      civet.getAllFilenames(
+        gf = subject_frame,
+        idvar = "subject",
+        prefix = prefix,
+        basedir = path,
+        civetVersion = civetVersion,
+        cnf = cnf
+      )
+
+    if (atlas %in% c("AAL", "DKT") & civetVersion %in% c("2.0.0", "2.1.0")) {
       cversion <- sub("\\.[^.]$", "", civetVersion) #trim the final digit
-      atlas <- 
+      atlas <-
         sprintf("civet_extras/CIVET_%s_%s_labels.txt", cversion, atlas) %>%
         system.file(package = "RMINC")
     }
-    
-    if(readFiles){
+
+    if (readFiles) {
       results <- civet.readAllCivetFiles(atlas, results, civetVersion)
-      if(flatten)
+      if (flatten) {
         results <- civet.flattenForDplyr(results, columnsToKeep = columnsToKeep)
+      }
     }
-    
-    if(readQC){
+
+    if (readQC) {
       #prefix dirs if necessary
       dirs <- sapply(QCDir, function(d) sub("^([^/])", paste0(path, "/\\1"), d))
       qc <- civet.readQC(dirs, civetVersion)
       results <- full_join(results, qc, by = c("subject" = "ID"))
     }
-      
-    
+
     results
   }
 
 
 #' Assemble vertex files for a CIVET run
-#' 
+#'
 #' Locate the vertex thickness, area, and volume files for a CIVET run
-#' 
+#'
 #' @inheritParams civet.getAllFilenames
 #' @return A data.frame containing left and right thickness, area, and volume files.
 #' @export
 civet.vertexFilenames <-
-  function(gf, idvar, prefix, basedir, append=TRUE, civetVersion="1.1.9"){
+  function(gf, idvar, prefix, basedir, append = TRUE, civetVersion = "1.1.9") {
     ids <- getElement(gf, idvar)
-    
+
     thickness_files <-
-      map_df(ids, function(id){ 
-        civet.getFilenamesCorticalThickness(id, baseDir = basedir, civetVersion = civetVersion) %>%
+      map_df(ids, function(id) {
+        civet.getFilenamesCorticalThickness(
+          id,
+          baseDir = basedir,
+          civetVersion = civetVersion
+        ) %>%
           as_data_frame
-      }) %>% 
-      rename(left_thickness = .data$left
-           , right_thickness = .data$right)
-    
+      }) %>%
+      rename(left_thickness = .data$left, right_thickness = .data$right)
+
     area_files <-
-      map_df(ids, function(id){ 
-        civet.getFilenamesCorticalArea(id, baseDir = basedir, civetVersion = civetVersion) %>%
+      map_df(ids, function(id) {
+        civet.getFilenamesCorticalArea(
+          id,
+          baseDir = basedir,
+          civetVersion = civetVersion
+        ) %>%
           as_data_frame
-      }) %>% 
-      rename(left_area = .data$left
-           , right_area = .data$right)
-    
+      }) %>%
+      rename(left_area = .data$left, right_area = .data$right)
+
     volume_files <-
-      map_df(ids, function(id){ 
-        civet.getFilenamesCorticalVolume(id, baseDir = basedir, civetVersion = civetVersion) %>%
+      map_df(ids, function(id) {
+        civet.getFilenamesCorticalVolume(
+          id,
+          baseDir = basedir,
+          civetVersion = civetVersion
+        ) %>%
           as_data_frame
-      }) %>% 
-      rename(left_volume = .data$left
-           , right_volume = .data$right)
-    
-    bind_cols(data_frame(ids = ids)
-              , thickness_files
-              , area_files
-              , volume_files)
+      }) %>%
+      rename(left_volume = .data$left, right_volume = .data$right)
+
+    bind_cols(data_frame(ids = ids), thickness_files, area_files, volume_files)
   }
 
 #' Create a table of vertex measures
-#' 
+#'
 #' Read in the vertex data results of a CIVET run
-#' 
+#'
 #' @param vertex_files The data frame of vertex file names
 #' produced by \link{civet.vertexFilenames}
 #' @return A 6-element list of matrices:
@@ -748,76 +1244,103 @@ civet.vertexFilenames <-
 #' \item{}
 #' }
 #' @export
-civet.vertexTable <- function(vertex_files){
+civet.vertexTable <- function(vertex_files) {
   columns_to_collect <- setdiff(names(vertex_files), "ids")
   column_syms <- lapply(columns_to_collect, as.symbol)
-  
-  n_vertices <- 
+
+  n_vertices <-
     getElement(vertex_files, columns_to_collect[1]) %>%
     .[!is.na(.)] %>%
     first %>%
     readLines %>%
     length
-  
-  read_or_NAs <- 
-    function(file) 
-      `if`(is.na(file)
-           , rep(NA_real_, n_vertices)
-           , as.numeric(readLines(file)))
-    
-  
+
+  read_or_NAs <-
+    function(file) {
+      `if`(is.na(file), rep(NA_real_, n_vertices), as.numeric(readLines(file)))
+    }
+
   vertex_files %>%
     gather("measure", "file", !!!column_syms) %>%
     mutate(vertex_data = lapply(.data$file, read_or_NAs)) %>%
     arrange(.data$ids) %>%
     split(.$measure) %>%
-    lapply(function(df){
+    lapply(function(df) {
       unlist(df$vertex_data) %>%
         matrix(ncol = nrow(df)) %>%
         `colnames<-`(df$ids)
     })
-  
 }
 
 civet.AllROIs <- function(gf, defprefix) {
-	# =============================================================================
-	# Purpose: Ummmmm ..... 
-	#
-	# Note: Original code written by Jason Lerch, I (Jim) just changed the name
-	#		to use the new civet.* prefix.
-	#
-	# =============================================================================
-	#
-  tissues <- anatGetAll(gf$tissue, NULL, method="text",
-                        defs=paste(defprefix,"/","tissue-volumes.csv",sep=""))
+  # =============================================================================
+  # Purpose: Ummmmm .....
+  #
+  # Note: Original code written by Jason Lerch, I (Jim) just changed the name
+  #		to use the new civet.* prefix.
+  #
+  # =============================================================================
+  #
+  tissues <- anatGetAll(
+    gf$tissue,
+    NULL,
+    method = "text",
+    defs = paste(defprefix, "/", "tissue-volumes.csv", sep = "")
+  )
   colnames(tissues) <- paste(colnames(tissues), "volume")
 
-  structures <- anatGetAll(gf$structures, NULL, method="text",
-                           defs=paste(defprefix, "/","lobe-seg-volumes.csv",
-                             sep=""))
+  structures <- anatGetAll(
+    gf$structures,
+    NULL,
+    method = "text",
+    defs = paste(defprefix, "/", "lobe-seg-volumes.csv", sep = "")
+  )
   colnames(structures) <- paste(colnames(structures), "volume")
-  leftareas <- anatGetAll(gf$leftROIarea, NULL, method="text",
-                          defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          side="left")
+  leftareas <- anatGetAll(
+    gf$leftROIarea,
+    NULL,
+    method = "text",
+    defs = paste(defprefix, "/", "lobe-seg-defs.csv", sep = ""),
+    side = "left"
+  )
   colnames(leftareas) <- paste(colnames(leftareas), "surface area")
-  rightareas <- anatGetAll(gf$rightROIarea, NULL,method="text",
-                          defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          side="right")
+  rightareas <- anatGetAll(
+    gf$rightROIarea,
+    NULL,
+    method = "text",
+    defs = paste(defprefix, "/", "lobe-seg-defs.csv", sep = ""),
+    side = "right"
+  )
   colnames(rightareas) <- paste(colnames(rightareas), "surface area")
-  leftthickness <- anatGetAll(gf$leftROIthickness, NULL,method="text",
-                          defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          side="left")
+  leftthickness <- anatGetAll(
+    gf$leftROIthickness,
+    NULL,
+    method = "text",
+    defs = paste(defprefix, "/", "lobe-seg-defs.csv", sep = ""),
+    side = "left"
+  )
   colnames(leftthickness) <- paste(colnames(leftthickness), "mean thickness")
-  rightthickness <- anatGetAll(gf$rightROIthickness, NULL,method="text",
-                          defs=paste(defprefix,"/","lobe-seg-defs.csv",sep=""),
-                          side="right")
+  rightthickness <- anatGetAll(
+    gf$rightROIthickness,
+    NULL,
+    method = "text",
+    defs = paste(defprefix, "/", "lobe-seg-defs.csv", sep = ""),
+    side = "right"
+  )
   colnames(rightthickness) <- paste(colnames(rightthickness), "mean thickness")
 
-  vols <- data.frame(tissues, structures, leftareas, rightareas, leftthickness, rightthickness)
+  vols <- data.frame(
+    tissues,
+    structures,
+    leftareas,
+    rightareas,
+    leftthickness,
+    rightthickness
+  )
   return(vols)
 }
 # =============================================================================
-# Purpose: 
+# Purpose:
 #	Organizes CIVET .dat file based on an atlas
 # Requires the atlas to be a csv file with a header and following the format
 # Column 1: Numeric labels
@@ -830,7 +1353,7 @@ civet.AllROIs <- function(gf, defprefix) {
 # =============================================================================
 #' @title Organizes CIVET .dat files based on an Atlas
 #' @description Uses an atlas to associate the measurement results in
-#' the CIVET .dat output files with particular structures 
+#' the CIVET .dat output files with particular structures
 #' @param atlasFile Character path to a key to the atlas used when running civet.
 #' the key should be a comma separated file with a header and the following form \cr
 #' Column 1: Numeric label
@@ -839,127 +1362,134 @@ civet.AllROIs <- function(gf, defprefix) {
 #' typically generated with \link{civet.getAllFilenames}
 #' @param civetVersion character code for the version of civet used to generate
 #' the data files
-civet.organizeCivetDatFilesAtlas <- function(atlasFile,dataFiles, civetVersion="1.1.12") {
-	
-	#Initializaion
-  if(civetVersion == "1.1.12" || civetVersion == "1.1.9"){
+civet.organizeCivetDatFilesAtlas <- function(
+  atlasFile,
+  dataFiles,
+  civetVersion = "1.1.12"
+) {
+  #Initializaion
+  if (civetVersion == "1.1.12" || civetVersion == "1.1.9") {
     gf <- read.csv(atlasFile)
   } else {
     gf <- read.table(atlasFile, header = TRUE)
   }
-  
-	numberOfFiles = length(dataFiles)
-	roiTable = matrix(data=NA,nrow=length(gf[,1]),ncol=numberOfFiles/2)
-	roiLabels = c()
 
-	# Label rows with ROI labels
-	for (i in 1:length(gf[,1])) { roiLabels[i] = as.character(gf[i,3])}
-	rownames(roiTable) = roiLabels
+  numberOfFiles = length(dataFiles)
+  roiTable = matrix(data = NA, nrow = length(gf[, 1]), ncol = numberOfFiles / 2)
+  roiLabels = c()
 
+  # Label rows with ROI labels
+  for (i in 1:length(gf[, 1])) {
+    roiLabels[i] = as.character(gf[i, 3])
+  }
+  rownames(roiTable) = roiLabels
 
-	# Iterate through each file, look up ROI location and fill in  table
-	for (j in 1:numberOfFiles)
-	{
-		halfFiles = numberOfFiles / 2;
-		if(j > halfFiles)
-		{
-			columnIndex = j - numberOfFiles/2
-		}
-		else
-		{	
-			columnIndex = j;
-		}
-		if(file.exists(dataFiles[j]))
-		{
-		  data_file <- read.table(dataFiles[j]) %>% filter(.data$V1 != "Total")
-			labels <- data_file$V1
-			value <- data_file$V2
-			labels = as.numeric(as.character(labels))
-			value = as.numeric(as.character(value))
-			for (i in 1:length(labels)) 
-			{ 
-				roiName = as.character( gf[which(gf[,1] == labels[i],arr.ind=FALSE),3])
-				tableIndex = which(rownames(roiTable) == roiName)
-				roiTable[tableIndex,columnIndex] = value[i]
-			}
-		}	
-	}
+  # Iterate through each file, look up ROI location and fill in  table
+  for (j in 1:numberOfFiles) {
+    halfFiles = numberOfFiles / 2
+    if (j > halfFiles) {
+      columnIndex = j - numberOfFiles / 2
+    } else {
+      columnIndex = j
+    }
+    if (file.exists(dataFiles[j])) {
+      data_file <- read.table(dataFiles[j]) %>% filter(.data$V1 != "Total")
+      labels <- data_file$V1
+      value <- data_file$V2
+      labels = as.numeric(as.character(labels))
+      value = as.numeric(as.character(value))
+      for (i in 1:length(labels)) {
+        roiName = as.character(gf[
+          which(gf[, 1] == labels[i], arr.ind = FALSE),
+          3
+        ])
+        tableIndex = which(rownames(roiTable) == roiName)
+        roiTable[tableIndex, columnIndex] = value[i]
+      }
+    }
+  }
 
-	return(roiTable)
+  return(roiTable)
 }
 # =============================================================================
-# Purpose: 
+# Purpose:
 #  Organizes CIVET .dat file based on whole brain,grey and white volumes
 #
 # Example:
 #	dataFiles <- list of data files to organize
 #
 # =============================================================================
-civet.organizeCivetDatFilesWholeBrain<- function(dataFiles, civetVersion="1.1.12") {
-  
-  if(civetVersion == "2.0.0" || civetVersion == "2.1.0"){
+civet.organizeCivetDatFilesWholeBrain <- function(
+  dataFiles,
+  civetVersion = "1.1.12"
+) {
+  if (civetVersion == "2.0.0" || civetVersion == "2.1.0") {
     measure_names <- c("CSF", "GM", "WM", "scGM")
   } else {
     measure_names <- c("CSF", "GM", "WM")
   }
-  
+
   numberOfFiles = length(dataFiles)
-  roiTable = matrix(data = NA, nrow = length(measure_names), ncol = numberOfFiles)
+  roiTable = matrix(
+    data = NA,
+    nrow = length(measure_names),
+    ncol = numberOfFiles
+  )
   rownames(roiTable) = measure_names
-  for (j in 1:numberOfFiles)
-  {
-    
-    if(file.exists(dataFiles[j]))
-    {
-      value = read.table(dataFiles[j])[,2]
+  for (j in 1:numberOfFiles) {
+    if (file.exists(dataFiles[j])) {
+      value = read.table(dataFiles[j])[, 2]
       value = as.numeric(as.character(value))
-      roiTable[,j] = value
-    }	
-    
+      roiTable[, j] = value
+    }
   }
   return(roiTable)
 }
 
 # =============================================================================
-# Purpose: 
+# Purpose:
 #	Organizes CIVET .dat file based on mid, white and grey labels
 #
 # Example:
 #	dataFiles <- list of data files to organize
 # =============================================================================
-civet.organizeCivetDatFilesMidWhiteGrey <- function(dataFiles, civetVersion="1.1.12") {
+civet.organizeCivetDatFilesMidWhiteGrey <- function(
+  dataFiles,
+  civetVersion = "1.1.12"
+) {
+  numberOfFiles = length(dataFiles)
+  roiTable = matrix(data = NA, nrow = 6, ncol = numberOfFiles / 2)
+  rownames(roiTable) = c(
+    "leftGray",
+    "leftWhite",
+    "leftMid",
+    "rightGray",
+    "rightWhite",
+    "rightMid"
+  )
 
-	numberOfFiles = length(dataFiles)
-	roiTable = matrix(data=NA,nrow=6,ncol=numberOfFiles/2)
-	rownames(roiTable) = c("leftGray", "leftWhite","leftMid","rightGray","rightWhite","rightMid")
+  for (j in 1:numberOfFiles) {
+    halfFiles = numberOfFiles / 2
+    if (j > halfFiles) {
+      columnIndex = j - numberOfFiles / 2
+      rowIndex = 4
+    } else {
+      columnIndex = j
+      rowIndex = 1
+    }
 
-	for (j in 1:numberOfFiles)
-	{	
-		halfFiles = numberOfFiles / 2;
-		if(j > halfFiles)
-		{
-			columnIndex = j - numberOfFiles/2
-			rowIndex = 4;
-		}
-		else
-		{	
-			columnIndex = j;
-			rowIndex = 1;
-		}
-
-		if(file.exists(dataFiles[j]))
-		{
-			value = read.table(dataFiles[j])[,4]
-			value = as.numeric(as.character(value))
-			if(length(value) == 3)
-				roiTable[rowIndex:(rowIndex+2),columnIndex] = value
-		}	
-
-	}
-	return(roiTable)
+    if (file.exists(dataFiles[j])) {
+      value = read.table(dataFiles[j])[, 4]
+      value = as.numeric(as.character(value))
+      if (length(value) == 3) {
+        roiTable[rowIndex:(rowIndex + 2), columnIndex] = value
+      }
+    }
+  }
+  return(roiTable)
 }
 # =============================================================================
-# Purpose: 
+# Purpose:
 #	Organizes CIVET .txt file with vertex measures
 #
 # Example:
@@ -968,37 +1498,30 @@ civet.organizeCivetDatFilesMidWhiteGrey <- function(dataFiles, civetVersion="1.1
 # Note : Left Vertices are listed First
 # =============================================================================
 civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
+  numberOfFiles = length(dataFiles)
+  roiTable = matrix(data = NA, nrow = 40962 * 2, ncol = numberOfFiles / 2)
 
-	numberOfFiles = length(dataFiles)
-	roiTable = matrix(data=NA,nrow=40962*2,ncol=numberOfFiles/2)
+  for (j in 1:numberOfFiles) {
+    halfFiles = numberOfFiles / 2
+    if (j > halfFiles) {
+      columnIndex = j - numberOfFiles / 2
+      rowIndex = 40963
+    } else {
+      columnIndex = j
+      rowIndex = 1
+    }
 
-	for (j in 1:numberOfFiles)
-	{
-		halfFiles = numberOfFiles / 2;
-		if(j > halfFiles)
-		{
-			columnIndex = j - numberOfFiles/2
-			rowIndex = 40963;
-		}
-		else
-		{	
-			columnIndex = j;
-			rowIndex = 1;
-		}
-
-		if(file.exists(dataFiles[j]))
-		{
-			value = read.table(dataFiles[j])[,1]
-			value = as.numeric(as.character(value))
-			roiTable[rowIndex:(rowIndex+40961),columnIndex] = value
-		}	
-
-	}
-	return(roiTable)
+    if (file.exists(dataFiles[j])) {
+      value = read.table(dataFiles[j])[, 1]
+      value = as.numeric(as.character(value))
+      roiTable[rowIndex:(rowIndex + 40961), columnIndex] = value
+    }
+  }
+  return(roiTable)
 }
 
 ###########################################################################################
-#' @description Parses outputs from CIVET pipeline 
+#' @description Parses outputs from CIVET pipeline
 #' @name civet.readAllCivetFiles
 #' @title Read all CIVET files into R
 #' @param gf Data Frame containing list of all CIVET file names, and where results will be stored
@@ -1012,14 +1535,14 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' @details Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
 #' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
 #' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Brain Volume Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
-#' @return Returns gf augmented with additional columns containing 
+#' @return Returns gf augmented with additional columns containing
 #' \itemize{
 #' \item{lobeArea40mm:}{ A subjects by region matrix of lobe areas parcellated by atlas region}
 #' \item{lobeThickness:}{ As above, but for thicknesses}
 #' \item{lobeVolume:}{ As above, but for volumes}
-#' \item{GI:}{ A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter 
+#' \item{GI:}{ A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter
 #'  surface, white matter surface, midsurface of the two, followed by the same indices for the two}
-#' \item{BrainVolume:}{ A subjects by 3 matrix. Three columns are CSF volume, grey matter 
+#' \item{BrainVolume:}{ A subjects by 3 matrix. Three columns are CSF volume, grey matter
 #'  and white matter respectively}
 #' \item{midSurfaceNativeArea:}{ A subjects by vertices matrix of mid-surface areas}
 #' \item{SurfaceNativeVolume:}{ As above, but for native space volumes}
@@ -1029,88 +1552,122 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' @seealso  civet.getAllFilenames
 #' @examples
 #' \dontrun{
-#' getRMINCTestData() 
+#' getRMINCTestData()
 #' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 #' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET", TRUE, "1.1.12")
 #' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
 #' }
 #' @export
-civet.readAllCivetFiles = function(atlasFile,gf, civetVersion = "1.1.12")
-{
-  if(civetVersion == "2.0.0" || civetVersion == "2.1.0"){
+civet.readAllCivetFiles = function(atlasFile, gf, civetVersion = "1.1.12") {
+  if (civetVersion == "2.0.0" || civetVersion == "2.1.0") {
     civet_files <- gf
   } else {
     civet_files <- gf$CIVETFILES
   }
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# Lobe Area, Lobe Thickness, Lobe Volume
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(civet_files$leftlobeArea40mmFiles, civet_files$rightlobeArea40mmFiles), civetVersion = civetVersion)
-	gf$lobeArea40mm = t(roiTable)
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # Lobe Area, Lobe Thickness, Lobe Volume
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  roiTable = civet.organizeCivetDatFilesAtlas(
+    atlasFile,
+    c(civet_files$leftlobeArea40mmFiles, civet_files$rightlobeArea40mmFiles),
+    civetVersion = civetVersion
+  )
+  gf$lobeArea40mm = t(roiTable)
 
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(civet_files$leftlobeThicknessFiles, civet_files$rightlobeThicknessFiles), civetVersion = civetVersion)
-	gf$lobeThickness = t(roiTable)
+  roiTable = civet.organizeCivetDatFilesAtlas(
+    atlasFile,
+    c(civet_files$leftlobeThicknessFiles, civet_files$rightlobeThicknessFiles),
+    civetVersion = civetVersion
+  )
+  gf$lobeThickness = t(roiTable)
 
-	roiTable = civet.organizeCivetDatFilesAtlas(atlasFile,c(civet_files$leftlobeVolumeFiles, civet_files$rightlobeVolumeFiles), civetVersion = civetVersion)
-	gf$lobeVolume = t(roiTable)
+  roiTable = civet.organizeCivetDatFilesAtlas(
+    atlasFile,
+    c(civet_files$leftlobeVolumeFiles, civet_files$rightlobeVolumeFiles),
+    civetVersion = civetVersion
+  )
+  gf$lobeVolume = t(roiTable)
 
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# GI
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	roiTable = civet.organizeCivetDatFilesMidWhiteGrey(c(civet_files$leftGIFiles, civet_files$rightGIFiles))	
-	gf$GI = t(roiTable)
-	
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# Cerebral Volume
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-	#roiTable = civet.organizeCivetDatFilesWholeBrain(c(gf$CIVETFILES$cerebral_volume))  
-	#gf$cerebralVolume = t(roiTable)
-  
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =civet.readAllCivetFiles
-	# Brain Volume
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-	roiTable = civet.organizeCivetDatFilesWholeBrain(c(civet_files$brain_volume), civetVersion = civetVersion)  
-	gf$BrainVolume = t(roiTable)
-  
-  
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# Vertex based Measures
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$midSurfaceleftNativeArea, civet_files$midSurfacerightNativeArea))
-	gf$midSurfaceNativeArea = t(roiTable)
-	
-	roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$SurfaceleftNativeVolume, civet_files$SurfacerightNativeVolume))
-	gf$SurfaceNativeVolume = t(roiTable)
-	
-	if(civetVersion == "1.1.12"){
-	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMS_RSLtlink20mmleft, civet_files$nativeRMS_RSLtlink20mmright))
-	  gf$nativeRMS_RSLtlink20mm = t(roiTable)
-	} else {
-	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMS_RSLtlink_left, civet_files$nativeRMS_RSLtlink_right))
-	  gf$nativeRMS_RSLtlink20mm = t(roiTable)
-	}
-	
-	if(civetVersion == "1.1.12"){
-	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMStlink20mmleft, civet_files$nativeRMStlink20mmright))
-	  gf$nativeRMStlink20mm= t(roiTable)
-	} else {
-	  roiTable = civet.organizeCivetTxtFilesVertex(c(civet_files$nativeRMStlink_left, civet_files$nativeRMStlink_right))
-	  gf$nativeRMStlink20mm= t(roiTable)
-	}
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # GI
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  roiTable = civet.organizeCivetDatFilesMidWhiteGrey(c(
+    civet_files$leftGIFiles,
+    civet_files$rightGIFiles
+  ))
+  gf$GI = t(roiTable)
 
-	return(gf)
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # Cerebral Volume
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  #roiTable = civet.organizeCivetDatFilesWholeBrain(c(gf$CIVETFILES$cerebral_volume))
+  #gf$cerebralVolume = t(roiTable)
+
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =civet.readAllCivetFiles
+  # Brain Volume
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  roiTable = civet.organizeCivetDatFilesWholeBrain(
+    c(civet_files$brain_volume),
+    civetVersion = civetVersion
+  )
+  gf$BrainVolume = t(roiTable)
+
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # Vertex based Measures
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  roiTable = civet.organizeCivetTxtFilesVertex(c(
+    civet_files$midSurfaceleftNativeArea,
+    civet_files$midSurfacerightNativeArea
+  ))
+  gf$midSurfaceNativeArea = t(roiTable)
+
+  roiTable = civet.organizeCivetTxtFilesVertex(c(
+    civet_files$SurfaceleftNativeVolume,
+    civet_files$SurfacerightNativeVolume
+  ))
+  gf$SurfaceNativeVolume = t(roiTable)
+
+  if (civetVersion == "1.1.12") {
+    roiTable = civet.organizeCivetTxtFilesVertex(c(
+      civet_files$nativeRMS_RSLtlink20mmleft,
+      civet_files$nativeRMS_RSLtlink20mmright
+    ))
+    gf$nativeRMS_RSLtlink20mm = t(roiTable)
+  } else {
+    roiTable = civet.organizeCivetTxtFilesVertex(c(
+      civet_files$nativeRMS_RSLtlink_left,
+      civet_files$nativeRMS_RSLtlink_right
+    ))
+    gf$nativeRMS_RSLtlink20mm = t(roiTable)
+  }
+
+  if (civetVersion == "1.1.12") {
+    roiTable = civet.organizeCivetTxtFilesVertex(c(
+      civet_files$nativeRMStlink20mmleft,
+      civet_files$nativeRMStlink20mmright
+    ))
+    gf$nativeRMStlink20mm = t(roiTable)
+  } else {
+    roiTable = civet.organizeCivetTxtFilesVertex(c(
+      civet_files$nativeRMStlink_left,
+      civet_files$nativeRMStlink_right
+    ))
+    gf$nativeRMStlink20mm = t(roiTable)
+  }
+
+  return(gf)
 }
 
 
 #' Read Civet-Generated Dat Files
-#' 
+#'
 #' Returns a list containing the contents of various Civet-generated text files
 #' (.dat, .txt).
-#' 
+#'
 #' The Civet pipeline produces a number of files during its execution.  The
 #' purpose of this function is to read the contents of these files and return
 #' the most significant values in a list.
-#' 
+#'
 #' @param scanID A string specifying the unique scan-id (and thus
 #' sub-directory) within the Civet root output directory.
 #' @param baseDir A string specifying the Civet root output directory.  This
@@ -1144,205 +1701,201 @@ civet.readAllCivetFiles = function(atlasFile,gf, civetVersion = "1.1.12")
 #' stereotactic space.}
 #' @author Jim Nikelski \email{nikelski@@bic.mni.mcgill.ca}
 #' @examples
-#' 
+#'
 #' \dontrun{
 #' library(RMINC)
-#' 
+#'
 #' # set Civet root path and scan-identifier
 #' basePath <- "~/tmp/ADNI/civet/pipeOut"
 #' scanID = "0221-M-AD"
-#' 
+#'
 #' # read in the dat files contents
 #' myDats <- civet.readCivetDatFiles(scanID, basePath)
 #' print(myDats)
-#' 
+#'
 #' # print GI info
 #' print(myDats$gyrification_index)
 #' print(myDats$gyrification_index["lh"])
-#' 
+#'
 #' # print and extract cortical volume
 #' print(myDats$native_cerebral_volumes)
 #' native_space_cortical_gray_volume <- myDats$native_cerebral_volumes["cortical_gray", "volume"]
 #' print(native_space_cortical_gray_volume)
-#' 
+#'
 #' }
-civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion="1.1.9") {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# create the scan-level root dir name
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
-	
-	# init returning list
-	return_list <-list()
-	
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# load the tissue classify volume info
-	#	
-	# get a list of matching filenames in the classify dir, and return
-	subDir <- file.path(scanRoot, 'classify')
-	myFile <- list.files(subDir, pattern=glob2rx("*_cls_volumes.dat"))
-	myFile_fullPath <- file.path(subDir, myFile)
-	myDf <- read.table(myFile_fullPath,
-	row.names=c("csf", "gm", "wm"),
-	col.names=c("tissueType_code", "volume"))
-	#	
-	return_list$native_tissue_volumes <- myDf
+civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion = "1.1.9") {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
 
+  # create the scan-level root dir name
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
 
+  # init returning list
+  return_list <- list()
 
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# load gyrification indices
-		
-	
-	# get a list of matching filenames in the classify dir, and return
-	subDir <- file.path(scanRoot, 'surfaces')
-	# ... left
-	gi_left_file <- list.files(subDir, pattern=glob2rx("*_gi_left.dat"))
-	gi_left_file_fullPath <- file.path(subDir, gi_left_file)
-	gi_left.df <- read.table(gi_left_file_fullPath)
-	# ... right
-	gi_right_file <- list.files(subDir, pattern=glob2rx("*_gi_right.dat"))
-	gi_right_file_fullPath <- file.path(subDir, gi_right_file)
-	gi_right.df <- read.table(gi_right_file_fullPath)
-	#
-	return_list$gyrification_index <- c(lh=gi_left.df[1,3], rh=gi_right.df[1,3]) 
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # load the tissue classify volume info
+  #
+  # get a list of matching filenames in the classify dir, and return
+  subDir <- file.path(scanRoot, 'classify')
+  myFile <- list.files(subDir, pattern = glob2rx("*_cls_volumes.dat"))
+  myFile_fullPath <- file.path(subDir, myFile)
+  myDf <- read.table(
+    myFile_fullPath,
+    row.names = c("csf", "gm", "wm"),
+    col.names = c("tissueType_code", "volume")
+  )
+  #
+  return_list$native_tissue_volumes <- myDf
 
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # load gyrification indices
 
+  # get a list of matching filenames in the classify dir, and return
+  subDir <- file.path(scanRoot, 'surfaces')
+  # ... left
+  gi_left_file <- list.files(subDir, pattern = glob2rx("*_gi_left.dat"))
+  gi_left_file_fullPath <- file.path(subDir, gi_left_file)
+  gi_left.df <- read.table(gi_left_file_fullPath)
+  # ... right
+  gi_right_file <- list.files(subDir, pattern = glob2rx("*_gi_right.dat"))
+  gi_right_file_fullPath <- file.path(subDir, gi_right_file)
+  gi_right.df <- read.table(gi_right_file_fullPath)
+  #
+  return_list$gyrification_index <- c(
+    lh = gi_left.df[1, 3],
+    rh = gi_right.df[1, 3]
+  )
 
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# load the cerebral volume info
-	#	
-	# get a list of matching filenames in the classify dir, and return
-	subDir <- file.path(scanRoot, 'thickness')
-	cerebral_volumes <- list.files(subDir, pattern=glob2rx("*_cerebral_volume.dat"))
-	cerebral_volumes_fullPath <- file.path(subDir, cerebral_volumes)
-	cerebral_volumes.df <- read.table(cerebral_volumes_fullPath, 
-	row.names=c("extra_cerebral_csf", "cortical_gray", "wmSurface_plus_contents"),
-	col.names=c("code", "volume"))
-	#	
-	return_list$native_cerebral_volumes <- cerebral_volumes.df
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # load the cerebral volume info
+  #
+  # get a list of matching filenames in the classify dir, and return
+  subDir <- file.path(scanRoot, 'thickness')
+  cerebral_volumes <- list.files(
+    subDir,
+    pattern = glob2rx("*_cerebral_volume.dat")
+  )
+  cerebral_volumes_fullPath <- file.path(subDir, cerebral_volumes)
+  cerebral_volumes.df <- read.table(
+    cerebral_volumes_fullPath,
+    row.names = c(
+      "extra_cerebral_csf",
+      "cortical_gray",
+      "wmSurface_plus_contents"
+    ),
+    col.names = c("code", "volume")
+  )
+  #
+  return_list$native_cerebral_volumes <- cerebral_volumes.df
 
+  # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+  # load the percentage values from the verify subdir
+  #
+  #
 
+  # create containing list
+  quality_control <- list()
 
-	# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	# load the percentage values from the verify subdir
-	#	
-	#
-	
-	# create containing list
-	quality_control <- list()
-	
-	# (A) Load *_brainmask_qc.txt
-	#	e.g., "native skull mask in stx space (11.77%)"
-	#
-	# get a list of matching filenames in the classify dir, and return
-	subDir <- file.path(scanRoot, 'verify')
-	verify_qc <- list.files(subDir, pattern=glob2rx("*_brainmask_qc.txt"))
-	verify_qc_fullPath <- file.path(subDir, verify_qc)
-	# ... open file connection, read 1 line, then close()
-	verify_qc.con <- file(verify_qc_fullPath, open="rt")
-	txtLine <- readLines(verify_qc.con, n=1)
-	close(verify_qc.con)
-	#
-	# ... extract the percentage value
-	ndx <- regexpr("[[:digit:]]+.[[:digit:]]+", txtLine)
-	pctValue <- substr(txtLine, ndx, ndx-1+attr(ndx, "match.length"))
-	pctValue <- as.numeric(pctValue)
-	#	
-	quality_control$brainmask_qc <- pctValue
+  # (A) Load *_brainmask_qc.txt
+  #	e.g., "native skull mask in stx space (11.77%)"
+  #
+  # get a list of matching filenames in the classify dir, and return
+  subDir <- file.path(scanRoot, 'verify')
+  verify_qc <- list.files(subDir, pattern = glob2rx("*_brainmask_qc.txt"))
+  verify_qc_fullPath <- file.path(subDir, verify_qc)
+  # ... open file connection, read 1 line, then close()
+  verify_qc.con <- file(verify_qc_fullPath, open = "rt")
+  txtLine <- readLines(verify_qc.con, n = 1)
+  close(verify_qc.con)
+  #
+  # ... extract the percentage value
+  ndx <- regexpr("[[:digit:]]+.[[:digit:]]+", txtLine)
+  pctValue <- substr(txtLine, ndx, ndx - 1 + attr(ndx, "match.length"))
+  pctValue <- as.numeric(pctValue)
+  #
+  quality_control$brainmask_qc <- pctValue
 
+  #
+  # (B) Load *_classify_qc.txt
+  #	e.g., "classified image CSF 15.01%  GM 47.86%  WM 37.13%"
+  #
+  # get a list of matching filenames in the classify dir, and return
+  subDir <- file.path(scanRoot, 'verify')
+  verify_qc <- list.files(subDir, pattern = glob2rx("*_classify_qc.txt"))
+  verify_qc_fullPath <- file.path(subDir, verify_qc)
+  # ... open file connection, read 1 line, then close()
+  verify_qc.con <- file(verify_qc_fullPath, open = "rt")
+  txtLine <- readLines(verify_qc.con, n = 1)
+  close(verify_qc.con)
 
-	#
-	# (B) Load *_classify_qc.txt
-	#	e.g., "classified image CSF 15.01%  GM 47.86%  WM 37.13%"
-	#
-	# get a list of matching filenames in the classify dir, and return
-	subDir <- file.path(scanRoot, 'verify')
-	verify_qc <- list.files(subDir, pattern=glob2rx("*_classify_qc.txt"))
-	verify_qc_fullPath <- file.path(subDir, verify_qc)
-	# ... open file connection, read 1 line, then close()
-	verify_qc.con <- file(verify_qc_fullPath, open="rt")
-	txtLine <- readLines(verify_qc.con, n=1)
-	close(verify_qc.con)
-	
-	
-	# init receiving data.frame
-	classify.df <- data.frame(pct=rep(0,3), row.names=c("csf", "gm", "wm"))
-	
-	# ... extract the indices to the percentage values
-	ndx <- gregexpr("[[:digit:]]+.[[:digit:]]+", txtLine)
-	csf_ndx <- c(ndx[[1]][1], 
-	             ndx[[1]][1] - 1 + attr(ndx[[1]], "match.length")[1])
+  # init receiving data.frame
+  classify.df <- data.frame(pct = rep(0, 3), row.names = c("csf", "gm", "wm"))
 
-	gm_ndx <- c(ndx[[1]][2], 
-	             ndx[[1]][2] - 1 + attr(ndx[[1]], "match.length")[2])
+  # ... extract the indices to the percentage values
+  ndx <- gregexpr("[[:digit:]]+.[[:digit:]]+", txtLine)
+  csf_ndx <- c(ndx[[1]][1], ndx[[1]][1] - 1 + attr(ndx[[1]], "match.length")[1])
 
-	wm_ndx <- c(ndx[[1]][3], 
-	             ndx[[1]][3] - 1 + attr(ndx[[1]], "match.length")[3])
-		
-	# ... extract and store the values
-	csf_pct <- substr(txtLine, csf_ndx[1], csf_ndx[2])
-	classify.df["csf", "pct"] <- as.numeric(csf_pct)
-	#	
-	gm_pct <- substr(txtLine, gm_ndx[1], gm_ndx[2])
-	classify.df["gm", "pct"] <- as.numeric(gm_pct)
-	#
-	wm_pct <- substr(txtLine, wm_ndx[1], wm_ndx[2])
-	classify.df["wm", "pct"] <- as.numeric(wm_pct)
-	#
-	quality_control$classify_qc <- classify.df
+  gm_ndx <- c(ndx[[1]][2], ndx[[1]][2] - 1 + attr(ndx[[1]], "match.length")[2])
 
+  wm_ndx <- c(ndx[[1]][3], ndx[[1]][3] - 1 + attr(ndx[[1]], "match.length")[3])
 
+  # ... extract and store the values
+  csf_pct <- substr(txtLine, csf_ndx[1], csf_ndx[2])
+  classify.df["csf", "pct"] <- as.numeric(csf_pct)
+  #
+  gm_pct <- substr(txtLine, gm_ndx[1], gm_ndx[2])
+  classify.df["gm", "pct"] <- as.numeric(gm_pct)
+  #
+  wm_pct <- substr(txtLine, wm_ndx[1], wm_ndx[2])
+  classify.df["wm", "pct"] <- as.numeric(wm_pct)
+  #
+  quality_control$classify_qc <- classify.df
 
-	#
-	# (C) Load *_surface_qc.txt
-	#	e.g., "white surface ( 8.06%), gray surface (10.03%)"
-	#
-	# get a list of matching filenames in the classify dir, and return
-	subDir <- file.path(scanRoot, 'verify')
-	verify_qc <- list.files(subDir, pattern=glob2rx("*_surface_qc.txt"))
-	verify_qc_fullPath <- file.path(subDir, verify_qc)
-	# ... open file connection, read 1 line, then close()
-	verify_qc.con <- file(verify_qc_fullPath, open="rt")
-	txtLine <- readLines(verify_qc.con, n=1)
-	close(verify_qc.con)
-	
-	
-	# init receiving data.frame
-	surface.df <- data.frame(pct=rep(0,2), row.names=c("gm", "wm"))
-	
-	# ... extract the indices to the percentage values
-	ndx <- gregexpr("[[:digit:]]+.[[:digit:]]+", txtLine)
-	wm_ndx <- c(ndx[[1]][1], 
-	             ndx[[1]][1] - 1 + attr(ndx[[1]], "match.length")[1])
+  #
+  # (C) Load *_surface_qc.txt
+  #	e.g., "white surface ( 8.06%), gray surface (10.03%)"
+  #
+  # get a list of matching filenames in the classify dir, and return
+  subDir <- file.path(scanRoot, 'verify')
+  verify_qc <- list.files(subDir, pattern = glob2rx("*_surface_qc.txt"))
+  verify_qc_fullPath <- file.path(subDir, verify_qc)
+  # ... open file connection, read 1 line, then close()
+  verify_qc.con <- file(verify_qc_fullPath, open = "rt")
+  txtLine <- readLines(verify_qc.con, n = 1)
+  close(verify_qc.con)
 
-	gm_ndx <- c(ndx[[1]][2], 
-	             ndx[[1]][2] - 1 + attr(ndx[[1]], "match.length")[2])
-		
-	# ... extract and store the values
-	gm_pct <- substr(txtLine, gm_ndx[1], gm_ndx[2])
-	surface.df["gm", "pct"] <- as.numeric(gm_pct)
-	#	
-	wm_pct <- substr(txtLine, wm_ndx[1], wm_ndx[2])
-	surface.df["wm", "pct"] <- as.numeric(wm_pct)
-	#
-	quality_control$surface_qc <- surface.df
-	
-	#
-	return_list$quality_control <- quality_control
+  # init receiving data.frame
+  surface.df <- data.frame(pct = rep(0, 2), row.names = c("gm", "wm"))
 
-	# return final list
-	return(return_list)
+  # ... extract the indices to the percentage values
+  ndx <- gregexpr("[[:digit:]]+.[[:digit:]]+", txtLine)
+  wm_ndx <- c(ndx[[1]][1], ndx[[1]][1] - 1 + attr(ndx[[1]], "match.length")[1])
 
+  gm_ndx <- c(ndx[[1]][2], ndx[[1]][2] - 1 + attr(ndx[[1]], "match.length")[2])
+
+  # ... extract and store the values
+  gm_pct <- substr(txtLine, gm_ndx[1], gm_ndx[2])
+  surface.df["gm", "pct"] <- as.numeric(gm_pct)
+  #
+  wm_pct <- substr(txtLine, wm_ndx[1], wm_ndx[2])
+  surface.df["wm", "pct"] <- as.numeric(wm_pct)
+  #
+  quality_control$surface_qc <- surface.df
+
+  #
+  return_list$quality_control <- quality_control
+
+  # return final list
+  return(return_list)
 }
 
 #' Compute GM, WM, and CSF Tissue Volumes
-#' 
+#'
 #' Returns a named vector of tissue volumes.
-#' 
+#'
 #' Actually, this function really returns the number of voxels of each tissue
 #' type contained within the final discrete Civet-produced classification
 #' volume. Now, given that Civet volumes are currently sampled using 1-mm
@@ -1351,7 +1904,7 @@ civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion="1.1.9") {
 #' change in this function. Please let me know if this ever happens. The native
 #' volume measurements are created by taking the stereotactic volumes and
 #' dividing each of them by the xfm-derived rescaling factor.
-#' 
+#'
 #' @param scanID A string specifying the unique scan-id (and thus
 #' sub-directory) within the Civet root output directory.
 #' @param baseDir A string specifying the Civet root output directory.  This
@@ -1362,18 +1915,18 @@ civet.readCivetDatFiles <- function(scanID, baseDir, civetVersion="1.1.9") {
 #' @return A named vector containing a value for each of the 3 tissue types.
 #' @author Jim Nikelski \email{nikelski@@bic.mni.mcgill.ca}
 #' @examples
-#' 
+#'
 #' \dontrun{
 #' library(RMINC)
-#' 
+#'
 #' # set Civet root path and scan-identifier
 #' basePath <- "~/tmp/ADNI/civet/pipeOut"
 #' scanID = "0221-M-AD"
-#' 
+#'
 #' # print gray matter volume in stereotactic space
 #' stx_cls_vec <- civet.computeStxTissueVolumes(scanID, baseDir)
 #' print(stx_cls_vec["gm"])
-#' 
+#'
 #' # print csf volume in native space
 #' native_cls_vec <- civet.computeNativeTissueVolumes(scanID, baseDir)
 #' print(native_cls_vec["csf"])
@@ -1383,75 +1936,83 @@ NULL
 
 #' @describeIn civet.computeTissueVolumes standard space
 #' @export
-civet.computeStxTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.9") {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# get a list of matching filenames in the classify dir, and return
-	baseDir <- path.expand(baseDir)
-	scanRoot <- file.path(baseDir, scanID)
+civet.computeStxTissueVolumes <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9"
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
 
-	# get classify volume name
-	filename <- civet.getFilenameClassify(scanID, baseDir)
-	cls_vol <- mincGetVolume(filename)
+  # get a list of matching filenames in the classify dir, and return
+  baseDir <- path.expand(baseDir)
+  scanRoot <- file.path(baseDir, scanID)
 
-	# explode classify into components
-	clsX <- volume.explodeLabelVolume(cls_vol, civetLabels=TRUE)
-	
-	# store elements into named vector
-	cls_vec <- numeric(3)
-	names(cls_vec) <- c("csf", "gm", "wm")
-	cls_vec["csf"] <- sum(clsX$csf)
-	cls_vec["gm"] <- sum(clsX$gm)
-	cls_vec["wm"] <- sum(clsX$wm)
-	
-	return(cls_vec)
+  # get classify volume name
+  filename <- civet.getFilenameClassify(scanID, baseDir)
+  cls_vol <- mincGetVolume(filename)
+
+  # explode classify into components
+  clsX <- volume.explodeLabelVolume(cls_vol, civetLabels = TRUE)
+
+  # store elements into named vector
+  cls_vec <- numeric(3)
+  names(cls_vec) <- c("csf", "gm", "wm")
+  cls_vec["csf"] <- sum(clsX$csf)
+  cls_vec["gm"] <- sum(clsX$gm)
+  cls_vec["wm"] <- sum(clsX$wm)
+
+  return(cls_vec)
 }
 
 #' @describeIn civet.computeTissueVolumes native space
 #' @export
-civet.computeNativeTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.9") {
+civet.computeNativeTissueVolumes <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9"
+) {
   #
   # check whether the Civet version has been tested
   civet.checkVersion(civetVersion)
-  
+
   # get a list of matching filenames in the classify dir, and return
   baseDir <- path.expand(baseDir)
   scanRoot <- file.path(baseDir, scanID)
-  
+
   # get vector of tissue volumes in stx space first
   cls_vec <- civet.computeStxTissueVolumes(scanID, baseDir)
-  
+
   # compute the global rescaling factor
   scaling_factor <- civet.computeNativeToStxRescalingFactor(scanID, baseDir)
-  
+
   # divide the stx volumes by the scaling factor
   cls_vec <- cls_vec / scaling_factor
-  
+
   # return
   return(cls_vec)
 }
 
 #' Compute Native to Stereotactic Rescaling Factor
-#' 
+#'
 #' Returns a single float scalar reflecting a global rescaling factor needed to
 #' transform the native image to stereotactic space.
-#' 
+#'
 #' XFM files contain information to transform a given volume to a model. In the
 #' case of Civet and rescaling, the XFM contains the rescaling factors (x,y,z)
 #' needed to transform the Native volume to the model, which currently, is
 #' usually the symmetrical icbm-152 model.
-#' 
+#'
 #' This functuon serves to compute a global rescaling factor by reading the
 #' individual x,y,z rescales from the linear XFM, and returning the product.
-#' 
-#' Interpretation of rescaling factors: 
-#' \itemize{ 
-#' \item{rescale > 1.0 The native brain is \emph{expanded} to fit model} 
+#'
+#' Interpretation of rescaling factors:
+#' \itemize{
+#' \item{rescale > 1.0 The native brain is \emph{expanded} to fit model}
 #' \item{rescale < 1.0 The native brain is \emph{reduced} to fit model}
 #' }
-#' 
+#'
 #' @param scanID A string specifying the unique scan-id (and thus
 #' sub-directory) within the Civet root output directory.
 #' @param baseDir A string specifying the Civet root output directory.  This
@@ -1464,52 +2025,56 @@ civet.computeNativeTissueVolumes <- function(scanID, baseDir, civetVersion="1.1.
 #' @examples
 #' \dontrun{
 #' library(RMINC)
-#' 
+#'
 #' # set Civet root path and scan-identifier
 #' basePath <- "~/tmp/ADNI/civet/pipeOut"
 #' scanID = "0221-M-AD"
-#' 
+#'
 #' # compute the global rescaling factor
 #' rescale <- civet.computeNativeToStxRescalingFactor(scanID, basePath)
 #' print(rescale)
 #' }
 #' @export
-civet.computeNativeToStxRescalingFactor <- function(scanID, baseDir, civetVersion="1.1.9") {
-	#
-	# check whether the Civet version has been tested
-	civet.checkVersion(civetVersion)
-	
-	# read linear xfm file
-	xfmFilename <- civet.getFilenameLinearTransform(scanID, baseDir)
-	xfm.df <- rminc.readLinearXfmFile(xfmFilename)
-	
-	# compute global linear scaling factor
-	scaling_factor <- prod(xfm.df["scale",])
-	
-	# return
-	return(scaling_factor)
+civet.computeNativeToStxRescalingFactor <- function(
+  scanID,
+  baseDir,
+  civetVersion = "1.1.9"
+) {
+  #
+  # check whether the Civet version has been tested
+  civet.checkVersion(civetVersion)
+
+  # read linear xfm file
+  xfmFilename <- civet.getFilenameLinearTransform(scanID, baseDir)
+  xfm.df <- rminc.readLinearXfmFile(xfmFilename)
+
+  # compute global linear scaling factor
+  scaling_factor <- prod(xfm.df["scale", ])
+
+  # return
+  return(scaling_factor)
 }
 
 
 #' Create a brain view file
-#' 
+#'
 #' Creates a text file that can be loaded into brain-view2
-#' 
+#'
 #' @param dataFile Either the name of a file with atlas labeling or an R array with atlas labeling
 #' @param atlasFile Text file with map between atlas labels and numbers
 #' @param atlasVertices Text file with map between vertex points and atlas numbers
-#' @param outputFileName path to file where output will be saved 
+#' @param outputFileName path to file where output will be saved
 #' @param civetVersion Version of CIVET used (Default 1.1.12)
 #' @details
-#' This function will create a txt file that can be loaded into brain-view2, in order to 
-#' visualize the results from CIVET. This function either accepts a text file or R variable as input. 
-#' If using an R variable the rows/columns must be labeled with the Atlas Names. 
-#' The names are then matched to numbers as given by the AtlasFile, and then the numbers are 
-#' matched to vertices in the AtlasVertexFile. 
+#' This function will create a txt file that can be loaded into brain-view2, in order to
+#' visualize the results from CIVET. This function either accepts a text file or R variable as input.
+#' If using an R variable the rows/columns must be labeled with the Atlas Names.
+#' The names are then matched to numbers as given by the AtlasFile, and then the numbers are
+#' matched to vertices in the AtlasVertexFile.
 #' @examples
 #' \dontrun{
-#' gf = read.csv("~/SubjectTable.csv") 
-#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET", TRUE, "1.1.12") 
+#' gf = read.csv("~/SubjectTable.csv")
+#' civet.getAllFilenames(gf,"ID","ABC123","~/CIVET", TRUE, "1.1.12")
 #' gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
 #' civet.CreateBrainViewFile(gf$lobeThickness[1,],
 #'                           "/Atlases/AAL/AAL.csv",
@@ -1517,36 +2082,51 @@ civet.computeNativeToStxRescalingFactor <- function(scanID, baseDir, civetVersio
 #'                           "leftLobeThickness.txt")
 #' }
 #' @export
-civet.CreateBrainViewFile = function(dataFile,atlasFile,atlasVertices,outputFileName,civetVersion="1.1.12") {
+civet.CreateBrainViewFile = function(
+  dataFile,
+  atlasFile,
+  atlasVertices,
+  outputFileName,
+  civetVersion = "1.1.12"
+) {
+  vertices = read.csv(atlasVertices, header = FALSE)
+  AALAtlas = read.csv(atlasFile)
+  reducedVertices = vertices[1:40962, 1]
+  roiObj = rep(0, length(reducedVertices))
 
-vertices = read.csv(atlasVertices,header=FALSE)
-AALAtlas = read.csv(atlasFile)
-reducedVertices = vertices[1:40962,1]
-roiObj =  rep(0,length(reducedVertices))
-
-#Input is a string specifying a file
-if(is.character(dataFile))
-
-{
-	dataTable = read.table(dataFile)
-	for (j in 1:dim(dataTable)[1])
-	{
-		reducedVerticesIndices = which(reducedVertices == dataTable[j,1],arr.ind=FALSE)
-		roiObj[reducedVerticesIndices] = dataTable[j,2]
-	}
-}
-
-#Input is a variablepmatch(names(dataFile[j],AALAtlas[,3])
-else
-{
-	for (j in 1:length(dataFile))
-	{
-		atlasIndex = pmatch(names(dataFile[j]),AALAtlas[,3])
-		reducedVerticesIndices = which(reducedVertices == AALAtlas[atlasIndex,1],arr.ind=FALSE)
-		roiObj[reducedVerticesIndices] = dataFile[j]
-	}
-}
-write.table(roiObj,outputFileName,FALSE,TRUE," ","\n","NA",".",FALSE,FALSE)
+  #Input is a string specifying a file
+  if (is.character(dataFile)) {
+    dataTable = read.table(dataFile)
+    for (j in 1:dim(dataTable)[1]) {
+      reducedVerticesIndices = which(
+        reducedVertices == dataTable[j, 1],
+        arr.ind = FALSE
+      )
+      roiObj[reducedVerticesIndices] = dataTable[j, 2]
+    }
+  } else {
+    #Input is a variablepmatch(names(dataFile[j],AALAtlas[,3])
+    for (j in 1:length(dataFile)) {
+      atlasIndex = pmatch(names(dataFile[j]), AALAtlas[, 3])
+      reducedVerticesIndices = which(
+        reducedVertices == AALAtlas[atlasIndex, 1],
+        arr.ind = FALSE
+      )
+      roiObj[reducedVerticesIndices] = dataFile[j]
+    }
+  }
+  write.table(
+    roiObj,
+    outputFileName,
+    FALSE,
+    TRUE,
+    " ",
+    "\n",
+    "NA",
+    ".",
+    FALSE,
+    FALSE
+  )
 }
 
 #' @description Create a brainview file of a specific ROI
@@ -1554,13 +2134,13 @@ write.table(roiObj,outputFileName,FALSE,TRUE," ","\n","NA",".",FALSE,FALSE)
 #' @param atlasFile File with Atlas label (string-label(int)) mappings
 #' @param atlasVertices File with vertex label(int) mappings
 #' @param region Region to plot -> Must match name in atlas file exactly
-#' @param civetVersion Version of CIVET 
+#' @param civetVersion Version of CIVET
 #' @details Create a .txt file that can be overlaid unto the model template (usually in the CIVET models directory)
 #' Currently only CIVET version 1.1.12 is supported.
 #' @seealso civet.CreateBrainViewFile
 #' @examples
 #' \dontrun{
-#' getRMINCTestData() 
+#' getRMINCTestData()
 #' civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv",
 #'                          "/tmp/rminctestdata/AAL_atlas_left.txt",
 #'                          "Left Insula")
@@ -1569,28 +2149,49 @@ write.table(roiObj,outputFileName,FALSE,TRUE," ","\n","NA",".",FALSE,FALSE)
 #' #brain-view2 $CIVET_DIR/models/surf_reg_model_left.obj ./LeftInsula.txt
 #' }
 #' @export
-civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion="1.1.12") {
-	
-	if ( civetVersion != "1.1.12" ) {
-		warning(sprintf("This function has not been tested with Civet version %s. Use at your own risk.", civetVersion), immediate.=TRUE)
-	}
+civet.CreateBrainViewROI <- function(
+  atlasFile,
+  atlasVertices,
+  region,
+  civetVersion = "1.1.12"
+) {
+  if (civetVersion != "1.1.12") {
+    warning(
+      sprintf(
+        "This function has not been tested with Civet version %s. Use at your own risk.",
+        civetVersion
+      ),
+      immediate. = TRUE
+    )
+  }
 
-	vertices = read.csv(atlasVertices,header=FALSE)
-	AALAtlas = read.csv(atlasFile)
-	reducedVertices = vertices[1:40962,1]
-	roiObj =  rep(0,length(reducedVertices))
-	
-	# Find index of ROI
-	roiIndex <- which(AALAtlas[,3] == region)
-	
-	# Match against label
-	roiLabel <- which(reducedVertices == AALAtlas[roiIndex,1],arr.ind=FALSE)
-	
-	# Fill in label
-	roiObj[roiLabel] = 1
+  vertices = read.csv(atlasVertices, header = FALSE)
+  AALAtlas = read.csv(atlasFile)
+  reducedVertices = vertices[1:40962, 1]
+  roiObj = rep(0, length(reducedVertices))
 
-	# Write out (remove spaces)
-	write.table(roiObj,gsub(" ","",paste(region,".txt",sep="")),FALSE,TRUE,"","\n","NA",".",FALSE,FALSE)
+  # Find index of ROI
+  roiIndex <- which(AALAtlas[, 3] == region)
+
+  # Match against label
+  roiLabel <- which(reducedVertices == AALAtlas[roiIndex, 1], arr.ind = FALSE)
+
+  # Fill in label
+  roiObj[roiLabel] = 1
+
+  # Write out (remove spaces)
+  write.table(
+    roiObj,
+    gsub(" ", "", paste(region, ".txt", sep = "")),
+    FALSE,
+    TRUE,
+    "",
+    "\n",
+    "NA",
+    ".",
+    FALSE,
+    FALSE
+  )
 }
 
 #'@title Flatten CIVET results for dplyr
@@ -1606,76 +2207,80 @@ civet.CreateBrainViewROI <- function(atlasFile,atlasVertices,region,civetVersion
 #'with dplyr
 #'@return data.frame containing results of \link{civet.readAllCivetFiles}, all sub-data.frames
 #'and matrices are expanded, non-standard characters in column names are replaced with underscores,
-#'and a prefix denoting the origin sub-data is given.  
+#'and a prefix denoting the origin sub-data is given.
 #'@export
 civet.flattenForDplyr <-
-  function(civetResults, columnsToKeep){
-    
-    cleanAndPrefixColNames <- 
-      function(mat){
+  function(civetResults, columnsToKeep) {
+    cleanAndPrefixColNames <-
+      function(mat) {
         matrixName <- deparse(substitute(mat))
-        colnames(mat) %>% 
+        colnames(mat) %>%
           gsub("[ [:punct:]]+", "_", .) %>%
           gsub("^_|_$", "", .) %>%
           paste(matrixName, ., sep = "_")
       }
-    
-    normalized_frame <- civetResults[ , columnsToKeep, drop = FALSE]
-    
+
+    normalized_frame <- civetResults[, columnsToKeep, drop = FALSE]
+
     lobeArea40mm <- civetResults$lobeArea40mm
     colnames(lobeArea40mm) <- cleanAndPrefixColNames(lobeArea40mm)
     lobeArea40mm <- lobeArea40mm %>% as.data.frame
 
-    
     lobeThickness <- civetResults$lobeThickness
     colnames(lobeThickness) <- cleanAndPrefixColNames(lobeThickness)
     lobeThickness <- lobeThickness %>% as.data.frame
-    
+
     lobeVolume <- civetResults$lobeVolume
     colnames(lobeVolume) <- cleanAndPrefixColNames(lobeVolume)
     lobeVolume <- lobeVolume %>% as.data.frame
-    
+
     GI <- civetResults$GI
     colnames(GI) <- cleanAndPrefixColNames(GI)
     GI <- GI %>% as.data.frame
-    
+
     BrainVolume <- civetResults$BrainVolume
     colnames(BrainVolume) <- cleanAndPrefixColNames(BrainVolume)
     BrainVolume <- BrainVolume %>% as.data.frame
-    
+
     midSurfaceNativeArea <- civetResults$midSurfaceNativeArea
-    midSurfaceNativeArea <- 
-      lapply(1:nrow(midSurfaceNativeArea), function(i) midSurfaceNativeArea[i,])
-    
+    midSurfaceNativeArea <-
+      lapply(1:nrow(midSurfaceNativeArea), function(i) {
+        midSurfaceNativeArea[i, ]
+      })
+
     surfaceNativeVolume <- civetResults$SurfaceNativeVolume
     surfaceNativeVolume <-
-      lapply(1:nrow(surfaceNativeVolume), function(i) surfaceNativeVolume[i,])
-    
+      lapply(1:nrow(surfaceNativeVolume), function(i) surfaceNativeVolume[i, ])
+
     nativeRMS_RSLtlink20mm <- civetResults$nativeRMS_RSLtlink20mm
     nativeRMS_RSLtlink20mm <-
-      lapply(1:nrow(nativeRMS_RSLtlink20mm), function(i) nativeRMS_RSLtlink20mm[i,])
-    
+      lapply(1:nrow(nativeRMS_RSLtlink20mm), function(i) {
+        nativeRMS_RSLtlink20mm[i, ]
+      })
+
     nativeRMStlink20mm <- civetResults$nativeRMStlink20mm
     nativeRMStlink20mm <-
-      lapply(1:nrow(nativeRMStlink20mm), function(i) nativeRMStlink20mm[i,])
-    
+      lapply(1:nrow(nativeRMStlink20mm), function(i) nativeRMStlink20mm[i, ])
+
     normalized_frame <-
       normalized_frame %>%
       bind_cols(lobeArea40mm, lobeVolume, lobeThickness, GI, BrainVolume) %>%
-      mutate(midSurfaceNativeArea = midSurfaceNativeArea
-             , surfaceNativeVolume = surfaceNativeVolume
-             , nativeRMS_RSLtlink20mm = nativeRMS_RSLtlink20mm
-             , nativeRMStlink20mm = nativeRMStlink20mm)
-      #mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
-    
+      mutate(
+        midSurfaceNativeArea = midSurfaceNativeArea,
+        surfaceNativeVolume = surfaceNativeVolume,
+        nativeRMS_RSLtlink20mm = nativeRMS_RSLtlink20mm,
+        nativeRMStlink20mm = nativeRMStlink20mm
+      )
+    #mutate(midSurfaceNativeArea, nativeRMS_RSLtlink20mm, nativeRMStlink20mm)
+
     normalized_frame
   }
 
 #' Read CIVET QC data
-#' 
+#'
 #' After running the CIVET quality control pipeline, import the results
-#' 
-#' @param dir The CIVET QC directory, or vector of directories 
+#'
+#' @param dir The CIVET QC directory, or vector of directories
 #' @param civetVersion the version of CIVET used, currently only supports
 #' 1.1.12, 2.0.0, 2.1.0
 #' @return A table of QC results including whether or not the subjects passed
@@ -1683,161 +2288,198 @@ civet.flattenForDplyr <-
 #' for more details.
 #' @export
 civet.readQC <-
-  function(dir, civetVersion="1.1.12"){
-    
-    if(!civetVersion %in% c("1.1.12", "2.0.0", "2.1.0")){
-      warning("Unsure how to deal with QC results for civet version: ", civetVersion,
-              "\n trying 1.1.12 approach")
+  function(dir, civetVersion = "1.1.12") {
+    if (!civetVersion %in% c("1.1.12", "2.0.0", "2.1.0")) {
+      warning(
+        "Unsure how to deal with QC results for civet version: ",
+        civetVersion,
+        "\n trying 1.1.12 approach"
+      )
     }
-    
+
     qc_gatherer <-
-      switch(civetVersion
-             , "2.0.0" = civet_qc_2_0_0
-             , "2.1.0" = civet_qc_2_1_0
-             , civet_qc_1_1_12)
-    
+      switch(
+        civetVersion,
+        "2.0.0" = civet_qc_2_0_0,
+        "2.1.0" = civet_qc_2_1_0,
+        civet_qc_1_1_12
+      )
+
     map_df(dir, qc_gatherer)
   }
 
-civet_qc_1_1_12 <- 
-  function(dir){
-    qc_file <- 
+civet_qc_1_1_12 <-
+  function(dir) {
+    qc_file <-
       list.files(dir, full.names = TRUE) %>%
       grep("\\.glm", ., value = TRUE)
-    
-    if(length(qc_file) == 0) stop("No QC data found")
-    if(length(qc_file) > 1) stop("More than one results table found, aborting")
-    
-    
-    
-    qc_res <- 
-      read.table(qc_file, stringsAsFactors = FALSE)[,1:24] %>%
-      setNames(c("ID", "x-step", "y-step", "z-step", "StxMaskErr", "CSFcls", 
-                 "GMcls", "WMcls", "GMCortical", "WMsurf", "GMsurf", "SRLeft", 
-                 "SRRight", "SSLeft", "SSRight", "MeanCTLeft", "MeanCTRight", 
-                 "MeanWM-T1", "StdDevWM-T1", "MeanGM-T1", "StdDevGM-T1", "GIleft", 
-                 "GIright", "GIfull")) %>%
+
+    if (length(qc_file) == 0) {
+      stop("No QC data found")
+    }
+    if (length(qc_file) > 1) {
+      stop("More than one results table found, aborting")
+    }
+
+    qc_res <-
+      read.table(qc_file, stringsAsFactors = FALSE)[, 1:24] %>%
+      setNames(c(
+        "ID",
+        "x-step",
+        "y-step",
+        "z-step",
+        "StxMaskErr",
+        "CSFcls",
+        "GMcls",
+        "WMcls",
+        "GMCortical",
+        "WMsurf",
+        "GMsurf",
+        "SRLeft",
+        "SRRight",
+        "SSLeft",
+        "SSRight",
+        "MeanCTLeft",
+        "MeanCTRight",
+        "MeanWM-T1",
+        "StdDevWM-T1",
+        "MeanGM-T1",
+        "StdDevGM-T1",
+        "GIleft",
+        "GIright",
+        "GIfull"
+      )) %>%
       mutate(
-        CSFcls_score   = ifelse(between(.data$CSFcls, 15, 80), "good", "med"),
-        GMcls_score    = ifelse(between(.data$GMcls, 15, 80), "good", "med"),
-        WMcls_score    = ifelse(between(.data$WMcls, 15, 80), "good", "med"),
-        WMsurf_score   = rate_cutoffs(.data$WMsurf, 10, 20),
-        GMsurf_score   = rate_cutoffs(.data$GMsurf, 10, 20),
-        SRLeft_score   = rate_cutoffs(.data$SRLeft, 250, 500),
-        SRRight_score  = rate_cutoffs(.data$SRRight, 250, 500),
-        SSLeft_score   = rate_cutoffs(.data$SSLeft, 250, 500),
-        SSRight_score  = rate_cutoffs(.data$SSRight, 250, 500)
+        CSFcls_score = ifelse(between(.data$CSFcls, 15, 80), "good", "med"),
+        GMcls_score = ifelse(between(.data$GMcls, 15, 80), "good", "med"),
+        WMcls_score = ifelse(between(.data$WMcls, 15, 80), "good", "med"),
+        WMsurf_score = rate_cutoffs(.data$WMsurf, 10, 20),
+        GMsurf_score = rate_cutoffs(.data$GMsurf, 10, 20),
+        SRLeft_score = rate_cutoffs(.data$SRLeft, 250, 500),
+        SRRight_score = rate_cutoffs(.data$SRRight, 250, 500),
+        SSLeft_score = rate_cutoffs(.data$SSLeft, 250, 500),
+        SSRight_score = rate_cutoffs(.data$SSRight, 250, 500)
       ) %>%
       cbind(
-        rowwise(.) %>% 
-          do(QC_PASS = 
-               as_data_frame(.) %>%
-               select(matches("_score")) %>% 
-               unlist %>%
-               `!=`("bad") %>%
-               all) %>%
+        rowwise(.) %>%
+          do(
+            QC_PASS = as_data_frame(.) %>%
+              select(matches("_score")) %>%
+              unlist %>%
+              `!=`("bad") %>%
+              all
+          ) %>%
           mutate(QC_PASS = unlist(.$dataQC_PASS))
       )
   }
 
 ## CIVET QC helpers
-rate_cutoffs <- 
-  function(x, med, bad){
-    case_when(x > bad ~ "bad"
-              , x > med ~ "medium"
-              , TRUE ~ "good")
+rate_cutoffs <-
+  function(x, med, bad) {
+    case_when(x > bad ~ "bad", x > med ~ "medium", TRUE ~ "good")
   }
 
 rate_symmetric <-
-  function(x){
+  function(x) {
     abs_diff_score <- abs(x - median(x)) / sd(x)
     rate_cutoffs(abs_diff_score, 2, 3)
   }
 
 rate_one_sided <-
-  function(x){
+  function(x) {
     diff_score <- (x - median(x)) / sd(x)
     rate_cutoffs(diff_score, 2, 3)
   }
 
 
-civet_qc_2_0_0 <- 
-  function(dir){
-    
-    qc_file <- 
+civet_qc_2_0_0 <-
+  function(dir) {
+    qc_file <-
       list.files(dir, full.names = TRUE) %>%
       grep("civet.*\\.csv", ., value = TRUE)
-    
-    if(length(qc_file) == 0) stop("No QC data found")
-    if(length(qc_file) > 1) stop("More than one results table found, aborting")
-  
-    
-    qc_res <- 
+
+    if (length(qc_file) == 0) {
+      stop("No QC data found")
+    }
+    if (length(qc_file) > 1) {
+      stop("More than one results table found, aborting")
+    }
+
+    qc_res <-
       read.csv(qc_file, stringsAsFactors = FALSE, skip = 1, header = FALSE) %>%
-      .[,1:23] %>%
+      .[, 1:23] %>%
       setNames(readLines(qc_file, n = 1) %>% strsplit(., ",") %>% first)
 
     qc_res %>%
-      mutate(mask_score     = rate_one_sided(.data$MASK_ERROR)
-           , CSFcls_score   = rate_symmetric(.data$CSF_PERCENT)
-           , GMcls_score    = rate_symmetric(.data$GM_PERCENT)
-           , WMcls_score    = rate_symmetric(.data$WM_PERCENT)
-           , SRLeft_score   = rate_cutoffs(.data$LEFT_INTER, 50, 100)
-           , SRRight_score  = rate_cutoffs(.data$RIGHT_INTER, 50, 100)
-           , SSLeft_score   = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100)
-           , SSRight_score  = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
+      mutate(
+        mask_score = rate_one_sided(.data$MASK_ERROR),
+        CSFcls_score = rate_symmetric(.data$CSF_PERCENT),
+        GMcls_score = rate_symmetric(.data$GM_PERCENT),
+        WMcls_score = rate_symmetric(.data$WM_PERCENT),
+        SRLeft_score = rate_cutoffs(.data$LEFT_INTER, 50, 100),
+        SRRight_score = rate_cutoffs(.data$RIGHT_INTER, 50, 100),
+        SSLeft_score = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100),
+        SSRight_score = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
       ) %>%
       cbind(
         rowwise(.) %>%
-          do(QC_PASS =
-               as_data_frame(.) %>%
-               select(matches("_score")) %>%
-               unlist %>%
-               `!=`("bad") %>%
-               all) %>%
+          do(
+            QC_PASS = as_data_frame(.) %>%
+              select(matches("_score")) %>%
+              unlist %>%
+              `!=`("bad") %>%
+              all
+          ) %>%
           mutate(QC_PASS = unlist(.data$QC_PASS))
       )
-  }     
+  }
 
-civet_qc_2_1_0 <- 
-  function(dir){
-
-    qc_file <- 
+civet_qc_2_1_0 <-
+  function(dir) {
+    qc_file <-
       list.files(dir, full.names = TRUE) %>%
       grep("civet.*\\.csv", ., value = TRUE)
-    
-    if(length(qc_file) == 0) stop("No QC data found")
-    if(length(qc_file) > 1) stop("More than one results table found, aborting")
-    
+
+    if (length(qc_file) == 0) {
+      stop("No QC data found")
+    }
+    if (length(qc_file) > 1) {
+      stop("More than one results table found, aborting")
+    }
+
     rate_by_sd <-
-      function(x){
+      function(x) {
         abs_z_score <- abs(scale(x))
-        case_when(abs_z_score > 2 ~ "bad"
-                  , abs_z_score > 1 ~ "medium"
-                  , TRUE ~ "good")
+        case_when(
+          abs_z_score > 2 ~ "bad",
+          abs_z_score > 1 ~ "medium",
+          TRUE ~ "good"
+        )
       }
-    
-    qc_res <- 
+
+    qc_res <-
       read.csv(qc_file, stringsAsFactors = FALSE)
-    
+
     qc_res %>%
-      mutate(mask_score     = rate_one_sided(.data$MASK_ERROR)
-           , CSFcls_score   = rate_symmetric(.data$CSF_PERCENT)
-           , GMcls_score    = rate_symmetric(.data$GM_PERCENT)
-           , WMcls_score    = rate_symmetric(.data$WM_PERCENT)
-           , SRLeft_score   = rate_cutoffs(.data$LEFT_INTER, 50, 100)
-           , SRRight_score  = rate_cutoffs(.data$RIGHT_INTER, 50, 100)
-           , SSLeft_score   = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100)
-           , SSRight_score  = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
+      mutate(
+        mask_score = rate_one_sided(.data$MASK_ERROR),
+        CSFcls_score = rate_symmetric(.data$CSF_PERCENT),
+        GMcls_score = rate_symmetric(.data$GM_PERCENT),
+        WMcls_score = rate_symmetric(.data$WM_PERCENT),
+        SRLeft_score = rate_cutoffs(.data$LEFT_INTER, 50, 100),
+        SRRight_score = rate_cutoffs(.data$RIGHT_INTER, 50, 100),
+        SSLeft_score = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100),
+        SSRight_score = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
       ) %>%
       cbind(
         rowwise(.) %>%
-          do(QC_PASS =
-               as_data_frame(.) %>%
-               select(matches("_score")) %>%
-               unlist %>%
-               `!=`("bad") %>%
-               all) %>%
+          do(
+            QC_PASS = as_data_frame(.) %>%
+              select(matches("_score")) %>%
+              unlist %>%
+              `!=`("bad") %>%
+              all
+          ) %>%
           mutate(QC_PASS = unlist(.data$QC_PASS))
       )
   }

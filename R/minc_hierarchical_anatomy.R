@@ -11,14 +11,15 @@
 #' labelVol <- mincArray(mincGetVolume("some-labels.mnc"))
 #' hLm <- hanatLm(~Sex, gfBasic, vols)
 #' statsvol <- hanatToVolume(hLm, labelVol, "F.statistic")
-#' mincPlotSliceSeries(anatVol, statsvol, anatLow = 700, anatHigh = 1400, 
+#' mincPlotSliceSeries(anatVol, statsvol, anatLow = 700, anatHigh = 1400,
 #'   low=1, high=10, symmetric = F, begin=50, end=-50)
 #' }
 hanatToVolume <- function(anatTree, labelVolume, column) {
-  if(is.null(getElement(anatTree, column)))
+  if (is.null(getElement(anatTree, column))) {
     stop(column, " doesn't seem to be in your anatomy tree")
-  
-  out <- array(0, dim=dim(labelVolume))
+  }
+
+  out <- array(0, dim = dim(labelVolume))
   labels <- c()
   values <- c()
   nodeList <- Traverse(anatTree, filterFun = isLeaf)
@@ -28,32 +29,31 @@ hanatToVolume <- function(anatTree, labelVolume, column) {
     values <- c(values, rep(nodeList[[i]][[column]], nlabels))
   }
   if (is.numeric(values)) {
-    out <- array(0, dim=dim(labelVolume))
+    out <- array(0, dim = dim(labelVolume))
     replaceValues(labelVolume, out, labels, values)
-  }
-  else if (is.character(values)) {
+  } else if (is.character(values)) {
     labels <- c(labels, 0)
     values <- c(values, NA)
-    out <- array("", dim=dim(labelVolume))
+    out <- array("", dim = dim(labelVolume))
     replaceColours(labelVolume, out, labels, values)
   }
   return(out)
 }
 
 #' linear model applied to every item in an anatomical tree
-#' 
+#'
 #' See \link{anatLm} for more detail
-#' 
+#'
 #' @param formula The model formula
 #' @param data The data frame containing the right side of the formula
 #' @param anatTree The anatomical tree
-#'   
+#'
 #' @return The anatomical tree with the model information added
 #' @export
-#' 
+#'
 #' @details The volumes inside the anatomical hierarchy and the data must be of
 #'   the same length and ordering.
-#'   
+#'
 #' @examples \dontrun{
 #' vols <- addVolumesToHierarchy(hdefs, allvols)
 #' hLm <- hanatLm(~Sex, gf, vols)
@@ -67,24 +67,24 @@ hanatLm <- function(formula, data, anatTree) {
   modelled <- anatLm(formula, data, volTable)
   # and return the model table back to the tree
   modelToTree(modelled, modelTree)
-  
+
   return(modelTree)
 }
 
 #' ANOVA applied to every item in an anatomical tree
-#' 
+#'
 #' See \link{anatAnova} for more detail
-#' 
+#'
 #' @param formula The model formula
 #' @param data The data frame containing the right side of the formula
 #' @param anatTree The anatomical tree
-#'   
+#'
 #' @return The anatomical tree with the model information added
 #' @export
-#' 
+#'
 #' @details The volumes inside the anatomical hierarchy and the data must be of
 #'   the same length and ordering.
-#'   
+#'
 #' @examples \dontrun{
 #' vols <- addVolumesToHierarchy(hdefs, allvols)
 #' hLm <- hanatAnova(~Sex, gf, vols)
@@ -98,12 +98,12 @@ hanatAnova <- function(formula, data, anatTree) {
   modelled <- anatAnova(formula, data, volTable)
   # and return the model table back to the tree
   modelToTree(modelled, modelTree)
-  
+
   return(modelTree)
 }
 
 #' linear mixed effects model applied to every item in an anatomical tree
-#' 
+#'
 #' See \link{anatLmer} for more detail
 #'
 #' @param formula The model formula
@@ -113,7 +113,7 @@ hanatAnova <- function(formula, data, anatTree) {
 #'
 #' @return The anatomical tree with the model information added
 #' @export
-#' 
+#'
 #' @details The volumes inside the anatomical hierarchy and the data must be of
 #'   the same length and ordering.
 #'
@@ -130,18 +130,18 @@ hanatLmer <- function(formula, data, anatTree, ...) {
   modelled <- anatLmer(formula, data, volTable, ...)
   # and return the model table back to the tree
   modelToTree(modelled, modelTree)
-  
+
   return(modelTree)
 }
 
 modelToTree <- function(modelled, modelTree) {
   nodeList <- Traverse(modelTree)
-  for (i in 1:length(nodeList)) { 
+  for (i in 1:length(nodeList)) {
     for (n in colnames(modelled)) {
       nn <- gsub('-', '.', n) # the $ accessor does not play nicely with dashes
-      nodeList[[i]][[nn]] <- modelled[i,n]
+      nodeList[[i]][[nn]] <- modelled[i, n]
     }
-    nodeList[[i]]$model <- modelled[i,]
+    nodeList[[i]]$model <- modelled[i, ]
   }
   # copy attributes
   modelTree <- copyExtraAttributes(modelled, modelTree)
@@ -154,8 +154,7 @@ copyExtraAttributes <- function(source, target) {
   for (n in names(sourceAttributes)) {
     if (n %in% c("dim", "dimnames", "class")) {
       attr(target, paste0("original", n)) <- attr(source, n)
-    }
-    else {
+    } else {
       attr(target, n) <- attr(source, n)
     }
   }
@@ -163,18 +162,18 @@ copyExtraAttributes <- function(source, target) {
 }
 
 #' Compute the False Discovery Rate for an anatomical hierarchy
-#' 
+#'
 #' @param buffer What to compute FDR on
-#'   
+#'
 #' @return the anatomical hierarchy with FDR added (see details)
 #' @export
-#' 
+#'
 #' @details Uses the Benjamini & Yekutieli (2001) algorithm for computing FDR to
-#'   account for dependence (which is obviously present in a hierarchy where 
+#'   account for dependence (which is obviously present in a hierarchy where
 #'   parent values are directly derived from their children).
-#'   
+#'
 #'   Stores the values using the same name as the incoming statistic but with a
-#'   q prepended. I.e. tvalue.Sexmale becomes qtvalue.Sexmale. Note that the original, 
+#'   q prepended. I.e. tvalue.Sexmale becomes qtvalue.Sexmale. Note that the original,
 #'   input, is modified with these new additions as well.
 #' @examples \dontrun{
 #' vols <- addVolumesToHierarchy(hdefs, allvols)
@@ -186,22 +185,21 @@ hanatFDR <- function(buffer) {
   modelData <- buffer$Get("model")
   if (is.null(dim(modelData))) {
     dim(modelData) <- c(length(modelData), 1)
-  }
-  else {
+  } else {
     modelData <- t(modelData)
   }
   modelData <- copyExtraAttributes(buffer, modelData)
   dimnames(modelData) <- attr(buffer, "modelDimnames")
   class(modelData) <- attr(buffer, "modelClass")
-  aFDR <- anatFDR(modelData, method="BY")
-  
+  aFDR <- anatFDR(modelData, method = "BY")
+
   nodeList <- Traverse(buffer)
-  for (i in 1:length(nodeList)) { 
+  for (i in 1:length(nodeList)) {
     for (n in colnames(aFDR)) {
-      nn <- paste0("q", gsub('-', '.', n)) 
-      nodeList[[i]][[nn]] <- aFDR[i,n]
+      nn <- paste0("q", gsub('-', '.', n))
+      nodeList[[i]][[nn]] <- aFDR[i, n]
     }
-    nodeList[[i]]$aFDR <- aFDR[i,]
+    nodeList[[i]]$aFDR <- aFDR[i, ]
   }
   attr(buffer, "thresholds") <- attr(aFDR, "thresholds")
   class(buffer) <- c(class(buffer), "mincQvals")
@@ -209,7 +207,7 @@ hanatFDR <- function(buffer) {
 }
 
 #' Estimates degrees of freedom
-#' 
+#'
 #' see \link{anatLmerEstimateDF}
 #'
 #' @param buffer input hierarchical tree
@@ -217,7 +215,7 @@ hanatFDR <- function(buffer) {
 #'
 #' @return input tree with df added
 #' @export
-#' 
+#'
 #' @details The volumes inside the anatomical hierarchy and the data must be of
 #'   the same length and ordering.
 #'
@@ -228,42 +226,41 @@ hanatFDR <- function(buffer) {
 #' hLm <- hanatFDR(hLm)
 #' thresholds(hLm)
 #' }
-hanatLmerEstimateDF <- function(buffer, n=50) {
+hanatLmerEstimateDF <- function(buffer, n = 50) {
   modelData <- buffer$Get("model")
   if (is.null(dim(modelData))) {
     dim(modelData) <- c(length(modelData), 1)
-  }
-  else {
+  } else {
     modelData <- t(modelData)
   }
   modelData <- copyExtraAttributes(buffer, modelData)
   dimnames(modelData) <- attr(buffer, "modelDimnames")
   class(modelData) <- attr(buffer, "modelClass")
-  modelData <- anatLmerEstimateDF(modelData, n=n)
+  modelData <- anatLmerEstimateDF(modelData, n = n)
   attr(buffer, "df") <- attr(modelData, "df")
   return(buffer)
 }
 
 #' Add volumes to an anatomical hierarchy
-#' 
+#'
 #' Takes a tree of anatomical hierarchies and adds volumes from
 #' \link{anatGetAll}
-#' 
+#'
 #' @param hdefs The anatomical hierarchy
 #' @param volumes The matrix of volumes
-#'   
+#'
 #' @return The input anatomical hierarchy with volumes added
 #' @export
-#' 
-#' @details Each node in the tree has two new attributes: 
+#'
+#' @details Each node in the tree has two new attributes:
 #' \itemize{
 #' \item{volumes -}{ The matrix of volumes}
 #' \item{meanVolume -}{ The mean of the volumes of that node}
 #' }
-#' 
+#'
 #' Currently propagates volumes up the tree by summing. Future versions
 #'   will add propagating through weighted means or other functions
-#'   
+#'
 #' @examples \dontrun{
 #' abijson <- "allen.json"
 #' defs <- "Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv"
@@ -271,19 +268,25 @@ hanatLmerEstimateDF <- function(buffer, n=50) {
 #' allvols <- anatGetAll(gf$filenames)
 #' hanat <- addVolumesToHierarchy(hdefs, allvols)
 #' }
-addVolumesToHierarchy <- function(hdefs, volumes){
+addVolumesToHierarchy <- function(hdefs, volumes) {
   #If hdefs$leafCount > regions in volumes, aggregation will fail as rowSums() is called on NULL volumes
-  if (hdefs$leafCount > dim(volumes)[[2]]){
-    stop("Your hierarchical definitions contain more leaves than regions in your volumes.\n",
-         "Consider pruning your hierarchy of subtrees that do not exist in your volumes.")
+  if (hdefs$leafCount > dim(volumes)[[2]]) {
+    stop(
+      "Your hierarchical definitions contain more leaves than regions in your volumes.\n",
+      "Consider pruning your hierarchy of subtrees that do not exist in your volumes."
+    )
   }
-  if (hdefs$leafCount < dim(volumes)[[2]]){
-    stop("Your hierarchical definitions contain fewer leaves than regions in your volumes.\n",
-         "Are you using the correct atlas labels?")
+  if (hdefs$leafCount < dim(volumes)[[2]]) {
+    stop(
+      "Your hierarchical definitions contain fewer leaves than regions in your volumes.\n",
+      "Are you using the correct atlas labels?"
+    )
   }
   if (any(is.na(volumes))) {
-    warning("At least one anatomical region has a value of NA.\n",
-            "That region's mean volume will be NA, and all of its parents too.")
+    warning(
+      "At least one anatomical region has a value of NA.\n",
+      "That region's mean volume will be NA, and all of its parents too."
+    )
   }
   hanat <- Clone(hdefs)
   volLabels <- as.integer(attributes(volumes)$anatIDs)
@@ -294,14 +297,23 @@ addVolumesToHierarchy <- function(hdefs, volumes){
       x$meanVolume <- mean(x$volumes)
     }
   })
-  
-  hanat$Do(function(x) x$meanVolume <- Aggregate(x, "meanVolume", sum), traversal="post-order")
-  if (dim(volumes)[[1]]==1){
-    hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", sum),
-             traversal="post-order", filterFun = isNotLeaf)
+
+  hanat$Do(
+    function(x) x$meanVolume <- Aggregate(x, "meanVolume", sum),
+    traversal = "post-order"
+  )
+  if (dim(volumes)[[1]] == 1) {
+    hanat$Do(
+      function(x) x$volumes <- Aggregate(x, "volumes", sum),
+      traversal = "post-order",
+      filterFun = isNotLeaf
+    )
   } else {
-    hanat$Do(function(x) x$volumes <- Aggregate(x, "volumes", rowSums),
-           traversal="post-order", filterFun = isNotLeaf)
+    hanat$Do(
+      function(x) x$volumes <- Aggregate(x, "volumes", rowSums),
+      traversal = "post-order",
+      filterFun = isNotLeaf
+    )
   }
   return(hanat)
 }
@@ -315,15 +327,13 @@ addHierarchyToDefs <- function(defs, tree) {
     Leaf <- as.character(defs$Leaf[i])
     if (defs$ABI[i] == Leaf | defs$name[i] == Leaf) {
       endpath <- as.character(defs$name[i])
-    }
-    else {
+    } else {
       endpath <- c(Leaf, as.character(defs$name[i]))
     }
     if (defs$ABI[i] == Leaf & defs$name[i] == defs$ABI[i]) {
-      defs$pathString[i] <- paste(tmp, collapse="/")
-    }
-    else {
-      defs$pathString[i] <- paste(c(tmp, endpath), collapse="/")
+      defs$pathString[i] <- paste(tmp, collapse = "/")
+    } else {
+      defs$pathString[i] <- paste(c(tmp, endpath), collapse = "/")
     }
   }
   return(defs)
@@ -339,52 +349,66 @@ fixBranching <- function(ldefs, tree) {
     }
   }
   return(ldefs)
-
 }
 
 
 lateralizeDefs <- function(defs) {
   ldefs <- c()
-  
+
   # some places in the ABI hierarchy are not the leafs of the structures we have. Fix that.
   defs$Leaf <- as.character(defs$ABI)
   dups <- which(duplicated(defs$ABI))
   dupsAll <- which(defs$ABI %in% defs$ABI[dups])
   defs$Leaf[dupsAll] <- as.character(defs$Structure[dupsAll])
-  
+
   # and in some cases a duplicate will also have the same name in the structure column
   # as in the ABI column, so some munging is necessary
   samename <- which(as.character(defs$ABI) == as.character(defs$Structure))
   samenamedups <- samename[samename %in% dupsAll]
-  defs$Leaf[samenamedups] <- paste0(as.character(defs$Structure[samenamedups]), "-other")
-            
-  
+  defs$Leaf[samenamedups] <- paste0(
+    as.character(defs$Structure[samenamedups]),
+    "-other"
+  )
+
   for (i in 1:nrow(defs)) {
     if (defs$left.label[i] == defs$right.label[i]) {
-      ldefs <- rbind(ldefs, data.frame(Structure=defs$Structure[i],
-                                       side="both",
-                                       ABI=defs$ABI[i],
-                                       name=defs$Leaf[i],
-                                       label=defs$left.label[i],
-                                       Leaf=defs$Leaf[i]))
-    }
-    else {
-      ldefs <- rbind(ldefs, data.frame(Structure=defs$Structure[i],
-                                       side="left",
-                                       ABI=defs$ABI[i],
-                                       name=paste("left", defs$Leaf[i]),
-                                       label=defs$left.label[i],
-                                       Leaf=defs$Leaf[i]))
-      ldefs <- rbind(ldefs, data.frame(Structure=defs$Structure[i],
-                                       side="right",
-                                       ABI=defs$ABI[i],
-                                       name=paste("right", defs$Leaf[i]),
-                                       label=defs$right.label[i],
-                                       Leaf=defs$Leaf[i]))
-
+      ldefs <- rbind(
+        ldefs,
+        data.frame(
+          Structure = defs$Structure[i],
+          side = "both",
+          ABI = defs$ABI[i],
+          name = defs$Leaf[i],
+          label = defs$left.label[i],
+          Leaf = defs$Leaf[i]
+        )
+      )
+    } else {
+      ldefs <- rbind(
+        ldefs,
+        data.frame(
+          Structure = defs$Structure[i],
+          side = "left",
+          ABI = defs$ABI[i],
+          name = paste("left", defs$Leaf[i]),
+          label = defs$left.label[i],
+          Leaf = defs$Leaf[i]
+        )
+      )
+      ldefs <- rbind(
+        ldefs,
+        data.frame(
+          Structure = defs$Structure[i],
+          side = "right",
+          ABI = defs$ABI[i],
+          name = paste("right", defs$Leaf[i]),
+          label = defs$right.label[i],
+          Leaf = defs$Leaf[i]
+        )
+      )
     }
   }
-  
+
   ldefs$Leaf <- as.character(ldefs$Leaf)
   ldefs$side <- as.character(ldefs$side)
   ldefs$Structure <- as.character(ldefs$Structure)
@@ -401,8 +425,8 @@ copyABIinfo <- function(hdefs, abitree) {
       node$ABI <- node$name
     }
     abiNode <- FindNode(abitree, node$ABI)
-    # if the find failed, then we are probably in the left or right version of a 
-    # new name not in the ABI dictionary. So take the first child and use it's 
+    # if the find failed, then we are probably in the left or right version of a
+    # new name not in the ABI dictionary. So take the first child and use it's
     # ABI name instead.
     if (is.null(abiNode)) {
       abiNode <- FindNode(abitree, node$children[[1]]$ABI)
@@ -411,11 +435,9 @@ copyABIinfo <- function(hdefs, abitree) {
     node$color_hex_triplet <- paste0('#', abiNode$color_hex_triplet)
     if (startsWith(node$name, "left")) {
       apref <- "l"
-    }
-    else if (startsWith(node$name, "right")) {
+    } else if (startsWith(node$name, "right")) {
       apref <- "r"
-    }
-    else {
+    } else {
       apref <- ""
     }
     node$acronym <- paste0(apref, abiNode$acronym)
@@ -425,66 +447,76 @@ copyABIinfo <- function(hdefs, abitree) {
 
 
 #' Creates a hierarchical anatomical tree
-#' 
+#'
 #' Makes a hierarchical tree using ontogeny from Allen Brain Institute
-#' 
+#'
 #' @param defs CSV file describing anatomical labels. See details about format
 #' @param abijson The JSON file from the Allen Brain Institute
-#'   
+#'
 #' @details Takes the label definitions from a CSV file (same as the rest of the
 #'   anat family of functions) and places it into a tree (using
 #'   \link{data.tree}). The CSV file must thus have an extra column giving the
 #'   corresponding name of each structure in the Allen Institute's nomenclature.
-#'   
+#'
 #'   Currently the left and right structures are leaves at the end of the tree,
 #'   and so are the first to be combined into the bilateral volumes. It is
 #'   possible that in the future keeping hemispheres separate will be an option.
-#'   
+#'
 #' @return a \link{data.tree} object containing the full anatomical hierarchy
 #' @export
-#' 
+#'
 #' @examples \dontrun{
 #' abijson <- "allen.json"
 #' defs <- "Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv"
-#' hdefs <- makeMICeDefsHierachical(defs, abijson) 
+#' hdefs <- makeMICeDefsHierachical(defs, abijson)
 #' }
 makeMICeDefsHierachical <- function(defs, abijson) {
   # read the definitions from the JSON file provided by the Allen institute
-  abi <- fromJSON(file=abijson)
+  abi <- fromJSON(file = abijson)
   # create a data.tree
-  tree <- FromListSimple(abi, check="no-warn")
+  tree <- FromListSimple(abi, check = "no-warn")
   # read the CSV defs file
   defs <- read.csv(defs)
 
   # split the definitions into one per line (i.e. left and right separate)
   ldefs <- lateralizeDefs(defs)
-  tree$Do(function(n){ n$name <- gsub("/", " and ", n$name)})
+  tree$Do(function(n) {
+    n$name <- gsub("/", " and ", n$name)
+  })
   # create the first version of the anatomical hierarchy
   mh <- addHierarchyToDefs(ldefs, tree)
   treeMH <- as.Node(mh)
   # fix branching odds and ends (i.e. make sure that only leafs are at end of hierarchy)
   ldefs2 <- fixBranching(ldefs, treeMH)
   # recreate the anatomical hierarchy
-  mh <- addHierarchyToDefs(ldefs2, tree )
+  mh <- addHierarchyToDefs(ldefs2, tree)
   treeMH <- as.Node(mh)
   # copy important bits from the ABI tree - name and colour especially.
   copyABIinfo(treeMH, tree)
   # propagate the labels so that each structure has a vector of all associated labels
-  treeMH$Do(function(x) x$label <- unlist(Aggregate(x, "label", c)), traversal="post-order")
+  treeMH$Do(
+    function(x) x$label <- unlist(Aggregate(x, "label", c)),
+    traversal = "post-order"
+  )
 
   return(treeMH)
 }
 
-colourVector <- function(vals, low, high, symmetric=F,
-                         colourScale=colorRampPalette(c("red", "yellow"))(255), 
-                         rColourScale=colorRampPalette(c("blue", "turquoise1"))(255), 
-                         transparent=NA) {
-  svals <- scaleSlice(vals, low, high, underTransparent=T)
+colourVector <- function(
+  vals,
+  low,
+  high,
+  symmetric = F,
+  colourScale = colorRampPalette(c("red", "yellow"))(255),
+  rColourScale = colorRampPalette(c("blue", "turquoise1"))(255),
+  transparent = NA
+) {
+  svals <- scaleSlice(vals, low, high, underTransparent = T)
   spvals <- scaleSliceToPalette(svals, low, high, colourScale)
   spvals <- colourScale[spvals]
   if (symmetric) {
-    svalsN <- scaleSlice(vals, low*-1, high*-1, underTransparent=T)
-    spvalsN <- scaleSliceToPalette(svalsN, low*-1, high*-1, rColourScale)
+    svalsN <- scaleSlice(vals, low * -1, high * -1, underTransparent = T)
+    spvalsN <- scaleSliceToPalette(svalsN, low * -1, high * -1, rColourScale)
     spvalsN <- rColourScale[spvalsN]
     spvals <- paste0(spvals, spvalsN)
     spvals <- gsub('NA', '', spvals)
@@ -508,87 +540,104 @@ colourVector <- function(vals, low, high, symmetric=F,
 #' @param fontsize The font size for \code{hanatView}
 #' @param levelSeparation Spacing between hierarchical layers for \code{hanatView}
 #' @param ... Extra arguments to \code{hanatToVisGraph} from \code{hanatView}
-#' 
+#'
 #' @return list with nodes and edges data frames
 #' @export
 #'
 ## @examples
-hanatToVisGraph <- function(hanatTree, 
-                            colourVariable="color_hex_triplet", 
-                            colourScale=colorRampPalette(c("red", "yellow"))(255), 
-                            rColourScale=colorRampPalette(c("blue", "turquoise1"))(255),
-                            low=NULL,
-                            high=NULL,
-                            symmetric=F,
-                            transparent="#FDFDFD",
-                            edgeColourFromABI=F) {
+hanatToVisGraph <- function(
+  hanatTree,
+  colourVariable = "color_hex_triplet",
+  colourScale = colorRampPalette(c("red", "yellow"))(255),
+  rColourScale = colorRampPalette(c("blue", "turquoise1"))(255),
+  low = NULL,
+  high = NULL,
+  symmetric = F,
+  transparent = "#FDFDFD",
+  edgeColourFromABI = F
+) {
   tree <- Clone(hanatTree)
   # check if colourVariable is a number; if so, colourize it
   if (is.double(tree[[colourVariable]])) {
     colourVals <- tree$Get(colourVariable)
-    tree$Set(plotcolour=colourVector(colourVals, low, high, 
-                                     symmetric = symmetric, 
-                                     colourScale=colourScale,
-                                     rColourScale=rColourScale,
-                                     transparent=transparent))
+    tree$Set(
+      plotcolour = colourVector(
+        colourVals,
+        low,
+        high,
+        symmetric = symmetric,
+        colourScale = colourScale,
+        rColourScale = rColourScale,
+        transparent = transparent
+      )
+    )
     tree$Set(stat = round(colourVals, 3))
     plotcolour <- "plotcolour"
-  }
-  # if not a number, assume that it's a colour itself (likely the ABI colours)
-  else {
+  } else {
+    # if not a number, assume that it's a colour itself (likely the ABI colours)
     plotcolour <- colourVariable
   }
-  nodes <- as.data.frame(tree, 
-                         id="name", 
-                         color=plotcolour, 
-                         label="name", 
-                         stat="stat")
-  
+  nodes <- as.data.frame(
+    tree,
+    id = "name",
+    color = plotcolour,
+    label = "name",
+    stat = "stat"
+  )
+
   # set the hover over title
   if (is.double(tree[[colourVariable]])) {
-    nodes$title <- paste0("<p><b>", nodes$label, "</b><br>", round(nodes$stat, 3), "</p>")
-  }
-  else {
+    nodes$title <- paste0(
+      "<p><b>",
+      nodes$label,
+      "</b><br>",
+      round(nodes$stat, 3),
+      "</p>"
+    )
+  } else {
     nodes$title <- paste0("<p><b>", nodes$label, "</b></p>")
   }
-  
+
   # create the edges
   edges <- data.frame()
   nn <- Traverse(tree, pruneFun = isNotLeaf)
   for (i in 1:length(nn)) {
     for (j in 1:length(nn[[i]]$children)) {
-      edf <- data.frame(from=nn[[i]]$name, to=nn[[i]]$children[[j]]$name)
+      edf <- data.frame(from = nn[[i]]$name, to = nn[[i]]$children[[j]]$name)
       if (edgeColourFromABI) {
         edf$color <- nn[[i]]$children[[j]]$color_hex_triplet
       }
       edges <- rbind(edges, edf)
     }
   }
-  return(list(nodes=nodes, edges=edges))
+  return(list(nodes = nodes, edges = edges))
 }
 
 #' @describeIn hanatToVisGraph Directly view the graph
 #' @export
-hanatView <- function(..., fontsize=14, levelSeparation=500) {
+hanatView <- function(..., fontsize = 14, levelSeparation = 500) {
   gv <- hanatToVisGraph(...)
-  visNetwork(gv$nodes, gv$edges) %>% 
-    visNodes(shape="box", font=list(size=fontsize)) %>% 
-    visEdges(width=10, smooth=F, arrows="to") %>% 
-    visHierarchicalLayout(direction="LR", levelSeparation = levelSeparation, sortMethod="directed") %>% 
-    visPhysics(enabled=F)
+  visNetwork(gv$nodes, gv$edges) %>%
+    visNodes(shape = "box", font = list(size = fontsize)) %>%
+    visEdges(width = 10, smooth = F, arrows = "to") %>%
+    visHierarchicalLayout(
+      direction = "LR",
+      levelSeparation = levelSeparation,
+      sortMethod = "directed"
+    ) %>%
+    visPhysics(enabled = F)
 }
 
 #' hanatPlot
 #'
 #' Create a basic plot of the anatomy tree
-#' 
+#'
 #' @param anatTree the input anatomical tree
 #' @export
 hanatPlot <- function(anatTree) {
   tree <- Clone(anatTree)
   tree$Do(function(x) x$name <- gsub("'", "", x$name))
-  SetGraphStyle(tree, layout="dot", rankdir="LR")
+  SetGraphStyle(tree, layout = "dot", rankdir = "LR")
 
   plot(tree)
 }
-
