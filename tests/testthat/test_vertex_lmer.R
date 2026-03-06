@@ -9,7 +9,7 @@ if (!exists("dataPath")) {
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
-gftest <- read.csv(file.path(dataPath, "subject.csv"))
+gftest <- read.csv(file.path(dataPath, "subject.csv"), stringsAsFactors = TRUE)
 
 subjectFile <- matrix(data = NA, nrow = 10, 1)
 subjectFile[1, 1] <- file.path(dataPath, "vertex2.txt")
