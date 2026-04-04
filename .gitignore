@@ -8,7 +8,7 @@ src/*.dll
 src/Makevars
 conf*
 !configure
-!config.guess
-!config.sub
+!tools/config.guess
+!tools/config.sub
 *~
 autom4te.cache/
