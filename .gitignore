@@ -8,3 +8,4 @@ src/*.dll
 src/Makevars
 conf*
 *~
+autom4te.cache/
