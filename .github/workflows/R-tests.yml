@@ -48,7 +48,7 @@ jobs:
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install hdf5 cmake autoconf
+          brew install hdf5 cmake autoconf automake libtool
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
