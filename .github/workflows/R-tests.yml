@@ -49,6 +49,8 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install hdf5 cmake autoconf automake libtool
+          brew install --cask basictex
+          echo "/Library/TeX/texbin" >> $GITHUB_PATH
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
