@@ -51,6 +51,9 @@ jobs:
           brew install hdf5 cmake autoconf automake libtool
           brew install --cask basictex
           echo "/Library/TeX/texbin" >> $GITHUB_PATH
+          eval "$(/usr/libexec/path_helper)"
+          sudo tlmgr update --self
+          sudo tlmgr install inconsolata
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
