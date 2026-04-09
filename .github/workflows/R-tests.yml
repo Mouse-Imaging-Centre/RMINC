@@ -53,7 +53,7 @@ jobs:
           echo "/Library/TeX/texbin" >> $GITHUB_PATH
           eval "$(/usr/libexec/path_helper)"
           sudo tlmgr update --self
-          sudo tlmgr install inconsolata
+          sudo tlmgr install inconsolata helvetic psnfss
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
