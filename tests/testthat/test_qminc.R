@@ -41,7 +41,7 @@ test_parallel <-
 
       dataPath <- file.path(dataPath, "rminctestdata/")
 
-      gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+      gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
       mask_file <- file.path(dataPath, "testminc-mask.mnc")
     }
 

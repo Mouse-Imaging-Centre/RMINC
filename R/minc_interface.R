@@ -1223,7 +1223,7 @@ writeVertex <- function(
   } else {
     readr::write_delim(
       tibble::as_data_frame(vertexData),
-      path = filename,
+      file = filename,
       append = append.file,
       col_names = col.names
     )

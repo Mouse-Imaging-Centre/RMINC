@@ -8,7 +8,7 @@ if (!exists("dataPath")) {
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"))
+gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"), stringsAsFactors = TRUE)
 gf <- civet.getAllFilenames(
   gf,
   "ID",

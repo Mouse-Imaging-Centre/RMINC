@@ -10,7 +10,7 @@ verboseRun({
   getRMINCTestData(dataPath)
   dataPath <- file.path(dataPath, "rminctestdata/")
 
-  gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+  gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
 
   a <- structure(1, class = "mincSingleDim")
   b <- structure(1, class = "mincMultiDim")

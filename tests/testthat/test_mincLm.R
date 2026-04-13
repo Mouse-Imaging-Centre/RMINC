@@ -9,7 +9,7 @@ if (!exists("dataPath")) {
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
 
 voxel_left <- mincGetVoxel(gf$jacobians_fixed_2[1:10], 0, 0, 0)
 voxel_right <- mincGetVoxel(gf$jacobians_fixed_2[11:20], 0, 0, 0)
@@ -58,20 +58,25 @@ test_that("Likelihood and information criteria are computed correctly", {
 # now test that findPeaks works
 context("mincFindPeaks - ensure we can find correct peaks")
 
-verboseRun({
-  # get rid of NAs
-  rmincLm[is.na(rmincLm)] <- 0
-  # find peaks
-  peaks <- mincFindPeaks(rmincLm, "tvalue-SexM", minDistance = 1)
-  # find the min and max by hand
-  rmincLmArray <- mincArray(rmincLm, "tvalue-SexM")
-  maxPeak <- arrayInd(which.max(rmincLmArray), .dim = c(10, 10, 10))
-  minPeak <- arrayInd(which.min(rmincLmArray), .dim = c(10, 10, 10))
-  minPeakFromPeaks <- as.integer(arrange(peaks, value)[1, 1:3])
-  maxPeakFromPeaks <- as.integer(peaks[1, 1:3])
-})
+has_find_peaks <- as.character(Sys.which("find_peaks")) != ""
+
+if (has_find_peaks) {
+  verboseRun({
+    # get rid of NAs
+    rmincLm[is.na(rmincLm)] <- 0
+    # find peaks
+    peaks <- mincFindPeaks(rmincLm, "tvalue-SexM", minDistance = 1)
+    # find the min and max by hand
+    rmincLmArray <- mincArray(rmincLm, "tvalue-SexM")
+    maxPeak <- arrayInd(which.max(rmincLmArray), .dim = c(10, 10, 10))
+    minPeak <- arrayInd(which.min(rmincLmArray), .dim = c(10, 10, 10))
+    minPeakFromPeaks <- as.integer(arrange(peaks, value)[1, 1:3])
+    maxPeakFromPeaks <- as.integer(peaks[1, 1:3])
+  })
+}
 
 test_that("mincFindPeaks min and max", {
+  skip_if_not(has_find_peaks, "find_peaks binary not installed")
   expect_that(maxPeak[1], is_equivalent_to(maxPeakFromPeaks[1]))
   expect_that(maxPeak[2], is_equivalent_to(maxPeakFromPeaks[2]))
   expect_that(maxPeak[3], is_equivalent_to(maxPeakFromPeaks[3]))
@@ -82,6 +87,7 @@ test_that("mincFindPeaks min and max", {
 
 context("vertexFindPeaks - ensure matches mincFindPeaks")
 test_that("vertexFindPeaks matches mincFindPeaks", {
+  skip_if_not(has_find_peaks, "find_peaks binary not installed")
   adj <- RMINC:::neighbour_list(10, 10, 10, 6)
   g <- igraph::graph.adjlist(lapply(adj, function(nebs) nebs + 1))
   pos_peaks <-

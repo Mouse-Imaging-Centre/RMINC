@@ -8,7 +8,7 @@ if (!exists("dataPath")) {
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "test_data_set.csv"))
+gf <- read.csv(file.path(dataPath, "test_data_set.csv"), stringsAsFactors = TRUE)
 maskfile <- file.path(dataPath, "testminc-mask.mnc")
 
 ref <- sapply(gf$jacobians_fixed, function(f) mincGetVolume(f))

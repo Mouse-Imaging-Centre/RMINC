@@ -8,7 +8,7 @@ if (!exists("dataPath")) {
 getRMINCTestData(dataPath)
 dataPath <- file.path(dataPath, "rminctestdata/")
 
-gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"))
+gf <- read.csv(file.path(dataPath, "CIVET_TEST.csv"), stringsAsFactors = TRUE)
 gf <- civet.getAllFilenames(
   gf,
   "ID",
@@ -20,11 +20,12 @@ gf <- civet.getAllFilenames(
 gf <- civet.readAllCivetFiles(file.path(dataPath, "AAL.csv"), gf)
 
 dataFile <- gf$lobeThickness
-AALAtlas <- read.csv(file.path(dataPath, "AAL.csv"))
-verticesL <- read.csv(file.path(dataPath, "AAL_atlas_left.txt"), header = FALSE)
+AALAtlas <- read.csv(file.path(dataPath, "AAL.csv"), stringsAsFactors = TRUE)
+verticesL <- read.csv(file.path(dataPath, "AAL_atlas_left.txt"), header = FALSE, stringsAsFactors = TRUE)
 verticesR <- read.csv(
   file.path(dataPath, "AAL_atlas_right.txt"),
-  header = FALSE
+  header = FALSE,
+  stringsAsFactors = TRUE
 )
 reducedVertices <- c(verticesL[0:40961, 1], verticesR[0:40961, 1])
 
