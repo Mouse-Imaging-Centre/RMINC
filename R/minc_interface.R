@@ -1546,7 +1546,7 @@ getRMINCTestData <- function(
   dataPath = getOption("RMINC_DATA_DIR", tempdir()),
   method = "libcurl"
 ) {
-  downloadPath <- file.path(dataPath, "rminctestdata.zip")
+  downloadPath <- file.path(dataPath, "rminctestdata.tar.gz")
   extractedPath <- file.path(dataPath, "rminctestdata/")
 
   if (!file.exists(extractedPath)) {
@@ -1554,14 +1554,14 @@ getRMINCTestData <- function(
     if (!file.exists(downloadPath)) {
       dir.create(dataPath, showWarnings = FALSE, recursive = TRUE)
       download.file(
-        "https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/refs/heads/main.zip",
+        "https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/main.tar.gz",
         destfile = downloadPath,
         method = method
       ) # changed from "wget" to stop freakouts on mac
     }
 
     # Extract test data
-    utils::unzip(downloadPath, exdir = dataPath)
+    utils::untar(downloadPath, exdir = dataPath)
 
     # Move test data path one directory up, to play nice with the path specs in the testthat test_*.R scripts
     file.rename(
