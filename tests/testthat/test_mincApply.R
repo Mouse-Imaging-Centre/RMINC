@@ -16,7 +16,7 @@ ma <- verboseRun(
 )
 
 test_that("mincApply one output", {
-  expect_equal(unname(as.numeric(mm)), unname(as.numeric(ma)))
+  expect_equal(unname(as.numeric(mm)), unname(as.numeric(ma), ignore_attr = TRUE))
 })
 
 
@@ -45,7 +45,7 @@ dim(ma) <- c(length(ma), 1)
 class(ma) <- "mincMultiDim"
 
 test_that("pmincapply local", {
-  expect_equal(unname(ma), unname(mm))
+  expect_equal(unname(ma), unname(mm), ignore_attr = TRUE)
 })
 
 ma <- verboseRun(

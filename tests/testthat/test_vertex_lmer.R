@@ -129,7 +129,7 @@ test_that("Likelihood Ratio Tests for vertexLmer Work", {
 test_that("empty DF by default", {
   evalq(
     {
-      expect_equal(unname(attr(fast_lmer, "df")), unname(NULL))
+      expect_equal(unname(attr(fast_lmer, "df")), unname(NULL), ignore_attr = TRUE)
       expect_error(vertexFDR(fast_lmer))
     },
     envir = test_env

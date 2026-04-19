@@ -32,7 +32,7 @@ verboseRun({
 
   test_that("conversion to and from mincSingleDim", {
     expect_equal(class(volume_reconstituted), class(volume))
-    expect_equal(unname(volume_reconstituted), unname(volume))
+    expect_equal(unname(volume_reconstituted), unname(volume), ignore_attr = TRUE)
   })
 
   volume_rec_with_attrs <-

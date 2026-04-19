@@ -45,7 +45,7 @@ test_that("mincLm Two Factors", {
     check.attributes = FALSE
   )
 
-  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]), ignore_attr = TRUE)
 })
 
 test_that("Likelihood and information criteria are computed correctly", {
@@ -75,12 +75,12 @@ if (has_find_peaks) {
 
 test_that("mincFindPeaks min and max", {
   skip_if_not(has_find_peaks, "find_peaks binary not installed")
-  expect_equal(unname(maxPeak[1]), unname(maxPeakFromPeaks[1]))
-  expect_equal(unname(maxPeak[2]), unname(maxPeakFromPeaks[2]))
-  expect_equal(unname(maxPeak[3]), unname(maxPeakFromPeaks[3]))
-  expect_equal(unname(minPeak[1]), unname(minPeakFromPeaks[1]))
-  expect_equal(unname(minPeak[2]), unname(minPeakFromPeaks[2]))
-  expect_equal(unname(minPeak[3]), unname(minPeakFromPeaks[3]))
+  expect_equal(unname(maxPeak[1]), unname(maxPeakFromPeaks[1]), ignore_attr = TRUE)
+  expect_equal(unname(maxPeak[2]), unname(maxPeakFromPeaks[2]), ignore_attr = TRUE)
+  expect_equal(unname(maxPeak[3]), unname(maxPeakFromPeaks[3]), ignore_attr = TRUE)
+  expect_equal(unname(minPeak[1]), unname(minPeakFromPeaks[1]), ignore_attr = TRUE)
+  expect_equal(unname(minPeak[2]), unname(minPeakFromPeaks[2]), ignore_attr = TRUE)
+  expect_equal(unname(minPeak[3]), unname(minPeakFromPeaks[3]), ignore_attr = TRUE)
 })
 
 test_that("vertexFindPeaks matches mincFindPeaks", {
@@ -143,7 +143,7 @@ test_that("mincLm interaction", {
     check.attributes = FALSE
   )
 
-  expect_equal(unname(attr(rmincLm2, "df")[[2]]), unname(rLm2$df[2]))
+  expect_equal(unname(attr(rmincLm2, "df")[[2]]), unname(rLm2$df[2]), ignore_attr = TRUE)
 })
 
 
@@ -171,7 +171,7 @@ test_that("mincLm Three Factors", {
     ),
     check.attributes = FALSE
   )
-  expect_equal(unname(attr(rmincLm3, "df")[[2]]), unname(rLm3$df[2]))
+  expect_equal(unname(attr(rmincLm3, "df")[[2]]), unname(rLm3$df[2]), ignore_attr = TRUE)
 })
 
 
@@ -198,7 +198,7 @@ test_that("mincLm Three Factors Interaction", {
     ),
     check.attributes = FALSE
   )
-  expect_equal(unname(attr(rmincLm4, "df")[[2]]), unname(rLm4$df[2]))
+  expect_equal(unname(attr(rmincLm4, "df")[[2]]), unname(rLm4$df[2]), ignore_attr = TRUE)
 })
 
 

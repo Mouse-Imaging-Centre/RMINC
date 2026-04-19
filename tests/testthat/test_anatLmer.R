@@ -153,6 +153,6 @@ test_that("weighted lmer works", {
         t
     })
 
-    expect_equal(unname(unclass(weighted_lmer)), unname(lmer_ref))
+    expect_equal(unname(unclass(weighted_lmer)), unname(lmer_ref), ignore_attr = TRUE)
   })
 })

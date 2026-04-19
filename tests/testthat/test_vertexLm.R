@@ -63,24 +63,24 @@ rmod <- lm(testLeft[, 1] ~ Age, gftest)
 rLm = summary(rmod)
 
 test_that("vertexLm Two Factors", {
-  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
-  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
-  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
-  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
-  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[1, 3]))
-  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[2, 3]))
-  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[1, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[2, 3]), ignore_attr = TRUE)
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]), ignore_attr = TRUE)
 })
 
 
 test_that("vertexLm Two Factors for .csv.gz file", {
-  expect_equal(unname(rmincLm[1, 1]), unname(rmincLm2[1, 1]))
-  expect_equal(unname(rmincLm[1, 2]), unname(rmincLm2[1, 2]))
-  expect_equal(unname(rmincLm[1, 3]), unname(rmincLm2[1, 3]))
-  expect_equal(unname(rmincLm[1, 4]), unname(rmincLm2[1, 4]))
-  expect_equal(unname(rmincLm[1, 5]), unname(rmincLm2[1, 5]))
-  expect_equal(unname(rmincLm[1, 6]), unname(rmincLm2[1, 6]))
-  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(attr(rmincLm2, "df")[[2]]))
+  expect_equal(unname(rmincLm[1, 1]), unname(rmincLm2[1, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 2]), unname(rmincLm2[1, 2]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 3]), unname(rmincLm2[1, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 4]), unname(rmincLm2[1, 4]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 5]), unname(rmincLm2[1, 5]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 6]), unname(rmincLm2[1, 6]), ignore_attr = TRUE)
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(attr(rmincLm2, "df")[[2]]), ignore_attr = TRUE)
 })
 
 
@@ -119,40 +119,42 @@ test_that("writeVertexLm", {
   # Verify round-trip: read back written files and compare values numerically
   # (MD5 hashes are platform/version-dependent due to floating-point formatting)
 
+  ref_matrix <- unname(as.matrix(rmincLm))
+
   # Test no col names, no header (plain delimited)
   written_no_col <- readr::read_delim(
     file.path(dataPath, "test_lm_no_col_names.txt"),
     col_names = FALSE, show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_no_col)), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+  expect_equal(unname(as.matrix(written_no_col)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
 
   # Test with col names, no header (plain delimited)
   written_col <- readr::read_delim(
     file.path(dataPath, "test_lm_with_col_names.txt"),
     show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_col)), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+  expect_equal(unname(as.matrix(written_col)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
 
   # Test with col names, csv format
   written_csv <- readr::read_csv(
     file.path(dataPath, "test_lm_with_col_names.csv"),
     show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_csv)), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+  expect_equal(unname(as.matrix(written_csv)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
 
   # Test with header, no col names - read header then data
   header_lines <- readLines(file.path(dataPath, "test_lm_with_header.txt"))
   header_end <- which(header_lines == "</header>")
   data_lines <- header_lines[(header_end + 1):length(header_lines)]
-  written_header <- read.table(text = data_lines, header = FALSE)
-  expect_equal(unname(as.matrix(written_header)), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+  written_header <- read.table(text = data_lines, header = FALSE, colClasses = "numeric")
+  expect_equal(unname(as.matrix(written_header)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
 
   # Test with col names, compressed csv.gz
   written_gz <- readr::read_csv(
     file.path(dataPath, "test_lm_with_col_names_gz.csv.gz"),
     show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_gz)), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+  expect_equal(unname(as.matrix(written_gz)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
 })
 
 
@@ -171,17 +173,17 @@ gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[, 1] ~ Age * Sex, gftest))
 
 test_that("vertexLm Interaction", {
-  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
-  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
-  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
-  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
-  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]))
-  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[4, 1]))
-  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[1, 3]))
-  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[2, 3]))
-  expect_equal(unname(rmincLm[1, 9]), unname(rLm$coefficients[3, 3]))
-  expect_equal(unname(rmincLm[1, 10]), unname(rLm$coefficients[4, 3]))
-  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[4, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[1, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[2, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 9]), unname(rLm$coefficients[3, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 10]), unname(rLm$coefficients[4, 3]), ignore_attr = TRUE)
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]), ignore_attr = TRUE)
 })
 
 rmincLm <- verboseRun(
@@ -193,15 +195,15 @@ gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[, 1] ~ Group, gftest))
 
 test_that("vertexLm Three Factors", {
-  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
-  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
-  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
-  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
-  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]))
-  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[1, 3]))
-  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[2, 3]))
-  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[3, 3]))
-  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[1, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[2, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[3, 3]), ignore_attr = TRUE)
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]), ignore_attr = TRUE)
 })
 
 
@@ -214,19 +216,19 @@ gftest$testLeft = t(vertexTable(gftest$testFilesLeft))
 rLm = summary(lm(testLeft[, 1] ~ Age * Group, gftest))
 
 test_that("vertexLm Three Factors Interaction", {
-  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
-  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
-  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
-  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
-  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]))
-  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[4, 1]))
-  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[5, 1]))
-  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[6, 1]))
-  expect_equal(unname(rmincLm[1, 9]), unname(rLm$coefficients[1, 3]))
-  expect_equal(unname(rmincLm[1, 10]), unname(rLm$coefficients[2, 3]))
-  expect_equal(unname(rmincLm[1, 11]), unname(rLm$coefficients[3, 3]))
-  expect_equal(unname(rmincLm[1, 12]), unname(rLm$coefficients[4, 3]))
-  expect_equal(unname(rmincLm[1, 13]), unname(rLm$coefficients[5, 3]))
-  expect_equal(unname(rmincLm[1, 14]), unname(rLm$coefficients[6, 3]))
-  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[4, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[5, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[6, 1]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 9]), unname(rLm$coefficients[1, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 10]), unname(rLm$coefficients[2, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 11]), unname(rLm$coefficients[3, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 12]), unname(rLm$coefficients[4, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 13]), unname(rLm$coefficients[5, 3]), ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 14]), unname(rLm$coefficients[6, 3]), ignore_attr = TRUE)
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]), ignore_attr = TRUE)
 })

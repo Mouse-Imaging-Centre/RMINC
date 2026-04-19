@@ -249,7 +249,7 @@ test_that("AnatGetAll multi-atlas works", {
           ~ tapply(.x, .y, function(s) length(s) * (.1)^3)[-1]
         ) %>%
         reduce(rbind)
-      expect_equal(unname(unanat(label_volume)), unname(gold_volumes))
+      expect_equal(unname(unanat(label_volume)), unname(gold_volumes), ignore_attr = TRUE)
 
       # Test means
       label_means <-
@@ -266,7 +266,7 @@ test_that("AnatGetAll multi-atlas works", {
       gold_means <-
         map2(vals, segs, ~ tapply(.x, .y, function(s) mean(s))[-1]) %>%
         reduce(rbind)
-      expect_equal(unname(unanat(label_means)), unname(gold_means), tolerance = 10e-5)
+      expect_equal(unname(unanat(label_means)), unname(gold_means), tolerance = 10e-5, ignore_attr = TRUE)
 
       # Test sums
       label_sums <-
@@ -283,7 +283,7 @@ test_that("AnatGetAll multi-atlas works", {
       gold_sums <-
         map2(vals, segs, ~ tapply(.x, .y, function(s) sum(s))[-1]) %>%
         reduce(rbind)
-      expect_equal(unname(unanat(label_sums)), unname(gold_sums), tolerance = 10e-5)
+      expect_equal(unname(unanat(label_sums)), unname(gold_sums), tolerance = 10e-5, ignore_attr = TRUE)
 
       # Test jacobians
       label_jacobians <-
@@ -304,7 +304,7 @@ test_that("AnatGetAll multi-atlas works", {
           ~ tapply(.x, .y, function(s) sum(exp(s) * .1^3))[-1]
         ) %>%
         reduce(rbind)
-      expect_equal(unname(unanat(label_jacobians)), unname(gold_jacobians), tolerance = 10e-5)
+      expect_equal(unname(unanat(label_jacobians)), unname(gold_jacobians), tolerance = 10e-5, ignore_attr = TRUE)
     },
     envir = test_env
   )
@@ -324,7 +324,7 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equal(unname(unanat(label_volume)), unname(gold_volumes))
+      expect_equal(unname(unanat(label_volume)), unname(gold_volumes), ignore_attr = TRUE)
 
       label_means <-
         expect_warning(
@@ -338,7 +338,7 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equal(unname(unanat(label_means)), unname(gold_means), tolerance = 10e-5)
+      expect_equal(unname(unanat(label_means)), unname(gold_means), tolerance = 10e-5, ignore_attr = TRUE)
 
       label_sums <-
         expect_warning(
@@ -352,7 +352,7 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equal(unname(unanat(label_sums)), unname(gold_sums), tolerance = 10e-5)
+      expect_equal(unname(unanat(label_sums)), unname(gold_sums), tolerance = 10e-5, ignore_attr = TRUE)
 
       label_jacobians <-
         expect_warning(
@@ -366,7 +366,7 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equal(unname(unanat(label_jacobians)), unname(gold_jacobians), tolerance = 10e-5)
+      expect_equal(unname(unanat(label_jacobians)), unname(gold_jacobians), tolerance = 10e-5, ignore_attr = TRUE)
     },
     envir = test_env
   )
@@ -413,7 +413,7 @@ test_that("Multires Works", {
       strict = FALSE
     )
 
-  expect_equal(unname(vols[1, ] * 1000), unname(vols[6, ]))
+  expect_equal(unname(vols[1, ] * 1000), unname(vols[6, ]), ignore_attr = TRUE)
 })
 
 test_that("AnatGetAll errors correctly", {

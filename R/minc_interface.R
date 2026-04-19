@@ -670,7 +670,7 @@ summary.mincQvals <- function(object, ...) {
         labels = paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20))
       )
     ) %>%
-    select(.data$stat, everything())
+    select("stat", everything())
 }
 
 

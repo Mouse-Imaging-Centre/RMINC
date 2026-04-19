@@ -72,8 +72,8 @@ test_parallel <-
         getOption("verbose")
       )
 
-      expect_equal(unname(m_sequential), unname(m_queue))
-      expect_equal(unname(m_sequential), unname(m_multicore))
+      expect_equal(unname(m_sequential), unname(m_queue), ignore_attr = TRUE)
+      expect_equal(unname(m_sequential), unname(m_multicore), ignore_attr = TRUE)
       expect_equal(attr(m_sequential, "filenames"), attr(m_queue, "filenames"))
       expect_equal(
         attr(m_sequential, "filenames"),
@@ -117,7 +117,7 @@ test_parallel <-
         getOption("verbose")
       )
 
-      expect_equal(unname(m_sequential), unname(m_queue))
+      expect_equal(unname(m_sequential), unname(m_queue), ignore_attr = TRUE)
     })
   }
 

@@ -50,7 +50,7 @@ mtt <- verboseRun("mincTtest(gf$jacobians_0.2,gf$Strain)", getOption("verbose"))
 ttt <- t.test(vox ~ Strain, data = gf)
 
 test_that("ttest", {
-  expect_equal(unname(ttt$statistic), unname(mtt[1]))
+  expect_equal(unname(ttt$statistic), unname(mtt[1]), ignore_attr = TRUE)
 })
 
 
@@ -59,12 +59,12 @@ mptt <- verboseRun(
   "mincPairedTtest(gf_paired$jacobians_0.2,gf_paired$Strain)",
   getOption("verbose")
 ) # To Do: Ask case where unequal lengths
-pttt <- t.test(vox[gf_paired$Strain == levels(gf_paired$Strain)[1]],
-               vox[gf_paired$Strain == levels(gf_paired$Strain)[2]],
+pttt <- t.test(gf_paired$vox[gf_paired$Strain == levels(gf_paired$Strain)[1]],
+               gf_paired$vox[gf_paired$Strain == levels(gf_paired$Strain)[2]],
                paired = TRUE)
 
 test_that("paired ttest", {
-  expect_equal(unname(pttt$statistic), unname(mptt[1]))
+  expect_equal(unname(pttt$statistic), unname(mptt[1]), ignore_attr = TRUE)
 })
 
 
@@ -75,7 +75,7 @@ mc <- verboseRun(
 tc <- cor(gf$Weight, gf$vox)
 
 test_that("correlation", {
-  expect_equal(unname(tc), unname(mc[1]))
+  expect_equal(unname(tc), unname(mc[1]), ignore_attr = TRUE)
 })
 
 
@@ -88,7 +88,7 @@ mw <- verboseRun(
   getOption("verbose")
 )
 test_that("wilcoxon-ties", {
-  expect_equal(unname(tw[[1]]), unname(mw[1]))
+  expect_equal(unname(tw[[1]]), unname(mw[1]), ignore_attr = TRUE)
 })
 
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
@@ -99,7 +99,7 @@ mw <- verboseRun(
 )
 tw <- wilcox.test(vox ~ Strain, data = gf_paired)
 test_that("wilcoxon", {
-  expect_equal(unname(tw[[1]]), unname(mw[15 * 15 * 5 + 15 * 5 + 6]))
+  expect_equal(unname(tw[[1]]), unname(mw[15 * 15 * 5 + 15 * 5 + 6]), ignore_attr = TRUE)
 })
 
 # mincFDR

@@ -1206,7 +1206,7 @@ civet.vertexFilenames <-
         ) %>%
           as_tibble()
       }) %>%
-      rename(left_thickness = .data$left, right_thickness = .data$right)
+      rename(left_thickness = "left", right_thickness = "right")
 
     area_files <-
       map_dfr(ids, function(id) {
@@ -1217,7 +1217,7 @@ civet.vertexFilenames <-
         ) %>%
           as_tibble()
       }) %>%
-      rename(left_area = .data$left, right_area = .data$right)
+      rename(left_area = "left", right_area = "right")
 
     volume_files <-
       map_dfr(ids, function(id) {
@@ -1228,7 +1228,7 @@ civet.vertexFilenames <-
         ) %>%
           as_tibble()
       }) %>%
-      rename(left_volume = .data$left, right_volume = .data$right)
+      rename(left_volume = "left", right_volume = "right")
 
     bind_cols(tibble(ids = ids), thickness_files, area_files, volume_files)
   }

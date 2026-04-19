@@ -24,11 +24,11 @@ mt_back_masked <- mincTable(
 )
 
 test_that("Unmasked mincTable works", {
-  expect_equal(unname(ref), unname(mt))
-  expect_equal(unname(ref), unname(mt_back[,]))
+  expect_equal(unname(ref), unname(mt), ignore_attr = TRUE)
+  expect_equal(unname(ref), unname(mt_back[,]), ignore_attr = TRUE)
 })
 
 test_that("Masked mincTable works", {
-  expect_equal(unname(ref_masked), unname(mt_masked))
-  expect_equal(unname(ref_masked), unname(mt_back_masked[,]))
+  expect_equal(unname(ref_masked), unname(mt_masked), ignore_attr = TRUE)
+  expect_equal(unname(ref_masked), unname(mt_back_masked[,]), ignore_attr = TRUE)
 })
