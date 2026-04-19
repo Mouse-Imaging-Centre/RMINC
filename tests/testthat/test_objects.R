@@ -1,7 +1,6 @@
 verboseRun({
   library(testthat)
 
-  context("object tests")
 
   if (!exists("dataPath")) {
     dataPath <- tempdir()
@@ -33,7 +32,7 @@ verboseRun({
 
   test_that("conversion to and from mincSingleDim", {
     expect_equal(class(volume_reconstituted), class(volume))
-    expect_equivalent(volume_reconstituted, volume)
+    expect_equal(volume_reconstituted, volume, ignore_attr = TRUE)
   })
 
   volume_rec_with_attrs <-

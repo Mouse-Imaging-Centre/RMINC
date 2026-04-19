@@ -1,5 +1,4 @@
 library(testthat)
-context("anatAnova")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -30,9 +29,9 @@ Sex = gf$Sex
 rAnova = anova(lm(lobeThickness ~ Sex))
 
 test_that("anatAnova Two Factors", {
-  expect_that(rmincAnova[1, 1], is_equivalent_to(rAnova$F[1]))
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
+  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
 })
 
 rmincAnova = verboseRun(
@@ -46,15 +45,15 @@ Sex = gf$Sex
 rAnova = anova(lm(lobeThickness ~ Age * Sex))
 
 test_that("anatAnova Interaction", {
-  expect_that(rmincAnova[1, 1], is_equivalent_to(rAnova$F[1]))
-  expect_that(rmincAnova[1, 2], is_equivalent_to(rAnova$F[2]))
-  expect_that(rmincAnova[1, 3], is_equivalent_to(rAnova$F[3]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[2]][1], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[2]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[3]][1], is_equivalent_to(rAnova$Df[3]))
-  expect_that(attr(rmincAnova, "df")[[3]][2], is_equivalent_to(rAnova$Df[4]))
+  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 2], rAnova$F[2], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 3], rAnova$F[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][1], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][1], rAnova$Df[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][2], rAnova$Df[4], ignore_attr = TRUE)
 })
 rmincAnova = verboseRun(
   "anatAnova(~ Primary.Diagnosis,gf,gf$lobeThickness)",
@@ -67,8 +66,8 @@ rAnova = anova(lm(lobeThickness ~ Primary.Diagnosis))
 
 
 test_that("anatAnova Three Factors", {
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
 })
 
 
@@ -82,13 +81,13 @@ Primary.Diagnosis = as.factor(gf$Primary.Diagnosis)
 rAnova = anova(lm(lobeThickness ~ Age * Primary.Diagnosis))
 
 test_that("anatAnova Three Factors Interaction", {
-  expect_that(rmincAnova[1, 1], is_equivalent_to(rAnova$F[1]))
-  expect_that(rmincAnova[1, 2], is_equivalent_to(rAnova$F[2]))
-  expect_that(rmincAnova[1, 3], is_equivalent_to(rAnova$F[3]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[2]][1], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[2]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[3]][1], is_equivalent_to(rAnova$Df[3]))
-  expect_that(attr(rmincAnova, "df")[[3]][2], is_equivalent_to(rAnova$Df[4]))
+  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 2], rAnova$F[2], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 3], rAnova$F[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][1], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][1], rAnova$Df[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][2], rAnova$Df[4], ignore_attr = TRUE)
 })

@@ -173,12 +173,12 @@ summary.model_comparison <- function(object, ...) {
   wins_table <-
     table(victors) %>%
     {
-      data_frame(model = names(.), wins = .)
+      tibble(model = names(.), wins = .)
     }
 
   formula_strings <- sapply(attr(object, "formulae"), deparse)
   formula_table <-
-    data_frame(
+    tibble(
       formula = formula_strings,
       model = as.character(seq_along(formula_strings))
     )

@@ -1,6 +1,5 @@
 library(testthat)
 library(dplyr)
-context("mincLm - two group test")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -46,7 +45,7 @@ test_that("mincLm Two Factors", {
     check.attributes = FALSE
   )
 
-  expect_that(attr(rmincLm, "df")[[2]], is_equivalent_to(rLm$df[2]))
+  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
 })
 
 test_that("Likelihood and information criteria are computed correctly", {
@@ -56,7 +55,6 @@ test_that("Likelihood and information criteria are computed correctly", {
 })
 
 # now test that findPeaks works
-context("mincFindPeaks - ensure we can find correct peaks")
 
 has_find_peaks <- as.character(Sys.which("find_peaks")) != ""
 
@@ -77,15 +75,14 @@ if (has_find_peaks) {
 
 test_that("mincFindPeaks min and max", {
   skip_if_not(has_find_peaks, "find_peaks binary not installed")
-  expect_that(maxPeak[1], is_equivalent_to(maxPeakFromPeaks[1]))
-  expect_that(maxPeak[2], is_equivalent_to(maxPeakFromPeaks[2]))
-  expect_that(maxPeak[3], is_equivalent_to(maxPeakFromPeaks[3]))
-  expect_that(minPeak[1], is_equivalent_to(minPeakFromPeaks[1]))
-  expect_that(minPeak[2], is_equivalent_to(minPeakFromPeaks[2]))
-  expect_that(minPeak[3], is_equivalent_to(minPeakFromPeaks[3]))
+  expect_equal(maxPeak[1], maxPeakFromPeaks[1], ignore_attr = TRUE)
+  expect_equal(maxPeak[2], maxPeakFromPeaks[2], ignore_attr = TRUE)
+  expect_equal(maxPeak[3], maxPeakFromPeaks[3], ignore_attr = TRUE)
+  expect_equal(minPeak[1], minPeakFromPeaks[1], ignore_attr = TRUE)
+  expect_equal(minPeak[2], minPeakFromPeaks[2], ignore_attr = TRUE)
+  expect_equal(minPeak[3], minPeakFromPeaks[3], ignore_attr = TRUE)
 })
 
-context("vertexFindPeaks - ensure matches mincFindPeaks")
 test_that("vertexFindPeaks matches mincFindPeaks", {
   skip_if_not(has_find_peaks, "find_peaks binary not installed")
   adj <- RMINC:::neighbour_list(10, 10, 10, 6)
@@ -122,7 +119,6 @@ test_that("vertexFindPeaks matches mincFindPeaks", {
   expect_equal(neg_peak[1:3], minPeak[1:3])
 })
 
-context("mincLm - two group test with interaction")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
 rmincLm2 = verboseRun(
@@ -147,11 +143,10 @@ test_that("mincLm interaction", {
     check.attributes = FALSE
   )
 
-  expect_that(attr(rmincLm2, "df")[[2]], is_equivalent_to(rLm2$df[2]))
+  expect_equal(attr(rmincLm2, "df")[[2]], rLm2$df[2], ignore_attr = TRUE)
 })
 
 
-context("mincLm - three group test")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
 rmincLm3 <- verboseRun(
@@ -176,10 +171,9 @@ test_that("mincLm Three Factors", {
     ),
     check.attributes = FALSE
   )
-  expect_that(attr(rmincLm3, "df")[[2]], is_equivalent_to(rLm3$df[2]))
+  expect_equal(attr(rmincLm3, "df")[[2]], rLm3$df[2], ignore_attr = TRUE)
 })
 
-context("mincLm - three group test with interaction")
 
 # silence the output of mincLm, in order to make the test output information is more clear to read
 rmincLm4 = verboseRun(
@@ -204,10 +198,9 @@ test_that("mincLm Three Factors Interaction", {
     ),
     check.attributes = FALSE
   )
-  expect_that(attr(rmincLm4, "df")[[2]], is_equivalent_to(rLm4$df[2]))
+  expect_equal(attr(rmincLm4, "df")[[2]], rLm4$df[2], ignore_attr = TRUE)
 })
 
-context("mincLm - Model Selection")
 
 test_that("Model Selection Works", {
   comp1 <- compare_models(rmincLm, rmincLm2, rmincLm3, rmincLm4, metric = AIC)
@@ -230,7 +223,6 @@ test_that("Model Selection Works", {
   expect_equal(as.numeric(summary(comp2)$wins), c(100, 100, 119, 981))
 })
 
-context("mincLm - Parallel")
 test_that("mincLm local multicore works", {
   skip_on_cran()
   skip_on_travis()
@@ -257,7 +249,6 @@ test_that("mincLm local multicore works", {
 # })
 
 ## Need a much better test here.
-context("mincLm - Randomize")
 test_that("mincLm randomize works", {
   verboseRun(rlm <- mincLm(voxel_left_file ~ Sex, gftest))
   verboseRun(rand <- RMINC:::mincRandomize.mincLm(rlm, R = 10))

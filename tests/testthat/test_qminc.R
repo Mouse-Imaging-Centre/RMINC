@@ -1,6 +1,5 @@
 library(testthat)
 library(batchtools)
-context("Parallel Functions")
 
 ## Write all tests as a function
 ## Skipping data download if on cran or travis
@@ -73,8 +72,8 @@ test_parallel <-
         getOption("verbose")
       )
 
-      expect_equivalent(m_sequential, m_queue)
-      expect_equivalent(m_sequential, m_multicore)
+      expect_equal(m_sequential, m_queue, ignore_attr = TRUE)
+      expect_equal(m_sequential, m_multicore, ignore_attr = TRUE)
       expect_equal(attr(m_sequential, "filenames"), attr(m_queue, "filenames"))
       expect_equal(
         attr(m_sequential, "filenames"),
@@ -118,7 +117,7 @@ test_parallel <-
         getOption("verbose")
       )
 
-      expect_equivalent(m_sequential, m_queue)
+      expect_equal(m_sequential, m_queue, ignore_attr = TRUE)
     })
   }
 

@@ -312,7 +312,7 @@ anatGetAll <-
       )
       labels <- rownames(out)
       label_frame <-
-        data_frame(Structure = labels, label = as.numeric(labels))
+        tibble(Structure = labels, label = as.numeric(labels))
     }
 
     ## Dress up the results and do label error checking

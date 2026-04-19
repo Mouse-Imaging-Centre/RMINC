@@ -1,5 +1,4 @@
 library(testthat)
-context("anatLm")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -28,13 +27,13 @@ rmod <- lm(lobeThickness ~ Sex)
 rLm = summary(rmod)
 
 test_that("anatLm Two Factors", {
-  expect_that(rmincLm[1, 1], is_equivalent_to(rLm$fstatistic[1]))
-  expect_that(rmincLm[1, 2], is_equivalent_to(rLm$r.squared[1]))
-  expect_that(rmincLm[1, 3], is_equivalent_to(rLm$coefficients[1, 1]))
-  expect_that(rmincLm[1, 4], is_equivalent_to(rLm$coefficients[2, 1]))
-  expect_that(rmincLm[1, 5], is_equivalent_to(rLm$coefficients[1, 3]))
-  expect_that(rmincLm[1, 6], is_equivalent_to(rLm$coefficients[2, 3]))
-  expect_that(attr(rmincLm, "df")[[2]], is_equivalent_to(rLm$df[2]))
+  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 5], rLm$coefficients[1, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 6], rLm$coefficients[2, 3], ignore_attr = TRUE)
+  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
 })
 
 test_that("Likelihood and information criteria are computed correctly", {
@@ -54,17 +53,17 @@ Sex = gf$Sex
 rLm = summary(lm(lobeThickness ~ Age * Sex))
 
 test_that("anatLm Interaction", {
-  expect_that(rmincLm[1, 1], is_equivalent_to(rLm$fstatistic[1]))
-  expect_that(rmincLm[1, 2], is_equivalent_to(rLm$r.squared[1]))
-  expect_that(rmincLm[1, 3], is_equivalent_to(rLm$coefficients[1, 1]))
-  expect_that(rmincLm[1, 4], is_equivalent_to(rLm$coefficients[2, 1]))
-  expect_that(rmincLm[1, 5], is_equivalent_to(rLm$coefficients[3, 1]))
-  expect_that(rmincLm[1, 6], is_equivalent_to(rLm$coefficients[4, 1]))
-  expect_that(rmincLm[1, 7], is_equivalent_to(rLm$coefficients[1, 3]))
-  expect_that(rmincLm[1, 8], is_equivalent_to(rLm$coefficients[2, 3]))
-  expect_that(rmincLm[1, 9], is_equivalent_to(rLm$coefficients[3, 3]))
-  expect_that(rmincLm[1, 10], is_equivalent_to(rLm$coefficients[4, 3]))
-  expect_that(attr(rmincLm, "df")[[2]], is_equivalent_to(rLm$df[2]))
+  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 5], rLm$coefficients[3, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 6], rLm$coefficients[4, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 7], rLm$coefficients[1, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 8], rLm$coefficients[2, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 9], rLm$coefficients[3, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 10], rLm$coefficients[4, 3], ignore_attr = TRUE)
+  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
 })
 
 rmincLm = verboseRun(
@@ -78,15 +77,15 @@ rLm = summary(lm(lobeThickness ~ Primary.Diagnosis))
 
 
 test_that("anatLm Three Factors", {
-  expect_that(rmincLm[1, 1], is_equivalent_to(rLm$fstatistic[1]))
-  expect_that(rmincLm[1, 2], is_equivalent_to(rLm$r.squared[1]))
-  expect_that(rmincLm[1, 3], is_equivalent_to(rLm$coefficients[1, 1]))
-  expect_that(rmincLm[1, 4], is_equivalent_to(rLm$coefficients[2, 1]))
-  expect_that(rmincLm[1, 5], is_equivalent_to(rLm$coefficients[3, 1]))
-  expect_that(rmincLm[1, 6], is_equivalent_to(rLm$coefficients[1, 3]))
-  expect_that(rmincLm[1, 7], is_equivalent_to(rLm$coefficients[2, 3]))
-  expect_that(rmincLm[1, 8], is_equivalent_to(rLm$coefficients[3, 3]))
-  expect_that(attr(rmincLm, "df")[[2]], is_equivalent_to(rLm$df[2]))
+  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 5], rLm$coefficients[3, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 6], rLm$coefficients[1, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 7], rLm$coefficients[2, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 8], rLm$coefficients[3, 3], ignore_attr = TRUE)
+  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
 })
 
 rmincLm = verboseRun(
@@ -99,24 +98,23 @@ Primary.Diagnosis = gf$Primary.Diagnosis
 rLm = summary(lm(lobeThickness ~ Primary.Diagnosis * Age))
 
 test_that("anatLm Three Factors Interaction", {
-  expect_that(rmincLm[1, 1], is_equivalent_to(rLm$fstatistic[1]))
-  expect_that(rmincLm[1, 2], is_equivalent_to(rLm$r.squared[1]))
-  expect_that(rmincLm[1, 3], is_equivalent_to(rLm$coefficients[1, 1]))
-  expect_that(rmincLm[1, 4], is_equivalent_to(rLm$coefficients[2, 1]))
-  expect_that(rmincLm[1, 5], is_equivalent_to(rLm$coefficients[3, 1]))
-  expect_that(rmincLm[1, 6], is_equivalent_to(rLm$coefficients[4, 1]))
-  expect_that(rmincLm[1, 7], is_equivalent_to(rLm$coefficients[5, 1]))
-  expect_that(rmincLm[1, 8], is_equivalent_to(rLm$coefficients[6, 1]))
-  expect_that(rmincLm[1, 9], is_equivalent_to(rLm$coefficients[1, 3]))
-  expect_that(rmincLm[1, 10], is_equivalent_to(rLm$coefficients[2, 3]))
-  expect_that(rmincLm[1, 11], is_equivalent_to(rLm$coefficients[3, 3]))
-  expect_that(rmincLm[1, 12], is_equivalent_to(rLm$coefficients[4, 3]))
-  expect_that(rmincLm[1, 13], is_equivalent_to(rLm$coefficients[5, 3]))
-  expect_that(rmincLm[1, 14], is_equivalent_to(rLm$coefficients[6, 3]))
-  expect_that(attr(rmincLm, "df")[[2]], is_equivalent_to(rLm$df[2]))
+  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 5], rLm$coefficients[3, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 6], rLm$coefficients[4, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 7], rLm$coefficients[5, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 8], rLm$coefficients[6, 1], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 9], rLm$coefficients[1, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 10], rLm$coefficients[2, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 11], rLm$coefficients[3, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 12], rLm$coefficients[4, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 13], rLm$coefficients[5, 3], ignore_attr = TRUE)
+  expect_equal(rmincLm[1, 14], rLm$coefficients[6, 3], ignore_attr = TRUE)
+  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
 })
 
-context("weighted anatLm")
 
 test_that("Weighted anatLm works", {
   w <- runif(20)
@@ -125,29 +123,32 @@ test_that("Weighted anatLm works", {
 
   verboseRun(alm <- anatLm(~ a + b + c, data = x, anat = y, w = w))
   lmods <- apply(y, 2, function(col) lm(col ~ a + b + c, data = x, weights = w))
-  expect_equivalent(
+  expect_equal(
     as.numeric(t(sapply(lmods, function(m) {
       summary(m)$coefficients[, "t value"]
     }))),
-    as.numeric(alm[, grepl("tvalue", colnames(alm))])
+    as.numeric(alm[, grepl("tvalue", colnames(alm))]),
+    ignore_attr = TRUE
   )
-  expect_equivalent(
+  expect_equal(
     as.numeric(t(sapply(lmods, function(m) summary(m)$r.squared))),
-    as.numeric(alm[, "R-squared"])
+    as.numeric(alm[, "R-squared"]),
+    ignore_attr = TRUE
   )
-  expect_equivalent(
+  expect_equal(
     as.numeric(t(sapply(lmods, function(m) summary(m)$fstatistic["value"]))),
-    as.numeric(alm[, "F-statistic"])
+    as.numeric(alm[, "F-statistic"]),
+    ignore_attr = TRUE
   )
-  expect_equivalent(
+  expect_equal(
     as.numeric(t(sapply(lmods, coef))),
-    as.numeric(alm[, grepl("beta", colnames(alm))])
+    as.numeric(alm[, grepl("beta", colnames(alm))]),
+    ignore_attr = TRUE
   )
-  expect_equivalent(sapply(lmods, logLik), alm[, "logLik"])
-  expect_equivalent(sapply(lmods, AIC), AIC(alm))
+  expect_equal(sapply(lmods, logLik, ignore_attr = TRUE), alm[, "logLik"])
+  expect_equal(sapply(lmods, AIC, ignore_attr = TRUE), AIC(alm))
 })
 
-context("Matrix mode")
 
 test_that("Test that passing a matrix on the RHS fails", {
   d <- data.frame(y = rnorm(10))

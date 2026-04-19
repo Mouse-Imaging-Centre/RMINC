@@ -1,5 +1,4 @@
 library(testthat)
-context("mincTable")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -25,11 +24,11 @@ mt_back_masked <- mincTable(
 )
 
 test_that("Unmasked mincTable works", {
-  expect_equivalent(ref, mt)
-  expect_equivalent(ref, mt_back[,])
+  expect_equal(ref, mt, ignore_attr = TRUE)
+  expect_equal(ref, mt_back[,], ignore_attr = TRUE)
 })
 
 test_that("Masked mincTable works", {
-  expect_equivalent(ref_masked, mt_masked)
-  expect_equivalent(ref_masked, mt_back_masked[,])
+  expect_equal(ref_masked, mt_masked, ignore_attr = TRUE)
+  expect_equal(ref_masked, mt_back_masked[,], ignore_attr = TRUE)
 })

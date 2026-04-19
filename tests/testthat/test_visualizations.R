@@ -1,7 +1,6 @@
 library(testthat)
 library(dplyr)
 
-context("visualizations")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()

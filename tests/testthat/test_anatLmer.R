@@ -10,7 +10,6 @@ handle_conv_warnings <- function(expr) {
   })
 }
 
-context("anatLmer")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -154,6 +153,6 @@ test_that("weighted lmer works", {
         t
     })
 
-    expect_equivalent(unclass(weighted_lmer), lmer_ref)
+    expect_equal(unclass(weighted_lmer), lmer_ref, ignore_attr = TRUE)
   })
 })

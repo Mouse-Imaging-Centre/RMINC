@@ -1,5 +1,4 @@
 library(testthat)
-context("vertexApply")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()

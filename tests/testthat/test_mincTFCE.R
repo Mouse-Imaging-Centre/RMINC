@@ -1,4 +1,3 @@
-context("Single dim mincTFCE")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -91,7 +90,6 @@ test_that("minc single dim TFCE works", {
   )
 })
 
-context("Multi dim TFCE")
 
 test_multidim <-
   cbind(v1 = first_vol, v2 = first_vol, v3 = rep(0, length(first_vol))) %>%
@@ -119,7 +117,6 @@ test_that("minc multi dim TFCE works", {
   )
 })
 
-context("MincLm Randomization TFCE")
 
 ## Really need a better test here
 test_that("lm randomization works", {
@@ -148,7 +145,6 @@ test_that("lm randomization works", {
   )
 })
 
-context("VertexTFCE numeric")
 
 test_that("Vertex TFCE approximately matches mincTFCE", {
   skip_on_cran()

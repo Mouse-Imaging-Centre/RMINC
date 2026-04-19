@@ -20,11 +20,11 @@ Depends:
     R (>= 3.2)
 Imports:
     batchtools,
-    dplyr (>= 0.7.6),
-    tidyr (>= 0.8.1),
+    dplyr (>= 1.0.0),
+    tidyr (>= 1.0.0),
     readr ,
     lme4  (>= 1.1-13),
-    purrr (>= 0.2.5),
+    purrr (>= 0.3.4),
     shiny (>= 1.1.0),
     methods,
     grDevices,

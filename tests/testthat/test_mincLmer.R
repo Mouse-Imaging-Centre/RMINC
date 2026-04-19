@@ -1,7 +1,6 @@
 library(testthat)
 library(lme4)
 
-context("mincLmer - basic test")
 
 handle_conv_warnings <- function(expr) {
   withCallingHandlers(expr, warning = function(w) {
@@ -38,11 +37,10 @@ handle_conv_warnings({
 
 
 test_that("mincLmer basics", {
-  expect_that(vsreml[voxelIndex, 1], is_equivalent_to(fixef(l)[1]))
-  expect_that(vsreml[voxelIndex, 2], is_equivalent_to(fixef(l)[2]))
+  expect_equal(vsreml[voxelIndex, 1], fixef(l)[1], ignore_attr = TRUE)
+  expect_equal(vsreml[voxelIndex, 2], fixef(l)[2], ignore_attr = TRUE)
 })
 
-context("mincLmer - maximum likelihood test")
 handle_conv_warnings({
   l <- lmer(v ~ Sex + (1 | coil), gf, REML = F)
 })
@@ -55,11 +53,10 @@ handle_conv_warnings({
 })
 
 test_that("mincLmer basics", {
-  expect_that(vsml[voxelIndex, 1], is_equivalent_to(fixef(l)[1]))
-  expect_that(vsml[voxelIndex, 2], is_equivalent_to(fixef(l)[2]))
+  expect_equal(vsml[voxelIndex, 1], fixef(l)[1], ignore_attr = TRUE)
+  expect_equal(vsml[voxelIndex, 2], fixef(l)[2], ignore_attr = TRUE)
 })
 
-context("mincLmer - alternative summaries")
 test_that("ranef works", {
   verboseRun({
     handle_conv_warnings({
@@ -123,7 +120,6 @@ test_that("'both' returns the right stat-types", {
   })
 })
 
-context("mincLmer - log likelihood ratios")
 
 handle_conv_warnings({
   vsml2 <- verboseRun(
@@ -135,17 +131,16 @@ handle_conv_warnings({
 l2 <- lmer(v ~ 1 + (1 | coil), gf, REML = F)
 
 test_that("logLikRatio", {
-  expect_that(mincLogLikRatio(vsreml, vsml), throws_error())
-  expect_that(
+  expect_error(mincLogLikRatio(vsreml, vsml))
+  expect_equal(
     mincLogLikRatio(vsml, vsml2)[voxelIndex, ],
-    is_equivalent_to(anova(l, l2)[2, 6])
+    anova(l, l2)[2, 6], ignore_attr = TRUE
   )
 })
 
-context("mincLmer - estimate DF")
 test_that("empty DF by default", {
-  expect_that(attr(vsreml, "df"), is_equivalent_to(NULL))
-  expect_that(mincFDR(vsreml), throws_error())
+  expect_equal(attr(vsreml, "df"), NULL, ignore_attr = TRUE)
+  expect_error(mincFDR(vsreml))
 })
 
 handle_conv_warnings({
@@ -154,8 +149,8 @@ handle_conv_warnings({
 
 df <- attr(vsreml, "df")
 test_that("DF within reasonable range", {
-  expect_that(df[[2]], is_less_than(nrow(gf) + 1))
-  expect_that(df[[2]], is_more_than(1))
+  expect_lt(df[[2]], nrow(gf) + 1)
+  expect_gt(df[[2]], 1)
 })
 
 test_that("Local parallel mincLmer works", {
@@ -195,8 +190,8 @@ test_that("Exotic formulae work", {
     })
   })
 
-  expect_that(df[[2]], is_less_than(nrow(gf) + 1))
-  expect_that(df[[2]], is_more_than(1))
+  expect_lt(df[[2]], nrow(gf) + 1)
+  expect_gt(df[[2]], 1)
 })
 
 test_that("mincLmer works with NAs", {
@@ -215,6 +210,6 @@ test_that("mincLmer works with NAs", {
     df <- attr(missing_dfs, "df")
   })
 
-  expect_that(df[[2]], is_less_than(nrow(attr(missing, "data")) + 1))
-  expect_that(df[[2]], is_more_than(1))
+  expect_lt(df[[2]], nrow(attr(missing, "data") + 1))
+  expect_gt(df[[2]], 1)
 })

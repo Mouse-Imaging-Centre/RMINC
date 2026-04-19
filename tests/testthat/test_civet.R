@@ -1,5 +1,4 @@
 library("testthat")
-context("civet.readAllCivetFiles")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -40,8 +39,8 @@ meanThicknessFromVertexFile <- mean(gf$nativeRMS_RSLtlink[
 ])
 
 test_that("Mean Thickness from Vertex File is the same as thickness from Anat File", {
-  expect_that(
+  expect_equal(
     meanThicknessFromVertexFile,
-    equals(gf$lobeThickness[[1, 1]], tolerance = 0.01)
+    gf$lobeThickness[[1, 1]], tolerance = 0.01
   )
 })

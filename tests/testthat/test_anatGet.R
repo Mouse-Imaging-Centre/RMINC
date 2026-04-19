@@ -4,7 +4,6 @@ suppressPackageStartupMessages({
   library(purrr)
 })
 
-context("anatGet")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -250,7 +249,7 @@ test_that("AnatGetAll multi-atlas works", {
           ~ tapply(.x, .y, function(s) length(s) * (.1)^3)[-1]
         ) %>%
         reduce(rbind)
-      expect_equivalent(unanat(label_volume), gold_volumes)
+      expect_equal(unanat(label_volume), gold_volumes, ignore_attr = TRUE)
 
       # Test means
       label_means <-
@@ -267,7 +266,7 @@ test_that("AnatGetAll multi-atlas works", {
       gold_means <-
         map2(vals, segs, ~ tapply(.x, .y, function(s) mean(s))[-1]) %>%
         reduce(rbind)
-      expect_equivalent(unanat(label_means), gold_means, tolerance = 10e-5)
+      expect_equal(unanat(label_means), gold_means, tolerance = 10e-5, ignore_attr = TRUE)
 
       # Test sums
       label_sums <-
@@ -284,7 +283,7 @@ test_that("AnatGetAll multi-atlas works", {
       gold_sums <-
         map2(vals, segs, ~ tapply(.x, .y, function(s) sum(s))[-1]) %>%
         reduce(rbind)
-      expect_equivalent(unanat(label_sums), gold_sums, tolerance = 10e-5)
+      expect_equal(unanat(label_sums), gold_sums, tolerance = 10e-5, ignore_attr = TRUE)
 
       # Test jacobians
       label_jacobians <-
@@ -305,10 +304,11 @@ test_that("AnatGetAll multi-atlas works", {
           ~ tapply(.x, .y, function(s) sum(exp(s) * .1^3))[-1]
         ) %>%
         reduce(rbind)
-      expect_equivalent(
+      expect_equal(
         unanat(label_jacobians),
         gold_jacobians,
-        tolerance = 10e-5
+        tolerance = 10e-5,
+        ignore_attr = TRUE
       )
     },
     envir = test_env
@@ -329,7 +329,7 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equivalent(unanat(label_volume), gold_volumes)
+      expect_equal(unanat(label_volume), gold_volumes, ignore_attr = TRUE)
 
       label_means <-
         expect_warning(
@@ -343,7 +343,7 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equivalent(unanat(label_means), gold_means, tolerance = 10e-5)
+      expect_equal(unanat(label_means), gold_means, tolerance = 10e-5, ignore_attr = TRUE)
 
       label_sums <-
         expect_warning(
@@ -357,7 +357,7 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equivalent(unanat(label_sums), gold_sums, tolerance = 10e-5)
+      expect_equal(unanat(label_sums), gold_sums, tolerance = 10e-5, ignore_attr = TRUE)
 
       label_jacobians <-
         expect_warning(
@@ -371,10 +371,11 @@ test_that("AnatGetAll local parallel works", {
           "No definitions provided"
         )
 
-      expect_equivalent(
+      expect_equal(
         unanat(label_jacobians),
         gold_jacobians,
-        tolerance = 10e-5
+        tolerance = 10e-5,
+        ignore_attr = TRUE
       )
     },
     envir = test_env
@@ -422,7 +423,7 @@ test_that("Multires Works", {
       strict = FALSE
     )
 
-  expect_equivalent(vols[1, ] * 1000, vols[6, ])
+  expect_equal(vols[1, ] * 1000, vols[6, ], ignore_attr = TRUE)
 })
 
 test_that("AnatGetAll errors correctly", {
@@ -450,7 +451,6 @@ test_that("AnatGetAll errors correctly", {
   )
 })
 
-context("anatomy hierarchy summarization")
 ## Test hierarchy
 test_hier1 <- label_frame
 test_hier1$hierarchy <- paste0("struc", rep(1:11, length.out = 34))

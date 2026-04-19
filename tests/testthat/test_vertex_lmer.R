@@ -1,6 +1,5 @@
 library(testthat)
 library(lme4)
-context("vertexLmer")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -127,12 +126,11 @@ test_that("Likelihood Ratio Tests for vertexLmer Work", {
 })
 
 
-context("vertexLmer - estimate DF")
 test_that("empty DF by default", {
   evalq(
     {
-      expect_that(attr(fast_lmer, "df"), is_equivalent_to(NULL))
-      expect_that(vertexFDR(fast_lmer), throws_error())
+      expect_equal(attr(fast_lmer, "df"), NULL, ignore_attr = TRUE)
+      expect_error(vertexFDR(fast_lmer))
     },
     envir = test_env
   )
@@ -146,8 +144,8 @@ test_that("DF within reasonable range", {
         verboseRun(fast_lmer_df <- vertexLmerEstimateDF(fast_lmer))
       })
       df <- attr(fast_lmer_df, "df")
-      expect_that(df[[2]], is_less_than(nrow(gftest) + 1))
-      expect_that(df[[2]], is_more_than(1))
+      expect_lt(df[[2]], nrow(gftest) + 1)
+      expect_gt(df[[2]], 1)
     },
     envir = test_env
   )
@@ -165,6 +163,6 @@ test_that("vertexLmer works with NAs", {
     df <- attr(missing_dfs, "df")
   })
 
-  expect_that(df[[2]], is_less_than(nrow(attr(missing, "data")) + 1))
-  expect_that(df[[2]], is_more_than(1))
+  expect_lt(df[[2]], nrow(attr(missing, "data") + 1))
+  expect_gt(df[[2]], 1)
 })

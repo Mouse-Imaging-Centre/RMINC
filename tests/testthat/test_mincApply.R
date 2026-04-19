@@ -1,5 +1,4 @@
 library(testthat)
-context("mincApply")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -17,7 +16,7 @@ ma <- verboseRun(
 )
 
 test_that("mincApply one output", {
-  expect_equivalent(as.numeric(mm), as.numeric(ma))
+  expect_equal(as.numeric(mm), as.numeric(ma, ignore_attr = TRUE))
 })
 
 
@@ -46,7 +45,7 @@ dim(ma) <- c(length(ma), 1)
 class(ma) <- "mincMultiDim"
 
 test_that("pmincapply local", {
-  expect_equivalent(ma, mm)
+  expect_equal(ma, mm, ignore_attr = TRUE)
 })
 
 ma <- verboseRun(

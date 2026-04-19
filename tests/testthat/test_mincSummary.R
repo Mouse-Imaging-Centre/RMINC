@@ -1,7 +1,6 @@
 library(testthat)
 #testthat test script for functions that call mincSummary
 # mincMean, mincSd, mincVar, mincSum
-context("mincSummary (Mean, Sd, Var, Sum,t-test,correlation,wilcoxon)")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -51,7 +50,7 @@ mtt <- verboseRun("mincTtest(gf$jacobians_0.2,gf$Strain)", getOption("verbose"))
 ttt <- t.test(vox ~ Strain, data = gf)
 
 test_that("ttest", {
-  expect_equivalent(ttt$statistic, mtt[1])
+  expect_equal(ttt$statistic, mtt[1], ignore_attr = TRUE)
 })
 
 
@@ -66,7 +65,7 @@ pttt <- t.test(gf_paired$vox[gf_paired$Strain == strain_levels[1]],
                paired = TRUE)
 
 test_that("paired ttest", {
-  expect_equivalent(pttt$statistic, mptt[1])
+  expect_equal(pttt$statistic, mptt[1], ignore_attr = TRUE)
 })
 
 
@@ -77,7 +76,7 @@ mc <- verboseRun(
 tc <- cor(gf$Weight, gf$vox)
 
 test_that("correlation", {
-  expect_equivalent(tc, mc[1])
+  expect_equal(tc, mc[1], ignore_attr = TRUE)
 })
 
 
@@ -90,7 +89,7 @@ mw <- verboseRun(
   getOption("verbose")
 )
 test_that("wilcoxon-ties", {
-  expect_equivalent(tw[[1]], mw[1])
+  expect_equal(tw[[1]], mw[1], ignore_attr = TRUE)
 })
 
 gf$vox <- mincGetVoxel(gf$jacobians_0.2, 5, 5, 5)
@@ -101,7 +100,7 @@ mw <- verboseRun(
 )
 tw <- wilcox.test(vox ~ Strain, data = gf_paired)
 test_that("wilcoxon", {
-  expect_equivalent(tw[[1]], mw[15 * 15 * 5 + 15 * 5 + 6])
+  expect_equal(tw[[1]], mw[15 * 15 * 5 + 15 * 5 + 6], ignore_attr = TRUE)
 })
 
 # mincFDR

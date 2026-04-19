@@ -50,12 +50,12 @@ connected_components <-
 
     con_com_frame <-
       with(con_coms, {
-        data_frame(
+        tibble(
           vertex = as.numeric(names(membership)),
           clust_id = membership
         ) %>%
           inner_join(
-            data_frame(clust_size = csize, clust_id = 1:length(csize)),
+            tibble(clust_size = csize, clust_id = 1:length(csize)),
             by = "clust_id"
           )
       })

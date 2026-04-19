@@ -50,7 +50,6 @@ subjectFile2[10, 1] = file.path(dataPath, "vertex1.csv.gz")
 gftest2$testFilesLeft <- (subjectFile2)
 gftest2$testLeft <- t(vertexTable(gftest2$testFilesLeft))
 
-context("vertexTable")
 
 table1 <- vertexTable(gftest$testFilesLeft, column = 1)
 table2 <- vertexTable(gftest2$testFilesLeft, column = 1)
@@ -59,7 +58,6 @@ test_that("vertexTable", {
 })
 
 
-context("vertexMean")
 
 #Calculate mean
 
@@ -79,7 +77,6 @@ test_that("vertexMean.csv", {
 })
 
 
-context("writeVertexMean")
 writeVertex(
   vm,
   file.path(dataPath, "test_mean_no_col_names.txt"),
@@ -112,30 +109,46 @@ writeVertex(
 )
 
 test_that("writeVertexMean", {
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_no_col_names.txt")),
-    "7cd5da918fb95bb99ed0a30b5d794ddf"
+  # Verify round-trip: read back written files and compare values numerically
+  # (MD5 hashes are platform/version-dependent due to floating-point formatting)
+
+  # Test no col names (plain delimited)
+  written_no_col <- readr::read_delim(
+    file.path(dataPath, "test_mean_no_col_names.txt"),
+    col_names = FALSE, show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_col_names.txt")),
-    "0eb3b6a54bddc917f0f8e677a2905a57"
+  expect_equal(as.numeric(as.matrix(written_no_col)), as.numeric(vm), tolerance = 1e-10)
+
+  # Test with col names (plain delimited)
+  written_col <- readr::read_delim(
+    file.path(dataPath, "test_mean_with_col_names.txt"),
+    show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_col_names.csv")),
-    "0eb3b6a54bddc917f0f8e677a2905a57"
+  expect_equal(as.numeric(as.matrix(written_col)), as.numeric(vm), tolerance = 1e-10)
+
+  # Test with col names, csv format
+  written_csv <- readr::read_csv(
+    file.path(dataPath, "test_mean_with_col_names.csv"),
+    show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_header.txt")),
-    "19f6023459df8f953fe086ec32177485"
+  expect_equal(as.numeric(as.matrix(written_csv)), as.numeric(vm), tolerance = 1e-10)
+
+  # Test with header, no col names
+  header_lines <- readLines(file.path(dataPath, "test_mean_with_header.txt"))
+  header_end <- which(header_lines == "</header>")
+  data_lines <- header_lines[(header_end + 1):length(header_lines)]
+  written_header <- read.table(text = data_lines, header = FALSE)
+  expect_equal(as.numeric(as.matrix(written_header)), as.numeric(vm), tolerance = 1e-10)
+
+  # Test with col names, compressed csv.gz
+  written_gz <- readr::read_csv(
+    file.path(dataPath, "test_mean_with_col_names_gz.csv.gz"),
+    show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_col_names_gz.csv.gz")),
-    "2f4e3b87f7bb2a01f0615f1a949823bd"
-  )
+  expect_equal(as.numeric(as.matrix(written_gz)), as.numeric(vm), tolerance = 1e-10)
 })
 
 
-context("vertexSum")
 
 #Calculate sum
 
@@ -154,7 +167,6 @@ test_that("vertexSum.csv", {
   expect_equal(sum(gftest$testLeft[, 3]), vs2[3])
 })
 
-context("vertexVar")
 
 #Calculate variance
 vv <- verboseRun("vertexVar(gftest$testFilesLeft)", getOption("verbose"))
@@ -173,7 +185,6 @@ test_that("vertexVar", {
 })
 
 
-context("vertexSd")
 
 #Calculate standard deviation
 vsd <- verboseRun("vertexSd(gftest$testFilesLeft)", getOption("verbose"))

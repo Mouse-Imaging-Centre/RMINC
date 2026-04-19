@@ -1,5 +1,4 @@
 library(testthat)
-context("anatApply")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()

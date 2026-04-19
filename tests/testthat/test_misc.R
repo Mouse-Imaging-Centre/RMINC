@@ -1,6 +1,5 @@
 library(testthat)
 
-context("mincGetTagFile")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -44,7 +43,6 @@ test_that("mincGetTagFile works", {
   )
 })
 
-context("File Limits")
 
 test_that("File limit check works", {
   expect_error(RMINC:::enoughAvailableFileDescriptors(Inf))

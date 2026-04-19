@@ -1,5 +1,4 @@
 library(testthat)
-context("anatApply")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -30,7 +29,6 @@ test_that("anatApply one output", {
   expect_equal(ma[1], mm)
 })
 
-context("anatMean")
 
 #Calculate mean
 test_that("anatMean", {
@@ -38,7 +36,6 @@ test_that("anatMean", {
   expect_equal(colMeans(gf$lobeThickness), vm)
 })
 
-context("anatSum")
 
 #Calculate sum
 test_that("anatSum", {
@@ -46,7 +43,6 @@ test_that("anatSum", {
   expect_equal(colSums(gf$lobeThickness), vs)
 })
 
-context("anatVar")
 
 #Calculate variance
 test_that("anatVar", {
@@ -55,7 +51,6 @@ test_that("anatVar", {
 })
 
 
-context("anatSd")
 
 #Calculate standard deviation
 test_that("anatSd", {

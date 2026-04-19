@@ -1,5 +1,4 @@
 library(testthat)
-context("mincAnova")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -27,9 +26,9 @@ rmincAnova = verboseRun(
 )
 
 test_that("mincAnova Two Factors", {
-  expect_that(rmincAnova[1, 1], is_equivalent_to(rAnova$F[1]))
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
+  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
 })
 
 rmincAnova = verboseRun(
@@ -42,15 +41,15 @@ gftest$voxel_left <- voxel_left
 rAnova = anova(lm(voxel_left ~ Sex * Scale, gftest))
 
 test_that("mincAnova interaction", {
-  expect_that(rmincAnova[1, 1], is_equivalent_to(rAnova$F[1]))
-  expect_that(rmincAnova[1, 2], is_equivalent_to(rAnova$F[2]))
-  expect_that(rmincAnova[1, 3], is_equivalent_to(rAnova$F[3]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[2]][1], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[2]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[3]][1], is_equivalent_to(rAnova$Df[3]))
-  expect_that(attr(rmincAnova, "df")[[3]][2], is_equivalent_to(rAnova$Df[4]))
+  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 2], rAnova$F[2], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 3], rAnova$F[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][1], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][1], rAnova$Df[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][2], rAnova$Df[4], ignore_attr = TRUE)
 })
 
 
@@ -64,8 +63,8 @@ gftest$voxel_left = voxel_left
 rAnova = anova(lm(voxel_left ~ Coil, gftest))
 
 test_that("mincAnova Three Factors", {
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
 })
 
 
@@ -78,15 +77,15 @@ rmincAnova = verboseRun(
 )
 
 test_that("mincAnova Three Factors Interaction", {
-  expect_that(rmincAnova[1, 1], is_equivalent_to(rAnova$F[1]))
-  expect_that(rmincAnova[1, 2], is_equivalent_to(rAnova$F[2]))
-  expect_that(rmincAnova[1, 3], is_equivalent_to(rAnova$F[3]))
-  expect_that(attr(rmincAnova, "df")[[1]][1], is_equivalent_to(rAnova$Df[1]))
-  expect_that(attr(rmincAnova, "df")[[1]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[2]][1], is_equivalent_to(rAnova$Df[2]))
-  expect_that(attr(rmincAnova, "df")[[2]][2], is_equivalent_to(rAnova$Df[4]))
-  expect_that(attr(rmincAnova, "df")[[3]][1], is_equivalent_to(rAnova$Df[3]))
-  expect_that(attr(rmincAnova, "df")[[3]][2], is_equivalent_to(rAnova$Df[4]))
+  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 2], rAnova$F[2], ignore_attr = TRUE)
+  expect_equal(rmincAnova[1, 3], rAnova$F[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][1], rAnova$Df[2], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[2]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][1], rAnova$Df[3], ignore_attr = TRUE)
+  expect_equal(attr(rmincAnova, "df")[[3]][2], rAnova$Df[4], ignore_attr = TRUE)
 })
 
 test_that("mincAnova local multicore works", {

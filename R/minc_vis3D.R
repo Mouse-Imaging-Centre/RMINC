@@ -991,7 +991,7 @@ read_line_obj <-
       parse_numbers
 
     line_frame <-
-      data_frame(end = line_ends, start = lag(line_ends, default = 0))
+      tibble(end = line_ends, start = lag(line_ends, default = 0))
 
     lines_list <-
       mapply(

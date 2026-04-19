@@ -1,5 +1,4 @@
 library(testthat)
-context("mincApplyRCPP")
 
 if (!exists("dataPath")) {
   dataPath <- tempdir()
@@ -22,7 +21,7 @@ class(ma) <- c("mincMultiDim", "matrix")
 
 
 test_that("mincApplyRCPP matches MincMean", {
-  expect_equivalent(ma, mm)
+  expect_equal(ma, mm, ignore_attr = TRUE)
 })
 
 setRMINCMaskedValue(val = 0)
@@ -43,7 +42,7 @@ class(ma_masked) <- c("mincMultiDim", "matrix")
 
 
 test_that("mincApplyRCPP masks like mincMean", {
-  expect_equivalent(mm_masked, ma_masked)
+  expect_equal(mm_masked, ma_masked, ignore_attr = TRUE)
   expect_equal(attr(mm_masked, "filenames"), attr(ma_masked, "filenames"))
 })
 

@@ -1230,7 +1230,7 @@ civet.vertexFilenames <-
       }) %>%
       rename(left_volume = .data$left, right_volume = .data$right)
 
-    bind_cols(data_frame(ids = ids), thickness_files, area_files, volume_files)
+    bind_cols(tibble(ids = ids), thickness_files, area_files, volume_files)
   }
 
 #' Create a table of vertex measures
@@ -2360,17 +2360,10 @@ civet_qc_1_1_12 <-
         SSLeft_score = rate_cutoffs(.data$SSLeft, 250, 500),
         SSRight_score = rate_cutoffs(.data$SSRight, 250, 500)
       ) %>%
-      cbind(
-        rowwise(.) %>%
-          do(
-            QC_PASS = as_tibble(.) %>%
-              select(matches("_score")) %>%
-              unlist %>%
-              `!=`("bad") %>%
-              all
-          ) %>%
-          mutate(QC_PASS = unlist(.$dataQC_PASS))
-      )
+      mutate(QC_PASS = {
+        score_cols <- select(., matches("_score"))
+        apply(score_cols, 1, function(row) all(row != "bad"))
+      })
   }
 
 ## CIVET QC helpers
@@ -2421,17 +2414,10 @@ civet_qc_2_0_0 <-
         SSLeft_score = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100),
         SSRight_score = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
       ) %>%
-      cbind(
-        rowwise(.) %>%
-          do(
-            QC_PASS = as_tibble(.) %>%
-              select(matches("_score")) %>%
-              unlist %>%
-              `!=`("bad") %>%
-              all
-          ) %>%
-          mutate(QC_PASS = unlist(.data$QC_PASS))
-      )
+      mutate(QC_PASS = {
+        score_cols <- select(., matches("_score"))
+        apply(score_cols, 1, function(row) all(row != "bad"))
+      })
   }
 
 civet_qc_2_1_0 <-
@@ -2471,15 +2457,8 @@ civet_qc_2_1_0 <-
         SSLeft_score = rate_cutoffs(.data$LEFT_SURF_SURF, 50, 100),
         SSRight_score = rate_cutoffs(.data$RIGHT_SURF_SURF, 50, 100)
       ) %>%
-      cbind(
-        rowwise(.) %>%
-          do(
-            QC_PASS = as_tibble(.) %>%
-              select(matches("_score")) %>%
-              unlist %>%
-              `!=`("bad") %>%
-              all
-          ) %>%
-          mutate(QC_PASS = unlist(.data$QC_PASS))
-      )
+      mutate(QC_PASS = {
+        score_cols <- select(., matches("_score"))
+        apply(score_cols, 1, function(row) all(row != "bad"))
+      })
   }
