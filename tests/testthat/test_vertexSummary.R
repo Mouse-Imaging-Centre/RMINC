@@ -112,17 +112,18 @@ test_that("writeVertexMean", {
   # Verify round-trip: read back written files and compare values numerically
   # (MD5 hashes are platform/version-dependent due to floating-point formatting)
 
-  # Test no col names (plain delimited)
-  written_no_col <- readr::read_delim(
+  # Test no col names (plain space-delimited; use read.table since
+  # readr::read_delim can't guess delimiter on single-column data)
+  written_no_col <- read.table(
     file.path(dataPath, "test_mean_no_col_names.txt"),
-    col_names = FALSE, show_col_types = FALSE
+    header = FALSE
   )
   expect_equal(as.numeric(as.matrix(written_no_col)), as.numeric(vm), tolerance = 1e-10)
 
-  # Test with col names (plain delimited)
-  written_col <- readr::read_delim(
+  # Test with col names (plain space-delimited)
+  written_col <- read.table(
     file.path(dataPath, "test_mean_with_col_names.txt"),
-    show_col_types = FALSE
+    header = TRUE
   )
   expect_equal(as.numeric(as.matrix(written_col)), as.numeric(vm), tolerance = 1e-10)
 
@@ -133,11 +134,11 @@ test_that("writeVertexMean", {
   )
   expect_equal(as.numeric(as.matrix(written_csv)), as.numeric(vm), tolerance = 1e-10)
 
-  # Test with header, no col names
+  # Test with header (writeVertex sets col.names=TRUE when header=TRUE)
   header_lines <- readLines(file.path(dataPath, "test_mean_with_header.txt"))
   header_end <- which(header_lines == "</header>")
   data_lines <- header_lines[(header_end + 1):length(header_lines)]
-  written_header <- read.table(text = data_lines, header = FALSE)
+  written_header <- read.table(text = data_lines, header = TRUE)
   expect_equal(as.numeric(as.matrix(written_header)), as.numeric(vm), tolerance = 1e-10)
 
   # Test with col names, compressed csv.gz
