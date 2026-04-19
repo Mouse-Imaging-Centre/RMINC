@@ -145,8 +145,8 @@ test_that("Weighted anatLm works", {
     as.numeric(alm[, grepl("beta", colnames(alm))]),
     ignore_attr = TRUE
   )
-  expect_equal(sapply(lmods, logLik, ignore_attr = TRUE), alm[, "logLik"])
-  expect_equal(sapply(lmods, AIC, ignore_attr = TRUE), AIC(alm))
+  expect_equal(sapply(lmods, logLik), alm[, "logLik"], ignore_attr = TRUE)
+  expect_equal(sapply(lmods, AIC), AIC(alm), ignore_attr = TRUE)
 })
 
 

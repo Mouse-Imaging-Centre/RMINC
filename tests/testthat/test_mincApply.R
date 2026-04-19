@@ -16,7 +16,7 @@ ma <- verboseRun(
 )
 
 test_that("mincApply one output", {
-  expect_equal(as.numeric(mm), as.numeric(ma, ignore_attr = TRUE))
+  expect_equal(as.numeric(mm), as.numeric(ma), ignore_attr = TRUE)
 })
 
 
