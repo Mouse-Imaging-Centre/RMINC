@@ -21,7 +21,7 @@ class(ma) <- c("mincMultiDim", "matrix")
 
 
 test_that("mincApplyRCPP matches MincMean", {
-  expect_equal(unname(ma), unname(mm), ignore_attr = TRUE)
+  expect_equal(as.numeric(ma), as.numeric(mm))
 })
 
 setRMINCMaskedValue(val = 0)
@@ -42,7 +42,7 @@ class(ma_masked) <- c("mincMultiDim", "matrix")
 
 
 test_that("mincApplyRCPP masks like mincMean", {
-  expect_equal(unname(mm_masked), unname(ma_masked), ignore_attr = TRUE)
+  expect_equal(as.numeric(mm_masked), as.numeric(ma_masked))
   expect_equal(attr(mm_masked, "filenames"), attr(ma_masked, "filenames"))
 })
 

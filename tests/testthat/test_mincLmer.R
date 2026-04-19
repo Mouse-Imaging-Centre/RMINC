@@ -70,8 +70,7 @@ test_that("ranef works", {
     })
     expect_equal(
       as.numeric(vs_ranef[voxelIndex, 1:3]),
-      ranef(l)$coil[, 1],
-      ignore.attributes = TRUE
+      as.numeric(ranef(l)$coil[, 1])
     )
   })
 })
@@ -169,7 +168,7 @@ test_that("Local parallel mincLmer works", {
     )
   })
 
-  expect_equal(vsreml, preml, check.attributes = FALSE)
+  expect_equal(as.numeric(vsreml), as.numeric(preml))
 })
 
 

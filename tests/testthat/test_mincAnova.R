@@ -104,5 +104,5 @@ test_that("mincAnova local multicore works", {
     )
   )
 
-  expect_equal(rmincAnova, pra, check.attributes = FALSE)
+  expect_equal(as.numeric(rmincAnova), as.numeric(pra))
 })

@@ -65,16 +65,14 @@ test_that("anatLmer works", {
       })
 
       expect_equal(
-        unclass(lmer_res_nlhs),
-        lmer_ref,
-        tolerance = 10e-5,
-        check.attributes = FALSE
+        as.numeric(unclass(lmer_res_nlhs)),
+        as.numeric(lmer_ref),
+        tolerance = 10e-5
       )
       expect_equal(
-        lmer_res_lhs,
-        lmer_res_nlhs,
-        tolerance = 10e-5,
-        check.attributes = FALSE
+        as.numeric(lmer_res_lhs),
+        as.numeric(lmer_res_nlhs),
+        tolerance = 10e-5
       )
     },
     envir = anat_env
@@ -153,6 +151,6 @@ test_that("weighted lmer works", {
         t
     })
 
-    expect_equal(unname(unclass(weighted_lmer)), unname(lmer_ref), ignore_attr = TRUE)
+    expect_equal(as.numeric(unclass(weighted_lmer)), as.numeric(lmer_ref))
   })
 })

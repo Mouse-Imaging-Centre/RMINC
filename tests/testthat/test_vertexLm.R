@@ -119,42 +119,42 @@ test_that("writeVertexLm", {
   # Verify round-trip: read back written files and compare values numerically
   # (MD5 hashes are platform/version-dependent due to floating-point formatting)
 
-  ref_matrix <- unname(as.matrix(rmincLm))
+  ref_values <- as.numeric(as.matrix(rmincLm))
 
   # Test no col names, no header (plain delimited)
   written_no_col <- readr::read_delim(
     file.path(dataPath, "test_lm_no_col_names.txt"),
     col_names = FALSE, show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_no_col)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
+  expect_equal(as.numeric(as.matrix(written_no_col)), ref_values, tolerance = 1e-10)
 
   # Test with col names, no header (plain delimited)
   written_col <- readr::read_delim(
     file.path(dataPath, "test_lm_with_col_names.txt"),
     show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_col)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
+  expect_equal(as.numeric(as.matrix(written_col)), ref_values, tolerance = 1e-10)
 
   # Test with col names, csv format
   written_csv <- readr::read_csv(
     file.path(dataPath, "test_lm_with_col_names.csv"),
     show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_csv)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
+  expect_equal(as.numeric(as.matrix(written_csv)), ref_values, tolerance = 1e-10)
 
-  # Test with header, no col names - read header then data
+  # Test with header, col names (writeVertex sets col.names=TRUE when header=TRUE)
   header_lines <- readLines(file.path(dataPath, "test_lm_with_header.txt"))
   header_end <- which(header_lines == "</header>")
   data_lines <- header_lines[(header_end + 1):length(header_lines)]
-  written_header <- read.table(text = data_lines, header = FALSE, colClasses = "numeric")
-  expect_equal(unname(as.matrix(written_header)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
+  written_header <- read.table(text = data_lines, header = TRUE)
+  expect_equal(as.numeric(as.matrix(written_header)), ref_values, tolerance = 1e-10)
 
   # Test with col names, compressed csv.gz
   written_gz <- readr::read_csv(
     file.path(dataPath, "test_lm_with_col_names_gz.csv.gz"),
     show_col_types = FALSE
   )
-  expect_equal(unname(as.matrix(written_gz)), ref_matrix, tolerance = 1e-10, ignore_attr = TRUE)
+  expect_equal(as.numeric(as.matrix(written_gz)), ref_values, tolerance = 1e-10)
 })
 
 

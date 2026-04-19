@@ -26,7 +26,7 @@ mm <- verboseRun("vertexMean(gftest$testFilesLeft)", getOption("verbose"))
 ma <- verboseRun("vertexApply(gftest$testFilesLeft,mean)", getOption("verbose"))
 
 test_that("vertexApply one output", {
-  expect_equal(ma, mm, check.attributes = FALSE)
+  expect_equal(as.numeric(ma), as.numeric(mm))
 })
 
 # Need to define global variable when running tests, but normally do not...

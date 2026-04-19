@@ -47,14 +47,12 @@ test_that("Vertex REML Lmer Works", {
           vertexLmer(testFilesLeft ~ Age + (1 | Sex), data = gftest)
       })
       expect_equal(
-        fast_lmer[, 1:2],
-        t(sapply(slow_lmer, fixef)),
-        check.attributes = FALSE
+        as.numeric(fast_lmer[, 1:2]),
+        as.numeric(t(sapply(slow_lmer, fixef)))
       )
       expect_equal(
-        fast_lmer[, 3:4],
-        t(sapply(slow_lmer, function(x) coefficients(summary(x))[, "t value"])),
-        check.attributes = FALSE
+        as.numeric(fast_lmer[, 3:4]),
+        as.numeric(t(sapply(slow_lmer, function(x) coefficients(summary(x))[, "t value"])))
       )
     },
     envir = test_env
@@ -80,17 +78,15 @@ test_that("Vertex ML Lmer Works", {
       })
 
       expect_equal(
-        fast_lmer2[, 1:2],
-        t(sapply(slow_lmer2, fixef)),
-        check.attributes = FALSE,
+        as.numeric(fast_lmer2[, 1:2]),
+        as.numeric(t(sapply(slow_lmer2, fixef))),
         tolerance = 10e-5
       )
       expect_equal(
-        fast_lmer2[, 3:4],
-        t(sapply(slow_lmer2, function(x) {
+        as.numeric(fast_lmer2[, 3:4]),
+        as.numeric(t(sapply(slow_lmer2, function(x) {
           coefficients(summary(x))[, "t value"]
-        })),
-        check.attributes = FALSE
+        })))
       )
     },
     envir = test_env
@@ -116,9 +112,8 @@ test_that("Likelihood Ratio Tests for vertexLmer Work", {
         regexp = "REML=FALSE"
       )
       expect_equal(
-        mincLogLikRatio(fast_lmer2, fast_lmer3)[2],
-        anova(slow_lmer2[[2]], slow_lmer3[[2]])[2, 6],
-        check.attributes = FALSE
+        as.numeric(mincLogLikRatio(fast_lmer2, fast_lmer3)[2]),
+        as.numeric(anova(slow_lmer2[[2]], slow_lmer3[[2]])[2, 6])
       )
     },
     envir = test_env

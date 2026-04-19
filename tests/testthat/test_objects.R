@@ -32,7 +32,7 @@ verboseRun({
 
   test_that("conversion to and from mincSingleDim", {
     expect_equal(class(volume_reconstituted), class(volume))
-    expect_equal(unname(volume_reconstituted), unname(volume), ignore_attr = TRUE)
+    expect_equal(as.numeric(volume_reconstituted), as.numeric(volume))
   })
 
   volume_rec_with_attrs <-
@@ -57,7 +57,7 @@ verboseRun({
 
   test_that("conversion to and from mincMultiDim", {
     # Ensure values work
-    expect_equal(multidim, multidim_reconstituted, check.attributes = FALSE)
+    expect_equal(as.numeric(multidim), as.numeric(multidim_reconstituted))
 
     # Ensure attributes are equal up to reordering
     expect_equal(

@@ -59,9 +59,8 @@ test_that("anatGetAll_old works", {
         filter(label %in% known_labels)
 
       expect_equal(
-        label_counts[1, ],
-        label_counts_ref$count,
-        check.attributes = FALSE
+        as.numeric(label_counts[1, ]),
+        as.numeric(label_counts_ref$count)
       )
 
       label_sums <-
@@ -81,10 +80,9 @@ test_that("anatGetAll_old works", {
         .[, colnames(.) %in% known_labels]
 
       expect_equal(
-        unclass(label_sums),
-        ref_sums,
-        tolerance = 10e-5,
-        check.attributes = FALSE
+        as.numeric(unclass(label_sums)),
+        as.numeric(ref_sums),
+        tolerance = 10e-5
       )
 
       label_means <-
@@ -96,10 +94,9 @@ test_that("anatGetAll_old works", {
         )
 
       expect_equal(
-        sweep(label_sums, 2, label_counts / vox_vol, FUN = `/`),
-        label_means,
-        tol = 10e-5,
-        ignore.attributes = TRUE
+        as.numeric(sweep(label_sums, 2, label_counts / vox_vol, FUN = `/`)),
+        as.numeric(label_means),
+        tolerance = 10e-5
       )
       #curious to note computing counts then sums and sweeping dividing
       #out the volume is faster than anatGetAll with means...
@@ -121,10 +118,9 @@ test_that("anatGetAll_old works", {
         .[, colnames(.) %in% known_labels]
 
       expect_equal(
-        ref_jacobians,
-        unclass(jacobians),
-        tol = 10e-5,
-        check.attributes = FALSE
+        as.numeric(ref_jacobians),
+        as.numeric(unclass(jacobians)),
+        tolerance = 10e-5
       )
     },
     envir = test_env
@@ -145,9 +141,8 @@ test_that("AnatGetAll works", {
       )
 
       expect_equal(
-        new_label_counts[1, ],
-        label_counts_ref$count,
-        check.attributes = FALSE
+        as.numeric(new_label_counts[1, ]),
+        as.numeric(label_counts_ref$count)
       )
       expect_equal(colnames(new_label_counts), colnames(label_counts))
 
@@ -161,9 +156,8 @@ test_that("AnatGetAll works", {
       )
 
       expect_equal(
-        new_jacobians,
-        jacobians,
-        check.attributes = FALSE,
+        as.numeric(new_jacobians),
+        as.numeric(jacobians),
         tolerance = 10e-4
       )
       expect_equal(colnames(new_jacobians), colnames(jacobians))
@@ -178,9 +172,8 @@ test_that("AnatGetAll works", {
       )
 
       expect_equal(
-        new_sums,
-        label_sums,
-        check.attributes = FALSE,
+        as.numeric(new_sums),
+        as.numeric(label_sums),
         tolerance = 10e-4
       )
       expect_equal(colnames(new_sums), colnames(label_sums))
@@ -195,9 +188,8 @@ test_that("AnatGetAll works", {
       )
 
       expect_equal(
-        new_means,
-        label_means,
-        check.attributes = FALSE,
+        as.numeric(new_means),
+        as.numeric(label_means),
         tolerance = 10e-4
       )
       expect_equal(colnames(new_means), colnames(label_means))
