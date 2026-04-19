@@ -60,7 +60,10 @@ mptt <- verboseRun(
   "mincPairedTtest(gf_paired$jacobians_0.2,gf_paired$Strain)",
   getOption("verbose")
 ) # To Do: Ask case where unequal lengths
-pttt <- t.test(vox ~ Strain, data = gf_paired, paired = TRUE)
+strain_levels <- levels(gf_paired$Strain)
+pttt <- t.test(gf_paired$vox[gf_paired$Strain == strain_levels[1]],
+               gf_paired$vox[gf_paired$Strain == strain_levels[2]],
+               paired = TRUE)
 
 test_that("paired ttest", {
   expect_equivalent(pttt$statistic, mptt[1])

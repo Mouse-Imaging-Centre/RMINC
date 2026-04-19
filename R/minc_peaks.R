@@ -173,7 +173,7 @@ mincLabelPeaks <- function(
     defs <- read.csv(defs)
     # melt into long format
     mdefs <- defs[, 1:3] %>%
-      gather_("variable", "value", c("right.label", "left.label"))
+      pivot_longer(cols = c("right.label", "left.label"), names_to = "variable", values_to = "value")
     mdefs$variable <- as.character(mdefs$variable)
     mdefs$Structure <- as.character(mdefs$Structure)
     # get rid of .label

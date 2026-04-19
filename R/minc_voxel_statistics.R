@@ -992,7 +992,7 @@ mincTtest <- function(filenames, grouping, mask = NULL, maskval = NULL) {
   gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
   gf$grouping <- grouping
   gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
-  rttest <- t.test(vox ~ grouping, data = gf, paired = FALSE)
+  rttest <- t.test(vox ~ grouping, data = gf)
   attr(result, "df") <- rttest$parameter
   colnames(result) <- c("T-statistic")
   class(result) <- c("mincMultiDim", "matrix")
@@ -1066,7 +1066,10 @@ mincPairedTtest <- function(filenames, grouping, mask = NULL, maskval = NULL) {
   gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
   gf$grouping <- grouping
   gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
-  rttest <- t.test(vox ~ grouping, data = gf, paired = TRUE)
+  group_levels <- levels(grouping)
+  vox_group1 <- gf$vox[grouping == group_levels[1]]
+  vox_group2 <- gf$vox[grouping == group_levels[2]]
+  rttest <- t.test(vox_group1, vox_group2, paired = TRUE)
   attr(result, "df") <- rttest$parameter
   colnames(result) <- c("T-statistic")
   class(result) <- c("mincMultiDim", "matrix")

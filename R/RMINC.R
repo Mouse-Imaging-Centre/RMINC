@@ -34,7 +34,7 @@
 #' @importFrom visNetwork visNetwork visNodes visEdges visHierarchicalLayout
 #'                        visPhysics
 #' @importFrom rjson fromJSON
-#' @importFrom purrr map map_df map2
+#' @importFrom purrr map map_dfr map2
 #' @importFrom rlang UQ quo
 #' @useDynLib RMINC, .registration = TRUE
 #' @docType package

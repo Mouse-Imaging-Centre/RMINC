@@ -540,7 +540,7 @@ ranef_summary <-
       function(m, val_name) {
         as.data.frame(m) %>%
           mutate(group = rownames(m)) %>%
-          gather_("effect", val_name, colnames(m))
+          pivot_longer(cols = all_of(colnames(m)), names_to = "effect", values_to = val_name)
       }
 
     eff <- ranef(mmod, condVar = TRUE)
@@ -572,14 +572,14 @@ ranef_summary <-
               grouping = group_name,
               se = NULL
             ) %>%
-            gather("var", "value", c("tvalue", "beta")) %>%
+            pivot_longer(cols = c("tvalue", "beta"), names_to = "var", values_to = "value") %>%
             unite("groupingXgroup", c("grouping", "group"), sep = "") %>%
             unite(
               "varXeffectXgroupingXgroup",
               c("var", "effect", "groupingXgroup"),
               sep = "-"
             ) %>%
-            spread("varXeffectXgroupingXgroup", "value") %>%
+            pivot_wider(names_from = "varXeffectXgroupingXgroup", values_from = "value") %>%
             as.matrix %>%
             .[1, ]
         },

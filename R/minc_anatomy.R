@@ -232,7 +232,7 @@ anatGetAll <-
     reduce_results <-
       function(res_list) {
         res_list %>%
-          map_df(function(r) {
+          map_dfr(function(r) {
             setNames(r, paste0("label_", names(r))) %>%
               as.data.frame
           })
@@ -361,7 +361,7 @@ create_labels_frame <-
     label_defs <-
       label_defs %>%
       mutate(both_sides = .data$right.label == .data$left.label) %>%
-      gather("hemisphere", "label", c("right.label", "left.label")) %>%
+      pivot_longer(cols = c("right.label", "left.label"), names_to = "hemisphere", values_to = "label") %>%
       mutate(
         Structure = ifelse(
           .data$both_sides,
@@ -742,7 +742,7 @@ anatSummarize <-
       summarize_by <-
         create_labels_frame(defs, hierarchy = summarize_by) %>%
         select(-.data$label) %>%
-        rename_(label = "Structure", group = "hierarchy")
+        rename(label = "Structure", group = "hierarchy")
     }
 
     if (!discard_missing) {
@@ -762,11 +762,11 @@ anatSummarize <-
     anat %>%
       as.data.frame.matrix %>%
       (tibble::rownames_to_column) %>%
-      gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
+      pivot_longer(cols = all_of(setdiff(colnames(anat), "rowname")), names_to = "label", values_to = "value") %>%
       inner_join(summarize_by, by = "label") %>%
-      group_by_("group", "rowname") %>%
+      group_by(.data$group, .data$rowname) %>%
       summarize(value = sum(.data$value)) %>%
-      spread_("group", "value") %>%
+      pivot_wider(names_from = "group", values_from = "value") %>%
       arrange(as.numeric(.data$rowname)) %>%
       select(-.data$rowname) %>%
       as.matrix

@@ -121,26 +121,43 @@ writeVertex(
 )
 
 test_that("writeVertexLm", {
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_no_col_names.txt")),
-    "e959ba23a46866f5b9ffafb514c7eb93"
+  # Verify round-trip: read back written files and compare values numerically
+  # (MD5 hashes are platform/version-dependent due to floating-point formatting)
+
+  # Test no col names, no header (plain delimited)
+  written_no_col <- readr::read_delim(
+    file.path(dataPath, "test_lm_no_col_names.txt"),
+    col_names = FALSE, show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_col_names.txt")),
-    "733e1cf1fc8ca06012f7799ae8bc8f06"
+  expect_equal(as.matrix(written_no_col), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+
+  # Test with col names, no header (plain delimited)
+  written_col <- readr::read_delim(
+    file.path(dataPath, "test_lm_with_col_names.txt"),
+    show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_col_names.csv")),
-    "1ac7012c8dc8f717a88cc9e2e3f38ba9"
+  expect_equal(as.matrix(written_col), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+
+  # Test with col names, csv format
+  written_csv <- readr::read_csv(
+    file.path(dataPath, "test_lm_with_col_names.csv"),
+    show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_header.txt")),
-    "b79cc94435bffd6a11a8a4b659408d04"
+  expect_equal(as.matrix(written_csv), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+
+  # Test with header, no col names - read header then data
+  header_lines <- readLines(file.path(dataPath, "test_lm_with_header.txt"))
+  header_end <- which(header_lines == "</header>")
+  data_lines <- header_lines[(header_end + 1):length(header_lines)]
+  written_header <- read.table(text = data_lines, header = FALSE)
+  expect_equal(as.matrix(written_header), unname(as.matrix(rmincLm)), tolerance = 1e-10)
+
+  # Test with col names, compressed csv.gz
+  written_gz <- readr::read_csv(
+    file.path(dataPath, "test_lm_with_col_names_gz.csv.gz"),
+    show_col_types = FALSE
   )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_col_names_gz.csv.gz")),
-    "f294190f168801e74a4e756efd6446d5"
-  )
+  expect_equal(as.matrix(written_gz), unname(as.matrix(rmincLm)), tolerance = 1e-10)
 })
 
 

@@ -1198,35 +1198,35 @@ civet.vertexFilenames <-
     ids <- getElement(gf, idvar)
 
     thickness_files <-
-      map_df(ids, function(id) {
+      map_dfr(ids, function(id) {
         civet.getFilenamesCorticalThickness(
           id,
           baseDir = basedir,
           civetVersion = civetVersion
         ) %>%
-          as_data_frame
+          as_tibble()
       }) %>%
       rename(left_thickness = .data$left, right_thickness = .data$right)
 
     area_files <-
-      map_df(ids, function(id) {
+      map_dfr(ids, function(id) {
         civet.getFilenamesCorticalArea(
           id,
           baseDir = basedir,
           civetVersion = civetVersion
         ) %>%
-          as_data_frame
+          as_tibble()
       }) %>%
       rename(left_area = .data$left, right_area = .data$right)
 
     volume_files <-
-      map_df(ids, function(id) {
+      map_dfr(ids, function(id) {
         civet.getFilenamesCorticalVolume(
           id,
           baseDir = basedir,
           civetVersion = civetVersion
         ) %>%
-          as_data_frame
+          as_tibble()
       }) %>%
       rename(left_volume = .data$left, right_volume = .data$right)
 
@@ -1261,7 +1261,7 @@ civet.vertexTable <- function(vertex_files) {
     }
 
   vertex_files %>%
-    gather("measure", "file", !!!column_syms) %>%
+    pivot_longer(cols = all_of(columns_to_collect), names_to = "measure", values_to = "file") %>%
     mutate(vertex_data = lapply(.data$file, read_or_NAs)) %>%
     arrange(.data$ids) %>%
     split(.$measure) %>%
@@ -2305,7 +2305,7 @@ civet.readQC <-
         civet_qc_1_1_12
       )
 
-    map_df(dir, qc_gatherer)
+    map_dfr(dir, qc_gatherer)
   }
 
 civet_qc_1_1_12 <-
@@ -2363,7 +2363,7 @@ civet_qc_1_1_12 <-
       cbind(
         rowwise(.) %>%
           do(
-            QC_PASS = as_data_frame(.) %>%
+            QC_PASS = as_tibble(.) %>%
               select(matches("_score")) %>%
               unlist %>%
               `!=`("bad") %>%
@@ -2424,7 +2424,7 @@ civet_qc_2_0_0 <-
       cbind(
         rowwise(.) %>%
           do(
-            QC_PASS = as_data_frame(.) %>%
+            QC_PASS = as_tibble(.) %>%
               select(matches("_score")) %>%
               unlist %>%
               `!=`("bad") %>%
@@ -2474,7 +2474,7 @@ civet_qc_2_1_0 <-
       cbind(
         rowwise(.) %>%
           do(
-            QC_PASS = as_data_frame(.) %>%
+            QC_PASS = as_tibble(.) %>%
               select(matches("_score")) %>%
               unlist %>%
               `!=`("bad") %>%
