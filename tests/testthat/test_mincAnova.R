@@ -26,9 +26,9 @@ rmincAnova = verboseRun(
 )
 
 test_that("mincAnova Two Factors", {
-  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[2], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
+  expect_equal(unname(rmincAnova[1, 1]), unname(rAnova$F[1]))
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][2]), unname(rAnova$Df[2]))
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][1]), unname(rAnova$Df[1]))
 })
 
 rmincAnova = verboseRun(
@@ -41,15 +41,15 @@ gftest$voxel_left <- voxel_left
 rAnova = anova(lm(voxel_left ~ Sex * Scale, gftest))
 
 test_that("mincAnova interaction", {
-  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
-  expect_equal(rmincAnova[1, 2], rAnova$F[2], ignore_attr = TRUE)
-  expect_equal(rmincAnova[1, 3], rAnova$F[3], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[4], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[2]][1], rAnova$Df[2], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[2]][2], rAnova$Df[4], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[3]][1], rAnova$Df[3], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[3]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(unname(rmincAnova[1, 1]), unname(rAnova$F[1]))
+  expect_equal(unname(rmincAnova[1, 2]), unname(rAnova$F[2]))
+  expect_equal(unname(rmincAnova[1, 3]), unname(rAnova$F[3]))
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][1]), unname(rAnova$Df[1]))
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][2]), unname(rAnova$Df[4]))
+  expect_equal(unname(attr(rmincAnova, "df")[[2]][1]), unname(rAnova$Df[2]))
+  expect_equal(unname(attr(rmincAnova, "df")[[2]][2]), unname(rAnova$Df[4]))
+  expect_equal(unname(attr(rmincAnova, "df")[[3]][1]), unname(rAnova$Df[3]))
+  expect_equal(unname(attr(rmincAnova, "df")[[3]][2]), unname(rAnova$Df[4]))
 })
 
 
@@ -63,8 +63,8 @@ gftest$voxel_left = voxel_left
 rAnova = anova(lm(voxel_left ~ Coil, gftest))
 
 test_that("mincAnova Three Factors", {
-  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[2], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][2]), unname(rAnova$Df[2]))
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][1]), unname(rAnova$Df[1]))
 })
 
 
@@ -77,15 +77,15 @@ rmincAnova = verboseRun(
 )
 
 test_that("mincAnova Three Factors Interaction", {
-  expect_equal(rmincAnova[1, 1], rAnova$F[1], ignore_attr = TRUE)
-  expect_equal(rmincAnova[1, 2], rAnova$F[2], ignore_attr = TRUE)
-  expect_equal(rmincAnova[1, 3], rAnova$F[3], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[1]][1], rAnova$Df[1], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[1]][2], rAnova$Df[4], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[2]][1], rAnova$Df[2], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[2]][2], rAnova$Df[4], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[3]][1], rAnova$Df[3], ignore_attr = TRUE)
-  expect_equal(attr(rmincAnova, "df")[[3]][2], rAnova$Df[4], ignore_attr = TRUE)
+  expect_equal(unname(rmincAnova[1, 1]), unname(rAnova$F[1]))
+  expect_equal(unname(rmincAnova[1, 2]), unname(rAnova$F[2]))
+  expect_equal(unname(rmincAnova[1, 3]), unname(rAnova$F[3]))
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][1]), unname(rAnova$Df[1]))
+  expect_equal(unname(attr(rmincAnova, "df")[[1]][2]), unname(rAnova$Df[4]))
+  expect_equal(unname(attr(rmincAnova, "df")[[2]][1]), unname(rAnova$Df[2]))
+  expect_equal(unname(attr(rmincAnova, "df")[[2]][2]), unname(rAnova$Df[4]))
+  expect_equal(unname(attr(rmincAnova, "df")[[3]][1]), unname(rAnova$Df[3]))
+  expect_equal(unname(attr(rmincAnova, "df")[[3]][2]), unname(rAnova$Df[4]))
 })
 
 test_that("mincAnova local multicore works", {

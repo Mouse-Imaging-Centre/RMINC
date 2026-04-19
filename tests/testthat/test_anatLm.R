@@ -27,13 +27,13 @@ rmod <- lm(lobeThickness ~ Sex)
 rLm = summary(rmod)
 
 test_that("anatLm Two Factors", {
-  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 5], rLm$coefficients[1, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 6], rLm$coefficients[2, 3], ignore_attr = TRUE)
-  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[1, 3]))
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[2, 3]))
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
 })
 
 test_that("Likelihood and information criteria are computed correctly", {
@@ -53,17 +53,17 @@ Sex = gf$Sex
 rLm = summary(lm(lobeThickness ~ Age * Sex))
 
 test_that("anatLm Interaction", {
-  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 5], rLm$coefficients[3, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 6], rLm$coefficients[4, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 7], rLm$coefficients[1, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 8], rLm$coefficients[2, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 9], rLm$coefficients[3, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 10], rLm$coefficients[4, 3], ignore_attr = TRUE)
-  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]))
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[4, 1]))
+  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[1, 3]))
+  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[2, 3]))
+  expect_equal(unname(rmincLm[1, 9]), unname(rLm$coefficients[3, 3]))
+  expect_equal(unname(rmincLm[1, 10]), unname(rLm$coefficients[4, 3]))
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
 })
 
 rmincLm = verboseRun(
@@ -77,15 +77,15 @@ rLm = summary(lm(lobeThickness ~ Primary.Diagnosis))
 
 
 test_that("anatLm Three Factors", {
-  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 5], rLm$coefficients[3, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 6], rLm$coefficients[1, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 7], rLm$coefficients[2, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 8], rLm$coefficients[3, 3], ignore_attr = TRUE)
-  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]))
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[1, 3]))
+  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[2, 3]))
+  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[3, 3]))
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
 })
 
 rmincLm = verboseRun(
@@ -98,21 +98,21 @@ Primary.Diagnosis = gf$Primary.Diagnosis
 rLm = summary(lm(lobeThickness ~ Primary.Diagnosis * Age))
 
 test_that("anatLm Three Factors Interaction", {
-  expect_equal(rmincLm[1, 1], rLm$fstatistic[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 2], rLm$r.squared[1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 3], rLm$coefficients[1, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 4], rLm$coefficients[2, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 5], rLm$coefficients[3, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 6], rLm$coefficients[4, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 7], rLm$coefficients[5, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 8], rLm$coefficients[6, 1], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 9], rLm$coefficients[1, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 10], rLm$coefficients[2, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 11], rLm$coefficients[3, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 12], rLm$coefficients[4, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 13], rLm$coefficients[5, 3], ignore_attr = TRUE)
-  expect_equal(rmincLm[1, 14], rLm$coefficients[6, 3], ignore_attr = TRUE)
-  expect_equal(attr(rmincLm, "df")[[2]], rLm$df[2], ignore_attr = TRUE)
+  expect_equal(unname(rmincLm[1, 1]), unname(rLm$fstatistic[1]))
+  expect_equal(unname(rmincLm[1, 2]), unname(rLm$r.squared[1]))
+  expect_equal(unname(rmincLm[1, 3]), unname(rLm$coefficients[1, 1]))
+  expect_equal(unname(rmincLm[1, 4]), unname(rLm$coefficients[2, 1]))
+  expect_equal(unname(rmincLm[1, 5]), unname(rLm$coefficients[3, 1]))
+  expect_equal(unname(rmincLm[1, 6]), unname(rLm$coefficients[4, 1]))
+  expect_equal(unname(rmincLm[1, 7]), unname(rLm$coefficients[5, 1]))
+  expect_equal(unname(rmincLm[1, 8]), unname(rLm$coefficients[6, 1]))
+  expect_equal(unname(rmincLm[1, 9]), unname(rLm$coefficients[1, 3]))
+  expect_equal(unname(rmincLm[1, 10]), unname(rLm$coefficients[2, 3]))
+  expect_equal(unname(rmincLm[1, 11]), unname(rLm$coefficients[3, 3]))
+  expect_equal(unname(rmincLm[1, 12]), unname(rLm$coefficients[4, 3]))
+  expect_equal(unname(rmincLm[1, 13]), unname(rLm$coefficients[5, 3]))
+  expect_equal(unname(rmincLm[1, 14]), unname(rLm$coefficients[6, 3]))
+  expect_equal(unname(attr(rmincLm, "df")[[2]]), unname(rLm$df[2]))
 })
 
 
@@ -123,30 +123,14 @@ test_that("Weighted anatLm works", {
 
   verboseRun(alm <- anatLm(~ a + b + c, data = x, anat = y, w = w))
   lmods <- apply(y, 2, function(col) lm(col ~ a + b + c, data = x, weights = w))
-  expect_equal(
-    as.numeric(t(sapply(lmods, function(m) {
+  expect_equal(unname(as.numeric(t(sapply(lmods, function(m) {
       summary(m)$coefficients[, "t value"]
-    }))),
-    as.numeric(alm[, grepl("tvalue", colnames(alm))]),
-    ignore_attr = TRUE
-  )
-  expect_equal(
-    as.numeric(t(sapply(lmods, function(m) summary(m)$r.squared))),
-    as.numeric(alm[, "R-squared"]),
-    ignore_attr = TRUE
-  )
-  expect_equal(
-    as.numeric(t(sapply(lmods, function(m) summary(m)$fstatistic["value"]))),
-    as.numeric(alm[, "F-statistic"]),
-    ignore_attr = TRUE
-  )
-  expect_equal(
-    as.numeric(t(sapply(lmods, coef))),
-    as.numeric(alm[, grepl("beta", colnames(alm))]),
-    ignore_attr = TRUE
-  )
-  expect_equal(sapply(lmods, logLik), alm[, "logLik"], ignore_attr = TRUE)
-  expect_equal(sapply(lmods, AIC), AIC(alm), ignore_attr = TRUE)
+    })))), unname(as.numeric(alm[, grepl("tvalue", colnames(alm))])))
+  expect_equal(unname(as.numeric(t(sapply(lmods, function(m) summary(m)$r.squared)))), unname(as.numeric(alm[, "R-squared"])))
+  expect_equal(unname(as.numeric(t(sapply(lmods, function(m) summary(m)$fstatistic["value"])))), unname(as.numeric(alm[, "F-statistic"])))
+  expect_equal(unname(as.numeric(t(sapply(lmods, coef)))), unname(as.numeric(alm[, grepl("beta", colnames(alm))])))
+  expect_equal(unname(sapply(lmods, logLik)), unname(alm[, "logLik"]))
+  expect_equal(unname(sapply(lmods, AIC)), unname(AIC(alm)))
 })
 
 

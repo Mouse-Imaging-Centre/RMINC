@@ -37,8 +37,8 @@ handle_conv_warnings({
 
 
 test_that("mincLmer basics", {
-  expect_equal(vsreml[voxelIndex, 1], fixef(l)[1], ignore_attr = TRUE)
-  expect_equal(vsreml[voxelIndex, 2], fixef(l)[2], ignore_attr = TRUE)
+  expect_equal(unname(vsreml[voxelIndex, 1]), unname(fixef(l)[1]))
+  expect_equal(unname(vsreml[voxelIndex, 2]), unname(fixef(l)[2]))
 })
 
 handle_conv_warnings({
@@ -53,8 +53,8 @@ handle_conv_warnings({
 })
 
 test_that("mincLmer basics", {
-  expect_equal(vsml[voxelIndex, 1], fixef(l)[1], ignore_attr = TRUE)
-  expect_equal(vsml[voxelIndex, 2], fixef(l)[2], ignore_attr = TRUE)
+  expect_equal(unname(vsml[voxelIndex, 1]), unname(fixef(l)[1]))
+  expect_equal(unname(vsml[voxelIndex, 2]), unname(fixef(l)[2]))
 })
 
 test_that("ranef works", {
@@ -132,14 +132,11 @@ l2 <- lmer(v ~ 1 + (1 | coil), gf, REML = F)
 
 test_that("logLikRatio", {
   expect_error(mincLogLikRatio(vsreml, vsml))
-  expect_equal(
-    mincLogLikRatio(vsml, vsml2)[voxelIndex, ],
-    anova(l, l2)[2, 6], ignore_attr = TRUE
-  )
+  expect_equal(unname(mincLogLikRatio(vsml, vsml2)[voxelIndex, ]), unname(anova(l, l2)[2, 6]))
 })
 
 test_that("empty DF by default", {
-  expect_equal(attr(vsreml, "df"), NULL, ignore_attr = TRUE)
+  expect_equal(unname(attr(vsreml, "df")), unname(NULL))
   expect_error(mincFDR(vsreml))
 })
 
@@ -210,6 +207,6 @@ test_that("mincLmer works with NAs", {
     df <- attr(missing_dfs, "df")
   })
 
-  expect_lt(df[[2]], nrow(attr(missing, "data") + 1))
+  expect_lt(df[[2]], nrow(attr(missing, "data")) + 1)
   expect_gt(df[[2]], 1)
 })

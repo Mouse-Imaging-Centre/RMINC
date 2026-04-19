@@ -39,8 +39,5 @@ meanThicknessFromVertexFile <- mean(gf$nativeRMS_RSLtlink[
 ])
 
 test_that("Mean Thickness from Vertex File is the same as thickness from Anat File", {
-  expect_equal(
-    meanThicknessFromVertexFile,
-    gf$lobeThickness[[1, 1]], tolerance = 0.01
-  )
+  expect_equal(meanThicknessFromVertexFile, gf$lobeThickness[[1, 1]], tolerance = 0.01)
 })

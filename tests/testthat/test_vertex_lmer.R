@@ -129,7 +129,7 @@ test_that("Likelihood Ratio Tests for vertexLmer Work", {
 test_that("empty DF by default", {
   evalq(
     {
-      expect_equal(attr(fast_lmer, "df"), NULL, ignore_attr = TRUE)
+      expect_equal(unname(attr(fast_lmer, "df")), unname(NULL))
       expect_error(vertexFDR(fast_lmer))
     },
     envir = test_env
@@ -163,6 +163,6 @@ test_that("vertexLmer works with NAs", {
     df <- attr(missing_dfs, "df")
   })
 
-  expect_lt(df[[2]], nrow(attr(missing, "data") + 1))
+  expect_lt(df[[2]], nrow(attr(missing, "data")) + 1)
   expect_gt(df[[2]], 1)
 })

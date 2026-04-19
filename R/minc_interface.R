@@ -662,7 +662,7 @@ summary.mincQvals <- function(object, ...) {
       e = ~sum(. < 0.2, na.rm = TRUE)
     ))) %>%
     pivot_longer(everything(), names_to = "key", values_to = "value") %>%
-    separate(.data$key, c("var", "stat"), sep = "_(?=[^_]+$)") %>%
+    separate(key, c("var", "stat"), sep = "_(?=[^_]+$)") %>%
     pivot_wider(names_from = "var", values_from = "value") %>%
     mutate(
       stat = factor(
