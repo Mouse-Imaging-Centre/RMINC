@@ -121,17 +121,17 @@ test_that("writeVertexLm", {
 
   ref_values <- as.numeric(as.matrix(rmincLm))
 
-  # Test no col names, no header (plain delimited)
-  written_no_col <- readr::read_delim(
+  # Test no col names, no header (plain space-delimited)
+  written_no_col <- read.table(
     file.path(dataPath, "test_lm_no_col_names.txt"),
-    col_names = FALSE, show_col_types = FALSE
+    header = FALSE
   )
   expect_equal(as.numeric(as.matrix(written_no_col)), ref_values, tolerance = 1e-10)
 
-  # Test with col names, no header (plain delimited)
-  written_col <- readr::read_delim(
+  # Test with col names, no header (plain space-delimited)
+  written_col <- read.table(
     file.path(dataPath, "test_lm_with_col_names.txt"),
-    show_col_types = FALSE
+    header = TRUE
   )
   expect_equal(as.numeric(as.matrix(written_col)), ref_values, tolerance = 1e-10)
 

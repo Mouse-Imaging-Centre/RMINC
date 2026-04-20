@@ -1246,7 +1246,6 @@ civet.vertexFilenames <-
 #' @export
 civet.vertexTable <- function(vertex_files) {
   columns_to_collect <- setdiff(names(vertex_files), "ids")
-  column_syms <- lapply(columns_to_collect, as.symbol)
 
   n_vertices <-
     getElement(vertex_files, columns_to_collect[1]) %>%
