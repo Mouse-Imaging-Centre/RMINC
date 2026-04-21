@@ -1204,7 +1204,7 @@ civet.vertexFilenames <-
           baseDir = basedir,
           civetVersion = civetVersion
         ) %>%
-          as_data_frame
+          as_tibble
       }) %>%
       rename(left_thickness = .data$left, right_thickness = .data$right)
 
@@ -1215,7 +1215,7 @@ civet.vertexFilenames <-
           baseDir = basedir,
           civetVersion = civetVersion
         ) %>%
-          as_data_frame
+          as_tibble
       }) %>%
       rename(left_area = .data$left, right_area = .data$right)
 
@@ -1226,11 +1226,11 @@ civet.vertexFilenames <-
           baseDir = basedir,
           civetVersion = civetVersion
         ) %>%
-          as_data_frame
+          as_tibble
       }) %>%
       rename(left_volume = .data$left, right_volume = .data$right)
 
-    bind_cols(data_frame(ids = ids), thickness_files, area_files, volume_files)
+    bind_cols(tibble(ids = ids), thickness_files, area_files, volume_files)
   }
 
 #' Create a table of vertex measures
@@ -2363,7 +2363,7 @@ civet_qc_1_1_12 <-
       cbind(
         rowwise(.) %>%
           do(
-            QC_PASS = as_data_frame(.) %>%
+            QC_PASS = as_tibble(.) %>%
               select(matches("_score")) %>%
               unlist %>%
               `!=`("bad") %>%
@@ -2424,7 +2424,7 @@ civet_qc_2_0_0 <-
       cbind(
         rowwise(.) %>%
           do(
-            QC_PASS = as_data_frame(.) %>%
+            QC_PASS = as_tibble(.) %>%
               select(matches("_score")) %>%
               unlist %>%
               `!=`("bad") %>%
@@ -2474,7 +2474,7 @@ civet_qc_2_1_0 <-
       cbind(
         rowwise(.) %>%
           do(
-            QC_PASS = as_data_frame(.) %>%
+            QC_PASS = as_tibble(.) %>%
               select(matches("_score")) %>%
               unlist %>%
               `!=`("bad") %>%
