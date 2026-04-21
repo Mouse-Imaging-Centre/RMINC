@@ -742,7 +742,7 @@ anatSummarize <-
       summarize_by <-
         create_labels_frame(defs, hierarchy = summarize_by) %>%
         select(-.data$label) %>%
-        rename_(label = "Structure", group = "hierarchy")
+        rename(label = "Structure", group = "hierarchy")
     }
 
     if (!discard_missing) {
@@ -762,11 +762,11 @@ anatSummarize <-
     anat %>%
       as.data.frame.matrix %>%
       (tibble::rownames_to_column) %>%
-      gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
+      gather(key = "label", value = "value", all_of(setdiff(colnames(anat), "rowname"))) %>%
       inner_join(summarize_by, by = "label") %>%
-      group_by_("group", "rowname") %>%
+      group_by(across(all_of(c("group", "rowname")))) %>%
       summarize(value = sum(.data$value)) %>%
-      spread_("group", "value") %>%
+      spread("group", "value") %>%
       arrange(as.numeric(.data$rowname)) %>%
       select(-.data$rowname) %>%
       as.matrix
