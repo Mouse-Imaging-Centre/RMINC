@@ -664,9 +664,9 @@ summary.mincQvals <- function(object, ...) {
       ),
       vars = sapply(cn, as.symbol)
     ) %>%
-    gather_("key", "value", names(.)) %>%
-    separate_("key", c("var", "stat"), sep = -2) %>%
-    spread_("var", "value") %>%
+    gather(key = "key", value = "value", everything()) %>%
+    separate("key", c("var", "stat"), sep = -2) %>%
+    spread("var", "value") %>%
     mutate(
       stat = factor(
         .data$stat,
