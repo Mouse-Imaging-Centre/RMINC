@@ -1215,14 +1215,14 @@ writeVertex <- function(
   if (ext %in% c('csv', 'CSV')) {
     # assume there will be a column
     readr::write_csv(
-      tibble::as_data_frame(vertexData),
+      tibble::as_tibble(vertexData),
       file = filename,
       append = append.file,
       col_names = col.names
     )
   } else {
     readr::write_delim(
-      tibble::as_data_frame(vertexData),
+      tibble::as_tibble(vertexData),
       file = filename,
       append = append.file,
       col_names = col.names
