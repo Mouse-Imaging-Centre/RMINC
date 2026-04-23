@@ -12,3 +12,4 @@ conf*
 !tools/config.sub
 *~
 autom4te.cache/
+RMINC_*.tar.gz
