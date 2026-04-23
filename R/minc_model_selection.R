@@ -186,8 +186,8 @@ summary.model_comparison <- function(object, ...) {
   wins_frame <-
     full_join(formula_table, wins_table, by = "model") %>%
     setNA(0) %>%
-    select(.data$model, .data$formula, .data$wins) %>%
-    arrange(.data$wins)
+    select(model, formula, wins) %>%
+    arrange(wins)
 
   wins_frame
 }
