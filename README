@@ -47,3 +47,28 @@ library(devtools)
 install_github("Mouse-Imaging-Centre/RMINC@develop"
   , upgrade_dependencies = FALSE)
 ``` 
+
+Dockerized Testing:
+--------------------
+
+Build the test image:
+
+```
+docker build -t rminc-test .
+```
+
+Run all checks and tests (mount the source directory):
+
+```
+docker run -v $(pwd):/RMINC rminc-test
+```
+
+Available modes:
+
+```
+docker run -v $(pwd):/RMINC rminc-test check          # R CMD check --as-cran only
+docker run -v $(pwd):/RMINC rminc-test test            # tests only
+docker run -v $(pwd):/RMINC rminc-test all             # check + tests (default)
+docker run -v $(pwd):/RMINC rminc-test test mincLm     # run only tests matching a filter
+docker run -v $(pwd):/RMINC rminc-test shell           # interactive bash shell
+```

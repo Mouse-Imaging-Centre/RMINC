@@ -1,0 +1,13 @@
+.git
+.gitignore
+.Rproj.user
+RMINC.Rproj
+autom4te.cache/
+config.log
+config.status
+docs/
+*.tar.gz
+*.o
+*.so
+src/Makevars
+RMINC.Rcheck/
