@@ -79,7 +79,7 @@ test_that("minc single dim TFCE works", {
   skip_on_travis()
 
   has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) !=
-    ""
+    "" && system("TFCE --help", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
   skip_if_not(has_mincstuffs)
 
   evalq(
@@ -104,7 +104,7 @@ test_that("minc multi dim TFCE works", {
   skip_on_travis()
 
   has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) !=
-    ""
+    "" && system("TFCE --help", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
   skip_if_not(has_mincstuffs)
 
   evalq(
@@ -131,7 +131,7 @@ test_that("lm randomization works", {
       has_mincstuffs <- as.character(Sys.which(
         "label_volumes_from_jacobians"
       )) !=
-        ""
+        "" && system("TFCE --help", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
       skip_if_not(has_mincstuffs)
 
       verboseRun(lmod <- mincLm(jacobians_0.2 ~ Genotype, gf))
@@ -155,7 +155,7 @@ test_that("Vertex TFCE approximately matches mincTFCE", {
   skip_on_travis()
 
   has_mincstuffs <- as.character(Sys.which("label_volumes_from_jacobians")) !=
-    ""
+    "" && system("TFCE --help", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
   skip_if_not(has_mincstuffs)
 
   tfce_vol <- mincTFCE(first_vol, d = .0027)
