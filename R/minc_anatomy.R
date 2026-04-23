@@ -404,7 +404,7 @@ create_labels_frame <-
 
     label_defs <-
       label_defs %>%
-      select(-c(.data$hemisphere, .data$both_sides)) %>%
+      select(-c(hemisphere, both_sides)) %>%
       filter(!duplicated(.data$label))
 
     label_defs
@@ -469,7 +469,7 @@ create_anat_results <-
 
     results <-
       results %>%
-      select(-c(.data$indices, .data$Structure)) %>%
+      select(-c(indices, Structure)) %>%
       t %>%
       `colnames<-`(structures) %>%
       `rownames<-`(NULL)
@@ -741,7 +741,7 @@ anatSummarize <-
     if (is.character(summarize_by) && length(summarize_by == 1)) {
       summarize_by <-
         create_labels_frame(defs, hierarchy = summarize_by) %>%
-        select(-.data$label) %>%
+        select(-label) %>%
         rename(label = "Structure", group = "hierarchy")
     }
 
@@ -768,7 +768,7 @@ anatSummarize <-
       summarize(value = sum(.data$value)) %>%
       spread("group", "value") %>%
       arrange(as.numeric(.data$rowname)) %>%
-      select(-.data$rowname) %>%
+      select(-rowname) %>%
       as.matrix
   }
 

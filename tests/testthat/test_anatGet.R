@@ -392,6 +392,7 @@ test_that("AnatGetAll Flags Garbage", {
 
 
 test_that("Multires Works", {
+  skip_if(Sys.which("mincresample") == "", "mincresample not available")
   xfm <- file.path(dataPath, "scale10.xfm")
   cat(
     "MNI Transform File",
