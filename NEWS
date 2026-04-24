@@ -1,5 +1,26 @@
 New in Version 1.5.*.*
 =======================
+4.0
+--
+- Migrate CI from Travis to GitHub Actions (ubuntu + macOS, R
+  devel/release/oldrel-1/oldrel-2)
+- Add Docker-based test infrastructure with mounted source support
+- Add flexLm for linear models with voxel-varying RHS covariates
+- Replace all deprecated dplyr/tidyr SE verbs (gather_, as_data_frame)
+  with modern equivalents (pivot_longer, as_tibble)
+- Replace deprecated .data$ in tidyselect expressions
+- Update all dependency versions to latest releases
+- Replace fragile MD5 checksums with content-based assertions in tests
+- Fix t.test formula method compatibility for R 4.4+
+- Fix LAPACK/BLAS hidden length argument issues for R >= 4.3 (FCONE macro)
+- Fix igraph 2.x compatibility (graph_from_adj_list)
+- Use repository source tarball in getRMINCTestData
+- Update configure.ac to autoconf 2.71 with proper config.guess/config.sub
+- Skip external-tool-dependent tests gracefully when binaries unavailable
+- Remove Travis CI configuration
+- Update tutorial links from rawgit.com (defunct) to raw.githubusercontent.com
+
+
 3.0
 --
 - Disabled buggy matrix mode of anatLm
