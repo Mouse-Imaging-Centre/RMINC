@@ -89,7 +89,7 @@ context("vertexFindPeaks - ensure matches mincFindPeaks")
 test_that("vertexFindPeaks matches mincFindPeaks", {
   skip_if_not(has_find_peaks, "find_peaks binary not installed")
   adj <- RMINC:::neighbour_list(10, 10, 10, 6)
-  g <- igraph::graph.adjlist(lapply(adj, function(nebs) nebs + 1))
+  g <- igraph::graph_from_adj_list(lapply(adj, function(nebs) nebs + 1))
   pos_peaks <-
     vertexFindPeaks(
       rmincLm[, "tvalue-SexM"],

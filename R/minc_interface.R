@@ -664,16 +664,16 @@ summary.mincQvals <- function(object, ...) {
       ),
       vars = sapply(cn, as.symbol)
     ) %>%
-    gather_("key", "value", names(.)) %>%
-    separate_("key", c("var", "stat"), sep = -2) %>%
-    spread_("var", "value") %>%
+    gather(key = "key", value = "value", everything()) %>%
+    separate("key", c("var", "stat"), sep = -2) %>%
+    spread("var", "value") %>%
     mutate(
       stat = factor(
         .data$stat,
         labels = paste("sum <", c(0.01, 0.05, 0.10, 0.15, 0.20))
       )
     ) %>%
-    select(.data$stat, everything()) %>%
+    select(stat, everything()) %>%
     setNames(sub("_$", "", names(.)))
 }
 
@@ -1215,14 +1215,14 @@ writeVertex <- function(
   if (ext %in% c('csv', 'CSV')) {
     # assume there will be a column
     readr::write_csv(
-      tibble::as_data_frame(vertexData),
+      tibble::as_tibble(vertexData),
       file = filename,
       append = append.file,
       col_names = col.names
     )
   } else {
     readr::write_delim(
-      tibble::as_data_frame(vertexData),
+      tibble::as_tibble(vertexData),
       file = filename,
       append = append.file,
       col_names = col.names

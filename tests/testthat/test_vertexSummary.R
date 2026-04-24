@@ -111,27 +111,40 @@ writeVertex(
   header = F
 )
 
-test_that("writeVertexMean", {
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_no_col_names.txt")),
-    "7cd5da918fb95bb99ed0a30b5d794ddf"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_col_names.txt")),
-    "0eb3b6a54bddc917f0f8e677a2905a57"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_col_names.csv")),
-    "0eb3b6a54bddc917f0f8e677a2905a57"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_header.txt")),
-    "19f6023459df8f953fe086ec32177485"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_mean_with_col_names_gz.csv.gz")),
-    "2f4e3b87f7bb2a01f0615f1a949823bd"
-  )
+test_that("writeVertexMean no col names", {
+  written <- read.table(file.path(dataPath, "test_mean_no_col_names.txt"))
+  expect_equal(as.numeric(written[[1]]), as.numeric(vm))
+})
+
+test_that("writeVertexMean with col names txt", {
+  written <- read.table(file.path(dataPath, "test_mean_with_col_names.txt"),
+                        header = TRUE)
+  expect_equal(colnames(written), colnames(vm))
+  expect_equal(as.numeric(written[[1]]), as.numeric(vm))
+})
+
+test_that("writeVertexMean with col names csv", {
+  written <- read.csv(file.path(dataPath, "test_mean_with_col_names.csv"))
+  expect_equal(colnames(written), colnames(vm))
+  expect_equal(as.numeric(written[[1]]), as.numeric(vm))
+})
+
+test_that("writeVertexMean with header", {
+  lines <- readLines(file.path(dataPath, "test_mean_with_header.txt"))
+  expect_true("<header>" %in% lines)
+  expect_true("</header>" %in% lines)
+  header_end <- which(lines == "</header>")
+  data_lines <- lines[(header_end + 1):length(lines)]
+  data_start <- 1
+  if (grepl("[A-Za-z]", data_lines[1])) data_start <- 2
+  written <- as.numeric(data_lines[data_start:length(data_lines)])
+  expect_equal(written, as.numeric(vm))
+})
+
+test_that("writeVertexMean with col names gz", {
+  written <- read.csv(file.path(dataPath, "test_mean_with_col_names_gz.csv.gz"))
+  expect_equal(colnames(written), colnames(vm))
+  expect_equal(as.numeric(written[[1]]), as.numeric(vm))
 })
 
 

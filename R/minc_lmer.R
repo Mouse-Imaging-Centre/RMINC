@@ -540,7 +540,7 @@ ranef_summary <-
       function(m, val_name) {
         as.data.frame(m) %>%
           mutate(group = rownames(m)) %>%
-          gather_("effect", val_name, colnames(m))
+          pivot_longer(cols = all_of(colnames(m)), names_to = "effect", values_to = val_name)
       }
 
     eff <- ranef(mmod, condVar = TRUE)

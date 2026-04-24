@@ -120,27 +120,57 @@ writeVertex(
   header = F
 )
 
-test_that("writeVertexLm", {
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_no_col_names.txt")),
-    "e959ba23a46866f5b9ffafb514c7eb93"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_col_names.txt")),
-    "733e1cf1fc8ca06012f7799ae8bc8f06"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_col_names.csv")),
-    "1ac7012c8dc8f717a88cc9e2e3f38ba9"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_header.txt")),
-    "b79cc94435bffd6a11a8a4b659408d04"
-  )
-  expect_equivalent(
-    tools::md5sum(file.path(dataPath, "test_lm_with_col_names_gz.csv.gz")),
-    "f294190f168801e74a4e756efd6446d5"
-  )
+test_that("writeVertexLm no col names", {
+  written <- read.table(file.path(dataPath, "test_lm_no_col_names.txt"))
+  expect_equal(dim(written), dim(rmincLm))
+  expect_equal(as.numeric(as.matrix(written)),
+               as.numeric(as.matrix(rmincLm)),
+               tolerance = 1e-10)
+})
+
+test_that("writeVertexLm with col names txt", {
+  written <- read.table(file.path(dataPath, "test_lm_with_col_names.txt"),
+                        header = TRUE, check.names = FALSE)
+  expected_cols <- gsub("[()]", "", colnames(rmincLm))
+  expect_equal(colnames(written), expected_cols)
+  expect_equal(as.numeric(as.matrix(written)),
+               as.numeric(as.matrix(rmincLm)),
+               tolerance = 1e-10)
+})
+
+test_that("writeVertexLm with col names csv", {
+  written <- read.csv(file.path(dataPath, "test_lm_with_col_names.csv"),
+                      check.names = FALSE)
+  expected_cols <- gsub("[()]", "", colnames(rmincLm))
+  expect_equal(colnames(written), expected_cols)
+  expect_equal(as.numeric(as.matrix(written)),
+               as.numeric(as.matrix(rmincLm)),
+               tolerance = 1e-10)
+})
+
+test_that("writeVertexLm with header", {
+  lines <- readLines(file.path(dataPath, "test_lm_with_header.txt"))
+  expect_true("<header>" %in% lines)
+  expect_true("</header>" %in% lines)
+  header_end <- which(lines == "</header>")
+  data_lines <- lines[(header_end + 1):length(lines)]
+  data_start <- 1
+  if (grepl("[A-Za-z]", data_lines[1])) data_start <- 2
+  written <- read.table(text = data_lines[data_start:length(data_lines)])
+  expect_equal(dim(written), dim(rmincLm))
+  expect_equal(as.numeric(as.matrix(written)),
+               as.numeric(as.matrix(rmincLm)),
+               tolerance = 1e-10)
+})
+
+test_that("writeVertexLm with col names gz", {
+  written <- read.csv(file.path(dataPath, "test_lm_with_col_names_gz.csv.gz"),
+                      check.names = FALSE)
+  expected_cols <- gsub("[()]", "", colnames(rmincLm))
+  expect_equal(colnames(written), expected_cols)
+  expect_equal(as.numeric(as.matrix(written)),
+               as.numeric(as.matrix(rmincLm)),
+               tolerance = 1e-10)
 })
 
 

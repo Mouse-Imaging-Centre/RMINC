@@ -404,7 +404,7 @@ create_labels_frame <-
 
     label_defs <-
       label_defs %>%
-      select(-c(.data$hemisphere, .data$both_sides)) %>%
+      select(-c(hemisphere, both_sides)) %>%
       filter(!duplicated(.data$label))
 
     label_defs
@@ -469,7 +469,7 @@ create_anat_results <-
 
     results <-
       results %>%
-      select(-c(.data$indices, .data$Structure)) %>%
+      select(-c(indices, Structure)) %>%
       t %>%
       `colnames<-`(structures) %>%
       `rownames<-`(NULL)
@@ -741,8 +741,8 @@ anatSummarize <-
     if (is.character(summarize_by) && length(summarize_by == 1)) {
       summarize_by <-
         create_labels_frame(defs, hierarchy = summarize_by) %>%
-        select(-.data$label) %>%
-        rename_(label = "Structure", group = "hierarchy")
+        select(-label) %>%
+        rename(label = "Structure", group = "hierarchy")
     }
 
     if (!discard_missing) {
@@ -762,13 +762,13 @@ anatSummarize <-
     anat %>%
       as.data.frame.matrix %>%
       (tibble::rownames_to_column) %>%
-      gather_("label", "value", setdiff(colnames(anat), "rowname")) %>%
+      gather(key = "label", value = "value", all_of(setdiff(colnames(anat), "rowname"))) %>%
       inner_join(summarize_by, by = "label") %>%
-      group_by_("group", "rowname") %>%
+      group_by(across(all_of(c("group", "rowname")))) %>%
       summarize(value = sum(.data$value)) %>%
-      spread_("group", "value") %>%
+      spread("group", "value") %>%
       arrange(as.numeric(.data$rowname)) %>%
-      select(-.data$rowname) %>%
+      select(-rowname) %>%
       as.matrix
   }
 
