@@ -37,9 +37,7 @@
 #' @importFrom purrr map map_df map2
 #' @importFrom rlang UQ quo
 #' @useDynLib RMINC, .registration = TRUE
-#' @docType package
-#' @name RMINC
-NULL
+"_PACKAGE"
 
 #' Voxel Atlas Definitions
 #'
