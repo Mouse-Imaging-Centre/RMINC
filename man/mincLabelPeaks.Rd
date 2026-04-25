@@ -21,10 +21,10 @@ label peaks with the name of the atlas structure they are in
 }
 \examples{
 \dontrun{
-peaks <- mincFindPeaks(-log10(qvs), "Neonatal:time.to.sac", 
+peaks <- mincFindPeaks(-log10(qvs), "Neonatal:time.to.sac",
                        "pos", posThreshold=1.3, minDistance=1)
-peaks <- mincLabelPeaks(peaks, 
-                         atlasVol, 
+peaks <- mincLabelPeaks(peaks,
+                         atlasVol,
                          defs="Dorr_2008_Steadman_2013_Ullmann_2013_mapping_of_labels.csv")
 }
 }

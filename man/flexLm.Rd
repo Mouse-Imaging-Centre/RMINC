@@ -7,12 +7,6 @@
 flexLm(formula, data, y, ...)
 }
 \arguments{
-\item{formula}{}
-
-\item{data}{}
-
-\item{y}{}
-
 \item{...}{}
 }
 \description{

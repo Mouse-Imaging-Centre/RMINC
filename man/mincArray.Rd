@@ -17,7 +17,7 @@ mincArray(volume, dimIndex = 1, maskVolume = NULL)
 A matrix with 3 dimensions
 }
 \description{
-Currently the plotting functions (mincPlotAnatAndStatsSlice) need an object 
+Currently the plotting functions (mincPlotAnatAndStatsSlice) need an object
 with the correct spatial dimensions assigned. While this might in the future happen
 at the time those objects are created, for the moment this utility function
 works with older style RMINC objects and extract what you need.

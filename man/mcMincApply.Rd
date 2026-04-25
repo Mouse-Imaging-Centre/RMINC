@@ -30,13 +30,13 @@ mcMincApply(
 
 \item{tinyMask}{Shrink the mask for testing}
 
-\item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file 
+\item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file
 at a time defaults to one slice along the first dimension.}
 
 \item{temp_dir}{A directory to hold mask files used in the job batching}
 
 \item{cores}{the number of cores to use, defaults to the option
-\code{mc.cores} or one less than the number of detected cores if \code{mc.cores} 
+\code{mc.cores} or one less than the number of detected cores if \code{mc.cores}
 is unset.}
 
 \item{return_raw}{An internal use argument that prevents the resulting object

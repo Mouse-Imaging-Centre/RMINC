@@ -38,7 +38,7 @@ mincRandomize(
 \item{replace}{Sample with or without replacement for the randomization, defaults to FALSE (no
 replacement)}
 
-\item{parallel}{A two component vector indicating how to parallelize the computation. If the 
+\item{parallel}{A two component vector indicating how to parallelize the computation. If the
 first element is "local" the computation will be run via the parallel package, otherwise it will
 be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 indicating the number of jobs to split the computation into.}

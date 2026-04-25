@@ -37,9 +37,9 @@ usually the symmetrical icbm-152 model.
 This functuon serves to compute a global rescaling factor by reading the
 individual x,y,z rescales from the linear XFM, and returning the product.
 
-Interpretation of rescaling factors: 
-\itemize{ 
-\item{rescale > 1.0 The native brain is \emph{expanded} to fit model} 
+Interpretation of rescaling factors:
+\itemize{
+\item{rescale > 1.0 The native brain is \emph{expanded} to fit model}
 \item{rescale < 1.0 The native brain is \emph{reduced} to fit model}
 }
 }

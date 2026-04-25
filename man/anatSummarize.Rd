@@ -14,9 +14,9 @@ anatSummarize(
 \arguments{
 \item{anat}{The results of a call to \link{anatGetAll}}
 
-\item{summarize_by}{either a data frame with grouping information or a path to label definitions. 
+\item{summarize_by}{either a data frame with grouping information or a path to label definitions.
 If a data frame is passed it must have two columns: "label" containing the structure
-name (see \code{colnames(anat)} to check the relevant labels) and "grouping" containg the name 
+name (see \code{colnames(anat)} to check the relevant labels) and "grouping" containg the name
 of the group each structure belongs to.}
 
 \item{defs}{A text file containing the label definitions if \code{summarize_by} is a string}

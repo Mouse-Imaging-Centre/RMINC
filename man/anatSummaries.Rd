@@ -40,7 +40,7 @@ These functions are used to compute the mean, standard deviation,
 }}
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)

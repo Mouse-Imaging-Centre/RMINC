@@ -7,16 +7,16 @@
 compare_models(object, ..., metric = AICc)
 }
 \arguments{
-\item{object}{A model or a list of models, typically 
+\item{object}{A model or a list of models, typically
 \link{mincLm}, \link{vertexLm}, or \link{anatLm} results.}
 
 \item{...}{additional models}
 
 \item{metric}{A function to apply to the models that extracts a result
-for each independent sub-model. Typical choices are \link{AIC}, \link{AICc}, 
-and \link{BIC}. Please note that metrics are considered such that lower is 
+for each independent sub-model. Typical choices are \link{AIC}, \link{AICc},
+and \link{BIC}. Please note that metrics are considered such that lower is
 better (in following AIC). To use a positive metric create a wrapper function
-that performs the negation, for example, to use the un-modified log-likelihood 
+that performs the negation, for example, to use the un-modified log-likelihood
 you could pass \code{ metric = function(minc_model){ -minc_model[,"logLik"]} }}
 }
 \value{

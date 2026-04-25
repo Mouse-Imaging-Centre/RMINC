@@ -75,8 +75,8 @@ computed depends on the methods argument:
 \dontrun{
 getRMINCTestData()
 filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
-volumes <- anatGetAll(filenames=filenames$absolute_jacobian, 
-                      atlas="/tmp/rminctestdata/test_segmentation.mnc", 
+volumes <- anatGetAll(filenames=filenames$absolute_jacobian,
+                      atlas="/tmp/rminctestdata/test_segmentation.mnc",
                       method="jacobians",
                       defs="/tmp/rminctestdata/test_defs.csv")
 }

@@ -13,7 +13,7 @@ thresholds(x, ...)
 \method{thresholds}{minc_randomization}(x, probs = c(0.01, 0.05, 0.1, 0.2), ...)
 }
 \arguments{
-\item{x}{A \code{mincQvals} object, typically computed with \code{mincFDR} or a 
+\item{x}{A \code{mincQvals} object, typically computed with \code{mincFDR} or a
 \code{minc*_randomzation} type object.
 methods}
 

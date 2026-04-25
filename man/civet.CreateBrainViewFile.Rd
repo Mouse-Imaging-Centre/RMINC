@@ -27,16 +27,16 @@ civet.CreateBrainViewFile(
 Creates a text file that can be loaded into brain-view2
 }
 \details{
-This function will create a txt file that can be loaded into brain-view2, in order to 
-visualize the results from CIVET. This function either accepts a text file or R variable as input. 
-If using an R variable the rows/columns must be labeled with the Atlas Names. 
-The names are then matched to numbers as given by the AtlasFile, and then the numbers are 
+This function will create a txt file that can be loaded into brain-view2, in order to
+visualize the results from CIVET. This function either accepts a text file or R variable as input.
+If using an R variable the rows/columns must be labeled with the Atlas Names.
+The names are then matched to numbers as given by the AtlasFile, and then the numbers are
 matched to vertices in the AtlasVertexFile.
 }
 \examples{
 \dontrun{
-gf = read.csv("~/SubjectTable.csv") 
-civet.getAllFilenames(gf,"ID","ABC123","~/CIVET", TRUE, "1.1.12") 
+gf = read.csv("~/SubjectTable.csv")
+civet.getAllFilenames(gf,"ID","ABC123","~/CIVET", TRUE, "1.1.12")
 gf = civet.readAllCivetFiles("~/Atlases/AAL/AAL.csv",gf)
 civet.CreateBrainViewFile(gf$lobeThickness[1,],
                           "/Atlases/AAL/AAL.csv",

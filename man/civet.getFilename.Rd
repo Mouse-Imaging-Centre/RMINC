@@ -217,7 +217,7 @@ scanID = "0221-M-AD"
 classifyVolname <- civet.getFilenameClassify(scanID, basePath)
 classifyVol <- mincIO.readVolume(classifyVolname)
 
-# get the left and right gray matter surface filenames and then 
+# get the left and right gray matter surface filenames and then
 # ... print the names
 gmSurfName <- civet.getFilenameGrayMatterSurfaces(scanID, basePath)
 print(gmSurfName$left)

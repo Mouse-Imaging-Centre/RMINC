@@ -13,7 +13,7 @@ vertexLookup(
 )
 }
 \arguments{
-\item{vertices}{A descendent of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns, 
+\item{vertices}{A descendent of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns,
 and n rows representing vertices.}
 
 \item{target}{either a 3-element numeric vector representing x-y-z coordinates for
@@ -29,7 +29,7 @@ of the matches, the later being useful when exact matches aren't expected.}
 if set to NULL, no coersion is performed.}
 }
 \value{
-If a data_map is specified: a vector, typically numeric, if coerce is set to NULL 
+If a data_map is specified: a vector, typically numeric, if coerce is set to NULL
 and data_map is a file, the results will be character. If coerce is null and data_map is a vector
 it will return the same type as data_map. If data_map is unspecified, it acts like \link{closestVertex}
 }

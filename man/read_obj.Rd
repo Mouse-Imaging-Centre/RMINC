@@ -24,7 +24,7 @@ used with RMINC 3D plotting functions.
 }
 \details{
 This parser is not robust at all and relies on a strict structure for the .obj
-file at the present. It must be organized with a block of vertices, seperated by a 
+file at the present. It must be organized with a block of vertices, seperated by a
 space from a block of colour information (which is ignored), a space separated block
 of metadata and a space seperated block of multiples of 3, followed finally by a block
 of triangle membership. Only the vertex and triangle blocks are read in.

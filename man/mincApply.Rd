@@ -40,11 +40,11 @@ Can execute any R function at every voxel for a set of MINC files
 }
 \details{
 mincApply allows one to execute any R function at every voxel of a
-set of files. mincApply runs in the current R process; see also 
+set of files. mincApply runs in the current R process; see also
 pMincApply and qMincApply for parallel variants.
 Unless the function to be applied takes a single argument,
 which will take on the voxel values at every voxel, a
-wrapper function has to be written.  The mincApply function also 
+wrapper function has to be written.  The mincApply function also
 supports passing, instead of a function, a quoted expression containing
 a free variable 'x', again taking on all voxel values;
 this is illustrated in the examples.  (Not this is not supported by pMincApply.)
@@ -64,43 +64,43 @@ a small value like 1.
 }
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-ma <- mincApply(gf$jacobians_fixed_2,quote(mean(x))); 
+ma <- mincApply(gf$jacobians_fixed_2,quote(mean(x)));
 mincWriteVolume(ma, "means.mnc")
 ### run the whole thing in parallel on the local machine
 testFunc <- function (x) { return(c(1,2))}
-pout <- pMincApply(gf$jacobians_fixed_2, 
+pout <- pMincApply(gf$jacobians_fixed_2,
                    testFunc,
                    workers = 4,
                    global = c('gf','testFunc'))
 mincWriteVolume(pout, "pmincOut.mnc")
 
 ### pbs example 1 (hpf)
-getRMINCTestData() 
+getRMINCTestData()
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 testFunc <- function (x) { return(c(1,2))}
 options(TMPDIR="/localhd/$PBS_ID")
-pout <- pMincApply(gf$jacobians_fixed_2, 
+pout <- pMincApply(gf$jacobians_fixed_2,
                    testFunc,
                    workers = 4,
                    method="pbs",
                    global = c('gf','testFunc'))
 
 ### pbs example 2 (scinet)
-getRMINCTestData() 
+getRMINCTestData()
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 testFunc <- function (x) { return(c(1,2))}
 options(WORKDIR="$SCRATCH")
 options(MAX_NODES=8)
 options(TMP_DIR="/tmp")
-pout <- pMincApply(gf$jacobians_fixed_2, 
+pout <- pMincApply(gf$jacobians_fixed_2,
                    testFunc),
                    modules=c("intel","openmpi","R/3.1.1"),
                    workers = 4,
                    method="pbs",
                    global = c('gf','testFunc'))
-                   
+
 #NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
 #NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
 }
