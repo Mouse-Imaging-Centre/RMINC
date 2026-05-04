@@ -26,7 +26,7 @@ a vector spread over multiple lines}
 of the matches, the later being useful when exact matches aren't expected.}
 
 \item{coerce}{A function to coerce the final results to a given type. Defaults to \link{as.numeric},
-if set to NULL, no coersion is performed.}
+if set to NULL, no coercion is performed.}
 }
 \value{
 If a data_map is specified: a vector, typically numeric, if coerce is set to NULL

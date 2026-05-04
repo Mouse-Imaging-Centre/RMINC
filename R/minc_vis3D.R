@@ -906,7 +906,7 @@ select_one_vertex <-
 #' @param returns Whether to return the index of each match (one per target), or the coordinates
 #' of the matches, the later being useful when exact matches aren't expected.
 #' @param coerce A function to coerce the final results to a given type. Defaults to \link{as.numeric},
-#' if set to NULL, no coersion is performed.
+#' if set to NULL, no coercion is performed.
 #' @return If a data_map is specified: a vector, typically numeric, if coerce is set to NULL
 #' and data_map is a file, the results will be character. If coerce is null and data_map is a vector
 #' it will return the same type as data_map. If data_map is unspecified, it acts like \link{closestVertex}
