@@ -35,7 +35,7 @@ pretty responsive on our [issues page](https://github.com/Mouse-Imaging-Centre/R
 ## Tutorials
 
 - [Voxel-wise Statistics](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/VBMstats.pdf) (somewhat out of date).
-- [How RMINC Parallel Works](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/RMINC_Parallelism.html): 
+- [How RMINC Parallel Works](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/RMINC_Parallelism.html)
 - [RMINC 2D Visualization](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/visualizationTutorial.html)
 - [Visualizing 3D Objects with RMINC](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/RMINC_rgl.html)
 - [Analyzing Anatomy with Hierarchical Atlases](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/hierarchiesTutorial.html)
