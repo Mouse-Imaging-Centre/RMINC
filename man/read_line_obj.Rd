@@ -11,7 +11,7 @@ read_line_obj(line_obj)
 }
 \value{
 \code{bic_lines} object, which is a list of matrices, each
-matrix coresponds to one line in the object. The matrices are 3xN matrices
+matrix corresponds to one line in the object. The matrices are 3xN matrices
 of world coordinates.
 }
 \description{

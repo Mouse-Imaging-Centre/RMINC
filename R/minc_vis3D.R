@@ -954,7 +954,7 @@ vertexLookup <-
 #'
 #' @param line_obj Path to the object file of interest
 #' @return \code{bic_lines} object, which is a list of matrices, each
-#' matrix coresponds to one line in the object. The matrices are 3xN matrices
+#' matrix corresponds to one line in the object. The matrices are 3xN matrices
 #' of world coordinates.
 #' @export
 read_line_obj <-
