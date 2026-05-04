@@ -13,7 +13,7 @@ vertexLookup(
 )
 }
 \arguments{
-\item{vertices}{A descendent of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns,
+\item{vertices}{A descendant of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns,
 and n rows representing vertices.}
 
 \item{target}{either a 3-element numeric vector representing x-y-z coordinates for

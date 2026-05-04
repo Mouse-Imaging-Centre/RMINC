@@ -897,7 +897,7 @@ select_one_vertex <-
 #' Find the vertices closest one or more targets, potentially returning the values
 #' for the vertices from a data map.
 #'
-#' @param vertices A descendent of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns,
+#' @param vertices A descendant of \link[rgl]{mesh3d}, \code{bic_obj}, or matrix-like object with 3-columns,
 #' and n rows representing vertices.
 #' @param target either a 3-element numeric vector representing x-y-z coordinates for
 #' a single target, or a matrix-like object as described above containing multiple targets.

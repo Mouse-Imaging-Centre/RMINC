@@ -91,7 +91,7 @@ filter_problematic_triangles = function(edge, manifold, k = 1) {
 #'
 #' @param manifold A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
 #' like \code{bic_obj} object produced by \link{read_obj}
-#' @param k degrees-of-seperation for defining neighbours. Default is 1 (i.e. adjacent vertices)
+#' @param k degrees-of-separation for defining neighbours. Default is 1 (i.e. adjacent vertices)
 #' @return A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
 #' similar to 'manifold' argument. Problematic triangles (if they exist) are removed from the mesh.
 #' @details increasing k drastically slows down computation
