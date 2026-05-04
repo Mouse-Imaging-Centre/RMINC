@@ -69,8 +69,8 @@ following in terminal
 ```
 mkdir -p $HOME/.R/
 touch $HOME/.R/Makevars
-# Find your gcc version with: ls /usr/local/Cellar/gcc/ or brew --prefix gcc
-echo "FLIBS=-L$(brew --prefix gcc)/lib/gcc/$(ls /usr/local/Cellar/gcc/ | head -1)" >> $HOME/.R/Makevars
+# Find your gcc version with: ls $(brew --cellar gcc) or brew --prefix gcc
+echo "FLIBS=-L$(brew --cellar gcc)/$(ls $(brew --cellar gcc) | head -1)/lib/gcc/$(ls $(brew --cellar gcc) | head -1)" >> $HOME/.R/Makevars
 ```
 
 This will change with the version of gcc you have installed. If
