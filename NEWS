@@ -19,6 +19,7 @@ New in Version 1.5.*.*
 - Skip external-tool-dependent tests gracefully when binaries unavailable
 - Remove Travis CI configuration
 - Update tutorial links from rawgit.com (defunct) to raw.githubusercontent.com
+- Export print.mincVoxel S3 method (previously defined but unexported)
 
 
 3.0
