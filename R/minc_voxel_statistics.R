@@ -362,7 +362,7 @@ mincApplyRCPP <-
 #' options(MAX_NODES=8)
 #' options(TMP_DIR="/tmp")
 #' pout <- pMincApply(gf$jacobians_fixed_2,
-#'                    testFunc),
+#'                    testFunc,
 #'                    modules=c("intel","openmpi","R/3.1.1"),
 #'                    workers = 4,
 #'                    method="pbs",

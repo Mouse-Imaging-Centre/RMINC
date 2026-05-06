@@ -722,7 +722,7 @@ label_counts <-
 #' @param anat The results of a call to \link{anatGetAll}
 #' @param summarize_by either a data frame with grouping information or a path to label definitions.
 #' If a data frame is passed it must have two columns: "label" containing the structure
-#' name (see \code{colnames(anat)} to check the relevant labels) and "grouping" containg the name
+#' name (see \code{colnames(anat)} to check the relevant labels) and "grouping" containing the name
 #' of the group each structure belongs to.
 #' @param defs A text file containing the label definitions if \code{summarize_by} is a string
 #' @param discard_missing logical controlling how to handle structures with no ("") group information.
@@ -1533,7 +1533,7 @@ anatCreateVolume <- function(anat, filename, column = 1) {
 #' @examples \dontrun{
 #' labelVol <- mincArray(mincGetVolume("some-labels.mnc"))
 #' alm <- anatLm(~Sex, gfBasic, vols)
-#' statsvol <- anatToVolume(hLm, labelVol, "F.statistic")
+#' statsvol <- anatToVolume(alm, labelVol, "F.statistic")
 #' mincPlotSliceSeries(anatVol, statsvol, anatLow = 700, anatHigh = 1400,
 #'   low=1, high=10, symmetric = F, begin=50, end=-50)
 #' }
