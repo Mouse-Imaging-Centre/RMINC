@@ -2,8 +2,8 @@
 % Please edit documentation in R/minc_interface.R
 \name{extract_column}
 \alias{extract_column}
-\title{Internal function to read in a table or csv file 
-potentially with many columns 
+\title{Internal function to read in a table or csv file
+potentially with many columns
 and extract just the one we need}
 \usage{
 extract_column(filename, column = 1)
@@ -17,7 +17,7 @@ extract_column(filename, column = 1)
 a vector of vertex data corresponding to the file
 }
 \description{
-Internal function to read in a table or csv file 
-potentially with many columns 
+Internal function to read in a table or csv file
+potentially with many columns
 and extract just the one we need
 }

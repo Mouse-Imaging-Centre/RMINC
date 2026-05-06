@@ -27,7 +27,7 @@ node is considered a peak if it is more extreme than any element in it's neighbo
 minima or both.}
 
 \item{threshold}{threshold above or below which to consider peaks. In the both direction case
-a two element vector may be passed indicating positive and negative thresholds respectively. 
+a two element vector may be passed indicating positive and negative thresholds respectively.
 If a single element is passed in the both direction case, it is treated as \code{c(threshold, -threshold)}.
 Defaults to 0.}
 

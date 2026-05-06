@@ -27,7 +27,7 @@ mincImage(
 \item{low}{the low end of the range to plot. If not specified then it will be
 estimated based on the volume's histogram.}
 
-\item{high}{the high end of the range to plot. If not specified then it will 
+\item{high}{the high end of the range to plot. If not specified then it will
 be estimated based on the volume's histogram.}
 
 \item{reverse}{whether to look only at negative numbers.}
@@ -37,7 +37,7 @@ range transparent.}
 
 \item{col}{a colour palette AKA look-up-table to colourize the slice intensities}
 
-\item{add}{whether to add the slice to the current plot device or open a new 
+\item{add}{whether to add the slice to the current plot device or open a new
 one before plotting}
 
 \item{...}{other parameters to pass on to the \code{\link{image}} function.}
@@ -57,7 +57,7 @@ configure \code{options(RMINC_flip_image = TRUE)}
 \examples{
 \dontrun{
 mincImage(mincArray(anatVol), slice=100, col=gray.colors(255))
-mincImage(mincArray(vs, 6), slice=100, col=rainbow(255), 
+mincImage(mincArray(vs, 6), slice=100, col=rainbow(255),
           underTransparent = T, low=2, high=6, add=T)
 }
 }

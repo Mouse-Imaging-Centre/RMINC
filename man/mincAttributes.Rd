@@ -16,7 +16,7 @@ a related class}
 \item{updated_attrs}{A named list containing the new attributes to be replaced}
 }
 \value{
-\code{mincAttributes} returns an attribute list, \code{setMincAttributes} returns 
+\code{mincAttributes} returns an attribute list, \code{setMincAttributes} returns
 the updated object
 }
 \description{

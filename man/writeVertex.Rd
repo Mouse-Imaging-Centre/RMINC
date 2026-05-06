@@ -34,7 +34,7 @@ Writes vertex data to a file with an optional header
 }
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)

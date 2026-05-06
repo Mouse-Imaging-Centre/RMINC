@@ -10,8 +10,8 @@ read_line_obj(line_obj)
 \item{line_obj}{Path to the object file of interest}
 }
 \value{
-\code{bic_lines} object, which is a list of matrices, each 
-matrix coresponds to one line in the object. The matrices are 3xN matrices 
+\code{bic_lines} object, which is a list of matrices, each
+matrix corresponds to one line in the object. The matrices are 3xN matrices
 of world coordinates.
 }
 \description{

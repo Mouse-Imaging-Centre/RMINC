@@ -66,7 +66,7 @@ or a \code{matrix} object, or \code{vertexLm} object.}
 \item{...}{additional arguments for methods}
 
 \item{surface}{Either a mesh object corresponding to the surface,
-an igraph graph object of surface created by \link{obj_to_graph}, or an adjacency list (see details). 
+an igraph graph object of surface created by \link{obj_to_graph}, or an adjacency list (see details).
 For the \code{matrix} and \link{vertexLm} cases, either a single surface object may be passed and
 used for each individual, or a vector of file names}
 
@@ -78,7 +78,7 @@ used for each individual, or a vector of file names}
 
 \item{side}{Whether to consider positive and negative statistics or both (default both)}
 
-\item{weights}{A weighting vector assigning area to vertices. The default varies by 
+\item{weights}{A weighting vector assigning area to vertices. The default varies by
 \code{surface} object type. If \code{surface} is an \code{bic_obj} the area of each
 vertex is equal to 1/3 the sum of the areas of the triangles it is a member of. If \code{surface}
 is an \code{igraph} or adjacency list the default is a vector of ones.}
@@ -91,7 +91,7 @@ is an \code{igraph} or adjacency list the default is a vector of ones.}
 \item{replace}{Sample with or without replacement for the randomization, defaults to FALSE (no
 replacement)}
 
-\item{parallel}{A two component vector indicating how to parallelize the computation. If the 
+\item{parallel}{A two component vector indicating how to parallelize the computation. If the
 first element is "local" the computation will be run via the parallel package, otherwise it will
 be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 indicating the number of jobs to split the computation into.}
@@ -101,7 +101,7 @@ indicating the number of jobs to split the computation into.}
 \value{
 The behaviour of \code{vertexTFCE} is to perform cluster free enhancement on a object,
 in the single dimensional case, a string denoting a vertex file or a numeric vector
-it returns a numeric vector with the result. In the matrix case each column is cluster enhanced and 
+it returns a numeric vector with the result. In the matrix case each column is cluster enhanced and
 recomposed into a matrix.
 In the \link{vertexLm} case a randomization test is performed on each t-tstatistic column. The results is
 a list with 3 elements \itemize{
@@ -112,7 +112,7 @@ elements are the largest value obtained by the randomized TFCE}
 }
 }
 \description{
-Perform threshold free cluster enhancement as described in 
+Perform threshold free cluster enhancement as described in
 Smith and Nichols (2008). Cluster-like structures are enhanced
 to allow a hybrid cluster/voxel analysis to be performed.
 }

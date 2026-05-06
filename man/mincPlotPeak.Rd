@@ -46,8 +46,8 @@ p <- function(peak) {
   qplot(time.to.sac, exp(voxel), data=gfTiming, colour=Neonatal,
         geom="boxplot") + theme_classic()
 }
-mincPlotPeak(peaks[1,], anatVol, -log10(mincArray(qvs, "Neonatal:time.to.sac")), 
-             anatLow=700, anatHigh=1400, low=1, high=4, col=heat.colors(244), 
+mincPlotPeak(peaks[1,], anatVol, -log10(mincArray(qvs, "Neonatal:time.to.sac")),
+             anatLow=700, anatHigh=1400, low=1, high=4, col=heat.colors(244),
              crossCol = "blue", crossSize = 3, plotFunction = p)
 }
 }

@@ -30,7 +30,7 @@ mincWriteVolume(buffer, ...)
 
 \item{output.filename}{The filename to which to write the data to}
 
-\item{clobber}{Overwrite existing output file when set to TRUE, will not 
+\item{clobber}{Overwrite existing output file when set to TRUE, will not
 overwrite when set to FALSE and will prompt when NULL}
 
 \item{column}{Optional name of the column of a multidimensional MINC

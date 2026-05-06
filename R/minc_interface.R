@@ -384,7 +384,7 @@ mincGetWorldVoxel <- function(filenames, v1, v2 = NULL, v3 = NULL) {
   return(output)
 }
 
-# the print function for a voxel
+#' @export
 print.mincVoxel <- function(x, ..., filenames = FALSE, digits = NULL) {
   if (filenames == FALSE) {
     print.table(x)

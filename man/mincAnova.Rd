@@ -2,9 +2,7 @@
 % Please edit documentation in R/minc_voxel_statistics.R
 \name{mincAnova}
 \alias{mincAnova}
-\title{Voxel-wise ANOVA
- 
-Compute a sequential ANOVA at each voxel}
+\title{Voxel-wise ANOVA}
 \usage{
 mincAnova(
   formula,
@@ -18,19 +16,19 @@ mincAnova(
 )
 }
 \arguments{
-\item{formula}{The anova formula. The left-hand term consists of the 
+\item{formula}{The anova formula. The left-hand term consists of the
 MINC filenames over which to compute the models at every voxel.}
 
 \item{data}{The dataframe which contains the model terms.}
 
 \item{subset}{Subset definition.}
 
-\item{mask}{Either a filename or a vector of values of the same 
+\item{mask}{Either a filename or a vector of values of the same
 length as the input files. ANOVA will only be computed
 inside the mask.}
 
 \item{maskval}{the value in the mask used to select unmasked voxels, defaults to any positive intensity
-from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities 
+from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities
 within 0.5 of the chosen value are considered selected.}
 
 \item{parallel}{how many processors to run on (default=single processor).
@@ -45,8 +43,8 @@ Leaving this argument NULL runs sequentially.}
 \item{conf_file}{A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}}
 }
 \value{
-Returns an array with the F-statistic for each model specified by 
-formula with the following attributes: 
+Returns an array with the F-statistic for each model specified by
+formula with the following attributes:
 \itemize{
 \item{model}{ design matrix}
 \item{filenames}{ minc file names input}
@@ -57,16 +55,14 @@ formula with the following attributes:
 }
 }
 \description{
-Voxel-wise ANOVA
- 
 Compute a sequential ANOVA at each voxel
 }
 \details{
 This function computes a sequential ANOVA over a set of files.
 }
 \examples{
-\dontrun{ 
-getRMINCTestData() 
+\dontrun{
+getRMINCTestData()
 # read the text file describing the dataset
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 # run an ANOVA at each voxel

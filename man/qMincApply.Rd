@@ -63,7 +63,7 @@ qMincReduce(
 \item{fun}{An arbitrary R function to be applied}
 
 \item{...}{extra arguments to pass down through \code{qMincMap} to \code{mcMincApply}
-to \code{mincApplyRCPP} and finally to \code{fun}, there is a chance arguments 
+to \code{mincApplyRCPP} and finally to \code{fun}, there is a chance arguments
 here will be trapped by one of the functions on this chain, when in doubt partially
 apply \code{fun} to its arguments before hand and do not use positional arguments, they
 are almost certainly not going to work as expected.}
@@ -75,7 +75,7 @@ multicore jobs, with the number of batches set to the number of cores.}
 
 \item{tinyMask}{Shrink the mask for testing}
 
-\item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file 
+\item{slab_sizes}{A 3 element vector indicating large a chunk of data to read from each minc file
 at a time defaults to one slice along the first dimension.}
 
 \item{resources}{A list of resources to request from the queueing system
@@ -120,7 +120,7 @@ even if all jobs are not complete.}
 is called, the results are returned after collation with \code{collate}
 }
 \item{If \code{qMincApply} is called with \code{wait = FALSE} or if \code{qMincRegistry} or
-\code{qMincMap} are called  a batchtools registry is returned that can be used to 
+\code{qMincMap} are called  a batchtools registry is returned that can be used to
 query job states, kill jobs, and collected results
 }
 }
@@ -129,18 +129,18 @@ query job states, kill jobs, and collected results
 Split a minc apply job into batches and process it either locally
 or a true grid computing setup. Endeavours to provide an abstract
 and customizable interface for job scheduling based on the batchtools
-package. Basic steps of the apply is to 
+package. Basic steps of the apply is to
 \itemize{
-\item{create a registry with \link{qMincRegistry} where jobs are coordinated and 
+\item{create a registry with \link{qMincRegistry} where jobs are coordinated and
 results are deposited}
 \item{map a function over batches of voxels in a collection of minc volumes with
-\link{qMincMap}, generating submission scripts for the queue scheduler and 
+\link{qMincMap}, generating submission scripts for the queue scheduler and
 submitting the jobs}
-\item{Collect the results from each batch with \code{qMincReduce}, reorganizing the voxel 
+\item{Collect the results from each batch with \code{qMincReduce}, reorganizing the voxel
 results as necessary to reproduce the original order, and then collating the results into a
 usable object}
 }
-Interfaces are provided to perform all three steps at once, either through 
+Interfaces are provided to perform all three steps at once, either through
 \link{qMincApply} or the more general \link{pMincApply}. By default
 \link{qMincApply} will wait for the cluster to finish processing all jobs
 although the jobs can be submitted and the R session closed while still
@@ -151,8 +151,8 @@ RMINC's batching facilities are inherited with little modification from
 the batchtools package, mostly just providing handy wrappers to handle registry
 creation, batching, submission, and reduction. The abstractions provided are very leaky
 and it is worth learning about batchtools to handle more complex situations. Formerly one
-could set the parallelization method from this function, this has been removed. 
-Controlling how and where to execute the parallel jobs is now handled by 
+could set the parallelization method from this function, this has been removed.
+Controlling how and where to execute the parallel jobs is now handled by
 the conf_file argument.
 }
 \section{Functions}{

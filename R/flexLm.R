@@ -1,14 +1,41 @@
-#' flexLm
+#' Flexible Linear Model with Voxel-Varying Covariates
 #'
-#' @param formula
-#' @param data
-#' @param y
-#' @param ...
-#'
-#' @return
+#' Fit the same linear model at every row of a response matrix, allowing one or
+#' more predictors to vary row-by-row in lock-step with the response. When the
+#' formula does not transform any voxel-varying covariate (no splines, squares,
+#' interactions, etc.), \code{flexLm} detects this and uses a fast inner-product
+#' update of the model matrix instead of re-evaluating the formula at every row.
+#' Otherwise it falls back to rebuilding the model matrix per row.
+#' @param formula The linear model formula. The left-hand side must be the
+#' literal name \code{y}; the per-row response vector is bound to that name
+#' internally.
+#' @param data A data frame containing the model terms that are constant across
+#' rows of \code{y}. Has one row per observation (i.e. per column of \code{y}).
+#' @param y A numeric matrix of response values. Rows correspond to
+#' voxels/vertices/structures; columns to observations. Row \code{i} of
+#' \code{y} is the response vector for the \code{i}-th model fit.
+#' @param ... Named numeric matrices of per-row (e.g. per-voxel) covariates.
+#' Each must have the same dimensions as \code{y}, and each argument name must
+#' match a term referenced in \code{formula}. At row \code{i}, row \code{i} of
+#' each matrix is substituted into the corresponding column of \code{data}
+#' before the model is fit.
+#' @return A numeric matrix with \code{nrow(y)} rows and \code{2 * p} columns,
+#' where \code{p} is the number of columns of the model matrix. The first
+#' \code{p} columns are the regression coefficients (named after the
+#' model-matrix columns); the remaining \code{p} columns are the corresponding
+#' t-statistics, named \code{tstatistic:<term>}.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' n_subjects <- 10
+#' n_voxels   <- 100
+#' df         <- data.frame(age = rnorm(n_subjects))
+#' y          <- matrix(rnorm(n_voxels * n_subjects), nrow = n_voxels)
+#' cov_mat    <- matrix(rnorm(n_voxels * n_subjects), nrow = n_voxels)
+#' out <- flexLm(y ~ age + cov, data = df, y = y, cov = cov_mat)
+#' head(out)
+#' }
 flexLm <- function(formula, data, y, ...) {
   # collect all the datavars that were given in the ... flexible argument list
   dataVars <- list(...)

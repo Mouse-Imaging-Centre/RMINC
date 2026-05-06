@@ -41,9 +41,9 @@ summary.}
 
 \item{method}{the type of summarys statistic to calculate for each voxel}
 
-\item{maskval}{the value in the mask used to select unmasked voxels, 
+\item{maskval}{the value in the mask used to select unmasked voxels,
 defaults to any positive intensity from 1-99999999 internally expanded to
-.5 - 99999999.5. If a number is specified voxels with intensities 
+.5 - 99999999.5. If a number is specified voxels with intensities
 within 0.5 of the chosen value are considered selected.}
 }
 \value{
@@ -74,11 +74,11 @@ rather than performing it across all volumes as is the default.
 }}
 \examples{
 \dontrun{
-getRMINCTestData() 
-gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv") 
-mm <- mincMean(gf$jacobians_0.2) 
+getRMINCTestData()
+gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+mm <- mincMean(gf$jacobians_0.2)
 ms <- mincSd(gf$jacobians_0.2)
-mv <- mincVar(gf$jacobians_0.2,gf$Strain) 
+mv <- mincVar(gf$jacobians_0.2,gf$Strain)
 ms2 <- mincSum(gf$jacobians_0.2,gf$Strain)
 }
 }

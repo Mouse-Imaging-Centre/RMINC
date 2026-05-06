@@ -17,6 +17,6 @@ is found, a vector of ones is used}
 a numeric mask vector
 }
 \description{
-Returns either the specified mask, the mask associated with the buffer, 
+Returns either the specified mask, the mask associated with the buffer,
 or a vector of ones to be used as a mask.
 }

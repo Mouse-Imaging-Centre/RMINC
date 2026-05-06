@@ -25,7 +25,7 @@ anatLmer(
 
 \item{data}{the data frame, all items in formula should be in here}
 
-\item{anat}{a subject by label matrix of anatomical 
+\item{anat}{a subject by label matrix of anatomical
 summaries typically produced by \link{anatGetAll}}
 
 \item{REML}{whether to use use Restricted Maximum Likelihood or Maximum Likelihood}
@@ -70,9 +70,9 @@ Fit a linear mixed effects model for each structure in the results of
 \link{anatGetAll}.
 }
 \details{
-\code{anatLmer}, like its relative \link{mincLmer} provides an interface to running 
-linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
-in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
+\code{anatLmer}, like its relative \link{mincLmer} provides an interface to running
+linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses
+in linear mixed effects models is more difficult, since the denominator degrees of freedom are
 more difficult to  determine. RMINC provides estimating degrees of freedom using the
 \code{\link{anatLmerEstimateDF}} function. For the most likely models - longitudinal
 models with a separate intercept or separate intercept and slope per subject - this

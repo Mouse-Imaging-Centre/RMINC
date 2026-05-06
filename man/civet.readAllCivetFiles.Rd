@@ -19,14 +19,14 @@ paths to the civetFiles, typically generated with \link{civet.getAllFilenames}}
 \item{civetVersion}{The version of CIVET that produced the files.}
 }
 \value{
-Returns gf augmented with additional columns containing 
+Returns gf augmented with additional columns containing
 \itemize{
 \item{lobeArea40mm:}{ A subjects by region matrix of lobe areas parcellated by atlas region}
 \item{lobeThickness:}{ As above, but for thicknesses}
 \item{lobeVolume:}{ As above, but for volumes}
-\item{GI:}{ A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter 
+\item{GI:}{ A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter
  surface, white matter surface, midsurface of the two, followed by the same indices for the two}
-\item{BrainVolume:}{ A subjects by 3 matrix. Three columns are CSF volume, grey matter 
+\item{BrainVolume:}{ A subjects by 3 matrix. Three columns are CSF volume, grey matter
  and white matter respectively}
 \item{midSurfaceNativeArea:}{ A subjects by vertices matrix of mid-surface areas}
 \item{SurfaceNativeVolume:}{ As above, but for native space volumes}
@@ -44,7 +44,7 @@ Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume,
 }
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET", TRUE, "1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)

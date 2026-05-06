@@ -29,7 +29,7 @@ Currently only CIVET version 1.1.12 is supported.
 }
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv",
                          "/tmp/rminctestdata/AAL_atlas_left.txt",
                          "Left Insula")

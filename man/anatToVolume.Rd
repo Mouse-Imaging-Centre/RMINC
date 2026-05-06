@@ -25,8 +25,8 @@ Converts a column from an anatLm model into a volume for viewing or saving
 \dontrun{
 labelVol <- mincArray(mincGetVolume("some-labels.mnc"))
 alm <- anatLm(~Sex, gfBasic, vols)
-statsvol <- anatToVolume(hLm, labelVol, "F.statistic")
-mincPlotSliceSeries(anatVol, statsvol, anatLow = 700, anatHigh = 1400, 
+statsvol <- anatToVolume(alm, labelVol, "F.statistic")
+mincPlotSliceSeries(anatVol, statsvol, anatLow = 700, anatHigh = 1400,
   low=1, high=10, symmetric = F, begin=50, end=-50)
 }
 }

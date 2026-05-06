@@ -60,8 +60,9 @@ SystemRequirements: lsof AND EITHER
     mac_brew: homebrew/hdf5
 License: BSD_3_clause + file LICENSE
 LazyLoad: yes
+Encoding: UTF-8
 OS_type: unix
 BugReports: https://github.com/Mouse-Imaging-Centre/RMINC/issues
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
     https://wiki.mouseimaging.ca/display/MICePub/RMINC
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3

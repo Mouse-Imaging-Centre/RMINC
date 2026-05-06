@@ -38,13 +38,13 @@ gf is returned with CIVET filenames
 Generates list of filenames output by CIVET
 }
 \details{
-Prior to running, read.csv  may be called to generate the input argument gf. 
-The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf. 
+Prior to running, read.csv  may be called to generate the input argument gf.
+The results will be stored under the column name CIVETFILES either in the input gf (if append = TRUE) or in a new gf.
 Currently only CIVET versions 1.1.9 and 1.1.12 are supported.
 }
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 }

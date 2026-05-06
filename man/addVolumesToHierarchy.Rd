@@ -19,7 +19,7 @@ Takes a tree of anatomical hierarchies and adds volumes from
 \link{anatGetAll}
 }
 \details{
-Each node in the tree has two new attributes: 
+Each node in the tree has two new attributes:
 \itemize{
 \item{volumes -}{ The matrix of volumes}
 \item{meanVolume -}{ The mean of the volumes of that node}

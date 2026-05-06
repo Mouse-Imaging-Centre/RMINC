@@ -45,7 +45,7 @@ of a subject's brain}
 \item{colour_map}{either a vector with a label/measure/statistic for every vertex
 or a character file path pointing to a file with such a vector in a rowwise format.}
 
-\item{colour_range}{a two element numeric vector indicating the min and max values of 
+\item{colour_range}{a two element numeric vector indicating the min and max values of
 allowable labels/measures/statistics to be includedon the surface}
 
 \item{colour_default}{The colour given to vertices excluded by colour_range}

@@ -12,7 +12,7 @@ like \code{bic_obj} object produced by \link{read_obj}}
 
 \item{scalar_field}{a vector whose elements are values of the field at each manifold vertex}
 
-\item{fwhm}{the degree of smoothing. It represents the full-width-half-maximum 
+\item{fwhm}{the degree of smoothing. It represents the full-width-half-maximum
 of the blurring kernel if the manifold had no curvature. Regardless of curvature,
 higher the fwhm, the greater the amount of smoothing.}
 

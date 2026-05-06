@@ -14,14 +14,14 @@ laplace_beltrami_operator(
 \item{manifold}{A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
 like \code{bic_obj} object produced by \link{read_obj}}
 
-\item{vertex_matrix}{3-by-N matrix denoting the position of the N vertices 
+\item{vertex_matrix}{3-by-N matrix denoting the position of the N vertices
 defining the triangle-mesh manifold. Similar to argument \code{vertices} in
 \link[rgl:mesh3d]{rgl::tmesh3d}. Required if \code{manifold} argument is not specified.}
 
 \item{triangle_matrix}{3-by-M matrix denoting the position of the M triangles
-defining the triangle-mesh manifold. Elements of each column are indices of vertices 
+defining the triangle-mesh manifold. Elements of each column are indices of vertices
 defining the triangle (i.e. indices are columns of the vertex_matrix). Similar to
-argument \code{indices} in \link[rgl:mesh3d]{rgl::tmesh3d}. 
+argument \code{indices} in \link[rgl:mesh3d]{rgl::tmesh3d}.
 Required if \code{manifold} argument is not specified.}
 }
 \value{

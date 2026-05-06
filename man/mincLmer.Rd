@@ -44,7 +44,7 @@ Leaving this argument NULL runs sequentially and may take a long time.}
 
 \item{verbose}{lmer verbosity control}
 
-\item{temp_dir}{A directory to create temporary mask and registry files if 
+\item{temp_dir}{A directory to create temporary mask and registry files if
 \code{parallel = c("sge", n)}. This should not be \code{tempdir()} so that workers can see
 these files. Defaults to the current working directory.}
 
@@ -52,7 +52,7 @@ these files. Defaults to the current working directory.}
 block (\code{tryCatch}), when TRUE this will downgrade errors to warnings and return
 NA for the result.}
 
-\item{cleanup}{Whether or not to cleanup registry files after a queue parallelized 
+\item{cleanup}{Whether or not to cleanup registry files after a queue parallelized
 run}
 
 \item{summary_type}{Either one of
@@ -104,14 +104,14 @@ a small value like 1.
 vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
 mincWriteVolume(vs, "age-term.mnc", "tvalue-age")
 # run in parallel with multiple processors on the local machine
-vs <- mincLmer(filenames ~ age + sex + (age|id), 
-               data=gf, 
-               mask="mask.mnc", 
+vs <- mincLmer(filenames ~ age + sex + (age|id),
+               data=gf,
+               mask="mask.mnc",
                parallel=c("snowfall", 4))
 # run in parallel with multiple processors over the sge batch queueing system
-vs <- mincLmer(filenames ~ age + sex + (age|id), 
-               data=gf, 
-               mask="mask.mnc", 
+vs <- mincLmer(filenames ~ age + sex + (age|id),
+               data=gf,
+               mask="mask.mnc",
                parallel=c("sge", 4))
 # estimate degrees of freedom
 vs <- mincLmerEstimateDF(vs)
