@@ -51,7 +51,11 @@ If `configure` cannot find MINC, set the install prefix:
 
 ```bash
 export MINC_TOOLKIT=/opt/minc/1.9.18
-# or at install time:
+```
+
+Or pass the path at install time from R:
+
+```r
 devtools::install_github("Mouse-Imaging-Centre/RMINC@develop"
   , args = "--configure-args='--with-build-path=/opt/minc/1.9.18'"
   , upgrade_dependencies = FALSE)
