@@ -85,6 +85,11 @@ simplify_masked <- function(result_list) {
     logical(1)
   )
 
+  if (all(lgl_missing)) {
+    stop(
+      "All results are masked; cannot determine result type for simplification."
+    )
+  }
   first_element <- result_list[[which(!lgl_missing)[1]]]
   na_value <- first_element
 
