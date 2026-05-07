@@ -22,7 +22,8 @@ void MincVolume::read_slab_to_buffer(vector<misize_t> start
 shared_ptr<double> MincVolume::read_slab(vector<misize_t> start
                               , vector<misize_t> count
                               , mitype_t type){
-  int nvox = MincVolume::size();
+  size_t nvox = 1;
+  for (size_t i = 0; i < count.size(); ++i) nvox *= count[i];
   shared_ptr<double> buffer(new double[nvox], [](double * arr){delete[] arr;} );
   double* cbuf = buffer.get();
   MincVolume::read_slab_to_buffer(start, count, type, cbuf);
