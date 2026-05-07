@@ -70,7 +70,11 @@ SEXP voxel_anova(SEXP Sy, SEXP Sx, SEXP asgn,
   }
   // compute the f-statistics
   for (i=1; i<maxasgn; i++) {
-    xf_sexp[i-1] = (ss[i] / df[i]) / (ssr/dfr);
+    if (df[i] > 0 && dfr > 0 && ssr != 0) {
+      xf_sexp[i-1] = (ss[i] / df[i]) / (ssr/dfr);
+    } else {
+      xf_sexp[i-1] = NA_REAL;
+    }
     //Rprintf("F value: %f\n", xf_sexp[i-1]);
   }
 

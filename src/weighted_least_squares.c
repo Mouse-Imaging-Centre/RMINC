@@ -126,7 +126,11 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   /* first output is the f-stat of the whole model */
   
   
-  xoutput[0] = (mss/(p - 1))/resvar;
+  if (p > 1 && resvar != 0) {
+    xoutput[0] = (mss/(p - 1))/resvar;
+  } else {
+    xoutput[0] = NA_REAL;
+  }
   //Rprintf("in voxel_lm, F: %f\n", xoutput[0]);
   
   // DPOTRI - compute the inverse of a real symmetric positive

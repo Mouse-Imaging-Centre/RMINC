@@ -97,6 +97,11 @@ SEXP paired_t_test(SEXP voxel, SEXP grouping) {
   for (i=0; i < n2; i++) {
     sd += pow((group0[i] - group1[i]) - mean_difference, 2);
   }
+  if (n2 < 2) {
+    free(group0);
+    free(group1);
+    error("paired_t_test requires at least 2 pairs\n");
+  }
   sd = sqrt(sd/(n2-1));
 
   t[0] = mean_difference / (sd / sqrt(n2));
@@ -401,7 +406,11 @@ SEXP voxel_var(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
 
 
   for(i=0; i< *n_groups; i++) {
-    var[i] = sum_voxel[i] / (subjects_per_group[i]-1);
+    if (subjects_per_group[i] > 1) {
+      var[i] = sum_voxel[i] / (subjects_per_group[i]-1);
+    } else {
+      var[i] = NA_REAL;
+    }
   }
   free(sum_voxel);
   free(subjects_per_group);
@@ -539,7 +548,11 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   /* first output is the f-stat of the whole model */
 
   
-  xoutput[0] = (mss/(p - 1))/resvar;
+  if (p > 1 && resvar != 0) {
+    xoutput[0] = (mss/(p - 1))/resvar;
+  } else {
+    xoutput[0] = NA_REAL;
+  }
   //Rprintf("in voxel_lm, F: %f\n", xoutput[0]);
   
   // DPOTRI - compute the inverse of a real symmetric positive
