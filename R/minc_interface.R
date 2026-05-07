@@ -1032,7 +1032,7 @@ mincTable <- function(filenames, mask = NULL, file_backed = FALSE, ...) {
   nfiles <- length(filenames)
   sizes <- lapply(filenames, minc.dimensions.sizes)
   total_vox <- prod(sizes[[1]])
-  not_equals_first <- sapply(sizes, function(s) s != sizes[[1]])
+  not_equals_first <- sapply(sizes, function(s) any(s != sizes[[1]]))
 
   if (any(not_equals_first)) {
     stop(
