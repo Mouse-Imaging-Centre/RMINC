@@ -62,7 +62,7 @@ mincFDR.mincSingleDim <- function(
   buffer,
   df,
   mask = NULL,
-  method = "fdr",
+  method = "FDR",
   ...
 ) {
   if (is.null(df)) {
@@ -428,7 +428,7 @@ mincFDR.mincMultiDim <- function(
     # determine corresponding q values
     if (method == "qvalue") {
       qobj <- qvalue::qvalue(pvals)
-    } else if (method == "FDR" | method == "p.adjust") {
+    } else if (method == "FDR" | method == "p.adjust" | method == "fdr") {
       qobj$pvalue <- pvals
       qobj$qvalue <- p.adjust(pvals, "fdr")
     } else if (method == "BY") {
@@ -436,6 +436,11 @@ mincFDR.mincMultiDim <- function(
       qobj$qvalue <- p.adjust(pvals, "BY")
     } else if (method == "pFDR" | method == "fastqvalue") {
       qobj <- fast.qvalue(pvals)
+    } else {
+      stop(
+        "Unrecognized FDR method: ", method,
+        ". Must be one of: qvalue, FDR, p.adjust, BY, pFDR, fastqvalue."
+      )
     }
     # calculate thresholds at different sig levels
     for (j in 1:length(p.thresholds)) {
