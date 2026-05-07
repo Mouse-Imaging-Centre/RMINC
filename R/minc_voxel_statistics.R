@@ -382,6 +382,10 @@ mincApply <-
   ) {
     mincFileCheck(filenames)
 
+    if (reduce && is.null(mask)) {
+      stop("reduce = TRUE requires a mask to be specified")
+    }
+
     if (is.null(maskval)) {
       minmask = 1
       maxmask = 99999999
