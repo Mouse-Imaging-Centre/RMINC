@@ -147,6 +147,7 @@ modelToTree <- function(modelled, modelTree) {
   modelTree <- copyExtraAttributes(modelled, modelTree)
   attr(modelTree, "modelClass") <- attr(modelled, "class")
   attr(modelTree, "modelDimnames") <- attr(modelled, "dimnames")
+  return(modelTree)
 }
 
 copyExtraAttributes <- function(source, target) {
