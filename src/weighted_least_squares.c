@@ -40,6 +40,10 @@ SEXP voxel_wlm(SEXP Sy, SEXP Sx, SEXP ws, int n,int p,double *coefficients,
   double total_log_weight = 0;
   xws = (double *) malloc(n * sizeof(double));
   for(i = 0; i < n; ++i){
+    if (REAL(ws)[i] <= 0) {
+      free(xws);
+      error("All weights passed to voxel_wlm must be strictly positive\n");
+    }
     total_log_weight += log(REAL(ws)[i]);
     xws[i] = sqrt(REAL(ws)[i]);
     //Rprintf("%f\n", xws[i]);
