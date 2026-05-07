@@ -68,8 +68,8 @@ SEXP paired_t_test(SEXP voxel, SEXP grouping) {
   PROTECT(output=allocVector(REALSXP, 1));
   t = REAL(output);
 
-  group0 = malloc(sizeof(double) * n2);
-  group1 = malloc(sizeof(double) * n2);
+  group0 = malloc(sizeof(double) * n);
+  group1 = malloc(sizeof(double) * n);
 
   count0 = 0;
   count1 = 0;
@@ -84,6 +84,11 @@ SEXP paired_t_test(SEXP voxel, SEXP grouping) {
       group1[count1] = xvoxel[i];
       count1++;
     }
+  }
+  if (count0 != n2 || count1 != n2) {
+    free(group0);
+    free(group1);
+    error("paired_t_test requires balanced groups: got %d zeros and %d ones, expected %d of each.\n", count0, count1, n2);
   }
   
 
