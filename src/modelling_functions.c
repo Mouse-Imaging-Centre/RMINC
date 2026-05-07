@@ -1189,8 +1189,17 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
       free(full_buffer_right[i]);
     }
   }
+  free(full_buffer);
+  free(hvol);
+  if (!isLogical(filenames_right)) {
+    free(full_buffer_right);
+    free(hvol_right);
+  }
+  if (xhave_mask[0] == 1) {
+    miclose_volume(hmask);
+    free(mask_buffer);
+  }
   if (strcmp(method_name, "lm")==0) {
-    free(full_buffer);
     free(coefficients);
     free(residuals);
     free(effects);
@@ -1203,7 +1212,6 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     free(t);
   }
   else if (strcmp(method_name, "anova")==0) {
-    free(full_buffer);
     free(coefficients);
     free(residuals);
     free(effects);
