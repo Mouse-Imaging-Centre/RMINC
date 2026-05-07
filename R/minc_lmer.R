@@ -694,7 +694,7 @@ mincLogLikRatio <- function(...) {
   out <- matrix(nrow = nrow(dots[[1]]), ncol = length(dots) - 1)
   outnames <- vector(length = length(dots) - 1)
   for (i in 2:length(dots)) {
-    out[, i - 1] <- 2 * abs(logLikMatrix[, i] - logLikMatrix[, i - 1])
+    out[, i - 1] <- 2 * pmax(0, logLikMatrix[, i] - logLikMatrix[, i - 1])
     outnames[i - 1] <- inputnames[dfs$ix[i]]
   }
 
