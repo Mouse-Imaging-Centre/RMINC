@@ -1347,9 +1347,9 @@ mincVectorToVoxelCoordinates <- function(volumeFileName, vectorCoord) {
   # the fun off by one bit
   index <- vectorCoord - 1
   i3 <- index %% sizes[3]
-  i2 <- (index / sizes[3]) %% sizes[2]
-  i1 <- ((index / sizes[3]) / sizes[2]) %% sizes[1]
-  return(floor(c(i1, i2, i3)))
+  i2 <- (index %/% sizes[3]) %% sizes[2]
+  i1 <- ((index %/% sizes[3]) %/% sizes[2]) %% sizes[1]
+  return(c(i1, i2, i3))
 }
 
 #' selects a few random indices from a volume
