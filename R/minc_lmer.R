@@ -172,13 +172,25 @@ mincLmer <- function(
     stop("summary_type must be a string specifying a summary, or a function")
   }
 
+  ## Determine the expected output length so the safe wrapper can return
+  ## an NA vector of matching shape when a voxel fails. Without this,
+  ## a scalar NA mixes with full-length result vectors and corrupts the
+  ## collated result matrix.
+  expected_length <- length(
+    mincLmerOptimizeAndExtract(
+      mincGetVoxel(lmod$fr[, 1], 0, 0, 0),
+      mincLmerList,
+      summary_fun
+    )
+  )
+
   mincLmerOptimizeAndExtractSafely <-
     function(x, mincLmerList, summary_fun) {
       tryCatch(
         mincLmerOptimizeAndExtract(x, mincLmerList, summary_fun),
         error = function(e) {
           warning(e)
-          return(NA)
+          return(rep(NA_real_, expected_length))
         }
       )
     }
