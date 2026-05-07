@@ -198,9 +198,9 @@ SEXP get_volume_info(SEXP filename) {
 		result = miget_dimension_name(dimensions[i], &dim_name);
 		
 		// do we have a time dimension?
-		if ( !strcmp(dim_name, "time") ) { 
+		if ( !strcmp(dim_name, "time") ) {
 			time_dim_exists = TRUE;
-			n_frames = ( time_dim_exists ) ? dim_sizes[0] : 0;
+			n_frames = dim_sizes[i];
 		}
 		
 		// store the dimension name and units
