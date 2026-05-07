@@ -1375,11 +1375,7 @@ mincSelectRandomVoxels <- function(
   # get the indices of voxels inside mask
   vinmask <- which(mvol > .5)
   # keep a random set of voxels
-  indicesToKeep <- vinmask[floor(runif(
-    nvoxels,
-    min = 1,
-    max = length(vinmask)
-  ))]
+  indicesToKeep <- sample(vinmask, nvoxels, replace = TRUE)
   if (convert == TRUE) {
     out <- matrix(nrow = nvoxels, ncol = 3)
     for (i in 1:nvoxels) {
