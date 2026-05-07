@@ -187,7 +187,7 @@ pMincApply <-
         cleanup = cleanup,
         conf_file = conf_file,
         registry_dir = registry_dir,
-        registy_name = registry_name
+        registry_name = registry_name
       )
     }
 
