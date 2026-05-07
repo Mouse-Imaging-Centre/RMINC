@@ -243,7 +243,7 @@ std::vector<double> mesh_area(std::vector<double> vertices, std::vector<double> 
     d2z = vertices[v3_ind + 2] - vertices[v1_ind + 2];
     
     area = .5 * sqrt(
-      pow(d1y*d2z - d1z*d2x, 2) +
+      pow(d1y*d2z - d1z*d2y, 2) +
         pow(d1z*d2x - d1x*d2z, 2) +
         pow(d1x*d2y - d1y*d2x, 2));
     
