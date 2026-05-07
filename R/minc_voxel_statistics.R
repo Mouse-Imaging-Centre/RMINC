@@ -162,7 +162,11 @@ mincSd <- function(filenames, grouping = NULL, mask = NULL, maskval = NULL) {
     method = "var",
     maskval = maskval
   )
+  result_attrs <- attributes(result)
+  result_class <- class(result)
   result <- sqrt(result)
+  attributes(result) <- result_attrs
+  class(result) <- result_class
   return(result)
 }
 
