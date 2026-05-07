@@ -1188,6 +1188,7 @@ writeVertex <- function(
     if (is.object(mean.stats)) {
       write("<mean>", file = filename, append = TRUE)
       sink(filename, append = TRUE)
+      on.exit(sink(NULL), add = TRUE)
       print(summary(mean.stats))
       sink(NULL)
       write("</mean>", file = filename, append = TRUE)
