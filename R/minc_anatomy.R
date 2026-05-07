@@ -738,7 +738,7 @@ anatSummarize <-
     defs = getOption("RMINC_LABEL_DEFINITIONS"),
     discard_missing = FALSE
   ) {
-    if (is.character(summarize_by) && length(summarize_by == 1)) {
+    if (is.character(summarize_by) && length(summarize_by) == 1) {
       summarize_by <-
         create_labels_frame(defs, hierarchy = summarize_by) %>%
         select(-label) %>%
