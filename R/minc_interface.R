@@ -767,6 +767,12 @@ mincWriteVolume.default <- function(
   ...
 ) {
   if (file.exists(output.filename) && is.null(clobber)) {
+    if (!interactive()) {
+      stop(
+        "Output file exists and session is non-interactive. ",
+        "Set clobber=TRUE to overwrite or clobber=FALSE to abort."
+      )
+    }
     answer <- readline(
       "Warning: the outputfile already exists, continue? (y/n) "
     )
