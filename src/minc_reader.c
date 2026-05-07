@@ -344,7 +344,6 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
   */
   /* open the volume */
   
-  Rprintf("Crap %s\n", CHAR(STRING_ELT(filename, 0)));
   result = miopen_volume(CHAR(STRING_ELT(filename,0)),
 			 MI2_OPEN_READ, &hvol);
   if (result != MI_NOERROR) {

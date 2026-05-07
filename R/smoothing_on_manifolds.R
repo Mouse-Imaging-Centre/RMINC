@@ -186,11 +186,11 @@ find_triangle_areas = function(manifold) {
   triangle_matrix = manifold$triangle_matrix
   vertex_matrix = manifold$vertex_matrix
 
-  traingle_area = apply(triangle_matrix, 2, function(x) {
+  triangle_area = apply(triangle_matrix, 2, function(x) {
     y = vertex_matrix[, x]
     cross_product_triangle_area(y[, 2] - y[, 1], y[, 3] - y[, 1])
   })
-  traingle_area
+  triangle_area
 }
 
 # for a manifold defined by a triangle mesh, compute the vertex area of all vertices
@@ -198,13 +198,13 @@ find_triangle_areas = function(manifold) {
 #   triangles connected to it, divided by 3.
 find_vertex_areas = function(manifold) {
   triangle_matrix = manifold$triangle_matrix
-  traingle_area = manifold$traingle_area
+  triangle_area = manifold$triangle_area
   vertex_matrix = manifold$vertex_matrix
 
   vertex_area = rep(NA, ncol(vertex_matrix))
 
   tmpsum = aggregate(
-    rep(traingle_area, each = 3),
+    rep(triangle_area, each = 3),
     list(as.vector(triangle_matrix)),
     sum
   )
@@ -231,7 +231,7 @@ find_vertex_areas = function(manifold) {
 find_laplace_beltrami_nonzero_elements = function(manifold) {
   triangle_matrix = manifold$triangle_matrix
   cot_matrix = manifold$cot_matrix
-  traingle_area = manifold$traingle_area
+  triangle_area = manifold$triangle_area
   vertex_area = manifold$vertex_area
 
   edges = do.call(
@@ -427,7 +427,7 @@ laplace_beltrami_operator = function(
   manifold$cot_matrix = find_cot_angles(manifold)
 
   # Find area of all triangles
-  manifold$traingle_area = find_triangle_areas(manifold)
+  manifold$triangle_area = find_triangle_areas(manifold)
 
   # Find vertex area of all vertices
   #  The vertex area is the sum of triangle areas attached to the vertex divided by 3

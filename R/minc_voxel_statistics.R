@@ -16,7 +16,7 @@
 #' defaults to any positive intensity from 1-99999999 internally expanded to
 #' .5 - 99999999.5. If a number is specified voxels with intensities
 #' within 0.5 of the chosen value are considered selected.
-#' @param method the type of summarys statistic to calculate for each voxel
+#' @param method the type of summary statistic to calculate for each voxel
 #' @return  The output will be a single vector containing as many
 #'          elements as there are voxels in the input files. If a
 #'          grouping factor was specified then the output will be a
@@ -202,7 +202,7 @@ mincCorrelation <- function(filenames, grouping, mask = NULL, maskval = NULL) {
 #' @param return_indices Whether to return the voxel positions of the results
 #' generally for internal use only.
 #' @param collate A function to (potentially) collapse the result list
-#' examples include link{unlist} and \link{simplify2array}, defaulting
+#' examples include \link{unlist} and \link{simplify2array}, defaulting
 #' to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
 #' \code{mincSingleDim}, or \code{mincList} depending on the result structure.
 #' \cr
@@ -1120,7 +1120,6 @@ mincWilcoxon <- function(filenames, grouping, mask = NULL, maskval = NULL) {
   colnames(result) <- c("Mann-Whitney")
   class(result) <- c("mincMultiDim", "matrix")
   return(result)
-  return(result)
 }
 
 
@@ -1301,7 +1300,7 @@ getCall.mincLm <-
 #' Run a permutation test on a \code{mincLm} result, computing
 #' the most extreme statistic under exchanged response variables.
 #' The randomization distribution of these extremal statistics is
-#' returbed.
+#' returned.
 #' @param x A \code{mincLm} object.
 #' @param R number of randomizations to perform
 #' @param alternative Whether to consider a one-sided or two-sided alternative hypothesis. Default
@@ -1542,7 +1541,7 @@ print.mincLm_randomization <-
       switch(
         x$args$alternative,
         "two.sided" = "absolute value of the original statistics",
-        "greater" = "orginal statistics"
+        "greater" = "original statistics"
       ),
       " with family-wise error rate control at each respective threshold\n"
     )
@@ -1564,7 +1563,7 @@ print.mincTFCE_randomization <-
       switch(
         x$args$alternative,
         "two.sided" = "absolute value of the original data after TFCE",
-        "greater" = "orginal data after TFCE"
+        "greater" = "original data after TFCE"
       ),
       " with family-wise error rate control at each respective threshold\n"
     )

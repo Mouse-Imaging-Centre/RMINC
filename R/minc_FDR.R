@@ -21,7 +21,7 @@
 #'  results expected to be a false positive. Two implementations can be
 #'  used as specified by the method argument. "FDR" uses the
 #'  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
-#'  postivie False Discovery Rate as found in John Storey's \code{qvalue}
+#'  positive False Discovery Rate as found in John Storey's \code{qvalue}
 #'  package. The main interface functions are
 #'  \itemize{
 #'  \item{mincFDR.mincMultiDim}{ The workhorse function, used to compute q-values
@@ -582,7 +582,7 @@ anatFDR.anatLmer <-
 #' a utility function to compute thresholds
 #'
 #' @param pvals a vector of pvalues
-#' @param qvals a vector of corrected qvalues (such as returend by p.adjust)
+#' @param qvals a vector of corrected qvalues (such as returned by p.adjust)
 #' @param thresholdFunc a function that returns the threshold given a vector of pvalues
 #' @param p.thresholds the pvalues at which to compute the threshold
 #'
