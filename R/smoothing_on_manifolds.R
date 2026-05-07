@@ -9,7 +9,7 @@ find_neigh_verts = function(idx, manifold, clean = F) {
   ret = unique(ret)
   if (clean) {
     ret = sort(ret)
-    ret[ret != idx]
+    ret = ret[ret != idx]
   }
   ret
 }
@@ -28,7 +28,7 @@ find_n_neigh_verts = function(idx, n, manifold, clean = F) {
   }
   if (clean) {
     ret = sort(ret)
-    ret[ret != idx]
+    ret = ret[ret != idx]
   }
   ret
 }
