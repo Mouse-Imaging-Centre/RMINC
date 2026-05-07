@@ -65,7 +65,7 @@ List rcpp_minc_apply(CharacterVector filenames,
   misize_t old_hyperslab_dims[3] = {hyperslab_dims[0], hyperslab_dims[1], hyperslab_dims[2]};
 
   int nvols = volumes.size();
-  int nvoxels = (int) sizes[0] * sizes[1] * sizes[2];
+  long long nvoxels = (long long) sizes[0] * sizes[1] * sizes[2];
 
   NumericVector voxel_values(nvols);
   misize_t voxel_offsets[3];

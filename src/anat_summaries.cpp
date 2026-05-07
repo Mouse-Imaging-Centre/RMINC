@@ -24,7 +24,7 @@ List anat_summary(CharacterVector filenames,
   }
 
   vector<misize_t> sizes = get_volume_dimensions(volumes[0]);
-  int total_voxels = sizes[0] * sizes[1] * sizes[2];
+  long long total_voxels = (long long) sizes[0] * sizes[1] * sizes[2];
 
   misize_t vol_sizes[3];
   for(int i = 0; i < 3; ++i){
@@ -101,7 +101,7 @@ NumericMatrix count_labels(CharacterVector filenames) {
   // }
   
   vector<misize_t> sizes = get_volume_dimensions(volumes[0]);
-  int total_voxels = sizes[0] * sizes[1] * sizes[2];
+  long long total_voxels = (long long) sizes[0] * sizes[1] * sizes[2];
   
   misize_t vol_sizes[3];
   for(int i = 0; i < 3; ++i){
