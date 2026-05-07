@@ -992,7 +992,9 @@ mincTtest <- function(filenames, grouping, mask = NULL, maskval = NULL) {
   gf <- data.frame(matrix(ncol = 2, nrow = length(filenames)))
   gf$grouping <- grouping
   gf$vox <- mincGetVoxel(filenames, 0, 0, 0)
-  rttest <- t.test(vox ~ grouping, data = gf)
+  # The C t_test computes Welch's t (separate variances), so use
+  # Welch-Satterthwaite df explicitly rather than relying on R defaults.
+  rttest <- t.test(vox ~ grouping, data = gf, var.equal = FALSE)
   attr(result, "df") <- rttest$parameter
   colnames(result) <- c("T-statistic")
   class(result) <- c("mincMultiDim", "matrix")
