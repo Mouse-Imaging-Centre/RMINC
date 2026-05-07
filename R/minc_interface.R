@@ -50,7 +50,7 @@ setMincAttributes <-
     all_attrs <- attributes(minc_object)
 
     if (is.null(all_attrs)) {
-      all_attrs <- environment()
+      all_attrs <- new.env()
     } else {
       all_attrs <- as.environment(all_attrs)
     }
