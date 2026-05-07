@@ -8,6 +8,7 @@ extern "C" {
 
 #include <minc2.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include <R.h>
 #include <Rinternals.h>

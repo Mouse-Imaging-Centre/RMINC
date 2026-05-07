@@ -201,7 +201,10 @@ SEXP minc_history_size(SEXP filename){
   miget_attr_length(hvol, "", "history", &hist_size);
 
   miclose_volume(hvol);
-  
+
+  if (hist_size > INT_MAX) {
+    error("History attribute too large to fit in an integer\n");
+  }
   SEXP output = ScalarInteger((int) hist_size);
   return(output);
 }
