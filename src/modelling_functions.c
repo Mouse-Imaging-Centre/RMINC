@@ -438,9 +438,13 @@ SEXP voxel_correlation(SEXP Sx, SEXP Sy) {
   }
 
   numerator = n * sum_xy - sum_x * sum_y;
-  denominator = sqrt( (n * sum_x2 - pow(sum_x, 2)) * 
+  denominator = sqrt( (n * sum_x2 - pow(sum_x, 2)) *
 		      (n * sum_y2 - pow(sum_y, 2)) );
-  *r = numerator / denominator;
+  if (denominator == 0) {
+    *r = NA_REAL;
+  } else {
+    *r = numerator / denominator;
+  }
   UNPROTECT(1);
   return(output);
 }
