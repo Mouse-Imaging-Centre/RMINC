@@ -509,8 +509,7 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
     double *piv_coefficients = (double *) malloc(p * sizeof(double));
     memcpy(piv_coefficients, coefficients, p * sizeof(double));
     for(j = 0; j < p; ++j)
-      if(pivot[j] == j)
-        coefficients[pivot[j]] = piv_coefficients[j];
+      coefficients[pivot[j]] = piv_coefficients[j];
     free(piv_coefficients);
   }
 
