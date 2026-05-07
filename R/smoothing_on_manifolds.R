@@ -156,7 +156,11 @@ find_edgelengths_sq = function(manifold) {
 #  Note: each angle is paired with the edge opposite to it
 edgelen_sq_to_cot_angles = function(edgelen_sq) {
   sapply(1:3, function(z) {
-    x = 0.5 * (sum(edgelen_sq[-z]) - edgelen_sq[z]) / sqrt(prod(edgelen_sq[-z]))
+    denom = sqrt(prod(edgelen_sq[-z]))
+    if (denom == 0) return(NA_real_)
+    x = 0.5 * (sum(edgelen_sq[-z]) - edgelen_sq[z]) / denom
+    # Clamp to avoid NaN from sqrt(1 - x^2) when |x| >= 1 due to FP error
+    x = pmin(pmax(x, -1 + .Machine$double.eps), 1 - .Machine$double.eps)
     x / sqrt(1 - x^2)
   })
 }
