@@ -214,8 +214,14 @@ CharacterVector path_to_filename(CharacterVector filenames){
   for(int i = 0; i < filenames.size(); ++i){
     CharacterVector res = as<CharacterVector>(as<List>(strsplit(as<std::string>(filenames[i]), "/"))[0]);
 
-    for(int r = 0; r < res.size(); ++r) //Remove empty substrings
-      if(res[r] == "") res.erase(res.begin() + r, res.begin() + r + 1);
+    //Remove empty substrings without skipping consecutive blanks
+    for(int r = 0; r < res.size(); ){
+      if(res[r] == "") {
+        res.erase(res.begin() + r);
+      } else {
+        ++r;
+      }
+    }
     
     split_res[i] = res;
     lengths[i] = res.size();
