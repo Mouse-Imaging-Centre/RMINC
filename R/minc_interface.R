@@ -936,9 +936,6 @@ minc.get.hyperslab <- function(filename, start, count) {
   total.size <- (count[1] * count[2] * count[3])
   buffer <- double(total.size)
 
-  cat("Total size: ")
-  cat(total.size)
-  cat("\n")
   output <- .C(
     "get_hyperslab",
     as.character(filename),
@@ -948,7 +945,7 @@ minc.get.hyperslab <- function(filename, start, count) {
     PACKAGE = "RMINC"
   )$hs
 
-  return(buffer)
+  return(output)
 }
 
 # some rather MICe specific code best ignored.
