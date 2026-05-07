@@ -2369,7 +2369,7 @@ civet_qc_1_1_12 <-
               `!=`("bad") %>%
               all
           ) %>%
-          mutate(QC_PASS = unlist(.$dataQC_PASS))
+          mutate(QC_PASS = unlist(QC_PASS))
       )
   }
 
