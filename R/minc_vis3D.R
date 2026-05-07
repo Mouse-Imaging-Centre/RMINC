@@ -672,7 +672,7 @@ obj_montage <- function(
       par$lpos = .40
     }
     if (is.null(par$rpos)) {
-      par$lpos = .46
+      par$rpos = .46
     }
     par$vertical <- vertical
 
