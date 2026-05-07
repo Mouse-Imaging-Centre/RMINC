@@ -531,6 +531,11 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
     free(full_buffer[i]);
   }
   free(full_buffer);
+  free(hvol);
+  if (xhave_mask[0] == 1) {
+    miclose_volume(hmask);
+    free(mask_buffer);
+  }
   UNPROTECT(2);
 
   /* return the results */
