@@ -621,10 +621,10 @@ anova_summary <-
 mincLmerOptimizeAndExtract <- function(
   x,
   mincLmerList,
-  summary_function = fixef_summary
+  summary_fun = fixef_summary
 ) {
   mmod <- mincLmerOptimize(x, mincLmerList)
-  return(summary_function(mmod))
+  return(summary_fun(mmod))
 }
 
 #' run log likelihood ratio tests for different mincLmer objects
