@@ -1455,6 +1455,11 @@ mincRandomize_core <-
     lmod <- x
     alternative <- match.arg(alternative)
     lmod_data <- attr(lmod, "data")
+    if (is.null(lmod_data)) {
+      stop(
+        "mincRandomize requires the original data to be stored in the mincLm object"
+      )
+    }
     lmod_call <- attr(lmod, "call")
     lmod_lhs <- as.character(lmod_call[["formula"]][[2]])
     pred_cols <- names(lmod_data)[names(lmod_data) != lmod_lhs]
