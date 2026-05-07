@@ -217,10 +217,10 @@ SEXP get_minc_history(SEXP filename) {
                          MI2_OPEN_READ, &hvol);
 
   if (result != MI_NOERROR) {
-    miclose_volume(hvol);
+    free(history);
     error("Error opening input file: %s.\n", filepath);
   }
-  
+
   miget_attr_values(hvol, MI_TYPE_STRING, "", "history", int_size, history);
   miclose_volume(hvol);
   
