@@ -171,7 +171,6 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
   //Rprintf("Before getting mask\n");
   if (use_mask[0] == 1) {
     Rprintf("Getting mask\n");
-    //get_mask(mask, hmask, mask_buffer, sizes);
     int suc = miopen_volume(CHAR(STRING_ELT(mask, 0)),
 		  MI2_OPEN_READ, &hmask);
     

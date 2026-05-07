@@ -36,20 +36,6 @@ mihandle_t* open_minc_files(SEXP filenames,
 
 }
 
-/* get_mask: opens the mask volume and allocates memory for the 
- * mask buffer */
-void get_mask(SEXP filename, mihandle_t hmask, double *mask_buffer,
-	      misize_t *sizes) {
-  int result;
-  
-  result = miopen_volume(CHAR(STRING_ELT(filename, 0)),
-			 MI2_OPEN_READ, &hmask);
-  if (result != MI_NOERROR) {
-    error("Error opening mask: %s.\n", CHAR(STRING_ELT(filename, 0)));
-  }
-  mask_buffer = (double *) malloc(sizes[1] * sizes[2] * sizeof(double));
-}
-
 /* create_slice_buffer: allocates memory for the slice buffer */
 double** create_slice_buffer(SEXP filenames,
 			     misize_t *sizes) {

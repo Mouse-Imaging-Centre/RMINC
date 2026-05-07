@@ -9,15 +9,8 @@
 #include <Rdefines.h>
 #include <R_ext/Utils.h>
 
-extern mihandle_t* open_minc_files(SEXP filenames, 
+extern mihandle_t* open_minc_files(SEXP filenames,
 				      misize_t *sizes);
-
-// get_mask is broken - see per_voxel_anova for how to work around it
-// for the moment
-extern void get_mask(SEXP filename, 
-		     mihandle_t hmask, 
-		     double *mask_buffer,
-		     misize_t *sizes);
 
 extern double** create_slice_buffer(SEXP filenames,
 				    misize_t *sizes);
