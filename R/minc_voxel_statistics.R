@@ -918,18 +918,19 @@ mincLm <- function(
   # betas
   # t-stats
   #
+  n_stats <- (ncol(result) - 3L) %/% 2L
   attr(result, "stat-type") <- c(
     "F",
     "R-squared",
-    rep("beta", (ncol(result) - 2) / 2),
-    rep("t", (ncol(result) - 2) / 2),
+    rep("beta", n_stats),
+    rep("t", n_stats),
     "logLik"
   )
 
   Fdf1 <- ncol(attr(result, "model")) - 1
   Fdf2 <- nrow(attr(result, "model")) - ncol(attr(result, "model"))
 
-  dflist <- vector("list", (ncol(result) - 2) / 2 + 1)
+  dflist <- vector("list", n_stats + 1L)
   dflist[[1]] <- c(Fdf1, Fdf2)
   dflist[2:length(dflist)] <- Fdf2
   attr(result, "df") <- dflist
