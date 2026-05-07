@@ -1275,18 +1275,20 @@ parseLmFormula <- function(formula, data, mf) {
     }
   } else {
     # Multiple Terms on RHS
+    non_file_term_indices <- integer(0)
     for (nTerm in 2:length(formula[[3]])) {
       # Skip if it is an interaction term
       if (length(formula[[3]][[nTerm]]) > 1) {
+        non_file_term_indices <- c(non_file_term_indices, nTerm)
         next
       }
-      rCommand = paste("term <- data$", formula[[3]][[nTerm]], sep = "")
+      term_name <- as.character(formula[[3]][[nTerm]])
       # Skip if it is a formula symbol (i.e. *)
-      if (!as.character(formula[[3]][[nTerm]]) %in% names(data)) {
+      if (!term_name %in% names(data)) {
         next
       }
-      eval(parse(text = rCommand))
-      fileinfo = file.info(as.character(term[1]))
+      term <- data[[term_name]]
+      fileinfo <- file.info(as.character(term[1]))
       if (!is.na(fileinfo$size)) {
         if (length(grep('\\+', formula[[3]][[1]])) == 0) {
           stop("Only + sign allowed when using filenames")
@@ -1299,18 +1301,23 @@ parseLmFormula <- function(formula, data, mf) {
         data.matrix.left <- as.character(mf[, 1])
         data.matrix.right <- as.character(mf[, nTerm])
       } else {
-        tmpFormula = formula
-        rCommand = paste(
-          "formula <-",
-          formula[[2]],
-          "~",
-          formula[[3]][[nTerm]],
-          sep = ""
-        )
-        eval(parse(text = rCommand))
-        mmatrix <- model.matrix(formula, mf)
-        formula = tmpFormula
+        non_file_term_indices <- c(non_file_term_indices, nTerm)
       }
+    }
+    if (length(non_file_term_indices) > 0) {
+      non_file_terms <- vapply(
+        non_file_term_indices,
+        function(idx) deparse(formula[[3]][[idx]]),
+        character(1)
+      )
+      reduced_formula <- as.formula(
+        paste(
+          deparse(formula[[2]]),
+          "~",
+          paste(non_file_terms, collapse = " + ")
+        )
+      )
+      mmatrix <- model.matrix(reduced_formula, mf)
     }
     rows = colnames(mmatrix)
     rows = append(rows, matrixName)
