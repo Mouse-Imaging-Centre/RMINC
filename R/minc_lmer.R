@@ -121,7 +121,10 @@ mincLmer <- function(
   # generates obscure warning messages
   mc <- mc[
     !names(mc) %in%
-      c("mask", "parallel", "temp_dir", "safely", "cleanup", "summary_type")
+      c(
+        "mask", "parallel", "temp_dir", "safely", "cleanup",
+        "summary_type", "weights", "resources", "conf_file"
+      )
   ]
 
   lmod <- eval(mc, parent.frame(1L))
