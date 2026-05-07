@@ -70,6 +70,10 @@ SEXP paired_t_test(SEXP voxel, SEXP grouping) {
 
   group0 = malloc(sizeof(double) * n2);
   group1 = malloc(sizeof(double) * n2);
+  if (group0 == NULL || group1 == NULL) {
+    free(group0); free(group1);
+    error("Failed to allocate memory for paired_t_test groups\n");
+  }
 
   count0 = 0;
   count1 = 0;
@@ -213,6 +217,10 @@ SEXP wilcoxon_rank_test(SEXP voxel, SEXP grouping) {
   xvoxel = REAL(voxel);
   voxel_copy = malloc(n * sizeof(double));
   index = malloc(n * sizeof(int));
+  if (voxel_copy == NULL || index == NULL) {
+    free(voxel_copy); free(index);
+    error("Failed to allocate memory for wilcoxon_rank_test\n");
+  }
   for (i=0; i < n; i++) {
     voxel_copy[i] = xvoxel[i];
     index[i] = i;
@@ -340,6 +348,10 @@ SEXP voxel_mean(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
 
   subjects_per_group = malloc(sizeof(int) * *n_groups);
   sum_voxel = malloc(sizeof(double) * *n_groups);
+  if (subjects_per_group == NULL || sum_voxel == NULL) {
+    free(subjects_per_group); free(sum_voxel);
+    error("Failed to allocate memory for voxel_mean\n");
+  }
 
   /* init variables */
   for(i=0; i < *n_groups; i++) {
@@ -382,6 +394,10 @@ SEXP voxel_var(SEXP Svoxel, SEXP Sn_groups, SEXP Sgroupings) {
 
   subjects_per_group = malloc(sizeof(int) * *n_groups);
   sum_voxel = malloc(sizeof(double) * *n_groups);
+  if (subjects_per_group == NULL || sum_voxel == NULL) {
+    free(subjects_per_group); free(sum_voxel);
+    error("Failed to allocate memory for voxel_var\n");
+  }
 
   Smean = voxel_mean(Svoxel, Sn_groups, Sgroupings);
   means = REAL(Smean);
@@ -924,7 +940,12 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     diag = malloc(sizeof(double) * p);
     se = malloc(sizeof(double) * p);
     t = malloc(sizeof(double) * p);
-    
+    if (coefficients == NULL || residuals == NULL || effects == NULL ||
+        pivot == NULL || work == NULL || qraux == NULL || v == NULL ||
+        diag == NULL || se == NULL || t == NULL) {
+      error("Failed to allocate memory for lm working buffers\n");
+    }
+
     Rprintf("N: %d P: %d\n", n,p);
 
     PROTECT(t_sexp = allocVector(REALSXP, p + 3));
@@ -962,6 +983,12 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     comp = malloc(sizeof(double) * p);
     ss = malloc(sizeof(double) * maxasgn);
     df = malloc(sizeof(int) * maxasgn);
+    if (coefficients == NULL || residuals == NULL || effects == NULL ||
+        pivot == NULL || work == NULL || qraux == NULL || v == NULL ||
+        diag == NULL || se == NULL || t == NULL ||
+        comp == NULL || ss == NULL || df == NULL) {
+      error("Failed to allocate memory for anova working buffers\n");
+    }
     
     Rprintf("N: %d P: %d\n", n,p);
 
