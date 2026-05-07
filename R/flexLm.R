@@ -49,7 +49,11 @@ flexLm <- function(formula, data, y, ...) {
   # dimensions of y and all dataVars have to be the same
   if (length(dataVars) > 0) {
     for (i in 1:length(dataVars)) {
-      if (any(dim(dataVars[[i]]) != dim(y))) {
+      if (
+        is.null(dim(dataVars[[i]])) ||
+          is.null(dim(y)) ||
+          any(dim(dataVars[[i]]) != dim(y))
+      ) {
         stop(
           "All data variables and the y variable have to be the same dimension"
         )
