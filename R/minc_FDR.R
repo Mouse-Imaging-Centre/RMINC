@@ -411,8 +411,13 @@ mincFDR.mincMultiDim <- function(
         )
       }
     } else if (statType[col_ind] == "u") {
-      pvals <- 1 -
-        pwilcox(buffer[mask > 0.5, col_ind], m, n, lower.tail = FALSE)
+      qvals_buffer <- buffer[mask > 0.5, col_ind]
+      pvals <- 2 *
+        pmin(
+          pwilcox(qvals_buffer, m, n, lower.tail = TRUE),
+          pwilcox(qvals_buffer, m, n, lower.tail = FALSE)
+        )
+      pvals <- pmin(pvals, 1)
     } else if (statType[col_ind] == "chisq") {
       if (is.matrix(buffer)) {
         pvals <- pchisq(
