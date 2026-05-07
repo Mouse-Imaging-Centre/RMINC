@@ -118,7 +118,7 @@ SEXP get_volume_info(SEXP filename) {
 
 	/* retrieve the volume space type (talairach, native, etc) */
 	result = miget_space_name(minc_volume, &space_type);
-	if ( result == MI_NOERROR ) { error("Error returned from miget_space_name.\n"); }
+	if ( result != MI_NOERROR ) { error("Error returned from miget_space_name.\n"); }
 	/* append to return list ... */
 	list_index++;
 	SET_VECTOR_ELT(rtnList, list_index, mkString(space_type));
