@@ -119,11 +119,11 @@ mincFDR.mincLogLikRatio <- function(buffer, mask = NULL, ...) {
   for (i in 1:ncols) {
     # compute qvals through R's p.adjust function
     currentDF <- df[[1]]
-    if (i == 1 | haveParametricBootstrap == F) {
+    if (i == 1 || haveParametricBootstrap == F) {
       currentDF <- df[[i]]
       pvals[, i] <- pchisq(buffer[mask > 0.5, i], currentDF, lower.tail = F)
     }
-    if (haveParametricBootstrap & i == 1) {
+    if (haveParametricBootstrap && i == 1) {
       # the linear model computed as part of the parametric bootstrap
       # note: as with the parametricBootstrap code, at the moment the assumption is
       # that there were only two models being compared, and thus a single column of
@@ -302,7 +302,7 @@ mincFDR.mincMultiDim <- function(
     }
     # make sure that there are either just one stat type
     # or as many as there are columns
-    if (length(statType) == 1 & ncol(buffer) != 1) {
+    if (length(statType) == 1 && ncol(buffer) != 1) {
       statType <- rep(statType, ncol(buffer))
     } else if (length(statType) == ncol(buffer)) {
       # do nothing
@@ -336,7 +336,7 @@ mincFDR.mincMultiDim <- function(
         stop("Error: need to specify the degrees of freedom")
       }
     }
-    if (length(df) == 1 & ncol(buffer) != 1) {
+    if (length(df) == 1 && ncol(buffer) != 1) {
       df <- rep(list(df), ncol(buffer))
     } else if (length(df) == ncol(buffer)) {
       # do nothing
@@ -428,13 +428,13 @@ mincFDR.mincMultiDim <- function(
     # determine corresponding q values
     if (method == "qvalue") {
       qobj <- qvalue::qvalue(pvals)
-    } else if (method == "FDR" | method == "p.adjust") {
+    } else if (method == "FDR" || method == "p.adjust") {
       qobj$pvalue <- pvals
       qobj$qvalue <- p.adjust(pvals, "fdr")
     } else if (method == "BY") {
       qobj$pvalue <- pvals
       qobj$qvalue <- p.adjust(pvals, "BY")
-    } else if (method == "pFDR" | method == "fastqvalue") {
+    } else if (method == "pFDR" || method == "fastqvalue") {
       qobj <- fast.qvalue(pvals)
     }
     # calculate thresholds at different sig levels
@@ -544,7 +544,7 @@ vertexFDR.vertexLmer <-
       arglist$mask <- maskFile(buffer, strict = FALSE)
     }
 
-    if (!is.null(arglist$mask) & is.character(arglist$mask)) {
+    if (!is.null(arglist$mask) && is.character(arglist$mask)) {
       arglist$mask <- as.numeric(readLines(arglist$mask))
     }
 
