@@ -1100,6 +1100,9 @@ mincWilcoxon <- function(filenames, grouping, mask = NULL, maskval = NULL) {
     warning(paste("Coercing", deparse(substitute(grouping)), "to a factor\n"))
     grouping <- as.factor(grouping)
   }
+  if (length(levels(grouping)) != 2) {
+    stop("mincWilcoxon can only be performed on data with 2 groups")
+  }
   result <- mincSummary(
     filenames,
     grouping,
