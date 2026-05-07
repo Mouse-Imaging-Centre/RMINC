@@ -1423,7 +1423,11 @@ tableOpenFiles <- function() {
 
 tableOpenFiles_proc <- function() {
   # analyze /proc/<pid>/fd and potentially /proc/<pid>/map_files
-  table(list.files(file.path("/proc", Sys.getpid(), "fd")))
+  proc_path <- file.path("/proc", Sys.getpid(), "fd")
+  if (!dir.exists(proc_path)) {
+    return(table(character(0)))
+  }
+  table(list.files(proc_path))
   # map_files contains multiple references to the same file,
   # not sure how many file discriptors it correpsonds to
   #list.files(file.path("/proc",Sys.getpid(),"map_files")) )
