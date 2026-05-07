@@ -1221,7 +1221,7 @@ mincTFCE.mincSingleDim <-
         `if`(side == "positive", "pos-only", "neg-only")
       )
 
-    system(
+    tfce_result <- system(
       sprintf(
         "TFCE -d %s -E %s -H %s --%s %s %s",
         d,
@@ -1233,6 +1233,16 @@ mincTFCE.mincSingleDim <-
       ),
       intern = TRUE
     )
+    if (
+      !is.null(attr(tfce_result, "status")) &&
+        attr(tfce_result, "status") != 0
+    ) {
+      stop(
+        "TFCE command failed (exit status ",
+        attr(tfce_result, "status"),
+        "). Is the TFCE binary on your PATH?"
+      )
+    }
 
     out_vol <- mincGetVolume(output_file)
     likeVolume(out_vol) <- likeVolume(volume)
