@@ -14,21 +14,16 @@
 
 void qvalue_min(double *qvalue, int *u, int *length, double *out) {
   int i;
-  
-  //Rprintf("Length: %d\n", length[0]);
+  int len = length[0] - 1;
 
-  length[0] -= 1;
-
-  //Rprintf("Length: %d\n", length[0]);
-
-  if (qvalue[u[length[0]]] > 1) {
-    out[u[length[0]]-1] = 1;
+  if (qvalue[u[len]] > 1) {
+    out[u[len]-1] = 1;
   }
   else {
-    out[u[length[0]]-1] = qvalue[u[length[0]]-1];
+    out[u[len]-1] = qvalue[u[len]-1];
   }
-  
-  for (i = length[0]-1; i >= 0; i--) {
+
+  for (i = len-1; i >= 0; i--) {
     //u[i] -= 1;
     //Rprintf("%f %f %d %d\n", qvalue[u[i]-1], qvalue[u[i+1]-1], i, u[i]-1);
     if ((qvalue[u[i]-1] > 1) && (qvalue[u[i+1]-1] > 1)) {
