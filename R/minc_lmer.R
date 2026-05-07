@@ -656,6 +656,10 @@ mincLmerOptimizeAndExtract <- function(
 mincLogLikRatio <- function(...) {
   dots <- list(...)
 
+  if (length(dots) < 2) {
+    stop("mincLogLikRatio requires at least 2 mincLmer models to compare")
+  }
+
   # get the names of the actual objects passed it; used for naming output columns
   dotslist <- substitute(list(...))[-1]
   inputnames <- sapply(dotslist, deparse)
