@@ -1,7 +1,7 @@
 failing_mclapply <- function(..., mc.silent = TRUE) {
   res <- parallel::mclapply(..., mc.silent = mc.silent)
   lapply(seq_along(res), function(i) {
-    if (inherits(res[[i]], "try-error")) stop(res[[1]])
+    if (inherits(res[[i]], "try-error")) stop(res[[i]])
   })
 
   res
@@ -10,7 +10,7 @@ failing_mclapply <- function(..., mc.silent = TRUE) {
 failing_mcmapply <- function(..., mc.silent = TRUE) {
   res <- parallel::mcmapply(..., mc.silent = mc.silent)
   lapply(seq_along(res), function(i) {
-    if (inherits(res[[i]], "try-error")) stop(res[[1]])
+    if (inherits(res[[i]], "try-error")) stop(res[[i]])
   })
 
   res
