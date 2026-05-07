@@ -287,6 +287,12 @@ mincLmer <- function(
 mincLmerEstimateDF <- function(model) {
   # set the DF based on the Satterthwaite approximation
 
+  if (!"tlmer" %in% attr(model, "stat-type")) {
+    stop(
+      "mincLmerEstimateDF only works with summary_type 'fixef' or 'both'."
+    )
+  }
+
   mincLmerList <- attr(model, "mincLmerList")
   mask <- attr(model, "mask")
 
