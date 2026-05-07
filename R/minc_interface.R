@@ -1280,12 +1280,12 @@ parseLmFormula <- function(formula, data, mf) {
       if (length(formula[[3]][[nTerm]]) > 1) {
         next
       }
-      rCommand = paste("term <- data$", formula[[3]][[nTerm]], sep = "")
+      term_name <- as.character(formula[[3]][[nTerm]])
       # Skip if it is a formula symbol (i.e. *)
-      if (!as.character(formula[[3]][[nTerm]]) %in% names(data)) {
+      if (!term_name %in% names(data)) {
         next
       }
-      eval(parse(text = rCommand))
+      term <- data[[term_name]]
       fileinfo = file.info(as.character(term[1]))
       if (!is.na(fileinfo$size)) {
         if (length(grep('\\+', formula[[3]][[1]])) == 0) {
