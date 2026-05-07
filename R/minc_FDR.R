@@ -285,6 +285,9 @@ mincFDR.mincMultiDim <- function(
       updatedAttrs <- originalMincAttrs
       updatedAttrs$`stat-type` <- updatedAttrs$`stat-type`[-indicesToRemove]
       updatedAttrs$dimnames[[2]] <- updatedAttrs$dimnames[[2]][-indicesToRemove]
+      if (!is.null(updatedAttrs$df) && length(updatedAttrs$df) > 1) {
+        updatedAttrs$df <- updatedAttrs$df[-indicesToRemove]
+      }
 
       buffer <- buffer[, -indicesToRemove]
       buffer <- setMincAttributes(buffer, updatedAttrs)
