@@ -70,17 +70,15 @@ mincSummary <- function(
   attr(result, "likeVolume") <- as.character(filenames[1])
   attr(result, "filenames") <- as.character(filenames)
 
-  if (is.null(grouping)) {
-    class(result) <- c("mincSingleDim", "numeric")
-  } else {
-    class(result) <- c("mincMultiDim", "matrix")
-    if (
-      !grepl("t-test", method) &&
-        !grepl("correlation", method) &&
-        !grepl("wilcoxon", method)
-    ) {
-      colnames(result) <- levels(grouping)
-    }
+  # grouping was replaced with rep(1, ...) above when NULL, so it is never
+  # NULL here; the dead mincSingleDim branch has been removed.
+  class(result) <- c("mincMultiDim", "matrix")
+  if (
+    !grepl("t-test", method) &&
+      !grepl("correlation", method) &&
+      !grepl("wilcoxon", method)
+  ) {
+    colnames(result) <- levels(grouping)
   }
   return(result)
 }
