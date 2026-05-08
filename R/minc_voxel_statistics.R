@@ -41,8 +41,7 @@ mincSummary <- function(
 ) {
   mincFileCheck(filenames)
 
-  grouping_was_null <- is.null(grouping)
-  if (grouping_was_null) {
+  if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
   }
 
@@ -71,7 +70,7 @@ mincSummary <- function(
   attr(result, "likeVolume") <- as.character(filenames[1])
   attr(result, "filenames") <- as.character(filenames)
 
-  if (grouping_was_null) {
+  if (is.null(grouping)) {
     class(result) <- c("mincSingleDim", "numeric")
   } else {
     class(result) <- c("mincMultiDim", "matrix")
