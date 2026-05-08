@@ -172,9 +172,11 @@ void get_world_voxel_from_files(char **filenames, int *num_files,
     }
 
     miconvert_world_to_voxel(hvol, location, voxel_coord_tmp);
-    
+
     for (j=0; j < 3; j++) {
-      voxel_coord[j] = (unsigned long) voxel_coord_tmp[j] + 0.5;
+      /* round to nearest voxel: parens needed so + 0.5 happens before
+       * the unsigned-long cast truncates */
+      voxel_coord[j] = (unsigned long) (voxel_coord_tmp[j] + 0.5);
     }
     result = miget_real_value(hvol, voxel_coord, 3, &voxel[i]);
 
