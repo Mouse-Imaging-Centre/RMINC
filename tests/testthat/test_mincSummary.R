@@ -122,11 +122,14 @@ test_that("mincPairedTtest works with mincFDR", {
 })
 
 # wilcox
-# uses pwilcox to compute p-values
-rWilcoxFDR = p.adjust(
-  1 - pwilcox(mw[, 1], attr(mw, "m"), attr(mw, "n"), lower.tail = FALSE),
-  "fdr"
-)
+# uses pwilcox to compute two-sided p-values, matching mincFDR
+rWilcoxPvals <- 2 *
+  pmin(
+    pwilcox(mw[, 1], attr(mw, "m"), attr(mw, "n"), lower.tail = TRUE),
+    pwilcox(mw[, 1], attr(mw, "m"), attr(mw, "n"), lower.tail = FALSE)
+  )
+rWilcoxPvals <- pmin(rWilcoxPvals, 1)
+rWilcoxFDR = p.adjust(rWilcoxPvals, "fdr")
 verboseRun("rmincWilcoxFDR = mincFDR(mw)", getOption("verbose"))
 test_that("mincWilcoxon works with mincFDR", {
   expect_equal(as.numeric(rmincWilcoxFDR), rWilcoxFDR, tolerance = 0.0001)
