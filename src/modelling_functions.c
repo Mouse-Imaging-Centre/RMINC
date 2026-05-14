@@ -538,7 +538,12 @@ SEXP voxel_lm(SEXP Sy, SEXP Sx,int n,int p,double *coefficients,
   // definite matrix A using the Cholesky factorization A =
   // U**T*U or A = L*L**T computed by DPOTRF
   int info;
-  F77_CALL(dpotri)("Upper", &p, x, &n, &info);
+
+  #if R_VERSION >= R_Version(4,2,0)
+    F77_CALL(dpotri)("Upper", &p, x, &n, &info, strlen("Upper"));
+  #else
+    F77_CALL(dpotri)("Upper", &p, x, &n, &info);
+  #endif
 
   if (info != 0) {
     UNPROTECT(nprot);
