@@ -1,6 +1,8 @@
 #include "minc_reader.h"
 #include "R_ext/Lapack.h"
 #include "R_ext/Applic.h"
+#include <string.h>
+#include <Rversion.h>
 
 /* minimum computation to speed up bits of qvalue */
 
