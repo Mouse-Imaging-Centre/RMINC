@@ -36,7 +36,7 @@ minc.isReadable <- function(filenames) {
     rValue <- FALSE
     for (ndx in 1:length(filenames)) {
       if (file.access(filenames[ndx], READ_PERMISSION) != 0) {
-        warning(sprintf("File: %s is not accessible.\n"))
+        warning(sprintf("File: %s is not accessible.\n", filenames[ndx]))
       }
     }
   }
