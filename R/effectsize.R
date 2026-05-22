@@ -11,8 +11,16 @@
 #' For now, interactions are explicitly excluded from being predictors. To get
 #' effect size for interactions, use the interaction() function to create a new
 #' treatment coded factor to use as a predictor.
-#' @return A matrix with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each factor predictor in the GLM
-#' or for each column supplied.
+#' @return An object with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each
+#' factor predictor in the GLM. The class and attributes of the input are preserved:
+#' \itemize{
+#'   \item \code{mincEffectSize}/\code{mincMultiDim} for voxel-wise inputs
+#'   \item \code{vertexEffectSize}/\code{vertexMultiDim} for vertex-wise inputs
+#'   \item \code{anatEffectSize}/\code{anatModel} for anatomy-wise inputs
+#' }
+#' Attributes \code{likeVolume}, \code{filenames}, \code{model}, \code{data}, \code{call},
+#' \code{df}, \code{atlas}, \code{definitions}, and \code{stat-type} are carried over from
+#' the input.
 #' @examples
 #' \dontrun{
 #' getRMINCTestData()
@@ -24,6 +32,7 @@
 #' }
 #' @export
 vertexEffectSize <- function(buffer, predictors = NULL) {
+  inputClass <- class(buffer)
   #Nakagawa, S., Cuthill, I.C., 2007. Effect size, confidence interval and statistical significance: a practical guide for biologists. Biol. Rev. Camb. Philos. Soc. 82, 591-605. https://doi.org/10.1111/j.1469-185X.2007.00027.x
   #Original unbiased corrector from paper replaced with
   #unbiased corrector function J from https://en.wikipedia.org/wiki/Effect_size#Hedges'_g
@@ -197,6 +206,22 @@ vertexEffectSize <- function(buffer, predictors = NULL) {
   }
   rownames(output) <- rownames(buffer)
   attr(output, "likeVolume") <- attr(buffer, "likeVolume")
+  attr(output, "filenames") <- attr(buffer, "filenames")
+  attr(output, "model") <- attr(buffer, "model")
+  attr(output, "data") <- attr(buffer, "data")
+  attr(output, "call") <- attr(buffer, "call")
+  attr(output, "df") <- attr(buffer, "df")
+  attr(output, "atlas") <- attr(buffer, "atlas")
+  attr(output, "definitions") <- attr(buffer, "definitions")
+  attr(output, "stat-type") <- rep(c("hedgesg", "hedgesg_var"), each = length(predictors))
+
+  if (any(inputClass == "mincMultiDim")) {
+    class(output) <- c("mincEffectSize", "mincMultiDim", "matrix")
+  } else if (any(inputClass == "vertexMultiDim")) {
+    class(output) <- c("vertexEffectSize", "vertexMultiDim", "matrix")
+  } else if (any(inputClass == "anatModel")) {
+    class(output) <- c("anatEffectSize", "anatModel", "matrix")
+  }
 
   # run the garbage collector...
   gcout <- gc()
