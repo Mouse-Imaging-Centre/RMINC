@@ -323,7 +323,11 @@ addHierarchyToDefs <- function(defs, tree) {
   for (i in 1:nrow(defs)) {
     tmp <- FindNode(tree, defs$ABI[i])$Get("path")[[1]]
     tmp <- tmp[tmp != "children2"]
-    tmp <- tmp[3:length(tmp)]
+    if (length(tmp) > 2) {
+      tmp <- tmp[3:length(tmp)]
+    } else {
+      tmp <- character(0)
+    }
     Leaf <- as.character(defs$Leaf[i])
     if (defs$ABI[i] == Leaf | defs$name[i] == Leaf) {
       endpath <- as.character(defs$name[i])
@@ -494,10 +498,13 @@ makeMICeDefsHierachical <- function(defs, abijson) {
   # copy important bits from the ABI tree - name and colour especially.
   copyABIinfo(treeMH, tree)
   # propagate the labels so that each structure has a vector of all associated labels
-  treeMH$Do(
-    function(x) x$label <- unlist(Aggregate(x, "label", c)),
-    traversal = "post-order"
-  )
+  collectLabels <- function(node) {
+    if (node$isLeaf) return(node$label)
+    labels <- unlist(lapply(node$children, collectLabels))
+    node$label <- labels
+    return(labels)
+  }
+  collectLabels(treeMH)
 
   return(treeMH)
 }
