@@ -2,7 +2,7 @@ Package: RMINC
 Version: 1.5.3.0
 Date: 2017-05-31
 Title: Statistical Tools for Medical Imaging NetCDF (MINC) Files
-Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkids.ca"), 
+Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@ndcn.ox.ac.uk"), 
              person("Chris", "Hammill", role = c("aut", "cre"), email = "cfhammill@gmail.com"),
              person("Matthijs", "van Eede", role = "aut"),
              person("Daniel", "Cassel", role = "aut"),
@@ -12,7 +12,8 @@ Authors@R: c(person("Jason", "Lerch", role = "aut", email = "jason.lerch@sickkid
              person("Nick", "Wang", role = "ctb"),
              person("Gabriel", "Devenyi", role = "ctb", email = "gdevenyi@gmail.com"),
 	     person("Benjamin", "Darwin", role = "ctb"),
-	     person("Bilal", "Syed", role = "ctb"))
+	     person("Bilal", "Syed", role = "ctb"),
+	     person("Vladimir", "Fonov", role = "ctb", email = "vladimir.fonov@gmail.com"))
 Description: Tools for reading, writing, analyzing, and visualizing Medical
     Imaging NetCDF (MINC) files with R.
 Additional_repositories: https://bioconductor.org/packages/3.20/bioc
