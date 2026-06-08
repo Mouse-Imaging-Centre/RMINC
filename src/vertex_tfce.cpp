@@ -150,7 +150,7 @@ std::vector<double> graph_tfce(std::vector<double> map, std::vector<std::vector<
                                      , double E, double H, int nsteps
                                      , std::vector<double> weights){
  std::vector<double> pos = graph_tfce_wqu(map, adjacencies, E, H, nsteps, weights);
- std::transform(map.begin(), map.end(), map.begin(), std::bind1st(std::multiplies<double>(), -1));
+  std::transform(map.begin(), map.end(), map.begin(), [](double x) { return -x; });
  std::vector<double> neg = graph_tfce_wqu(map, adjacencies, E, H, nsteps, weights);
  for(int i = 0; i < pos.size(); ++i) pos[i] -= neg[i];
  return pos;
