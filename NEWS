@@ -1,3 +1,57 @@
+New in Version 2.0.0.0 (Wilks)
+==============================
+
+Infrastructure and CI:
+- Migrate CI from Travis to GitHub Actions (ubuntu + macOS, R
+  devel/release/oldrel-1/oldrel-2)
+- Add Docker-based test infrastructure with mounted source support
+- Update configure.ac to autoconf 2.71 with proper config.guess/config.sub
+- Regenerate configure script from updated m4 macros
+- Update libminc build to latest minc-toolkit-v2 commit
+- Add Encoding: UTF-8 to DESCRIPTION
+
+New Features:
+- Add flexLm for linear models with voxel-varying RHS covariates
+- Export print.mincVoxel S3 method for proper dispatch
+- Add bigstatsr-backed file-backed matrix support (mincTable)
+
+Compatibility Fixes:
+- Replace std::bind1st with lambda for C++17 compatibility
+- Fix LAPACK/BLAS hidden length argument issues for R >= 4.3 (FCONE macro)
+- Fix t.test formula method compatibility for R 4.4+
+- Fix igraph 2.x compatibility (graph_from_adj_list)
+- Replace all deprecated dplyr/tidyr SE verbs (gather_, as_data_frame,
+  rename_, spread_) with modern equivalents (pivot_longer, as_tibble,
+  across(all_of(...)))
+- Replace deprecated .data$ in tidyselect expressions
+- Update all dependency versions to latest releases
+- Handle stringsAsFactors default change for R >= 4.0
+
+Bug Fixes:
+- Fix mincGetWorldVoxel rounding due to operator precedence (#316)
+- Free buffers and handles unconditionally in minc2_model (#28)
+- Preserve input class and attributes in EffectSize functions
+- Pass filename to sprintf in minc.isReadable warning (#30)
+- Fix registry_name typo in qMincApplyParallel (#12)
+- Report failing element's error in failing_mclapply/mcmapply (#22)
+- Fix hard-coded paths and implicit comparison issues
+- Fix deprecated use of path in write_csv/write_delim
+
+Testing:
+- Replace fragile MD5 checksums with content-based assertions
+- Skip external-tool-dependent tests gracefully when binaries unavailable
+- Add stringsAsFactors=TRUE to all read.csv calls in tests
+
+Documentation:
+- Document flexLm with proper roxygen header
+- Regenerate man/ with roxygen2 7.3.3
+- Fix multiple documentation typos and spelling errors
+- Update INSTALL instructions for macOS and Linux
+- Update tutorial links from defunct rawgit.com to raw.githubusercontent.com
+- Migrate from deprecated @docType package to "_PACKAGE" in RMINC.R
+- Add Vladimir Fonov as contributor, update Jason Lerch email
+
+
 New in Version 1.5.*.*
 =======================
 4.0
