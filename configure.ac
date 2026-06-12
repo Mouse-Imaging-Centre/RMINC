@@ -1,4 +1,4 @@
-AC_INIT([RMINC],[1.5.0])
+AC_INIT([RMINC],[2.0.0])
 AC_PREREQ([2.71])
 AC_CONFIG_AUX_DIR([tools])
 AC_CONFIG_SRCDIR([src/slice_loop_functions.c])
