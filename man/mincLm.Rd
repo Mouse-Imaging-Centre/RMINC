@@ -26,7 +26,7 @@ mincLm(
 inside the mask.}
 
 \item{maskval}{the value in the mask used to select unmasked voxels, defaults to any positive intensity
-from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities 
+from 1-99999999 internally expanded to .5 - 99999999.5. If a number is specified voxels with intensities
 within 0.5 of the chosen value are considered selected.}
 
 \item{parallel}{how many processors to run on (default=single processor).
@@ -57,7 +57,7 @@ a small value like 1.
 }
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 # read the text file describing the dataset
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 # Compute a linear model at each voxel

@@ -24,6 +24,6 @@ LikeVolumes control the dimensions of an output minc file.
 }
 \section{Functions}{
 \itemize{
-\item \code{likeVolume<-}: setter
-}}
+\item \code{likeVolume(x) <- value}: setter
 
+}}

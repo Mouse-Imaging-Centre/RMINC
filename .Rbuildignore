@@ -3,7 +3,7 @@
 ^releases/$
 ^.Rdata$
 ^.Rhistory$
-^.travis.yml$
+^\.github$
 ^.git$
 ^tests/testthat/test_torque_parallel.R$
 ^etc/.*$

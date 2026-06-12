@@ -64,7 +64,7 @@ you requested a legend}
 
 \item{plottitle}{the title of the plot if desired}
 
-\item{indicatorLevels}{numeric vector indicating where to draw slice lines on the 
+\item{indicatorLevels}{numeric vector indicating where to draw slice lines on the
 locator, defaults to every slice}
 
 \item{discreteStats}{Whether stats are discrete values and should should not have
@@ -92,7 +92,7 @@ mincPlotSliceSeries(mincArray(anatVol),           # the anatomical volume
                     anatLow=700, anatHigh=1400,   # set anatomy thresholds
                     low=2.5, high=10,             # set stats thresholds
                     symmetric=T,                  # show separate upper and lower
-                    begin=25, end=-25  ,          # remove slices from both sides  
+                    begin=25, end=-25  ,          # remove slices from both sides
                     legend="t-statistics")
 }
 }

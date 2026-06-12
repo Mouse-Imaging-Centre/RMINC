@@ -7,14 +7,14 @@
 volume.combineMaskVolumes(vol_list)
 }
 \arguments{
-\item{vol_list}{A list containing more than one mask volume.  Note that all 
+\item{vol_list}{A list containing more than one mask volume.  Note that all
 volumes must reflect the same sampling.}
 }
 \value{
 A single aggregate MincVolumeIO volume is returned.
 }
 \description{
-Given a list containing more than one label volume, combine those 
+Given a list containing more than one label volume, combine those
 volumes, creating an aggregate mask volume.
 }
 \author{

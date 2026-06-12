@@ -61,9 +61,9 @@ that the left hand side of the equation contains vertex filenames rather than
 an actual response variable.
 }
 \details{
-\code{vertexLmer}, like its relative \link{mincLmer} provides an interface to running 
-linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses 
-in linear mixed effects models is more difficult, since the denominator degrees of freedom are 
+\code{vertexLmer}, like its relative \link{mincLmer} provides an interface to running
+linear mixed effects models at every vertex. Unlike standard linear models testing hypotheses
+in linear mixed effects models is more difficult, since the denominator degrees of freedom are
 more difficult to  determine. RMINC provides estimating degrees of freedom using the
 \code{\link{vertexLmerEstimateDF}} function. For the most likely models - longitudinal
 models with a separate intercept or separate intercept and slope per subject - this

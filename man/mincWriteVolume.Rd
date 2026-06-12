@@ -30,7 +30,7 @@ mincWriteVolume(buffer, ...)
 
 \item{output.filename}{The filename to which to write the data to}
 
-\item{clobber}{Overwrite existing output file when set to TRUE, will not 
+\item{clobber}{Overwrite existing output file when set to TRUE, will not
 overwrite when set to FALSE and will prompt when NULL}
 
 \item{column}{Optional name of the column of a multidimensional MINC
@@ -55,13 +55,13 @@ can be viewed or manipulated with the standard MINC tools
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincSingleDim}: mincSingleDim
+\item \code{mincWriteVolume(mincSingleDim)}: mincSingleDim
 
-\item \code{mincMultiDim}: mincMultiDim
+\item \code{mincWriteVolume(mincMultiDim)}: mincMultiDim
 
-\item \code{default}: default
+\item \code{mincWriteVolume(default)}: default
+
 }}
-
 \examples{
 \dontrun{
 getRMINCTestData()

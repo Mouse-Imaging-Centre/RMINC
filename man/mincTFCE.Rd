@@ -73,7 +73,7 @@ or a \code{matrix} object, or \code{mincLm} object.}
 
 \item{output_file}{A filename for the enhanced volume.}
 
-\item{keep}{Whether or not to keep the enhanced volume, defaults to whether or not 
+\item{keep}{Whether or not to keep the enhanced volume, defaults to whether or not
 a \code{output_file} was specified.}
 
 \item{conf_file}{A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}}
@@ -88,7 +88,7 @@ a \code{output_file} was specified.}
 \item{replace}{Sample with or without replacement for the randomization, defaults to FALSE (no
 replacement)}
 
-\item{parallel}{A two component vector indicating how to parallelize the computation. If the 
+\item{parallel}{A two component vector indicating how to parallelize the computation. If the
 first element is "local" the computation will be run via the parallel package, otherwise it will
 be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 indicating the number of jobs to split the computation into.}
@@ -113,18 +113,18 @@ elements are the largest value obtained by the randomized TFCE}
 }
 }
 \description{
-Perform threshold free cluster enhancement as described in 
+Perform threshold free cluster enhancement as described in
 Smith and Nichols (2008). Cluster-like structures are enhanced
 to allow a hybrid cluster/voxel analysis to be performed.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincSingleDim}: mincSingleDim
+\item \code{mincTFCE(mincSingleDim)}: mincSingleDim
 
-\item \code{matrix}: matrix
+\item \code{mincTFCE(matrix)}: matrix
 
-\item \code{mincMultiDim}: mincMultiDim
+\item \code{mincTFCE(mincMultiDim)}: mincMultiDim
 
-\item \code{mincLm}: mincLm
+\item \code{mincTFCE(mincLm)}: mincLm
+
 }}
-

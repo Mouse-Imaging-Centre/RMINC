@@ -31,7 +31,7 @@ mincFindPeaks(
 }
 \value{
 The set of peaks as a matrix. The matrix is of dimensions ntags x 7; the first
-three columns correspond to the first three dimensions in the same coordinates as used by 
+three columns correspond to the first three dimensions in the same coordinates as used by
 mincArray; the next three columns are the x, y, and z coordinates in world space, and the
 7th column is the value at that location.
 }

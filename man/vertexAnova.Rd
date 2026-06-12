@@ -16,7 +16,7 @@ vertexAnova(formula, data, subset = NULL, column = 1)
 \item{column}{Which column to treat as the input from vertex files.}
 }
 \value{
-Returns an array with the F-statistic for each model specified by formula with the following attributes: 
+Returns an array with the F-statistic for each model specified by formula with the following attributes:
 \itemize{
 \item{model}{ design matrix}
 \item{filenames}{ minc file names input}
@@ -31,7 +31,7 @@ Performs ANOVA on each vertex point specified
 }
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
 gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
 gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)

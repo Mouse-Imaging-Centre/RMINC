@@ -25,7 +25,7 @@
 in the \code{bic_obj} or the path to a text file with one line per vertex with
 colour information.}
 
-\item{colour_range}{a two element numeric vector indicating the min and max values of 
+\item{colour_range}{a two element numeric vector indicating the min and max values of
 allowable labels/measures/statistics to be includedon the surface}
 
 \item{colour_default}{The colour given to vertices excluded by colour_range}
@@ -51,6 +51,6 @@ to colour, specular, and add_normals}
 invisibly returns the mesh object
 }
 \description{
-Create a basic plot of a BIC obj in the current rgl device, opening a 
+Create a basic plot of a BIC obj in the current rgl device, opening a
 new one if necessary. If colour_map is supplied, an overlay is added to the mesh
 }

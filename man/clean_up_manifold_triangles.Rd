@@ -10,10 +10,10 @@ clean_up_manifold_triangles(manifold, k = 1)
 \item{manifold}{A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
 like \code{bic_obj} object produced by \link{read_obj}}
 
-\item{k}{degrees-of-seperation for defining neighbours. Default is 1 (i.e. adjacent vertices)}
+\item{k}{degrees-of-separation for defining neighbours. Default is 1 (i.e. adjacent vertices)}
 }
 \value{
-A list of length 2 with names 'vertex_matrix' and 'triangle_matrix' 
+A list of length 2 with names 'vertex_matrix' and 'triangle_matrix'
 similar to 'manifold' argument. Problematic triangles (if they exist) are removed from the mesh.
 }
 \description{

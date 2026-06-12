@@ -28,7 +28,7 @@ vertexAtlasApply(
 \item{mask}{A vector of filename indicating a vertex mask (\code{fun} is applied to all vertices
 where mask is greater than .5)}
 
-\item{parallel}{A two component vector indicating how to parallelize the computation. If the 
+\item{parallel}{A two component vector indicating how to parallelize the computation. If the
 first element is "local" the computation will be run via the parallel package, otherwise it will
 be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
 indicating the number of jobs to split the computation into.}

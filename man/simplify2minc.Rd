@@ -15,7 +15,7 @@ or code{mincList} depending on the dimensions of elements of the input
 list, see \link{simplify_masked} for details.
 }
 \description{
-Helper function to collate the results of a \link{mincApplyRCPP} family 
+Helper function to collate the results of a \link{mincApplyRCPP} family
 (\link{pMincApply}, \link{mcMincApply}, and \link{qMincApply}) function.
 Internally it calls \link{simplify_masked} and then coerces the result
 to the appropriate volumetric class (e.g \code{mincMultiDim})

@@ -19,8 +19,16 @@ anatEffectSize(buffer, predictors = NULL)
 be computed for all treatment-coded factor columns.}
 }
 \value{
-A matrix with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each factor predictor in the GLM
-or for each column supplied.
+An object with columns of hedgesg-<factorlevel> and hedgesg_var-<factorlevel> for each
+factor predictor in the GLM. The class and attributes of the input are preserved:
+\itemize{
+  \item \code{mincEffectSize}/\code{mincMultiDim} for voxel-wise inputs
+  \item \code{vertexEffectSize}/\code{vertexMultiDim} for vertex-wise inputs
+  \item \code{anatEffectSize}/\code{anatModel} for anatomy-wise inputs
+}
+Attributes \code{likeVolume}, \code{filenames}, \code{model}, \code{data}, \code{call},
+\code{df}, \code{atlas}, \code{definitions}, and \code{stat-type} are carried over from
+the input.
 }
 \description{
 Takes the output of a minc modelling function and computes the unbiased
@@ -36,11 +44,11 @@ treatment coded factor to use as a predictor.
 }
 \section{Functions}{
 \itemize{
-\item \code{mincEffectSize}: mincEffectSize
+\item \code{mincEffectSize()}: mincEffectSize
 
-\item \code{anatEffectSize}: anatEffectSize
+\item \code{anatEffectSize()}: anatEffectSize
+
 }}
-
 \examples{
 \dontrun{
 getRMINCTestData()

@@ -6,13 +6,13 @@ local_cpp_flags <-
 local_lib_flags <-
   "-L/projects/mice/share/arch/linux-3_2_0-36-generic-x86_64-eglibc-2_15/lib  -L/axiom2/projects/software/arch/linux-precise/lib -Wl,-rpath,/axiom2/projects/software/arch/linux-precise/lib ${LAPACK_LIBS} ${BLAS_LIBS} -lminc2  -lm -lrt -lz  -lhdf5 -lhdf5_hl ${FLIBS}"
 
-hpf_cpp_flags <- 
+hpf_cpp_flags <-
   "-I/hpf/largeprojects/MICe/tools/minc-toolkit/1.9.11/include"
 
 hpf_lib_flags <-
   "-L/hpf/largeprojects/MICe/tools/minc-toolkit/1.9.11/lib -Wl,-rpath,/hpf/largeprojects/MICe/tools/minc-toolkit/1.9.11/lib ${LAPACK_LIBS} ${BLAS_LIBS} -lminc2   ${FLIBS}"
 
-src<-'
+src <- '
 mihandle_t hvol;
 misize_t start[3] = {0,0,0};
 misize_t count[3] = {9,9,9};
@@ -34,19 +34,21 @@ miclose_volume(hvol);
 '
 
 big_read <-
-  cfunction(sig = c(x = "numeric")
-            , body = src
-            , cppargs = hpf_cpp_flags
-            , libargs = hpf_lib_flags
-            , includes = '#include <minc2.h>'
-            , convention = ".C"
-            , language = "C")
+  cfunction(
+    sig = c(x = "numeric"),
+    body = src,
+    cppargs = hpf_cpp_flags,
+    libargs = hpf_lib_flags,
+    includes = '#include <minc2.h>',
+    convention = ".C",
+    language = "C"
+  )
 
 x_test <- numeric(1000)
 
 big_read(x_test)
 
-src2 <-'
+src2 <- '
 mihandle_t hvol;
 misize_t start[3];
 misize_t count[3] = {0,0,1};
@@ -75,17 +77,20 @@ miclose_volume(hvol);
 v_test <- numeric(1000)
 
 small_reads <-
-  cfunction(sig = c(v = "numeric"),
-            , body = src2
-            , cppargs = hpf_cpp_flags
-            , libargs = hpf_lib_flags
-            , includes = '#include "minc2.h"'
-            , convention = ".C"
-            , language = "C")
+  cfunction(
+    sig = c(v = "numeric"),
+    ,
+    body = src2,
+    cppargs = hpf_cpp_flags,
+    libargs = hpf_lib_flags,
+    includes = '#include "minc2.h"',
+    convention = ".C",
+    language = "C"
+  )
 
 small_reads(v_test)
 
 microbenchmark::microbenchmark(
-  small_reads(v_test)
-  , big_read(x_test)
+  small_reads(v_test),
+  big_read(x_test)
 )

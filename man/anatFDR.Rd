@@ -29,8 +29,8 @@ Anatomy False Discovery Rates
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{anatModel}: anatModel
+\item \code{anatFDR(anatModel)}: anatModel
 
-\item \code{anatLmer}: anatLmerModel
+\item \code{anatFDR(anatLmer)}: anatLmerModel
+
 }}
-

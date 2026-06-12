@@ -23,7 +23,7 @@ devtools::install_github("Mouse-Imaging-Centre/RMINC@develop"
                        , upgrade_dependencies = FALSE)
 ```
 
-see the [INSTALL](https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/INSTALL) file
+see the [INSTALL](https://github.com/Mouse-Imaging-Centre/RMINC/blob/develop/INSTALL) file
 for more details. Particularly you will need the c library libminc, available through
 the minc-toolkit. 
 
@@ -34,16 +34,16 @@ pretty responsive on our [issues page](https://github.com/Mouse-Imaging-Centre/R
 
 ## Tutorials
 
-- [Voxel-wise Statistics](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/VBMstats.pdf) (somewhat out of date).
-- [How RMINC Parallel Works](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html): 
-- [RMINC 2D Visualization](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/visualizationTutorial.html)
-- [Visualizing 3D Objects with RMINC](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_rgl.html)
-- [Analyzing Anatomy with Hierarchical Atlases](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html)
+- [Voxel-wise Statistics](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/VBMstats.pdf) (somewhat out of date).
+- [How RMINC Parallel Works](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/RMINC_Parallelism.html)
+- [RMINC 2D Visualization](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/visualizationTutorial.html)
+- [Visualizing 3D Objects with RMINC](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/RMINC_rgl.html)
+- [Analyzing Anatomy with Hierarchical Atlases](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/hierarchiesTutorial.html)
 
 ## Walk Throughs
 
 These are quite old, so buyer beware. The tutorials are much more up to date. I highly recommend
-[Analyzing Anatomy with Hierarchical Atlases](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/hierarchiesTutorial.html) instead of the ROI based analysis, and [How RMINC Parallel Works](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html)
+[Analyzing Anatomy with Hierarchical Atlases](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/hierarchiesTutorial.html) instead of the ROI based analysis, and [How RMINC Parallel Works](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/RMINC_Parallelism.html)
 instead of the parallel examples.
 
 ### ROI based anatomical analyses
@@ -174,9 +174,9 @@ anatFDR(anatLm(~ genotype, filenames, volumes_combined))
 
 ### Doing analyses in parallel
 
-These instructions are largely superseded by the [parallel tutorial](https://rawgit.com/Mouse-Imaging-Centre/RMINC/master/inst/documentation/RMINC_Parallelism.html).
+These instructions are largely superseded by the [parallel tutorial](https://raw.githubusercontent.com/Mouse-Imaging-Centre/RMINC/develop/inst/documentation/RMINC_Parallelism.html).
 
-pMincApply, just as mincApply, can be used to run any function on all voxels in your input files. The difference with mincApply, is that pMincApply can be parallelized (hence the p). You can use snowfall to run it locally using multiple cores on your machine, or sge to submit jobs to a batch system. Here is a short example of how to use pMincApply to run a function on your input files that is not implemented by any of the standard MINC functions.
+pMincApply, just as mincApply, can be used to run any function on all voxels in your input files. The difference with mincApply, is that pMincApply can be parallelized (hence the p). You can use batchtools to run it locally using multiple cores on your machine, or submit jobs to a batch system. Here is a short example of how to use pMincApply to run a function on your input files that is not implemented by any of the standard MINC functions.
 
 ```{r, eval = FALSE}
 # load the RMINC library

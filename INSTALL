@@ -23,8 +23,8 @@ you need a few dependencies. You need a version of CMake greater than 2.6,
 you will need git installed to fetch the code, and you will need the 
 development headers for HDF5, the file format underlying MINC. 
 The HDF5 header can be acquired on Debian/Ubuntu type linux systems
-with `sudo apt-get install libhdf5-dev`, or with on Mac OSX with
-the brew package manager `brew install hdf5@1.10`.
+with `sudo apt-get install libhdf5-dev`, or on Mac OSX with
+the brew package manager `brew install hdf5`.
 
 If you find yourself in a position where you need to install these
 dependencies it is probably best to just install the toolkit as
@@ -59,7 +59,7 @@ you can use homebrew to install the Gnu Compiler Collection which
 comes with gfortran
 
 ```
-brew install gcc libssh2 libgit2 libomp zlib
+brew install gcc libssh2 libgit2 libomp zlib autoconf automake libtool
 ```
 
 Regardless of how you install gfortran you will need to tell
@@ -67,9 +67,10 @@ R where to find it. If you installed via brew you can run the
 following in terminal 
 
 ```
-mkdir $HOME/.R/ ## Ignore the error if this directory already exists
+mkdir -p $HOME/.R/
 touch $HOME/.R/Makevars
-echo 'FLIBS=-L/usr/local/Cellar/gcc/5.3.0/lib/gcc/5' >> $HOME/.R/Makevars
+# Find your gcc version with: ls $(brew --cellar gcc) or brew --prefix gcc
+echo "FLIBS=-L$(brew --cellar gcc)/$(ls $(brew --cellar gcc) | head -1)/lib/gcc/$(ls $(brew --cellar gcc) | head -1)" >> $HOME/.R/Makevars
 ```
 
 This will change with the version of gcc you have installed. If
@@ -77,7 +78,7 @@ you installed gfortran directly you will need to find the correct
 library path. My best guess is
 
 ```
-echo 'FLIBS=-L/usr/local/gfortran/lib" >> $HOME/.R/Makevars'
+echo 'FLIBS=-L/usr/local/gfortran/lib' >> $HOME/.R/Makevars
 ```
 
 Additionally, recent mac versions have struggled to link libz in

@@ -1,5 +1,6 @@
-AC_INIT([RMINC], 1.5.0)
-AC_PREREQ([2.68])
+AC_INIT([RMINC],[1.5.0])
+AC_PREREQ([2.71])
+AC_CONFIG_AUX_DIR([tools])
 AC_CONFIG_SRCDIR([src/slice_loop_functions.c])
 AC_PROG_CC
 AC_PROG_CXX
@@ -62,4 +63,5 @@ AC_SUBST(CPPFLAGS)
 AC_SUBST(LIBS)
 AC_SUBST(LDFLAGS)
 dnl and do subsitution in the src/Makevars.in
-AC_OUTPUT(src/Makevars)
+AC_CONFIG_FILES([src/Makevars])
+AC_OUTPUT

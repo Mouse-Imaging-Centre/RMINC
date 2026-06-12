@@ -30,8 +30,8 @@ Takes the output of a minc modelling function and computes False Discovery Rate 
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{vertexMultiDim}: vertexMultiDim
+\item \code{vertexFDR(vertexMultiDim)}: vertexMultiDim
 
-\item \code{vertexLmer}: vertexLmer
+\item \code{vertexFDR(vertexLmer)}: vertexLmer
+
 }}
-

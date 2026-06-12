@@ -68,7 +68,7 @@ This function uses the \code{qvalue} package to compute the
  used as specified by the method argument. "FDR" uses the
  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
  postivie False Discovery Rate as found in John Storey's \code{qvalue}
- package. The main interface functions are 
+ package. The main interface functions are
  \itemize{
  \item{mincFDR.mincMultiDim}{ The workhorse function, used to compute q-values
  and thresholds for sets of minc volumes}
@@ -83,18 +83,18 @@ This function uses the \code{qvalue} package to compute the
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{mincSingleDim}: mincSingleDim
+\item \code{mincFDR(mincSingleDim)}: mincSingleDim
 
-\item \code{mincLogLikRatio}: mincLogLikRatio
+\item \code{mincFDR(mincLogLikRatio)}: mincLogLikRatio
 
-\item \code{mincLmer}: mincLmer
+\item \code{mincFDR(mincLmer)}: mincLmer
 
-\item \code{mincMultiDim}: mincMultiDim
+\item \code{mincFDR(mincMultiDim)}: mincMultiDim
+
 }}
-
 \examples{
 \dontrun{
-getRMINCTestData() 
+getRMINCTestData()
 # read the text file describing the dataset
 gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
 # run a linear model relating the data in all voxels to Genotype

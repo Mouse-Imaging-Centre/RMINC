@@ -39,11 +39,11 @@ dividing each of them by the xfm-derived rescaling factor.
 }
 \section{Functions}{
 \itemize{
-\item \code{civet.computeStxTissueVolumes}: standard space
+\item \code{civet.computeStxTissueVolumes()}: standard space
 
-\item \code{civet.computeNativeTissueVolumes}: native space
+\item \code{civet.computeNativeTissueVolumes()}: native space
+
 }}
-
 \examples{
 
 \dontrun{

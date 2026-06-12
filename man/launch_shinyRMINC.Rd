@@ -51,7 +51,7 @@ the stats model at that voxel.
 \dontrun{
 vs <- mincLm(reljacobians02 ~ sex*treatment, subset(gfs, treatment != "None"))
 anatVol <- mincArray(mincGetVolume("anatomyfile.mnc"))
-launch_shinyRMINC(vs, anatVol, volumes=gfs$vols, 
+launch_shinyRMINC(vs, anatVol, volumes=gfs$vols,
                   plotcolumns=gfs[,c("sex", "Neonatal")], keepBetas=F)
 }
 }

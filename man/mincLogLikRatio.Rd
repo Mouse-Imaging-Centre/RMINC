@@ -22,9 +22,9 @@ to use these log likelihood tests, make sure to specify REML=FALSE in mincLmer.
 \examples{
 \dontrun{
 m1 <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc", REML=F)
-m2 <- mincLmer(filenames ~ age + I(age^2) + sex + (age|id), 
+m2 <- mincLmer(filenames ~ age + I(age^2) + sex + (age|id),
                data=gf, mask="mask.mnc", REML=F)
-m3 <- mincLmer(filenames ~ age + I(age^2) + I(age^3) + sex + (age|id), 
+m3 <- mincLmer(filenames ~ age + I(age^2) + I(age^3) + sex + (age|id),
                data=gf, mask="mask.mnc", REML=F)
 llr <- mincLogLikRatio(m1, m2, m3)
 mincFDR(llr)

@@ -33,7 +33,7 @@ pMincApply(
 
 \item{fun}{The function to apply}
 
-\item{...}{Additional arguments to fun through \link{mincApplyRCPP} see 
+\item{...}{Additional arguments to fun through \link{mincApplyRCPP} see
 notes for a warnings}
 
 \item{mask}{The path to a mask for the minc files}
@@ -43,7 +43,7 @@ notes for a warnings}
 \item{batches}{The number of jobs to break the computation into, ignored for
 snowfall/local mode}
 
-\item{slab_sizes}{A 3 element vector indicating how large a chunk of data to read from each minc file 
+\item{slab_sizes}{A 3 element vector indicating how large a chunk of data to read from each minc file
 at a time defaults to one slice along the first dimension.}
 
 \item{method}{A deprecated argument formerly used to configure how to parallelize the jobs
@@ -64,7 +64,7 @@ more examples}
 \item{packages}{Character vector of packages to load for all jobs}
 
 \item{vmem}{The number of gigabytes of memory to request for each batched
-job. It is a compatibility argument and will overload \code{vmem} 
+job. It is a compatibility argument and will overload \code{vmem}
 set in the resource list (if it is defined)}
 
 \item{walltime}{The amount of walltime to request for each batched job.
