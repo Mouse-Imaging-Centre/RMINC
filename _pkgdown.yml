@@ -1,0 +1,188 @@
+url: https://mouse-imaging-centre.github.io/RMINC/
+destination: docs
+
+development:
+  mode: auto
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: "Voxel-wise statistics"
+    desc: "Massively-univariate models fit independently at every voxel."
+    contents:
+      - mincLm
+      - mincAnova
+      - mincTtest
+      - mincPairedTtest
+      - mincWilcoxon
+      - mincCorrelation
+      - mincLogLikRatio
+      - mincLogLikRatioParametricBootstrap
+
+  - title: "Voxel summaries & effect sizes"
+    contents:
+      - mincMean
+      - mincSd
+      - mincSum
+      - mincVar
+      - mincSummary
+      - mincTable
+      - mincEffectSize
+
+  - title: "Voxel mixed-effects models"
+    contents:
+      - mincLmer
+      - mincLmerEstimateDF
+
+  - title: "Multiple comparisons (voxel)"
+    contents:
+      - mincFDR
+      - mincFDRMask
+      - mincTFCE
+      - mincRandomize
+      - thresholds
+
+  - title: "Surface / vertex statistics"
+    desc: "Vertex-wise models for cortical surface data."
+    contents:
+      - vertexLm
+      - vertexLmer
+      - vertexLmerEstimateDF
+      - vertexAnova
+      - vertexApply
+      - vertexAtlasApply
+      - vertexEffectSize
+      - vertexFDR
+      - vertexFindPeaks
+      - vertexLookup
+      - vertexSelect
+      - vertexMean
+      - vertexSd
+      - vertexSum
+      - vertexVar
+      - vertexTFCE
+      - vertexTable
+      - writeVertex
+
+  - title: "ROI / anatomy analysis (flat)"
+    contents:
+      - anatLm
+      - anatLmer
+      - anatLmerEstimateDF
+      - anatAnova
+      - anatApply
+      - anatCombineStructures
+      - anatCreateVolume
+      - anatEffectSize
+      - anatFDR
+      - anatGetAll
+      - anatGetAll_old
+      - anatMean
+      - anatSd
+      - anatSum
+      - anatSummarize
+      - anatToVolume
+      - anatVar
+
+  - title: "Hierarchical anatomy atlases"
+    contents:
+      - starts_with("hanat")
+      - addVolumesToHierarchy
+      - makeMICeDefsHierachical
+
+  - title: "Model selection"
+    contents:
+      - compare_models
+      - AICc
+      - flexLm
+
+  - title: "Parallel & HPC execution"
+    desc: "batchtools-based local and cluster parallelism."
+    contents:
+      - mincApply
+      - mincApplyRCPP
+      - pMincApply
+      - mcMincApply
+      - starts_with("qMinc")
+      - runRMINCTestbed
+      - verboseRun
+
+  - title: "I/O & low-level access"
+    contents:
+      - mincGetVolume
+      - mincWriteVolume
+      - mincArray
+      - mincGetVoxel
+      - mincGetWorldVoxel
+      - mincVectorToVoxelCoordinates
+      - mincConvertTagToMincArrayCoordinates
+      - mincConvertVoxelToWorld
+      - mincConvertWorldToVoxel
+      - mincConvertVoxelMatrix
+      - mincConvertWorldMatrix
+      - minc.dimensions.sizes
+      - minc.separation.sizes
+      - minc.get.hyperslab
+      - minc.get.history
+      - minc.append.history
+      - mincAttributes
+      - setMincAttributes
+      - mincGetTagFile
+      - mincSelectRandomVoxels
+      - mincFindPeaks
+      - mincLabelPeaks
+
+  - title: "MINC object helpers"
+    contents:
+      - as.minc
+      - is.minc
+      - likeVolume
+      - likeVolume<-
+      - maskFile
+      - maskFile<-
+      - simplify2minc
+      - simplify_masked
+      - setRMINCMaskedValue
+
+  - title: "Visualization"
+    contents:
+      - mincPlotSliceSeries
+      - mincTriplanarSlicePlot
+      - mincPlotAnatAndStatsSlice
+      - mincPlotPeak
+      - mincImage
+      - mincContour
+      - mincRayTraceStats
+      - minc.ray.trace
+      - add_colour_bar
+      - add_opacity
+      - colour_mesh
+      - map_to_colours
+      - lut_to_palette
+      - obj_montage
+      - obj_to_graph
+      - launch_shinyRMINC
+
+  - title: "Meshes & manifold smoothing"
+    contents:
+      - create_mesh
+      - read_obj
+      - read_line_obj
+      - closestVertex
+      - connected_components
+      - components_to_map
+      - clean_up_manifold_triangles
+      - line_obj_to_voxel
+      - laplace_beltrami_operator
+      - laplace_beltrami_smoothing
+      - check_step_sizes
+
+  - title: "CIVET"
+    contents:
+      - starts_with("civet")
+
+  - title: "Test data & helpers"
+    contents:
+      - getRMINCTestData
+      - pt2
