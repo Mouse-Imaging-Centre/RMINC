@@ -1,0 +1,100 @@
+# Linear model at Every Voxel
+
+Linear Model at Every Voxel
+
+## Usage
+
+``` r
+mincLm(
+  formula,
+  data = NULL,
+  subset = NULL,
+  mask = NULL,
+  maskval = NULL,
+  parallel = NULL,
+  cleanup = TRUE,
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
+```
+
+## Arguments
+
+- formula:
+
+  The linear model formula. The left-hand term consists of the MINC
+  filenames over which to compute the models at every voxel.The RHS of
+  the formula may contain one term with filenames. If so only the +
+  operator may be used, and only two terms may appear on the RHS
+
+- data:
+
+  The data frame which contains the model terms.
+
+- subset:
+
+  Subset definition.
+
+- mask:
+
+  Either a filename or a vector of values of the same length as the
+  input files. The linear model will only be computed inside the mask.
+
+- maskval:
+
+  the value in the mask used to select unmasked voxels, defaults to any
+  positive intensity from 1-99999999 internally expanded to .5 -
+  99999999.5. If a number is specified voxels with intensities within
+  0.5 of the chosen value are considered selected.
+
+- parallel:
+
+  how many processors to run on (default=single processor). Specified as
+  a two element vector, with the first element corresponding to the type
+  of parallelization, and the second to the number of processors to use.
+  For local running set the first element to "local" or "snowfall" for
+  back-compatibility, anything else will be run with batchtools see
+  [pMincApply](https://mouse-imaging-centre.github.io/RMINC/reference/pMincApply.md)
+  Leaving this argument NULL runs sequentially.
+
+- cleanup:
+
+  Whether or not to remove parallelization files
+
+- conf_file:
+
+  A batchtools configuration file defaulting to
+  `getOption("RMINC_BATCH_CONF")`
+
+## Value
+
+mincLm returns a mincMultiDim object which contains a series of columns
+corresponding to the terms in the linear model. The first column is the
+F-statistic of the significance of the entire volume, the following
+columns contain the R-Squared term, the marginal t-statistics for each
+of the terms in the model along with their respective coefficients.
+
+## Details
+
+This function computes a linear model at every voxel of a set of files.
+The function is a close cousin to lm, the key difference being that the
+left-hand side of the formula specification takes a series of filenames
+for MINC files.\
+If you encounter memory issues, it could be due to minc file caching.
+Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+a small value like 1.
+
+## See also
+
+mincWriteVolume,mincFDR,mincMean, mincSd
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+getRMINCTestData()
+# read the text file describing the dataset
+gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+# Compute a linear model at each voxel
+vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
+} # }
+```

@@ -2,7 +2,7 @@ url: https://mouse-imaging-centre.github.io/RMINC/
 destination: docs
 
 development:
-  mode: auto
+  mode: release
 
 template:
   bootstrap: 5
