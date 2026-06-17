@@ -1,0 +1,211 @@
+# True cluster mincApply
+
+Split a minc apply job into batches and process it either locally or a
+true grid computing setup. Endeavours to provide an abstract and
+customizable interface for job scheduling based on the batchtools
+package. Basic steps of the apply is to
+
+- create a registry with qMincRegistry where jobs are coordinated and
+  results are deposited
+
+- map a function over batches of voxels in a collection of minc volumes
+  with qMincMap, generating submission scripts for the queue scheduler
+  and submitting the jobs
+
+- Collect the results from each batch with `qMincReduce`, reorganizing
+  the voxel results as necessary to reproduce the original order, and
+  then collating the results into a usable object
+
+Interfaces are provided to perform all three steps at once, either
+through qMincApply or the more general
+[pMincApply](https://mouse-imaging-centre.github.io/RMINC/dev/reference/pMincApply.md).
+By default qMincApply will wait for the cluster to finish processing all
+jobs although the jobs can be submitted and the R session closed while
+still maintaining the ability to access results when the jobs have
+finished.
+
+## Usage
+
+``` r
+qMincApply(
+  filenames,
+  fun,
+  ...,
+  mask = NULL,
+  batches = 4,
+  tinyMask = FALSE,
+  slab_sizes = NULL,
+  resources = list(),
+  packages = c("RMINC"),
+  registry_dir = getwd(),
+  registry_name = "qMincApply_registry",
+  temp_dir = getwd(),
+  cores = 1,
+  wait = TRUE,
+  cleanup = TRUE,
+  clobber = FALSE,
+  collate = simplify2minc,
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
+
+qMincRegistry(
+  registry_name = "qMincApply_registry",
+  packages = c("RMINC"),
+  registry_dir = getwd(),
+  clobber = FALSE,
+  resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
+
+qMincMap(
+  registry,
+  filenames,
+  fun,
+  ...,
+  mask = NULL,
+  slab_sizes = NULL,
+  batches = 4,
+  tinyMask = FALSE,
+  temp_dir = getwd(),
+  cores = 1
+)
+
+qMincReduce(
+  registry,
+  ignore_incompletes = FALSE,
+  wait = FALSE,
+  collate = simplify2minc
+)
+```
+
+## Arguments
+
+- filenames:
+
+  Paths to the minc files to apply accross
+
+- fun:
+
+  An arbitrary R function to be applied
+
+- ...:
+
+  extra arguments to pass down through `qMincMap` to `mcMincApply` to
+  `mincApplyRCPP` and finally to `fun`, there is a chance arguments here
+  will be trapped by one of the functions on this chain, when in doubt
+  partially apply `fun` to its arguments before hand and do not use
+  positional arguments, they are almost certainly not going to work as
+  expected.
+
+- mask:
+
+  The mask used to select voxels to apply to
+
+- batches:
+
+  The number of batches to divide the job into, this is ignored for
+  multicore jobs, with the number of batches set to the number of cores.
+
+- tinyMask:
+
+  Shrink the mask for testing
+
+- slab_sizes:
+
+  A 3 element vector indicating large a chunk of data to read from each
+  minc file at a time defaults to one slice along the first dimension.
+
+- resources:
+
+  A list of resources to request from the queueing system common
+  examples including memory, walltime, and nodes see
+  `system.file("parallel/pbs_script.tmpl", package = "RMINC")` and
+  `system.file("parallel/sge_script.tmpl", package = "RMINC")` for more
+  examples
+
+- packages:
+
+  packages to be loaded for each job in a registry
+
+- registry_dir:
+
+  where batchtools should create the registry
+
+- registry_name:
+
+  a name for the registry
+
+- temp_dir:
+
+  A directory to store files needed for the parallelization and job
+  management
+
+- cores:
+
+  the number of cores to parallelize across for each worker, defaults to
+  1 but higher numbers may be useful for batchtools multicore or systems
+  like SciNet that do not allocate single core jobs.
+
+- wait:
+
+  Whether to wait for your results or return a registry object to be
+  checked on later
+
+- cleanup:
+
+  Whether to empty the registry after a successful run defaults to true
+
+- clobber:
+
+  Whether to overwrite an existing registry at `registry_dir`
+
+- collate:
+
+  A function to collate the returned list into another object type.
+
+- conf_file:
+
+  A batchtools config file, defaults to `option("RMINC_BATCH_CONF")`
+
+- registry:
+
+  a pre-existing job registry
+
+- ignore_incompletes:
+
+  Whether to reduce the results with `qMincReduce` even if all jobs are
+  not complete.
+
+## Value
+
+- If `qMincApply` is called with `wait = TRUE` or if `qMincReduce` is
+  called, the results are returned after collation with `collate`
+
+- If `qMincApply` is called with `wait = FALSE` or if `qMincRegistry` or
+  `qMincMap` are called a batchtools registry is returned that can be
+  used to query job states, kill jobs, and collected results
+
+## Details
+
+RMINC's batching facilities are inherited with little modification from
+the batchtools package, mostly just providing handy wrappers to handle
+registry creation, batching, submission, and reduction. The abstractions
+provided are very leaky and it is worth learning about batchtools to
+handle more complex situations. Formerly one could set the
+parallelization method from this function, this has been removed.
+Controlling how and where to execute the parallel jobs is now handled by
+the conf_file argument.
+
+## Functions
+
+- `qMincRegistry()`: registry
+
+- `qMincMap()`: map
+
+- `qMincReduce()`: reduce
+
+## See also
+
+<https://www.jstatsoft.org/article/view/v064i11>
+[pMincApply](https://mouse-imaging-centre.github.io/RMINC/dev/reference/pMincApply.md)
+[mcMincApply](https://mouse-imaging-centre.github.io/RMINC/dev/reference/mcMincApply.md)

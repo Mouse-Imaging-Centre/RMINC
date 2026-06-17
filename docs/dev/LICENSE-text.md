@@ -1,0 +1,5 @@
+# License
+
+    YEAR: 2003
+    COPYRIGHT HOLDER: Jason Lerch
+    ORGANIZATION: The Hospital for Sick Children

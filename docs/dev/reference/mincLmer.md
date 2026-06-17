@@ -1,0 +1,181 @@
+# mincified version of lmer from lme4
+
+mincLmer should be used the same way as a straight lmer call, except
+that the left hand side of the equation contains minc filenames rather
+than an actual response variable.
+
+## Usage
+
+``` r
+mincLmer(
+  formula,
+  data,
+  mask,
+  parallel = NULL,
+  REML = TRUE,
+  control = lmerControl(),
+  start = NULL,
+  verbose = 0L,
+  temp_dir = getwd(),
+  safely = FALSE,
+  cleanup = TRUE,
+  summary_type = "fixef",
+  weights = NULL,
+  resources = list(),
+  conf_file = getOption("RMINC_BATCH_CONF")
+)
+```
+
+## Arguments
+
+- formula:
+
+  the lmer formula, filenames go on left hand side
+
+- data:
+
+  the data frame, all items in formula should be in here
+
+- mask:
+
+  the mask within which lmer is solved
+
+- parallel:
+
+  how many processors to run on (default=single processor). Specified as
+  a two element vector, with the first element corresponding to the type
+  of parallelization, and the second to the number of processors to use.
+  For local running set the first element to "local" or "snowfall" for
+  back-compatibility, anything else will be run with batchtools see
+  [pMincApply](https://mouse-imaging-centre.github.io/RMINC/dev/reference/pMincApply.md).
+  Leaving this argument NULL runs sequentially and may take a long time.
+
+- REML:
+
+  whether to use use Restricted Maximum Likelihood or Maximum Likelihood
+
+- control:
+
+  lmer control function
+
+- start:
+
+  lmer start function
+
+- verbose:
+
+  lmer verbosity control
+
+- temp_dir:
+
+  A directory to create temporary mask and registry files if
+  `parallel = c("sge", n)`. This should not be
+  [`tempdir()`](https://rdrr.io/r/base/tempfile.html) so that workers
+  can see these files. Defaults to the current working directory.
+
+- safely:
+
+  whether or not to wrap the per-voxel lmer code in an exception
+  catching block (`tryCatch`), when TRUE this will downgrade errors to
+  warnings and return NA for the result.
+
+- cleanup:
+
+  Whether or not to cleanup registry files after a queue parallelized
+  run
+
+- summary_type:
+
+  Either one of
+
+  - fixef: default and equivalent to older versions of RMINC, returns
+    fixed effect coefficients and t-values
+
+  - ranef: returns random effect coefficients and t-values
+
+  - both: both fixed and random effects
+
+  - anova: return the F-statistic for each fixed effect
+
+  or a function to be used to generate the summary
+
+- weights:
+
+  weights to be applied to each observation
+
+- resources:
+
+  A list of resources to use for the jobs, for example
+  ` list(nodes = 1, memory = "8G", walltime = "01:00:00") `. See
+  `system.file("parallel/pbs_script.tmpl", package = "RMINC")` and
+  `system.file("parallel/sge_script.tmpl", package = "RMINC")` for more
+  examples
+
+- conf_file:
+
+  A batchtools configuration file
+
+## Value
+
+a matrix where rows correspond to number of voxels in the file and
+columns to the number of terms in the formula, with both the beta
+coefficient and the t-statistic being returned. In addition, an extra
+column keeps the log likelihood, and another whether the mixed effects
+fitting converged or not.
+
+## Details
+
+mincLmer provides an interface to running linear mixed effects models at
+every voxel. Unlike standard mincLm, however, testing hypotheses in
+linear mixed effects models is more difficult, since the denominator
+degrees of freedom are more difficult to determine. RMINC provides two
+alternatives: (1) estimating degrees of freedom using the
+[`mincLmerEstimateDF`](https://mouse-imaging-centre.github.io/RMINC/dev/reference/mincLmerEstimateDF.md)
+function, and (2) comparing two separate models using
+[`mincLogLikRatio`](https://mouse-imaging-centre.github.io/RMINC/dev/reference/mincLogLikRatio.md)
+(which in turn can be corrected using
+[`mincLogLikRatioParametricBootstrap`](https://mouse-imaging-centre.github.io/RMINC/dev/reference/mincLogLikRatioParametricBootstrap.md)).
+For the most likely models - longitudinal models with a separate
+intercept or separate intercept and slope per subject - both of these
+approximations are likely correct. Be careful in using these
+approximations if using more complicated random effects structures.  
+If you encounter memory issues, it could be due to minc file caching.
+Consider trying with the environment variable MINC_FILE_CACHE_MB set to
+a small value like 1.
+
+## See also
+
+`lmer` for description of lmer and lmer formulas;
+[`mincLm`](https://mouse-imaging-centre.github.io/RMINC/dev/reference/mincLm.md)
+
+## Examples
+
+``` r
+if (FALSE) { # \dontrun{
+vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
+mincWriteVolume(vs, "age-term.mnc", "tvalue-age")
+# run in parallel with multiple processors on the local machine
+vs <- mincLmer(filenames ~ age + sex + (age|id),
+               data=gf,
+               mask="mask.mnc",
+               parallel=c("snowfall", 4))
+# run in parallel with multiple processors over the sge batch queueing system
+vs <- mincLmer(filenames ~ age + sex + (age|id),
+               data=gf,
+               mask="mask.mnc",
+               parallel=c("sge", 4))
+# estimate degrees of freedom
+vs <- mincLmerEstimateDF(vs)
+# correct for multiple comparisons using the False Discovery Rate
+(qvals <- mincFDR(vs))
+# generate another model with a more complex curve for the age term
+library(splines)
+vs2 <- mincLmer(filenames ~ ns(age,2) + sex + (age|id), data=gf, mask="mask.mnc")
+# see if that more complex age term was worth it
+modelCompare <- mincLogLikRatio(vs, vs2)
+mincFDR(modelCompare)
+# see if there was any bias in those p-value estimates (takes a few minutes)
+modelCompare <- mincLogLikRatioParametricBootstrap(modelCompare)
+mincFDR(modelCompare)
+} # }
+```
