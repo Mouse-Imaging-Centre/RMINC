@@ -1,0 +1,76 @@
+# Select Vertices From a Surface
+
+Interactively select one or more vertices from an `rgl` surface.
+
+## Usage
+
+``` r
+vertexSelect(
+  object = first(rgl::rgl.ids()$id),
+  tolerance = 0.01,
+  multiples = FALSE,
+  indicate = TRUE
+)
+```
+
+## Arguments
+
+- object:
+
+  An rgl id for the object from which to choose vertices. Defaults to
+  the first id. To check the ids available for selection call rgl.ids()
+  unfortunately there is no elegant way at the present for determining
+  which object is which.
+
+- tolerance:
+
+  The tolerance, in fractions of the visible window, for finding points.
+  See details for more.
+
+- multiples:
+
+  Whether to stop after the first selection, or to allow multiples
+  (explicitly stopped by pressing escape).
+
+- indicate:
+
+  Whether to draw indicator points to highlight the clicked points.
+  Useful for ensuring point click accuracy.
+
+## Details
+
+The vertex selection algorithm has two parts, selecting the vertices
+near the clicked point and determining which points are closest to the
+observer.\
+To determine the vertices near the click point
+
+- Determine the x-y coordinates of the click in window space
+
+- Convert those coordinates to a rectangle defined by (x - tolerance,
+  y - tolerance, x + tolerance, y + tolerance)
+
+- Convert the rectangle coordinates from window to user coordinates
+
+- Filter the vertices of the object within the rectangle
+
+To determine the vertex closest to observer
+
+- Determine the x-y click location
+
+- Append z=0 to the coordinates to create a 3d window coordinate, since
+  the rgl observe looks in the positive z direction, a window z
+  coordinate of zero puts the point as far from the surface as possible
+  while remaining in the window coordinates
+
+- Convert from window to user coordinates
+
+- Calculate the vertex from the set identified above that is closest to
+  those coordinates
+
+This algorithm is not perfect, and can yeild spurious coordinates for
+irregular topologies. For more accurate vertex selection, use a high
+magnification (controlled with the scroll wheel), the higher the
+magnification the more accurate the vertex selection becomes.
+Additionally, keep indicate = TRUE, this will place indicator points on
+the identified vertices, they will allow you to ensure your coordinates
+are accurate, and can always be removed with pop3d()

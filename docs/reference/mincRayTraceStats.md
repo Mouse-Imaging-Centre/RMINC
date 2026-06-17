@@ -1,0 +1,162 @@
+# Create an image of a statistical peak.
+
+Takes a voxel, an anatomical file, and a statistics file to create an
+image of the statistical peak.
+
+## Usage
+
+``` r
+mincRayTraceStats(
+  v,
+  anatomy.volume,
+  statsbuffer,
+  column = 1,
+  like.filename = NULL,
+  mask = NULL,
+  image.min = -1000,
+  image.max = 4000,
+  output.width = 800,
+  output.height = 800,
+  place.inset = FALSE,
+  inset = NULL,
+  stats.largest.pos = NULL,
+  stats.largest.neg = NULL,
+  caption = "t-statistic",
+  fdr = NULL,
+  slice.direction = "transverse",
+  outputfile = "ray_trace_crosshair.png",
+  show.pos.and.neg = FALSE,
+  display = TRUE,
+  clobber = NULL,
+  tmpdir = "/tmp"
+)
+```
+
+## Arguments
+
+- v:
+
+  A mincVoxel indicating the voxel of interest.
+
+- anatomy.volume:
+
+  The path to the file containing the anatomical data.
+
+- statsbuffer:
+
+  Either the path to the stats file, a mincSingleDim, or a mincMultiDim.
+
+- column:
+
+  If a mincMultiDim is specified, column will indicate which column of
+  the data to use.
+
+- like.filename:
+
+  If a column of a mincMultiDim is explicity passed through, a like file
+  is needed to determine the dimensions of the stats buffer.
+
+- mask:
+
+  If a mask is specified, the stats outside the mask will not be
+  displayed in output image.
+
+- image.min:
+
+  Specify the minimum image intensity.
+
+- image.max:
+
+  Specify the maximum image intensity.
+
+- output.width:
+
+  Specify the width of the output image.
+
+- output.height:
+
+  Specify the height of the output image.
+
+- place.inset:
+
+  Boolean indicating whether or not to place a 3D brain inset.
+
+- inset:
+
+  Path to the object file (.obj) containing the surface of the brain.
+
+- stats.largest.pos:
+
+  Specify the maximum stats value.
+
+- stats.largest.neg:
+
+  Specify the minimum stats value.
+
+- caption:
+
+  Specify the caption for the colourbar. If spaces occur in the caption
+  use sometime along the line caption="\\Captoin with spaces\\".
+
+- fdr:
+
+  Specify the statistical significance threshold.
+
+- slice.direction:
+
+  The slice direction of the output image. This can be transverse,
+  coronal or sagittal.
+
+- outputfile:
+
+  The name (and path) of the outputfile.
+
+- show.pos.and.neg:
+
+  In the case of t-statistics, when this flag is set to TRUE, the image
+  will contain both the positive as well as the negative t-statistics.
+
+- display:
+
+  Display the created image.
+
+- clobber:
+
+  Overwrite existing output file when set to TRUE, will not overwrite
+  when set to FALSE and will prompt when NULL.
+
+- tmpdir:
+
+  Specify a directory for temporary files.
+
+## Details
+
+This function will call the ray_trace program to create an image of a
+statistical peak. The anatomical slice of the brain will be overlayed
+with the statistical slice and a crosshair indicates the chosen peak.
+
+## See also
+
+mincLm, mincFDR, mincMean, mincSd
+
+## Examples
+
+``` r
+
+if (FALSE) { # \dontrun{
+# read the text file describing the dataset
+gf <- read.csv("control-file.csv")
+# run a linear model relating the data in all voxels to Genotype
+vs <- mincLm(filenames ~ Genotype, gf)
+# get the voxel at world coordinates (1,0.5,-0.5)
+v <- mincGetWorldVoxel(filenames, 1, 0.5, -0.5)
+# create an image of this coordinate, using the third column
+# of the mincLm output.
+mincRayTraceStats(v,"/some/path/anatomical.mnc", vs[,3], like.filename = "like-this-file.mnc")
+# in this particular case, a like file is stored with the vs object and
+# can be retrieved using:
+mincRayTraceStats(v,"/some/path/anatomical.mnc", vs[,3], like.filename = attr(vs, "likeVolume"))
+# or
+mincRayTraceStats(v,"/some/path/anatomical.mnc", vs, column = 3)
+} # }
+```
