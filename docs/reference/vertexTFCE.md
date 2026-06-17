@@ -161,7 +161,8 @@ Passing an adjacency list will save some compute time but is not
 recommended for general use. If an adjacency list is passed should index
 starting from 0 for compatibility with c++ code. Adjacency lists of this
 kind can be generated from graphs with
-`` lapply(as_adj_list(graph), `-`, 1) `` using the as_adj_list from the
+`` lapply(as_adj_list(graph), `-`, 1) `` using the
+[as_adj_list](https://r.igraph.org/reference/as_adj_list.html) from the
 igraph library.
 
 ## Methods (by class)

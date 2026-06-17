@@ -10,7 +10,7 @@ is a character vector pointing to atlas definitions.
 ## Details
 
 the basic format for voxel atlas definitions is a 3-column csv file. The
-file should be formatted like:\
+file should be formatted like:  
 
 |                                   |             |            |
 |-----------------------------------|-------------|------------|

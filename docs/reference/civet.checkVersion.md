@@ -33,7 +33,6 @@ Jim Nikelski <nikelski@bic.mni.mcgill.ca>
 ## Examples
 
 ``` r
-
 if (FALSE) { # \dontrun{
 civetVersion <- "1.1.8"
 civet.checkVersion(civetVersion)

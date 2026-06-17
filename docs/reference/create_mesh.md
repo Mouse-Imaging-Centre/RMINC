@@ -37,11 +37,15 @@ create_mesh(
 
 - ...:
 
-  extra parameters passed to the material argument list of tmesh3d can
-  include additional rgl.material parameters to give to your mesh
+  extra parameters passed to the material argument list of
+  [tmesh3d](https://dmurdoch.github.io/rgl/dev/reference/mesh3d.html)
+  can include additional
+  [rgl.material](https://dmurdoch.github.io/rgl/dev/reference/rgl-defunct.html)
+  parameters to give to your mesh
 
 ## Value
 
-a `obj_mesh` descended from mesh3d object to be plotted alone or
-subsequently colourized with
+a `obj_mesh` descended from
+[mesh3d](https://dmurdoch.github.io/rgl/dev/reference/mesh3d.html)
+object to be plotted alone or subsequently colourized with
 [colour_mesh](https://mouse-imaging-centre.github.io/RMINC/reference/colour_mesh.md)

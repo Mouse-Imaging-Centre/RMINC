@@ -18,7 +18,8 @@ runRMINCTestbed(
 
 - ...:
 
-  additional parameter for test_dir
+  additional parameter for
+  [test_dir](https://testthat.r-lib.org/reference/test_dir.html)
 
 - dataPath:
 

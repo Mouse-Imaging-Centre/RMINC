@@ -57,7 +57,6 @@ Jim Nikelski <nikelski@bic.mni.mcgill.ca>
 ## Examples
 
 ``` r
-
 if (FALSE) { # \dontrun{
 library(RMINC)
 

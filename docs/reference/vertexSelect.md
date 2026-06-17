@@ -18,7 +18,8 @@ vertexSelect(
 - object:
 
   An rgl id for the object from which to choose vertices. Defaults to
-  the first id. To check the ids available for selection call rgl.ids()
+  the first id. To check the ids available for selection call
+  [rgl.ids](https://dmurdoch.github.io/rgl/dev/reference/rgl-duplicated.html)()
   unfortunately there is no elegant way at the present for determining
   which object is which.
 
@@ -41,7 +42,7 @@ vertexSelect(
 
 The vertex selection algorithm has two parts, selecting the vertices
 near the clicked point and determining which points are closest to the
-observer.\
+observer.  
 To determine the vertices near the click point
 
 - Determine the x-y coordinates of the click in window space
@@ -73,4 +74,5 @@ magnification (controlled with the scroll wheel), the higher the
 magnification the more accurate the vertex selection becomes.
 Additionally, keep indicate = TRUE, this will place indicator points on
 the identified vertices, they will allow you to ensure your coordinates
-are accurate, and can always be removed with pop3d()
+are accurate, and can always be removed with
+[pop3d](https://dmurdoch.github.io/rgl/dev/reference/scene.html)()

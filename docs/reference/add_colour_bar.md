@@ -83,4 +83,6 @@ add_colour_bar(
 
 - ...:
 
-  extra parameters to pass to `plotrix::color.legend` and `text`
+  extra parameters to pass to
+  [`plotrix::color.legend`](https://plotrix.github.io/plotrix/reference/color.legend.html)
+  and `text`

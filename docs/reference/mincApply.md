@@ -66,7 +66,7 @@ the optimized equivalents. In other words and to give one example, use
 mincLm rather than applying lm, and if lm must be applied, try to use
 lm.fit rather than plain lm. Also consider using parallel apply methods.
 When using the pbs method, one can also set the options –\>
-TMPDIR,MAX_NODES and WORKDIR\
+TMPDIR,MAX_NODES and WORKDIR  
 If you encounter memory issues, it could be due to minc file caching.
 Consider trying with the environment variable MINC_FILE_CACHE_MB set to
 a small value like 1.

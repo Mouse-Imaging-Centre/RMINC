@@ -21,7 +21,8 @@ colour_mesh(
 
 - mesh:
 
-  mesh3d object ideally produced by
+  [mesh3d](https://dmurdoch.github.io/rgl/dev/reference/mesh3d.html)
+  object ideally produced by
   [create_mesh](https://mouse-imaging-centre.github.io/RMINC/reference/create_mesh.md)
 
 - colour_map:
@@ -55,6 +56,7 @@ colour_mesh(
 
 ## Value
 
-an `obj_mesh` object descended from mesh3d, with added colour
-information and an additional `legend` element to be used in building a
-colour bar
+an `obj_mesh` object descended from
+[mesh3d](https://dmurdoch.github.io/rgl/dev/reference/mesh3d.html), with
+added colour information and an additional `legend` element to be used
+in building a colour bar

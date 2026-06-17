@@ -69,7 +69,7 @@ mincApplyRCPP(
   defaulting to
   [simplify2minc](https://mouse-imaging-centre.github.io/RMINC/reference/simplify2minc.md)
   which creates an object of type `mincMultiDim`, `mincSingleDim`, or
-  `mincList` depending on the result structure.\
+  `mincList` depending on the result structure.  
   If you encounter memory issues, it could be due to minc file caching.
   Consider trying with the environment variable MINC_FILE_CACHE_MB set
   to a small value like 1.

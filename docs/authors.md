@@ -29,7 +29,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/Mouse-Imaging-Centre/RMINC/blob/HEAD/inst/CITATION)
+[`inst/CITATION`](https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/inst/CITATION)
 
 Lerch J, Hammill C, van Eede M, Cassel D (2026). *RMINC: Statistical
 Tools for Medical Imaging NetCDF (MINC) Files*. R package version

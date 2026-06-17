@@ -36,24 +36,23 @@ surface-based vertex statistics, and parallel execution.
 
 ## Features
 
-| Capability | Key functions |
-|----|----|
-| **Voxel-wise linear models** | `mincLm`, `mincAnova`, `mincTtest`, `mincWilcoxon` |
-| **Correlations & summaries** | `mincCorrelation`, `mincMean`, `mincSummary` |
-| **Mixed-effects models** | `mincLmer`, `mincLmerEstimateDF`, `mincLogLikRatio` |
-| **Surface / vertex statistics** | `vertexLm`, `vertexLmer`, `vertexTFCE` |
-| **ROI / anatomy analysis** | `anatLm`, `anatLmer`, `hanatLm` (hierarchical atlases) |
-| **Multiple comparisons** | `mincFDR`, `mincTFCE`, `mincRandomize` |
-| **I/O** | `mincGetVolume`, `mincWriteVolume`, `mincArray` |
-| **Visualization** | `mincPlotSliceSeries`, `mincTriplanarSlicePlot` (2D), `rgl` (3D), `hanatView` |
-| **Parallel execution** | `pMincApply`, `qMincApply`, `mincLm(parallel = ...)` |
+| Capability                      | Key functions                                                                 |
+|---------------------------------|-------------------------------------------------------------------------------|
+| **Voxel-wise linear models**    | `mincLm`, `mincAnova`, `mincTtest`, `mincWilcoxon`                            |
+| **Correlations & summaries**    | `mincCorrelation`, `mincMean`, `mincSummary`                                  |
+| **Mixed-effects models**        | `mincLmer`, `mincLmerEstimateDF`, `mincLogLikRatio`                           |
+| **Surface / vertex statistics** | `vertexLm`, `vertexLmer`, `vertexTFCE`                                        |
+| **ROI / anatomy analysis**      | `anatLm`, `anatLmer`, `hanatLm` (hierarchical atlases)                        |
+| **Multiple comparisons**        | `mincFDR`, `mincTFCE`, `mincRandomize`                                        |
+| **I/O**                         | `mincGetVolume`, `mincWriteVolume`, `mincArray`                               |
+| **Visualization**               | `mincPlotSliceSeries`, `mincTriplanarSlicePlot` (2D), `rgl` (3D), `hanatView` |
+| **Parallel execution**          | `pMincApply`, `qMincApply`, `mincLm(parallel = ...)`                          |
 
 ## Installation
 
 The easiest way to install is with devtools from the `develop` branch:
 
 ``` r
-
 devtools::install_github(
   "Mouse-Imaging-Centre/RMINC@develop",
   upgrade_dependencies = FALSE
@@ -105,7 +104,6 @@ export MINC_TOOLKIT=/opt/minc/1.9.18
 Or pass the path at install time from R:
 
 ``` r
-
 devtools::install_github(
   "Mouse-Imaging-Centre/RMINC@develop",
   args = "--configure-args='--with-build-path=/opt/minc/1.9.18'",
@@ -120,7 +118,6 @@ column in `data` holds MINC file paths; the model is fit independently
 at every voxel:
 
 ``` r
-
 library(RMINC)
 
 # `gf` is a data frame whose `volumes` column holds MINC file paths
@@ -193,7 +190,6 @@ After editing R source containing roxygen comments, regenerate
 documentation and the `NAMESPACE` with:
 
 ``` r
-
 roxygen2::roxygenise()
 ```
 

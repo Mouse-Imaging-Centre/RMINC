@@ -14,7 +14,8 @@ civet.organizeCivetDatFilesAtlas(atlasFile, dataFiles, civetVersion = "1.1.12")
 - atlasFile:
 
   Character path to a key to the atlas used when running civet. the key
-  should be a comma separated file with a header and the following form\
+  should be a comma separated file with a header and the following
+  form  
   Column 1: Numeric label Column 3: Corresponding structure
 
 - dataFiles:

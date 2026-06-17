@@ -50,7 +50,6 @@ vertexLm
 ## Examples
 
 ``` r
-
 if (FALSE) { # \dontrun{
 # read the text file describing the dataset
 gf <- read.csv("control-file.csv")

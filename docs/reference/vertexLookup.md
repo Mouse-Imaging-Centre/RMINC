@@ -19,8 +19,10 @@ vertexLookup(
 
 - vertices:
 
-  A descendant of mesh3d, `bic_obj`, or matrix-like object with
-  3-columns, and n rows representing vertices.
+  A descendant of
+  [mesh3d](https://dmurdoch.github.io/rgl/dev/reference/mesh3d.html),
+  `bic_obj`, or matrix-like object with 3-columns, and n rows
+  representing vertices.
 
 - target:
 

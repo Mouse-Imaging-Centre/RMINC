@@ -138,7 +138,7 @@ function, and (2) comparing two separate models using
 For the most likely models - longitudinal models with a separate
 intercept or separate intercept and slope per subject - both of these
 approximations are likely correct. Be careful in using these
-approximations if using more complicated random effects structures.\
+approximations if using more complicated random effects structures.  
 If you encounter memory issues, it could be due to minc file caching.
 Consider trying with the environment variable MINC_FILE_CACHE_MB set to
 a small value like 1.

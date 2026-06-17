@@ -25,14 +25,16 @@ laplace_beltrami_operator(
 
   3-by-N matrix denoting the position of the N vertices defining the
   triangle-mesh manifold. Similar to argument `vertices` in
-  rgl::tmesh3d. Required if `manifold` argument is not specified.
+  [rgl::tmesh3d](https://dmurdoch.github.io/rgl/dev/reference/mesh3d.html).
+  Required if `manifold` argument is not specified.
 
 - triangle_matrix:
 
   3-by-M matrix denoting the position of the M triangles defining the
   triangle-mesh manifold. Elements of each column are indices of
   vertices defining the triangle (i.e. indices are columns of the
-  vertex_matrix). Similar to argument `indices` in rgl::tmesh3d.
+  vertex_matrix). Similar to argument `indices` in
+  [rgl::tmesh3d](https://dmurdoch.github.io/rgl/dev/reference/mesh3d.html).
   Required if `manifold` argument is not specified.
 
 ## Value
