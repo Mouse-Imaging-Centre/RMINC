@@ -2,7 +2,7 @@ name: pkgdown
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, master ]
     paths:
       - 'R/**'
       - 'src/**'

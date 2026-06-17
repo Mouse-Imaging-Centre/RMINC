@@ -8,6 +8,10 @@ template:
   bootstrap: 5
 
 reference:
+  - title: "Package overview"
+    contents:
+      - RMINC-package
+
   - title: "Voxel-wise statistics"
     desc: "Massively-univariate models fit independently at every voxel."
     contents:
@@ -39,6 +43,7 @@ reference:
     contents:
       - mincFDR
       - mincFDRMask
+      - mincFDRThresholdVector
       - mincTFCE
       - mincRandomize
       - thresholds
@@ -78,6 +83,8 @@ reference:
       - anatFDR
       - anatGetAll
       - anatGetAll_old
+      - as.data.frame.anatMatrix
+      - voxel_atlas_defs
       - anatMean
       - anatSd
       - anatSum
@@ -132,6 +139,12 @@ reference:
       - mincSelectRandomVoxels
       - mincFindPeaks
       - mincLabelPeaks
+      - mincFileCheck
+      - mincGetMask
+      - mincGetVector
+      - extract_column
+      - volume.combineMaskVolumes
+      - volume.explodeLabelVolume
 
   - title: "MINC object helpers"
     contents:
@@ -144,6 +157,7 @@ reference:
       - simplify2minc
       - simplify_masked
       - setRMINCMaskedValue
+      - RMINC_MASKED_VALUE
 
   - title: "Visualization"
     contents:
@@ -162,6 +176,9 @@ reference:
       - lut_to_palette
       - obj_montage
       - obj_to_graph
+      - plot.bic_lines
+      - plot.bic_obj
+      - plot.obj_mesh
       - launch_shinyRMINC
 
   - title: "Meshes & manifold smoothing"
