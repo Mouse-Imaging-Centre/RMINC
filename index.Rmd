@@ -4,8 +4,9 @@ output: github_document
 
 ## RMINC 
 
-RMINC is a package for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel of a set of files. Supports getting
-and writing volumes, running voxel-wise linear models, correlations, correcting for multiple comparisons with False Discovery Rate control, and more.
+RMINC is a package for the R statistical environment designed to read and write MINC volumes as well as perform optimized statistical routines at every voxel (or vertex) of a set of files. It supports reading and writing volumes; voxel-wise and surface/vertex-wise linear and linear mixed-effects models; correlations, t-tests, ANOVA, and Wilcoxon tests; False Discovery Rate correction and Threshold-Free Cluster Enhancement (TFCE); ROI-based and hierarchical-atlas anatomy analysis; and parallel execution on local cores or HPC clusters via `batchtools`.
+
+**Unix only** (Linux, macOS). Requires **R >= 4.0**.
 
 ## Installation
 
