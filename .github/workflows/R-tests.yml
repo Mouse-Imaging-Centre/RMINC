@@ -2,9 +2,19 @@ name: R Tests
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, master ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/README*'
+      - '.github/workflows/pkgdown.yaml'
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, master ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '**/README*'
+      - '.github/workflows/pkgdown.yaml'
 
 permissions:
   contents: read
