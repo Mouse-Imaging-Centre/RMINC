@@ -1,0 +1,89 @@
+# Call ray_trace to get an image of a rendered slice
+
+This function provides an interface to the ray_trace command written by
+David MacDonald. As such it needs both ray_trace and make_slice to be on
+the path upon startup of R, and the bicpl library has to be compiled
+with image output enabled.
+
+## Usage
+
+``` r
+minc.ray.trace(
+  volume,
+  output = "slice.rgb",
+  size = c(400, 400),
+  slice = list(pos = 0, wv = "w", axis = "z"),
+  threshold = NULL,
+  colourmap = "-spectral",
+  background = NULL,
+  background.threshold = NULL,
+  background.colourmap = "-gray",
+  display = TRUE
+)
+```
+
+## Arguments
+
+- volume:
+
+  The filename of a volume to render.
+
+- output:
+
+  The output filename.
+
+- size:
+
+  A vector of two elements specifying the output size
+
+- slice:
+
+  A list of three elements, pos being the slice number, wv whether the
+  specification is in voxel or world space, and the axis.
+
+- threshold:
+
+  A vector of two elements containing the threshold. If NULL, the full
+  range of the volume will be used.
+
+- colourmap:
+
+  The colourmap to be used by ray_trace.
+
+- background:
+
+  An optional filename of a background volume. Used, for example, to
+  render statistical results on top of background anatomy.
+
+- background.threshold:
+
+  Threshold to use for the background volume. If NULL the whole range
+  will be used.
+
+- background.colourmap:
+
+  The colourmap argument to be passed to ray_trace for the background
+  image.
+
+- display:
+
+  Boolean argument which determines whether display (from ImageMagick)
+  will be called on the output.
+
+## Value
+
+- output:
+
+  The filename of the output image is returned.
+
+## Details
+
+Behaviour of minc.ray.trace varies depending on whether a background
+image is specified. If background=NULL, then the specified slice is
+rendered using the supplied (or automatically determined) threshold
+argument. If there is a background image, then the slice from the input
+volume is rendered semi-transparently on top of the background.
+
+Note that cropping in ray_trace is on by default, so the output image
+size will not necessarily be the same as the size argument to
+minc.ray.trace.
