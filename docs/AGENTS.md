@@ -67,7 +67,8 @@ Rscript -e "roxygen2::roxygenise()"
 
 ## Conventions
 
-- Default branch is `develop` (CI triggers on push/PR to develop)
+- Default branch is `master`; CI triggers on push/PR to `develop` and
+  `master`
 - R code uses 2-space indentation (see `.Rproj`)
 - No Windows support (`OS_type: unix`)
 - Requires R \>= 4.0
