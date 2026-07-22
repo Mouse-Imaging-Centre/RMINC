@@ -218,3 +218,30 @@ test_that("mincLmer works with NAs", {
   expect_that(df[[2]], is_less_than(nrow(attr(missing, "data")) + 1))
   expect_that(df[[2]], is_more_than(1))
 })
+
+context("mincLmer - weighted")
+test_that("weighted mincLmer works", {
+  verboseRun({
+    gf_weighted <- gf
+    gf_weighted$w <- runif(nrow(gf_weighted))
+    gf_weighted$v <- mincGetVoxel(gf_weighted$jacobians_fixed_2, 4, 5, 2)
+
+    handle_conv_warnings({
+      vs_weighted <- mincLmer(
+        jacobians_fixed_2 ~ Sex + (1 | coil),
+        gf_weighted,
+        mask = maskfile,
+        weights = gf_weighted$w
+      )
+
+      l_weighted <- lmer(
+        v ~ Sex + (1 | coil),
+        gf_weighted,
+        weights = gf_weighted$w
+      )
+    })
+
+    expect_that(vs_weighted[voxelIndex, 1], is_equivalent_to(fixef(l_weighted)[1]))
+    expect_that(vs_weighted[voxelIndex, 2], is_equivalent_to(fixef(l_weighted)[2]))
+  })
+})
