@@ -1239,6 +1239,14 @@ anatLmer <-
     mc <- mc[
       !names(mc) %in% c("anat", "subset", "parallel", "safely", "summary_type")
     ]
+
+  # Pre-evaluate weights so that expressions like `weights = d$w` resolve in the
+  # caller's frame. Modern lme4 re-evaluates weights inside the model frame,
+  # where the original object is not available, raising "object not found" errors.
+    if (!is.null(mc[["weights"]])) {
+      mc[["weights"]] <- eval(mc[["weights"]], parent.frame())
+    }
+
     lmod <- eval(mc, environment())
 
     # code ripped from lme4:::mkLmerDevFun
