@@ -190,8 +190,8 @@ pMincApply <-
         conf_file = conf_file,
         registry_dir = registry_dir,
         registry_name = registry_name,
-	wait = wait, 
-	ignore_incompletes = ignore_incompletes
+        wait = wait,
+        ignore_incompletes = ignore_incompletes
       )
     }
 
@@ -462,7 +462,7 @@ qMincApply <-
         qMinc_registry,
         wait = TRUE,
         collate = collate,
-	ignore_incompletes = ignore_incompletes
+        ignore_incompletes = ignore_incompletes
       )
       return(qMinc_results)
     }
