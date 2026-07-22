@@ -137,7 +137,7 @@ pMincApply <-
     conf_file = getOption("RMINC_BATCH_CONF"),
     registry_name = new_file("pMincApply_registry"),
     registry_dir = getwd(),
-    wait = TRUE, 
+    wait = TRUE,
     ignore_incompletes = FALSE
   ) {
     if (!is.null(method)) {
