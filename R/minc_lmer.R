@@ -128,7 +128,7 @@ mincLmer <- function(
   # caller's frame. Modern lme4 re-evaluates weights inside the model frame,
   # where the original object is not available, raising "object not found" errors.
   if (!is.null(mc[["weights"]])) {
-    mc[["weights"]] <- eval(mc[["weights"]], parent.frame())
+    mc[["weights"]] <- eval(mc[["weights"]], data, parent.frame())
   }
 
   lmod <- eval(mc, parent.frame(1L))
