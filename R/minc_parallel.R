@@ -136,7 +136,9 @@ pMincApply <-
     collate = simplify2minc,
     conf_file = getOption("RMINC_BATCH_CONF"),
     registry_name = new_file("pMincApply_registry"),
-    registry_dir = getwd()
+    registry_dir = getwd(),
+    wait = TRUE,
+    ignore_incompletes = FALSE
   ) {
     if (!is.null(method)) {
       warning(
@@ -187,7 +189,9 @@ pMincApply <-
         cleanup = cleanup,
         conf_file = conf_file,
         registry_dir = registry_dir,
-        registry_name = registry_name
+        registry_name = registry_name,
+        wait = wait,
+        ignore_incompletes = ignore_incompletes
       )
     }
 
@@ -415,7 +419,8 @@ qMincApply <-
     cleanup = TRUE,
     clobber = FALSE,
     collate = simplify2minc,
-    conf_file = getOption("RMINC_BATCH_CONF")
+    conf_file = getOption("RMINC_BATCH_CONF"),
+    ignore_incompletes = FALSE
   ) {
     if (is.null(slab_sizes)) {
       slab_sizes <- minc.dimensions.sizes(filenames[1])
@@ -456,7 +461,8 @@ qMincApply <-
       qMinc_results <- qMincReduce(
         qMinc_registry,
         wait = TRUE,
-        collate = collate
+        collate = collate,
+        ignore_incompletes = ignore_incompletes
       )
       return(qMinc_results)
     }
