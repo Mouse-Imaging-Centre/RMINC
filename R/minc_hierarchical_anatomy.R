@@ -500,7 +500,7 @@ makeMICeDefsHierachical <- function(defs, abijson) {
   # propagate the labels so that each structure has a vector of all associated labels
   collectLabels <- function(node) {
     if (node$isLeaf) return(node$label)
-    labels <- unlist(lapply(node$children, collectLabels))
+    labels <- unlist(lapply(node$children, collectLabels), use.names = FALSE)
     node$label <- labels
     return(labels)
   }
