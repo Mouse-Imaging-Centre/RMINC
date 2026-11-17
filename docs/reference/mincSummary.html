@@ -88,7 +88,10 @@ summary.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>the type of summarys statistic to calculate for each voxel</p></dd>
+<dd><p>the type of summary statistic to calculate for each voxel.
+One of "mean", "sum", "var", "t-test", "paired-t-test", "wilcoxon" or
+"correlation". For other summaries (for example the median), use
+<a href="mincApply.html">mincApply</a>.</p></dd>
 
 
 <dt id="arg-maskval">maskval<a class="anchor" aria-label="anchor" href="#arg-maskval"></a></dt>
@@ -100,11 +103,10 @@ within 0.5 of the chosen value are considered selected.</p></dd>
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The output will be a single vector containing as many
-         elements as there are voxels in the input files. If a
-         grouping factor was specified then the output will be a
-         matrix consisiting of as many rows as there were voxels in
-         the files, and as many columns as there were groups.</p>
+    <p>A matrix of class <code>mincMultiDim</code> with one row for each
+         voxel in the input files. For "mean", "sum" and "var" there is
+         one column for each group (one column if no grouping was
+         given). For the other methods there is one column.</p>
     </div>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>

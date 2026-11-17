@@ -86,7 +86,12 @@ threshold.</p></dd>
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>The method used to compute the false discovery
-rate. Options are "FDR" and "pFDR".</p></dd>
+rate. Options are "FDR" (also "fdr" or "BH"; the Benjamini-Hochberg
+method of <code>p.adjust</code>), "pFDR" (RMINC's fast positive FDR),
+"qvalue" (the <code>qvalue</code> package) and the other methods of
+<code>p.adjust</code>, for example "BY". All <code>mincFDR</code> methods accept
+the same names. If "qvalue" or "pFDR" fails for a column, that column
+gets <code>NA</code> q-values and thresholds with a warning.</p></dd>
 
 
 <dt id="arg-columns">columns<a class="anchor" aria-label="anchor" href="#arg-columns"></a></dt>

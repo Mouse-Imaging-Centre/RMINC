@@ -52,7 +52,11 @@ mincFDR(
 - method:
 
   The method used to compute the false discovery rate. Options are "FDR"
-  and "pFDR".
+  (also "fdr" or "BH"; the Benjamini-Hochberg method of `p.adjust`),
+  "pFDR" (RMINC's fast positive FDR), "qvalue" (the `qvalue` package)
+  and the other methods of `p.adjust`, for example "BY". All `mincFDR`
+  methods accept the same names. If "qvalue" or "pFDR" fails for a
+  column, that column gets `NA` q-values and thresholds with a warning.
 
 - columns:
 
