@@ -482,11 +482,36 @@ makeMICeDefsHierachical <- function(defs, abijson) {
   # read the CSV defs file
   defs <- read.csv(defs)
 
-  # split the definitions into one per line (i.e. left and right separate)
-  ldefs <- lateralizeDefs(defs)
+  needed <- c("Structure", "right.label", "left.label", "ABI")
+  missing_cols <- setdiff(needed, names(defs))
+  if (length(missing_cols) > 0) {
+    stop(
+      "The definitions file must have the column(s): ",
+      paste(missing_cols, collapse = ", ")
+    )
+  }
+
+  # data.tree uses "/" to separate the levels of a path, so a "/" in a name
+  # (for example "layer 2/3") makes extra levels. Replace it in the ABI tree
+  # and in the definitions in the same way (#221).
   tree$Do(function(n) {
     n$name <- gsub("/", " and ", n$name)
   })
+  defs$ABI <- gsub("/", " and ", as.character(defs$ABI))
+  defs$Structure <- gsub("/", " and ", as.character(defs$Structure))
+
+  # every ABI name must be in the ABI tree (#304)
+  unknown <- setdiff(unique(defs$ABI), tree$Get("name"))
+  if (length(unknown) > 0) {
+    stop(
+      "These ABI names in the definitions file are not in the ABI ",
+      "hierarchy (", abijson, "): ",
+      paste0("\"", unknown, "\"", collapse = ", ")
+    )
+  }
+
+  # split the definitions into one per line (i.e. left and right separate)
+  ldefs <- lateralizeDefs(defs)
   # create the first version of the anatomical hierarchy
   mh <- addHierarchyToDefs(ldefs, tree)
   treeMH <- as.Node(mh)

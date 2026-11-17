@@ -473,6 +473,27 @@ voxel_anova_wrapper <- function(
   )
 }
 
+# Accept a mask as a file name or as voxel values (#258). The C code reads
+# masks from files, so voxel values are written to a temporary file. The
+# caller must delete the file when it is not the mask that was given.
+mask_as_file <- function(mask, like_file) {
+  if (is.null(mask) || is.character(mask)) {
+    return(mask)
+  }
+  values <- as.numeric(mask)
+  n_vox <- prod(minc.dimensions.sizes(like_file))
+  if (length(values) != n_vox) {
+    stop(
+      "The mask has ", length(values), " values, but the input volumes have ",
+      n_vox, " voxels"
+    )
+  }
+  values[is.na(values)] <- 0
+  mask_file <- tempfile("RMINC_mask", fileext = ".mnc")
+  mincWriteVolume.default(values, mask_file, like_file, clobber = TRUE)
+  mask_file
+}
+
 #' Voxel-wise ANOVA
 #'
 #' Compute a sequential ANOVA at each voxel
@@ -490,7 +511,7 @@ voxel_anova_wrapper <- function(
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
+#' for back-compatibility, a batchtools backend name such as "batchtools", "sge", "pbs" or "slurm" will be run with batchtools (see \link{pMincApply}). Any other name is an error
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
@@ -558,6 +579,12 @@ mincAnova <- function(
 
   mincFileCheck(filenames)
 
+  mask_file <- mask_as_file(mask, filenames[1])
+  if (!identical(mask_file, mask)) {
+    on.exit(unlink(mask_file), add = TRUE)
+    mask <- mask_file
+  }
+
   if (is.null(maskval)) {
     minmask <- 1
     maxmask <- 99999999
@@ -621,6 +648,7 @@ mincAnova <- function(
     )
   } else {
     #Setup shared parallel mask and grouping
+    run_local <- parallel_is_local(parallel)
     n_groups <- as.numeric(parallel[2])
     groups <- seq_len(n_groups)
     new_mask_file <- create_parallel_mask(
@@ -629,13 +657,16 @@ mincAnova <- function(
       n = n_groups
     )
 
-    on.exit(try({
-      if (cleanup) unlink(new_mask_file)
-    }))
+    on.exit(
+      try({
+        if (cleanup) unlink(new_mask_file)
+      }),
+      add = TRUE
+    )
     mask_vol <- as.integer(round(mincGetVolume(new_mask_file)))
 
     # a vector with two elements: the methods followed by the # of workers
-    if (parallel[1] %in% c("local", "snowfall")) {
+    if (run_local) {
       result <-
         failing_mclapply(
           groups,
@@ -749,7 +780,7 @@ mincLm_c_wrapper <-
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
+#' for back-compatibility, a batchtools backend name such as "batchtools", "sge", "pbs" or "slurm" will be run with batchtools (see \link{pMincApply}). Any other name is an error
 #' Leaving this argument NULL runs sequentially.
 #' @param cleanup Whether or not to remove parallelization files
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
@@ -834,6 +865,12 @@ mincLm <- function(
     parseLmOutput$rows = colnames(parseLmOutput$mmatrix)
   }
 
+  mask_file <- mask_as_file(mask, parseLmOutput$data.matrix.left[1])
+  if (!identical(mask_file, mask)) {
+    on.exit(unlink(mask_file), add = TRUE)
+    mask <- mask_file
+  }
+
   # Do Error Checking on mask. The mask may have a different dimension order than the input volumes
   # A call to minc.dimensions.sizes will read the dimension order according to the file order so
   # it can be used to do the checking.
@@ -870,6 +907,7 @@ mincLm <- function(
     )
   } else {
     #Setup shared parallel mask and grouping
+    run_local <- parallel_is_local(parallel)
     n_groups <- as.numeric(parallel[2])
     groups <- seq_len(n_groups)
     new_mask_file <- create_parallel_mask(
@@ -878,13 +916,16 @@ mincLm <- function(
       n = n_groups
     )
 
-    on.exit(try({
-      if (cleanup) unlink(new_mask_file)
-    }))
+    on.exit(
+      try({
+        if (cleanup) unlink(new_mask_file)
+      }),
+      add = TRUE
+    )
     mask_vol <- as.integer(round(mincGetVolume(new_mask_file)))
 
     # a vector with two elements: the methods followed by the # of workers
-    if (parallel[1] %in% c("local", "snowfall")) {
+    if (run_local) {
       result <-
         failing_mclapply(
           groups,
@@ -1156,7 +1197,7 @@ mincWilcoxon <- function(filenames, grouping, mask = NULL, maskval = NULL) {
 # Specified as a two element vector, with the first element corresponding to
 # the type of parallelization, and the second to the number
 # of processors to use. For local running set the first element to "local" or "snowfall"
-# for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
+# for back-compatibility, a batchtools backend name such as "batchtools", "sge", "pbs" or "slurm" will be run with batchtools (see \link{pMincApply}). Any other name is an error
 # Leaving this argument NULL runs sequentially.
 
 #' Threshold Free Cluster Enhancement
@@ -1180,8 +1221,9 @@ mincWilcoxon <- function(filenames, grouping, mask = NULL, maskval = NULL) {
 #' @param replace Sample with or without replacement for the randomization, defaults to FALSE (no
 #' replacement)
 #' @param parallel A two component vector indicating how to parallelize the computation. If the
-#' first element is "local" the computation will be run via the parallel package, otherwise it will
-#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
+#' first element is "local" the computation will be run via the parallel package. If it is a batchtools
+#' backend name such as "batchtools", "sge", "pbs" or "slurm" it will be computed using batchtools,
+#' see \link{pMincApply} for details. Any other name is an error. The element should be numeric
 #' indicating the number of jobs to split the computation into.
 #' @param resources A list of resources to use for the jobs, for example
 #' \code{ list(nodes = 1, memory = "8G", walltime = "01:00:00") }. See
@@ -1332,8 +1374,9 @@ getCall.mincLm <-
 #' @param replace Sample with or without replacement for the randomization, defaults to FALSE (no
 #' replacement)
 #' @param parallel A two component vector indicating how to parallelize the computation. If the
-#' first element is "local" the computation will be run via the parallel package, otherwise it will
-#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
+#' first element is "local" the computation will be run via the parallel package. If it is a batchtools
+#' backend name such as "batchtools", "sge", "pbs" or "slurm" it will be computed using batchtools,
+#' see \link{pMincApply} for details. Any other name is an error. The element should be numeric
 #' indicating the number of jobs to split the computation into.
 #' @param columns Which columns to compute extrema for, defaults to columns with `tvalue` in
 #' the name.
@@ -1546,10 +1589,11 @@ mincRandomize_core <-
     if (is.null(parallel)) {
       result <- boot_model(R)
     } else {
+      run_local <- parallel_is_local(parallel)
       n_groups <- as.numeric(parallel[2])
       group_sizes <- table(groupingVector(R, n_groups))
 
-      if (parallel[1] %in% c("local", "snowfall")) {
+      if (run_local) {
         result <-
           failing_mclapply(group_sizes, boot_model, mc.cores = n_groups) %>%
           Reduce(rbind, ., NULL)

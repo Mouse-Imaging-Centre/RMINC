@@ -107,3 +107,19 @@ test_that("mincAnova local multicore works", {
 
   expect_equal(rmincAnova, pra, check.attributes = FALSE)
 })
+
+test_that("mincAnova accepts a mask as voxel values (#258)", {
+  like <- as.character(gftest$voxel_left_file[1])
+  n_vox <- prod(minc.dimensions.sizes(like))
+  mask_vals <- rep(c(0, 1), length.out = n_vox)
+  mask_file <- tempfile(fileext = ".mnc")
+  on.exit(unlink(mask_file))
+  verboseRun(
+    mincWriteVolume(mask_vals, mask_file, like.filename = like, clobber = TRUE)
+  )
+
+  verboseRun(from_file <- mincAnova(voxel_left_file ~ Sex, gftest, mask = mask_file))
+  verboseRun(from_vec <- mincAnova(voxel_left_file ~ Sex, gftest, mask = mask_vals))
+
+  expect_equal(unclass(from_vec), unclass(from_file), check.attributes = FALSE)
+})

@@ -29,7 +29,7 @@ vertexLmer(
 Specified as a two element vector, with the first element corresponding to
 the type of parallelization, and the second to the number
 of processors to use. For local running set the first element to "local" or "snowfall"
-for back-compatibility, anything else will be run with batchtools see \link{pMincApply}.
+for back-compatibility, a batchtools backend name such as "batchtools", "sge", "pbs" or "slurm" will be run with batchtools (see \link{pMincApply}). Any other name is an error.
 Leaving this argument NULL runs sequentially and may take a long time.}
 
 \item{REML}{whether to use use Restricted Maximum Likelihood or Maximum Likelihood}

@@ -39,8 +39,9 @@ mincRandomize(
 replacement)}
 
 \item{parallel}{A two component vector indicating how to parallelize the computation. If the
-first element is "local" the computation will be run via the parallel package, otherwise it will
-be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
+first element is "local" the computation will be run via the parallel package. If it is a batchtools
+backend name such as "batchtools", "sge", "pbs" or "slurm" it will be computed using batchtools,
+see \link{pMincApply} for details. Any other name is an error. The element should be numeric
 indicating the number of jobs to split the computation into.}
 
 \item{columns}{Which columns to compute extrema for, defaults to columns with `tvalue` in

@@ -921,3 +921,45 @@ groupingVector <- function(len, groups) {
 #   unlink(maskFilename)
 #   return(output)
 # }
+
+# Check a `parallel` argument and tell whether it asks for local execution.
+#
+# `parallel` is NULL or a two element vector: the backend and the number of
+# workers. "local" and "snowfall" run with the parallel package. The names of
+# batchtools cluster functions and schedulers run with batchtools. Any other
+# name is an error, so that a typing mistake does not submit cluster jobs
+# (#215).
+parallel_is_local <- function(parallel) {
+  local_backends <- c("local", "snowfall")
+  queue_backends <- c(
+    "batchtools", "queue", "sge", "pbs", "torque", "slurm", "lsf",
+    "openlava", "multicore", "socket", "ssh", "docker", "interactive"
+  )
+
+  if (length(parallel) != 2) {
+    stop(
+      "`parallel` must be NULL or a two element vector such as ",
+      "c(\"local\", 4) or c(\"batchtools\", 4)"
+    )
+  }
+
+  backend <- as.character(parallel[[1]])
+  n <- suppressWarnings(as.numeric(parallel[[2]]))
+  if (is.na(n) || n < 1 || n %% 1 != 0) {
+    stop("The second element of `parallel` must be a positive whole number")
+  }
+
+  if (backend %in% local_backends) {
+    return(TRUE)
+  }
+  if (backend %in% queue_backends) {
+    return(FALSE)
+  }
+
+  stop(
+    "Unknown parallel backend \"", backend, "\". Use \"local\" to run on ",
+    "this machine, or one of ",
+    paste0("\"", queue_backends, "\"", collapse = ", "),
+    " to run with batchtools"
+  )
+}
