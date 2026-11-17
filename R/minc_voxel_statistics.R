@@ -16,12 +16,14 @@
 #' defaults to any positive intensity from 1-99999999 internally expanded to
 #' .5 - 99999999.5. If a number is specified voxels with intensities
 #' within 0.5 of the chosen value are considered selected.
-#' @param method the type of summarys statistic to calculate for each voxel
-#' @return  The output will be a single vector containing as many
-#'          elements as there are voxels in the input files. If a
-#'          grouping factor was specified then the output will be a
-#'          matrix consisiting of as many rows as there were voxels in
-#'          the files, and as many columns as there were groups.
+#' @param method the type of summary statistic to calculate for each voxel.
+#' One of "mean", "sum", "var", "t-test", "paired-t-test", "wilcoxon" or
+#' "correlation". For other summaries (for example the median), use
+#' \link{mincApply}.
+#' @return  A matrix of class \code{mincMultiDim} with one row for each
+#'          voxel in the input files. For "mean", "sum" and "var" there is
+#'          one column for each group (one column if no grouping was
+#'          given). For the other methods there is one column.
 #' @examples
 #' \dontrun{
 #' getRMINCTestData()
@@ -40,6 +42,19 @@ mincSummary <- function(
   maskval = NULL
 ) {
   mincFileCheck(filenames)
+
+  supported_methods <- c(
+    "mean", "sum", "var",
+    "t-test", "paired-t-test", "wilcoxon", "correlation"
+  )
+  if (length(method) != 1 || !method %in% supported_methods) {
+    # The C code computes nothing for other methods (#309)
+    stop(
+      "method must be one of: ",
+      paste(supported_methods, collapse = ", "),
+      ". For other summaries (for example the median), use mincApply()."
+    )
+  }
 
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
@@ -81,17 +96,14 @@ mincSummary <- function(
   attr(result, "likeVolume") <- as.character(filenames[1])
   attr(result, "filenames") <- as.character(filenames)
 
-  if (is.null(grouping)) {
-    class(result) <- c("mincSingleDim", "numeric")
-  } else {
-    class(result) <- c("mincMultiDim", "matrix")
-    if (
-      !grepl("t-test", method) &&
-        !grepl("correlation", method) &&
-        !grepl("wilcoxon", method)
-    ) {
-      colnames(result) <- levels(grouping)
-    }
+  # The C code gives a matrix for mean/sum/var and a vector for the other
+  # methods. Always return a matrix with one row per voxel (#309).
+  if (is.null(dim(result))) {
+    dim(result) <- c(length(result), 1)
+  }
+  class(result) <- c("mincMultiDim", "matrix")
+  if (method %in% c("mean", "sum", "var")) {
+    colnames(result) <- levels(grouping)
   }
   return(result)
 }
@@ -1363,7 +1375,8 @@ mincRandomize.mincLm <-
   ) {
     lmod <- x
     alternative <- match.arg(alternative)
-    original_stats <- lmod[, columns]
+    columns <- resolve_stat_columns(lmod, columns)
+    original_stats <- lmod[, columns, drop = FALSE]
     lmod_call <- attr(lmod, "call")
 
     randomization_dist <-
@@ -1449,6 +1462,27 @@ mincTFCE.mincLm <-
     output
   }
 
+# Turn the `columns` argument of the randomization functions into column
+# indices. Names such as "F-statistic" are matched to colnames(x).
+resolve_stat_columns <- function(x, columns) {
+  if (is.character(columns)) {
+    idx <- match(columns, colnames(x))
+    if (anyNA(idx)) {
+      stop(
+        "Unknown column(s): ",
+        paste(columns[is.na(idx)], collapse = ", "),
+        ". Available columns: ",
+        paste(colnames(x), collapse = ", ")
+      )
+    }
+    columns <- idx
+  }
+  if (length(columns) == 0) {
+    stop("No columns selected for randomization")
+  }
+  columns
+}
+
 mincRandomize_core <-
   function(
     x,
@@ -1465,6 +1499,7 @@ mincRandomize_core <-
     # Setup useful local variables
     lmod <- x
     alternative <- match.arg(alternative)
+    columns <- resolve_stat_columns(lmod, columns)
     lmod_data <- attr(lmod, "data")
     lmod_call <- attr(lmod, "call")
     lmod_lhs <- as.character(lmod_call[["formula"]][[2]])
@@ -1490,7 +1525,7 @@ mincRandomize_core <-
 
           # Post process the values of interest (here's where TFCE or smoothing could be applied for example)
           post_procd <-
-            post_proc(new_mod[, columns], ...)
+            post_proc(new_mod[, columns, drop = FALSE], ...)
 
           if (alternative == "two.sided") {
             post_procd <- abs(post_procd)

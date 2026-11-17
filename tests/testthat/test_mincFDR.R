@@ -141,3 +141,57 @@ test_that("mincLm Three Factors Interaction", {
   expect_that(rLmFDR6[2], is_equivalent_to(rmincFDR[2, 7]))
   expect_that(rLmFDR6[3], is_equivalent_to(rmincFDR[3, 7]))
 })
+
+test_that("mincFDR works on a mincSingleDim (#359)", {
+  verboseRun(rlm <- mincLm(voxel_left_file ~ Sex, gftest))
+  # the df list has the F-statistic first, then one entry per t column
+  t_col <- grep("tvalue-", colnames(rlm))[2]
+  t_df <- attr(rlm, "df")[[3]]
+
+  single <- as.numeric(rlm[, t_col])
+  attr(single, "likeVolume") <- attr(rlm, "likeVolume")
+  class(single) <- c("mincSingleDim", "numeric")
+
+  verboseRun(q <- mincFDR(single, df = t_df, statType = "t"))
+  expect_equal(
+    as.numeric(q[, 1]),
+    p.adjust(pt2(as.numeric(rlm[, t_col]), t_df), "fdr")
+  )
+  expect_equal(dim(attr(q, "thresholds")), c(5, 1))
+})
+
+test_that("mincFDR checks the method name (#319)", {
+  verboseRun(rlm <- mincLm(voxel_left_file ~ Sex, gftest))
+  verboseRun(q_fdr <- mincFDR(rlm, method = "FDR"))
+  verboseRun(q_lower <- mincFDR(rlm, method = "fdr"))
+  expect_equal(unclass(q_lower), unclass(q_fdr))
+
+  verboseRun(q_by <- mincFDR(rlm, method = "BY"))
+  verboseRun(q_holm <- mincFDR(rlm, method = "holm"))
+  # BY and Holm are more conservative than Benjamini-Hochberg
+  expect_true(all(q_by >= q_fdr - 1e-12, na.rm = TRUE))
+  expect_true(all(q_holm >= q_fdr - 1e-12, na.rm = TRUE))
+
+  expect_error(mincFDR(rlm, method = "nonsense"), "Unknown FDR method")
+})
+
+test_that("a failed qvalue column does not stop the other columns (#95)", {
+  skip_if_not_installed("qvalue")
+  set.seed(1)
+  n <- 2000
+  buf <- cbind(
+    "tvalue-huge" = 50 + rnorm(n),
+    "tvalue-null" = rt(n, 20)
+  )
+  attr(buf, "stat-type") <- c("t", "t")
+  attr(buf, "df") <- list(20, 20)
+  class(buf) <- c("mincMultiDim", "matrix")
+
+  expect_warning(
+    q <- mincFDR(buf, method = "qvalue"),
+    "Could not compute q-values.*tvalue-huge"
+  )
+  expect_true(all(is.na(q[, 1])))
+  expect_true(all(is.na(attr(q, "thresholds")[, 1])))
+  expect_false(anyNA(q[, 2]))
+})

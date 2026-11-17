@@ -39,7 +39,12 @@ only values inside the mask will be used to compute the
 threshold.}
 
 \item{method}{The method used to compute the false discovery
-rate. Options are "FDR" and "pFDR".}
+rate. Options are "FDR" (also "fdr" or "BH"; the Benjamini-Hochberg
+method of \code{p.adjust}), "pFDR" (RMINC's fast positive FDR),
+"qvalue" (the \code{qvalue} package) and the other methods of
+\code{p.adjust}, for example "BY". All \code{mincFDR} methods accept
+the same names. If "qvalue" or "pFDR" fails for a column, that column
+gets \code{NA} q-values and thresholds with a warning.}
 
 \item{columns}{A vector of column names. By default the threshold will
 be computed for all columns; with this argument the computation can

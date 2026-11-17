@@ -39,7 +39,10 @@ this is the variable to correlate against.}
 \item{mask}{A mask specifying which voxels are to be included in the
 summary.}
 
-\item{method}{the type of summarys statistic to calculate for each voxel}
+\item{method}{the type of summary statistic to calculate for each voxel.
+One of "mean", "sum", "var", "t-test", "paired-t-test", "wilcoxon" or
+"correlation". For other summaries (for example the median), use
+\link{mincApply}.}
 
 \item{maskval}{the value in the mask used to select unmasked voxels,
 defaults to any positive intensity from 1-99999999 internally expanded to
@@ -47,11 +50,10 @@ defaults to any positive intensity from 1-99999999 internally expanded to
 within 0.5 of the chosen value are considered selected.}
 }
 \value{
-The output will be a single vector containing as many
-         elements as there are voxels in the input files. If a
-         grouping factor was specified then the output will be a
-         matrix consisiting of as many rows as there were voxels in
-         the files, and as many columns as there were groups.
+A matrix of class \code{mincMultiDim} with one row for each
+         voxel in the input files. For "mean", "sum" and "var" there is
+         one column for each group (one column if no grouping was
+         given). For the other methods there is one column.
 }
 \description{
 Compute the mean, standard deviation, sum, or variance at every voxel across a

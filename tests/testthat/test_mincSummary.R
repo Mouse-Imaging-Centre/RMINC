@@ -66,6 +66,26 @@ test_that("summary functions count groups from the largest group code (#241)", {
   expect_equal(unname(mv3[1, 1:2]), unname(c(tapply(gf$vox, g3, var))[1:2]))
 })
 
+test_that("mincSummary always returns a one-row-per-voxel matrix (#309)", {
+  n_vox <- prod(minc.dimensions.sizes(gf$jacobians_0.2[1]))
+
+  m_mean <- mincSummary(gf$jacobians_0.2, method = "mean")
+  expect_equal(dim(m_mean), c(n_vox, 1))
+  expect_s3_class(m_mean, "mincMultiDim")
+
+  m_t <- mincSummary(gf$jacobians_0.2, gf$Strain, method = "t-test")
+  expect_equal(dim(m_t), c(n_vox, 1))
+  expect_s3_class(m_t, "mincMultiDim")
+  expect_equal(attr(m_t, "likeVolume"), as.character(gf$jacobians_0.2[1]))
+
+  # median is not computed by the C code; before, it returned values that
+  # were never set
+  expect_error(
+    mincSummary(gf$jacobians_0.2, method = "median"),
+    "mincApply"
+  )
+})
+
 test_that("mincSummary checks the grouping", {
   n <- nrow(gf)
   # character grouping is converted to a factor

@@ -265,3 +265,24 @@ test_that("mincLm randomize works", {
   thresh <- thresholds(rand)
   expect_equal(dim(thresholds(rand)), c(4, 2))
 })
+
+test_that("mincRandomize works with one column, by name or index (#318)", {
+  verboseRun(rlm <- mincLm(voxel_left_file ~ Sex, gftest))
+
+  verboseRun(
+    rand_f <- mincRandomize(rlm, R = 3, columns = "F-statistic")
+  )
+  expect_equal(dim(rand_f$randomization_dist), c(3, 1))
+  expect_equal(colnames(rand_f$randomization_dist), "F-statistic")
+  expect_equal(colnames(thresholds(rand_f)), "F-statistic")
+  expect_equal(ncol(rand_f$stats), 1)
+
+  t_col <- grep("tvalue-", colnames(rlm))[2]
+  verboseRun(rand_t <- mincRandomize(rlm, R = 3, columns = t_col))
+  expect_equal(colnames(rand_t$randomization_dist), colnames(rlm)[t_col])
+
+  expect_error(
+    mincRandomize(rlm, R = 3, columns = "no-such-column"),
+    "Unknown column"
+  )
+})

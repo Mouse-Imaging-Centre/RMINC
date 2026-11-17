@@ -84,6 +84,19 @@ vertexSd <- function(filenames, column = 1) {
   return(result)
 }
 
+### Turn a vertex mask (file name, numeric vector or one-column data
+### frame) into a logical vector. A vertex is in the mask when its value
+### is greater than .5
+vertex_mask_lgl <- function(mask) {
+  if (is.data.frame(mask)) {
+    mask <- mask[[1]]
+  }
+  if (length(mask) == 1 && is.character(mask)) {
+    mask <- as.numeric(readLines(mask))
+  }
+  as.numeric(mask) > .5
+}
+
 ### Helper function for applying over rows of a potentially
 ### masked matrix potentially in parallel
 matrixApply <- function(
@@ -97,11 +110,7 @@ matrixApply <- function(
   conf_file = getOption("RMINC_BATCH_CONF")
 ) {
   if (!is.null(mask)) {
-    if (length(mask) == 1 && is.character(mask)) {
-      mask <- readLines(mask)
-    }
-
-    mask_lgl <- mask > .5
+    mask_lgl <- vertex_mask_lgl(mask)
     mat <- mat[mask_lgl, ]
   }
 
@@ -212,6 +221,19 @@ vertexApply <- function(
   # Load the data
   vertexData <- vertexTable(filenames, column = column)
   if (transpose) {
+    # The mask selects vertices, so apply it before the transpose.
+    # After the transpose the rows are subjects (#217).
+    if (!is.null(mask)) {
+      mask_lgl <- vertex_mask_lgl(mask)
+      if (length(mask_lgl) != nrow(vertexData)) {
+        stop(
+          "mask has ", length(mask_lgl), " values, but the vertex files have ",
+          nrow(vertexData), " vertices"
+        )
+      }
+      vertexData <- vertexData[mask_lgl, , drop = FALSE]
+      mask <- NULL
+    }
     vertexData <- t(vertexData)
   }
 
@@ -251,6 +273,19 @@ vertexAtlasApply <- function(
 ) {
   if (is.character(atlas) && length(atlas) == 1) {
     atlas <- extract_column(atlas, atlas_column)
+  }
+
+  # vertexApply removes the masked vertices before it applies the
+  # function, so remove the same vertices from the atlas
+  if (!is.null(mask)) {
+    mask_lgl <- vertex_mask_lgl(mask)
+    if (length(mask_lgl) != length(atlas)) {
+      stop(
+        "mask has ", length(mask_lgl), " values, but the atlas has ",
+        length(atlas), " vertices"
+      )
+    }
+    atlas <- atlas[mask_lgl]
   }
 
   fun <- match.fun(fun)
@@ -1000,7 +1035,8 @@ vertexRandomize.vertexLm <-
   ) {
     lmod <- x
     alternative <- match.arg(alternative)
-    original_stats <- lmod[, columns]
+    columns <- resolve_stat_columns(lmod, columns)
+    original_stats <- lmod[, columns, drop = FALSE]
     lmod_call <- attr(lmod, "call")
 
     randomization_dist <-
