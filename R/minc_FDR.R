@@ -1,3 +1,55 @@
+# Compute q-values for a vector of p-values with the method of mincFDR.
+# Shared by all mincFDR methods (#319, #359). Method names:
+#   "FDR", "fdr", "BH", "p.adjust": Benjamini-Hochberg (p.adjust "fdr")
+#   "pFDR", "fastqvalue":           RMINC's fast.qvalue
+#   "qvalue":                       qvalue::qvalue
+#   any other p.adjust method:     p.adjust with that method (for example "BY")
+# When qvalue or fast.qvalue fails (for example when the p-values do not
+# allow an estimate of pi0), give a warning and return NA q-values for this
+# column only, so that the other columns are still computed (#95).
+fdr_qvalues <- function(pvals, method, column = "") {
+  failed <- function(msg) {
+    warning(
+      "Could not compute q-values with method \"", method, "\"",
+      if (nzchar(column)) paste0(" for column \"", column, "\""),
+      ": ", msg, ". The q-values and thresholds of this column are NA.",
+      call. = FALSE
+    )
+    list(pvalue = pvals, qvalue = rep(NA_real_, length(pvals)))
+  }
+
+  if (method %in% c("FDR", "fdr", "BH", "p.adjust")) {
+    return(list(pvalue = pvals, qvalue = p.adjust(pvals, "fdr")))
+  }
+  if (method %in% c("pFDR", "fastqvalue")) {
+    qobj <- fast.qvalue(pvals)
+    if (!is.list(qobj)) {
+      return(failed("fast.qvalue did not converge"))
+    }
+    return(list(pvalue = qobj$pvalues, qvalue = qobj$qvalues))
+  }
+  if (method == "qvalue") {
+    if (!requireNamespace("qvalue", quietly = TRUE)) {
+      stop("method = \"qvalue\" needs the qvalue package (Bioconductor)")
+    }
+    qobj <- tryCatch(
+      qvalue::qvalue(pvals),
+      error = function(e) conditionMessage(e)
+    )
+    if (is.character(qobj)) {
+      return(failed(qobj))
+    }
+    return(list(pvalue = qobj$pvalues, qvalue = qobj$qvalues))
+  }
+  if (method %in% stats::p.adjust.methods) {
+    return(list(pvalue = pvals, qvalue = p.adjust(pvals, method)))
+  }
+  stop(
+    "Unknown FDR method \"", method, "\". Use one of: FDR, pFDR, qvalue, ",
+    paste(setdiff(stats::p.adjust.methods, "none"), collapse = ", ")
+  )
+}
+
 #' False Discovery Rates
 #'
 #' Takes the output of a minc modelling function and computes False Discovery Rate thresholds.
@@ -13,7 +65,12 @@
 #' @param statType This should be either a "t","F","u","chisq" or "tlmer" depending upon the
 #' type of statistic being thresholded.
 #' @param method The method used to compute the false discovery
-#' rate. Options are "FDR" and "pFDR".
+#' rate. Options are "FDR" (also "fdr" or "BH"; the Benjamini-Hochberg
+#' method of \code{p.adjust}), "pFDR" (RMINC's fast positive FDR),
+#' "qvalue" (the \code{qvalue} package) and the other methods of
+#' \code{p.adjust}, for example "BY". All \code{mincFDR} methods accept
+#' the same names. If "qvalue" or "pFDR" fails for a column, that column
+#' gets \code{NA} q-values and thresholds with a warning.
 #' @param ... extra parameters to pass to methods
 #' @details This function uses the \code{qvalue} package to compute the
 #'  False Discovery Rate threshold for the results of a \link{mincLm}
@@ -75,10 +132,13 @@ mincFDR.mincSingleDim <- function(
   #   df <- c(1,df)
   # }
 
+  # Give the single column a name, so that the column lookup in the
+  # mincMultiDim method works (#359)
   dim(buffer) <- c(length(buffer), 1)
+  colnames(buffer) <- "statistic"
   mincFDR.mincMultiDim(
     buffer,
-    columns = 1,
+    columns = NULL,
     mask = mask,
     df = df,
     method = method,
@@ -212,7 +272,11 @@ mincFDR.mincLmer <- function(buffer, mask = NULL, method = "fdr", ...) {
   for (i in 1:ncolsToUse) {
     # compute qvals through R's p.adjust function
     pvals[, i] <- pt2(buffer[mask > 0.5, tlmerColumns[i]], df[[i]])
-    qvals[, i] <- p.adjust(pvals[, i], method = method)
+    qvals[, i] <- fdr_qvalues(
+      pvals[, i],
+      method,
+      colnames(buffer)[tlmerColumns[i]]
+    )$qvalue
     output[mask > 0.5, i] <- qvals[, i]
     for (j in 1:length(p.thresholds)) {
       # compute thresholds; to be honest, not quite sure what the NA checking is about
@@ -353,6 +417,8 @@ mincFDR.mincMultiDim <- function(
   if (is.null(columns)) {
     columns <- colnames(buffer)
     cat("\nComputing FDR threshold for all columns\n")
+  } else if (is.numeric(columns)) {
+    columns <- colnames(buffer)[columns]
   }
 
   n.cols <- length(columns)
@@ -426,17 +492,7 @@ mincFDR.mincMultiDim <- function(
     }
 
     # determine corresponding q values
-    if (method == "qvalue") {
-      qobj <- qvalue::qvalue(pvals)
-    } else if (method == "FDR" | method == "p.adjust") {
-      qobj$pvalue <- pvals
-      qobj$qvalue <- p.adjust(pvals, "fdr")
-    } else if (method == "BY") {
-      qobj$pvalue <- pvals
-      qobj$qvalue <- p.adjust(pvals, "BY")
-    } else if (method == "pFDR" | method == "fastqvalue") {
-      qobj <- fast.qvalue(pvals)
-    }
+    qobj <- fdr_qvalues(pvals, method, columns[i])
     # calculate thresholds at different sig levels
     for (j in 1:length(p.thresholds)) {
       if (statType[col_ind] == "F") {

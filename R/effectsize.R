@@ -94,11 +94,16 @@ vertexEffectSize <- function(buffer, predictors = NULL) {
     }
   }
 
-  #Extract model, contrasts from model call
-  model_call <- attr(buffer, "call")
-  model_call[[1]] <- quote(model.matrix)
-  names(model_call)[names(model_call) == "formula"] <- ""
-  mod_mat <- eval(model_call)
+  # Get the contrasts from the model matrix stored with the model. Do not
+  # evaluate the stored call again: it refers to variables (for example a
+  # formula in a local variable) that may not exist here (#305).
+  mod_mat <- attr(buffer, "model")
+  if (is.null(attr(mod_mat, "assign"))) {
+    model_call <- attr(buffer, "call")
+    model_call[[1]] <- quote(model.matrix)
+    names(model_call)[names(model_call) == "formula"] <- ""
+    mod_mat <- eval(model_call, parent.frame())
+  }
   conts <- attr(mod_mat, "contrasts")
   cat_vars <-
     names(conts)[vapply(
@@ -232,15 +237,11 @@ vertexEffectSize <- function(buffer, predictors = NULL) {
 #' @describeIn vertexEffectSize mincEffectSize
 #' @export
 mincEffectSize <- function(buffer, predictors = NULL) {
-  eff_call <- match.call()
-  eff_call[[1]] <- quote(vertexEffectSize)
-  eval(eff_call)
+  vertexEffectSize(buffer, predictors = predictors)
 }
 
 #' @describeIn vertexEffectSize anatEffectSize
 #' @export
 anatEffectSize <- function(buffer, predictors = NULL) {
-  eff_call <- match.call()
-  eff_call[[1]] <- quote(vertexEffectSize)
-  eval(eff_call)
+  vertexEffectSize(buffer, predictors = predictors)
 }

@@ -158,6 +158,23 @@ test_that("DF within reasonable range", {
   expect_that(df[[2]], is_more_than(1))
 })
 
+test_that("mincFDR on mincLmer supports the mincFDR methods (#319)", {
+  q_default <- suppressWarnings(mincFDR(vsreml))
+  q_fdr <- suppressWarnings(mincFDR(vsreml, method = "FDR"))
+  expect_equal(unclass(q_default), unclass(q_fdr))
+
+  q_by <- suppressWarnings(mincFDR(vsreml, method = "BY"))
+  expect_true(all(q_by >= q_fdr - 1e-12, na.rm = TRUE))
+
+  q_pfdr <- suppressWarnings(mincFDR(vsreml, method = "pFDR"))
+  expect_equal(dim(q_pfdr), dim(q_fdr))
+
+  expect_error(
+    suppressWarnings(mincFDR(vsreml, method = "nonsense")),
+    "Unknown FDR method"
+  )
+})
+
 test_that("Local parallel mincLmer works", {
   skip_on_cran()
   skip_on_travis()
