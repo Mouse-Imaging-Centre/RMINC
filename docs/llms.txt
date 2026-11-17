@@ -36,17 +36,17 @@ surface-based vertex statistics, and parallel execution.
 
 ## Features
 
-| Capability                      | Key functions                                                                 |
-|---------------------------------|-------------------------------------------------------------------------------|
-| **Voxel-wise linear models**    | `mincLm`, `mincAnova`, `mincTtest`, `mincWilcoxon`                            |
-| **Correlations & summaries**    | `mincCorrelation`, `mincMean`, `mincSummary`                                  |
-| **Mixed-effects models**        | `mincLmer`, `mincLmerEstimateDF`, `mincLogLikRatio`                           |
-| **Surface / vertex statistics** | `vertexLm`, `vertexLmer`, `vertexTFCE`                                        |
-| **ROI / anatomy analysis**      | `anatLm`, `anatLmer`, `hanatLm` (hierarchical atlases)                        |
-| **Multiple comparisons**        | `mincFDR`, `mincTFCE`, `mincRandomize`                                        |
-| **I/O**                         | `mincGetVolume`, `mincWriteVolume`, `mincArray`                               |
-| **Visualization**               | `mincPlotSliceSeries`, `mincTriplanarSlicePlot` (2D), `rgl` (3D), `hanatView` |
-| **Parallel execution**          | `pMincApply`, `qMincApply`, `mincLm(parallel = ...)`                          |
+| Capability | Key functions |
+|----|----|
+| **Voxel-wise linear models** | `mincLm`, `mincAnova`, `mincTtest`, `mincWilcoxon` |
+| **Correlations & summaries** | `mincCorrelation`, `mincMean`, `mincSummary` |
+| **Mixed-effects models** | `mincLmer`, `mincLmerEstimateDF`, `mincLogLikRatio` |
+| **Surface / vertex statistics** | `vertexLm`, `vertexLmer`, `vertexTFCE` |
+| **ROI / anatomy analysis** | `anatLm`, `anatLmer`, `hanatLm` (hierarchical atlases) |
+| **Multiple comparisons** | `mincFDR`, `mincTFCE`, `mincRandomize` |
+| **I/O** | `mincGetVolume`, `mincWriteVolume`, `mincArray` |
+| **Visualization** | `mincPlotSliceSeries`, `mincTriplanarSlicePlot` (2D), `rgl` (3D), `hanatView` |
+| **Parallel execution** | `pMincApply`, `qMincApply`, `mincLm(parallel = ...)` |
 
 ## Installation
 
