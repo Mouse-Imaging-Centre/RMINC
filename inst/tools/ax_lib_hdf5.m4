@@ -199,9 +199,14 @@ HDF5 support is being disabled (equivalent to --with-hdf5=no).
         dnl (2) Look for "H5_NAME:" tags
         dnl (3) Look for "AM_NAME:" tags
         dnl
+        dnl HDF5 2.x is built with CMake, and h5cc -showconfig gives
+        dnl "Extra libraries" as a semicolon list (-lm;-ldl;-lz).
+        dnl Change the semicolons to spaces before the flags are split.
+        dnl
         HDF5_tmp_flags=$(eval $H5CC -showconfig \
             | $GREP 'FLAGS\|Extra libraries:' \
-            | $AWK -F: '{printf("%s "), $[]2}' )
+            | $AWK -F: '{printf("%s "), $[]2}' \
+            | tr ';' ' ' )
 
         dnl Find the installation directory and append include/
         HDF5_tmp_inst=$(eval $H5CC -showconfig \
