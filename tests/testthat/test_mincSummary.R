@@ -47,6 +47,48 @@ test_that("mincSummary functions", {
 })
 
 
+test_that("summary functions count groups from the largest group code (#241)", {
+  # Group codes 2, 1, 1, ..., 0, 0. The old C code counted only 2 groups
+  # for this order and wrote past the end of its buffers.
+  n <- nrow(gf)
+  n_b <- floor((n - 1) / 2)
+  g3 <- factor(c("c", rep("b", n_b), rep("a", n - 1 - n_b)))
+
+  mm3 <- mincMean(gf$jacobians_0.2, g3)
+  ms3 <- mincSum(gf$jacobians_0.2, g3)
+  mv3 <- mincVar(gf$jacobians_0.2, g3)
+
+  expect_equal(dim(mm3)[2], 3)
+  expect_equal(colnames(mm3), c("a", "b", "c"))
+  expect_equal(unname(mm3[1, ]), unname(c(tapply(gf$vox, g3, mean))))
+  expect_equal(unname(ms3[1, ]), unname(c(tapply(gf$vox, g3, sum))))
+  # group "c" has one file, so only check the variance of "a" and "b"
+  expect_equal(unname(mv3[1, 1:2]), unname(c(tapply(gf$vox, g3, var))[1:2]))
+})
+
+test_that("mincSummary checks the grouping", {
+  n <- nrow(gf)
+  # character grouping is converted to a factor
+  chr <- rep(c("x", "y"), length.out = n)
+  mchr <- mincSummary(gf$jacobians_0.2, chr, method = "mean")
+  expect_equal(colnames(mchr), c("x", "y"))
+  expect_equal(unname(mchr[1, ]), unname(c(tapply(gf$vox, chr, mean))))
+
+  # unused levels are dropped, so colnames match the columns
+  unused <- factor(chr, levels = c("x", "y", "z"))
+  expect_equal(colnames(mincSummary(gf$jacobians_0.2, unused)), c("x", "y"))
+
+  expect_error(
+    mincSummary(gf$jacobians_0.2, replace(chr, 1, NA)),
+    "must not contain NA"
+  )
+  expect_error(
+    mincSummary(gf$jacobians_0.2, chr[-1]),
+    "one value for each file"
+  )
+})
+
+
 mtt <- verboseRun("mincTtest(gf$jacobians_0.2,gf$Strain)", getOption("verbose"))
 ttt <- t.test(vox ~ Strain, data = gf)
 

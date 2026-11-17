@@ -881,17 +881,18 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
 
     xn_groups[0] = 0;
 
-    /* determine the number of groups. Here we assume that the input
-       will contain integers corresponding to the group number, so we need
-       but take the max of that to get the number of groups. Note that we
-       have to add 1 to the number of groups, as the first group will have 
-       a value of 0 */
+    /* determine the number of groups. The input contains integers
+       0, 1, 2, ... that give the group of each file. The number of
+       groups is the largest group value + 1, as the first group has a
+       value of 0. Do not count up by one for each larger value: with
+       groupings such as (2, 0, 1) that gives too few groups, and the
+       summary functions then write past the end of their buffers. The
+       R code makes sure that all values are non-negative integers. */
     for(i=0; i < LENGTH(filenames); i++) {
-      if (groupings[i] > xn_groups[0]) {
-	xn_groups[0]++;
+      if (groupings[i] + 1 > xn_groups[0]) {
+	xn_groups[0] = groupings[i] + 1;
       }
     }
-    xn_groups[0]++;
 
     Rprintf("N GROUPS: %f\n", xn_groups[0]);
     PROTECT(t_sexp = allocVector(REALSXP, xn_groups[0]));

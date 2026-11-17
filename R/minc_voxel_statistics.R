@@ -43,6 +43,17 @@ mincSummary <- function(
 
   if (is.null(grouping)) {
     grouping <- rep(1, length(filenames))
+  } else if (method %in% c("mean", "sum", "var")) {
+    # The C code uses the factor codes (0, 1, 2, ...) as column indices.
+    # Make sure that they are valid, and that there is one column for
+    # each level, so that colnames() below matches the result.
+    if (length(grouping) != length(filenames)) {
+      stop("grouping must have one value for each file")
+    }
+    grouping <- droplevels(as.factor(grouping))
+    if (anyNA(grouping)) {
+      stop("grouping must not contain NA values")
+    }
   }
 
   if (is.null(maskval)) {
