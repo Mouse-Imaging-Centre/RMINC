@@ -65,6 +65,16 @@ jobs:
           sudo tlmgr update --self
           sudo tlmgr install inconsolata helvetic psnfss
 
+      # R-devel on macOS has no CRAN binary packages yet, so packages such
+      # as data.table are built from source. They need static libraries
+      # from the CRAN macOS recipes (here gettext for libintl.h) in
+      # /opt/R/<arch>, where the CRAN build of R looks for them.
+      - name: Install CRAN macOS libraries for source builds (R-devel)
+        if: runner.os == 'macOS' && matrix.r-version == 'devel'
+        run: |
+          sudo SILENT_INSTALL_R=1 Rscript -e \
+            'source("https://mac.R-project.org/bin/install.R"); install.libs("gettext")'
+
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::devtools
