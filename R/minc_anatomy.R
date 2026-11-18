@@ -151,7 +151,7 @@ anatRenameRows <- function(anat, defs = getOption("RMINC_LABEL_DEFINITIONS")) {
 #' Specified as a two element vector, with the first element corresponding to
 #' the type of parallelization, and the second to the number
 #' of processors to use. For local running set the first element to "local" or "snowfall"
-#' for back-compatibility, anything else will be run with batchtools see \link{pMincApply}
+#' for back-compatibility, a batchtools backend name such as "batchtools", "sge", "pbs" or "slurm" will be run with batchtools (see \link{pMincApply}). Any other name is an error
 #' Leaving this argument NULL runs sequentially.
 #' @param conf_file A batchtools configuration file defaulting to \code{getOption("RMINC_BATCH_CONF")}
 
@@ -243,6 +243,7 @@ anatGetAll <-
       out <-
         reduce_results(list(compute_summary(list(filenames, atlas))))
     } else {
+      run_local <- parallel_is_local(parallel)
       n_groups <- as.numeric(parallel[2])
 
       if (length(atlas) > 1) {
@@ -257,7 +258,7 @@ anatGetAll <-
 
       groups <- map2(file_groups, atlas_groups, list)
       # a vector with two elements: the methods followed by the # of workers
-      if (parallel[1] %in% c("local", "snowfall")) {
+      if (run_local) {
         out <-
           failing_mclapply(
             groups,
@@ -1046,6 +1047,13 @@ anatApply <- function(vols, grouping = NULL, method = mean, ...) {
 #' }
 #' @export
 anatLm <- function(formula, data, anat, subset = NULL, weights = NULL) {
+  if (length(formula) != 2) {
+    stop(
+      "`formula` must be one-sided, for example `~ Sex`. The left side is ",
+      "the anatomy given in `anat`."
+    )
+  }
+
   #INITIALIZATION
   matrixFound = FALSE
   mmatrix = matrix()
@@ -1114,9 +1122,12 @@ anatLm <- function(formula, data, anat, subset = NULL, weights = NULL) {
 
   if (matrixFound) {
     stop(
-      "A term in your model is a matrix, this use of `anatLm` is deprecated, ",
-      "Please merge the two anatomy matrices using rowbind or similar and use a group ",
-      "add a group indicator to your `data.frame`"
+      "The term `", as.character(matrixName), "` in your model is a matrix. ",
+      "Matrix terms are no longer supported by `anatLm`. ",
+      "To compare two sets of anatomy, combine the matrices with `rbind()`, ",
+      "add a group column to your `data.frame` and use that column in the ",
+      "formula. If the term was made with `scale()`, which returns a ",
+      "one-column matrix, use `as.numeric(scale(x))` instead."
     )
   }
 

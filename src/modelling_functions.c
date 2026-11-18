@@ -980,7 +980,9 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
     number_of_protects += 1;
   }
   xoutput = REAL(output);
-  for(i=0; i < (sizes[0] * sizes[1] * sizes[2]); ++i) xoutput[i] = 0;
+  /* set every column to zero, so that masked voxels do not keep
+     uninitialised values */
+  for(R_xlen_t k=0; k < XLENGTH(output); ++k) xoutput[k] = 0;
     
   //PROTECT(R_fcall = lang2(fn, R_NilValue));
 

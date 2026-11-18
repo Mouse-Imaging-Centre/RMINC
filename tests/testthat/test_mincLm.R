@@ -286,3 +286,69 @@ test_that("mincRandomize works with one column, by name or index (#318)", {
     "Unknown column"
   )
 })
+
+test_that("mincLm accepts a mask as voxel values (#258)", {
+  like <- as.character(gftest$voxel_left_file[1])
+  n_vox <- prod(minc.dimensions.sizes(like))
+  mask_vals <- rep(c(0, 1), length.out = n_vox)
+  mask_file <- tempfile(fileext = ".mnc")
+  on.exit(unlink(mask_file))
+  verboseRun(
+    mincWriteVolume(mask_vals, mask_file, like.filename = like, clobber = TRUE)
+  )
+
+  verboseRun(no_mask <- mincLm(voxel_left_file ~ Sex, gftest))
+  verboseRun(from_file <- mincLm(voxel_left_file ~ Sex, gftest, mask = mask_file))
+  verboseRun(from_vec <- mincLm(voxel_left_file ~ Sex, gftest, mask = mask_vals))
+  verboseRun(
+    from_vol <- mincLm(
+      voxel_left_file ~ Sex,
+      gftest,
+      mask = mincGetVolume(mask_file)
+    )
+  )
+  verboseRun(
+    from_par <- mincLm(
+      voxel_left_file ~ Sex,
+      gftest,
+      mask = mask_vals,
+      parallel = c("local", 2)
+    )
+  )
+
+  expect_equal(unclass(from_vec), unclass(from_file), check.attributes = FALSE)
+  expect_equal(unclass(from_vol), unclass(from_file), check.attributes = FALSE)
+  expect_equal(
+    unclass(from_par)[mask_vals > .5, ],
+    unclass(from_file)[mask_vals > .5, ],
+    check.attributes = FALSE
+  )
+  expect_equal(
+    unclass(from_vec)[mask_vals > .5, ],
+    unclass(no_mask)[mask_vals > .5, ],
+    check.attributes = FALSE
+  )
+
+  # every column is zero outside the mask, not uninitialised memory
+  expect_true(all(unclass(from_file)[mask_vals < .5, ] == 0))
+  expect_true(all(unclass(from_vec)[mask_vals < .5, ] == 0))
+
+  expect_error(
+    mincLm(voxel_left_file ~ Sex, gftest, mask = mask_vals[-1]),
+    "voxels"
+  )
+})
+
+test_that("an unknown parallel backend is an error (#215)", {
+  expect_error(
+    mincLm(voxel_left_file ~ Sex, gftest, parallel = c("parallel", 2)),
+    "Unknown parallel backend \"parallel\""
+  )
+
+  expect_true(RMINC:::parallel_is_local(c("local", 2)))
+  expect_true(RMINC:::parallel_is_local(c("snowfall", 2)))
+  expect_false(RMINC:::parallel_is_local(c("sge", 2)))
+  expect_false(RMINC:::parallel_is_local(c("batchtools", 2)))
+  expect_error(RMINC:::parallel_is_local(c("local", 0)), "positive whole")
+  expect_error(RMINC:::parallel_is_local("local"), "two element")
+})

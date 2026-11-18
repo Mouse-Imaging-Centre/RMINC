@@ -155,3 +155,19 @@ test_that("Test that passing a matrix on the RHS fails", {
 
   expect_error(anatLm(~x, data = d, anat = as.matrix(d$y)), "matrix")
 })
+
+test_that("anatLm rejects a two-sided formula (#269)", {
+  expect_error(
+    anatLm(lobeThickness ~ Sex, gf, gf$lobeThickness),
+    "must be one-sided"
+  )
+})
+
+test_that("anatLm explains how to replace a matrix term (#295)", {
+  gf2 <- gf
+  gf2$age_scaled <- scale(gf2$Age)
+  expect_error(
+    anatLm(~age_scaled, gf2, gf2$lobeThickness),
+    "age_scaled.*rbind\\(\\).*as\\.numeric\\(scale\\(x\\)\\)"
+  )
+})

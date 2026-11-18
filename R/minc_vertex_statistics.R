@@ -127,10 +127,11 @@ matrixApply <- function(
   if (is.null(parallel)) {
     results <- apply_fun(mat)
   } else {
+    run_local <- parallel_is_local(parallel)
     n_groups <- as.numeric(parallel[2])
     groups <- split(seq_len(nrow(mat)), groupingVector(nrow(mat), n_groups))
 
-    if (parallel[1] == "local") {
+    if (run_local) {
       results <-
         failing_mclapply(
           groups,
@@ -190,8 +191,9 @@ matrixApply <- function(
 #' @param mask A vector of filename indicating a vertex mask (\code{fun} is applied to all vertices
 #' where mask is greater than .5)
 #' @param parallel A two component vector indicating how to parallelize the computation. If the
-#' first element is "local" the computation will be run via the parallel package, otherwise it will
-#' be computed using batchtools, see \link{pMincApply} for details. The element should be numeric
+#' first element is "local" the computation will be run via the parallel package. If it is a batchtools
+#' backend name such as "batchtools", "sge", "pbs" or "slurm" it will be computed using batchtools,
+#' see \link{pMincApply} for details. Any other name is an error. The element should be numeric
 #' indicating the number of jobs to split the computation into.
 #' @param collate A function to reduce the (potentially masked) list of results into a nice
 #' structure. Defaults to \link{simplify_masked}
