@@ -89,7 +89,7 @@ vertexEffectSize <- function(buffer, predictors = NULL) {
       updatedAttrs$dimnames[[2]] <-
         updatedAttrs$dimnames[[2]][-indicesToRemove]
 
-      buffer <- buffer[, -indicesToRemove]
+      buffer <- buffer[, -indicesToRemove, drop = FALSE]
       buffer <- setMincAttributes(buffer, updatedAttrs)
     }
   }

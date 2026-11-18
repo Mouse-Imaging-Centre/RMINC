@@ -108,3 +108,41 @@ test_that("makeMICeDefsHierachical names ABI names that are not in the JSON (#30
     "not in the ABI hierarchy.*\"Cerebelum\""
   )
 })
+
+test_that("hanatLm and hanatFDR store one vector of results in each node", {
+  skip_if_not_installed("data.tree")
+  skip_if_not_installed("rjson")
+
+  abijson <- tempfile(fileext = ".json")
+  defscsv <- tempfile(fileext = ".csv")
+  on.exit(unlink(c(abijson, defscsv)))
+  make_abi_json(abijson)
+  make_defs_csv(defscsv)
+  hdefs <- makeMICeDefsHierachical(defscsv, abijson)
+
+  set.seed(2)
+  gfh <- data.frame(IV = factor(rep(c("a", "b"), each = 10)))
+  vols <- cbind(
+    rnorm(20, 10) + (gfh$IV == "b"),
+    rnorm(20, 10),
+    rnorm(20, 20) - (gfh$IV == "b")
+  )
+  attr(vols, "anatIDs") <- c(1, 2, 3)
+  hvols <- addVolumesToHierarchy(hdefs, vols)
+
+  verboseRun(hlm <- hanatLm(~IV, gfh, hvols))
+  cortex <- data.tree::FindNode(hlm, "Cortex")
+  expect_null(dim(cortex$model))
+  expect_true("tvalue-IVb" %in% names(cortex$model))
+  verboseRun(
+    expected <- anatLm(~IV, gfh, matrix(cortex$volumes, ncol = 1))
+  )
+  expect_equal(
+    unname(cortex$model[["tvalue-IVb"]]),
+    unname(unclass(expected)[1, "tvalue-IVb"])
+  )
+
+  verboseRun(hq <- hanatFDR(hlm))
+  expect_null(dim(data.tree::FindNode(hq, "Cortex")$aFDR))
+  expect_false(is.null(attr(hq, "thresholds")))
+})

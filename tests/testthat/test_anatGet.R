@@ -532,3 +532,30 @@ test_that("Test anatToVolume works", {
     envir = test_env
   )
 })
+
+test_that("anatCreateVolume returns a volume and writes a file only on request (#266)", {
+  evalq(
+    {
+      seg <- mincGetVolume(segmentation)
+      mlm <- anatLm(~a, data.frame(a = new_jacobians[, 1]), new_jacobians)
+      ref <- anatToVolume(mlm, seg, 1, defs = labels)
+
+      vol <- suppressWarnings(anatCreateVolume(mlm, column = 1))
+      expect_equal(length(dim(vol)), 3)
+      expect_equal(dim(vol), dim(mincArray(seg)))
+      expect_equal(as.numeric(vol), as.numeric(ref))
+
+      out_file <- tempfile(fileext = ".mnc")
+      on.exit(unlink(out_file))
+      written <- suppressWarnings(anatCreateVolume(mlm, out_file, column = 1))
+      expect_true(file.exists(out_file))
+      expect_equal(as.numeric(written), as.numeric(vol))
+      expect_equal(
+        as.numeric(mincGetVolume(out_file)),
+        as.numeric(vol),
+        tolerance = 1e-5
+      )
+    },
+    envir = test_env
+  )
+})

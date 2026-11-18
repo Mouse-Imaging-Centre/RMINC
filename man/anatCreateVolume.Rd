@@ -4,17 +4,20 @@
 \alias{anatCreateVolume}
 \title{Create a Statistic Volume}
 \usage{
-anatCreateVolume(anat, filename, column = 1)
+anatCreateVolume(anat, filename = NULL, column = 1)
 }
 \arguments{
 \item{anat}{A minc volume object with a \code{labels} attribute}
 
-\item{filename}{the filename for the new minc volume}
+\item{filename}{the filename for the new minc volume. If \code{NULL} (the
+default), no file is written.}
 
 \item{column}{which column of the \link{anatLm} results to use}
 }
 \value{
-Invisibly returns the created volume
+The created volume as a \link{mincArray}. It is returned invisibly
+  when a file is written. Voxels with labels that are not in the label
+  definitions are 0.
 }
 \description{
 Convert an anatomy volume into a statistic volume

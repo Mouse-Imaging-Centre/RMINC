@@ -141,7 +141,7 @@ modelToTree <- function(modelled, modelTree) {
       nn <- gsub('-', '.', n) # the $ accessor does not play nicely with dashes
       nodeList[[i]][[nn]] <- modelled[i, n]
     }
-    nodeList[[i]]$model <- modelled[i, ]
+    nodeList[[i]]$model <- unclass(modelled)[i, ]
   }
   # copy attributes
   modelTree <- copyExtraAttributes(modelled, modelTree)
