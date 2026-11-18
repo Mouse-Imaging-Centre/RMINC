@@ -522,7 +522,7 @@ print.anatMatrix <- function(
     ncol(x),
     "columns\nprint more by supplying n and width to the print function\n"
   )
-  sub_x <- x[seq_len(n), seq_len(width)]
+  sub_x <- x[seq_len(n), seq_len(width), drop = FALSE]
 
   print(sub_x)
   invisible(x)
@@ -546,7 +546,7 @@ print.anatModel <- function(
     ncol(x),
     "columns\nprint more by supplying n and width to the print function\n"
   )
-  sub_x <- x[seq_len(n), seq_len(width)]
+  sub_x <- x[seq_len(n), seq_len(width), drop = FALSE]
   attributes(sub_x) <- attributes(sub_x) %>%
     {
       .[names(.) %in% c("dim", "dimnames")]
@@ -573,7 +573,12 @@ print.anatModel <- function(
   if (n_args == 2) {
     x <- x[i]
   } else {
-    x <- x[i, j, drop = drop]
+    # Drop to a vector only when one column is selected. Selecting one row
+    # (for example a model of one structure) keeps the anatModel (#187, #282).
+    x <- x[i, j, drop = FALSE]
+    if (drop && ncol(x) == 1) {
+      x <- drop(x)
+    }
   }
 
   if (!is.null(dim(x))) {
@@ -640,6 +645,48 @@ rbind.anatModel <- function(..., deparse.level = 1) {
 
   bound_models
 }
+
+#' Convert an anatModel to a data.frame
+#'
+#' @param x An \code{anatModel} object, for example from \link{anatLm} or
+#'   \link{anatAnova}
+#' @param row.names,optional Passed to \link{as.data.frame}
+#' @param structure_column If a string, the structure names (the row names of
+#'   \code{x}) are also put in a column with this name, as the first column.
+#'   This keeps the names when you use tools that drop row names, for example
+#'   \code{dplyr::filter}. The default \code{NULL} adds no column.
+#' @param ... additional parameters for methods
+#' @return A data.frame with one row for each structure
+#' @examples
+#' \dontrun{
+#' fits <- anatLm(~ Sex, gf, vols)
+#' as.data.frame(fits, structure_column = "Structure") %>%
+#'   dplyr::filter(`tvalue-SexM` > 3)
+#' }
+#' @export
+as.data.frame.anatModel <-
+  function(x, row.names = NULL, optional = FALSE, ..., structure_column = NULL) {
+    out <- as.data.frame(
+      unclass(x)[, , drop = FALSE],
+      row.names = row.names,
+      optional = optional,
+      ...
+    )
+    if (!is.null(structure_column)) {
+      if (!is.character(structure_column) || length(structure_column) != 1) {
+        stop("`structure_column` must be NULL or one string")
+      }
+      if (is.null(rownames(x))) {
+        stop("`x` has no structure names (row names)")
+      }
+      out <- cbind(
+        setNames(data.frame(rownames(x), stringsAsFactors = FALSE), structure_column),
+        out
+      )
+      rownames(out) <- rownames(x)
+    }
+    out
+  }
 
 #' Create Anatomy data.frame
 #'
@@ -1513,30 +1560,26 @@ anatAnova <- function(formula, data = NULL, anat = NULL, subset = NULL) {
 #' with the results of an \link{anatLm}
 #'
 #' @param anat A minc volume object with a \code{labels} attribute
-#' @param filename the filename for the new minc volume
+#' @param filename the filename for the new minc volume. If \code{NULL} (the
+#'   default), no file is written.
 #' @param column which column of the \link{anatLm} results to use
-#' @return Invisibly returns the created volume
+#' @return The created volume as a \link{mincArray}. It is returned invisibly
+#'   when a file is written. Voxels with labels that are not in the label
+#'   definitions are 0.
 #' @export
-anatCreateVolume <- function(anat, filename, column = 1) {
+anatCreateVolume <- function(anat, filename = NULL, column = 1) {
   warning("This function is deprecated, please use anatToVolume instead.")
-  labels <- read.csv(attr(anat, "definitions"))
-  volume <- mincGetVolume(attr(anat, "atlas"))
-  newvolume <- volume
-  for (i in 1:nrow(labels)) {
-    newvolume[
-      volume < labels$right.label[i] + 0.5 &
-        volume > labels$right.label[i] - 0.5
-    ] <-
-      anat[labels$Structure[i], column]
-    newvolume[
-      volume < labels$left.label[i] + 0.5 &
-        volume > labels$left.label[i] - 0.5
-    ] <-
-      anat[labels$Structure[i], column]
-  }
-  mincWriteVolume(newvolume, filename, attr(anat, "atlas"))
+  atlas <- attr(anat, "atlas")
+  # anatToVolume handles bilateral and left/right structure names (#266)
+  values <- anatToVolume(anat, mincGetVolume(atlas), column)
+  values <- as.numeric(values)
 
-  return(invisible(newvolume))
+  if (!is.null(filename)) {
+    mincWriteVolume.default(values, filename, atlas)
+  }
+
+  newvolume <- mincArray(structure(values, likeVolume = atlas))
+  if (is.null(filename)) newvolume else invisible(newvolume)
 }
 
 #' Converts a column from an anatLm model into a volume for viewing or saving
