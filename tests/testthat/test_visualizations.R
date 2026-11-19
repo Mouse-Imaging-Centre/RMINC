@@ -185,7 +185,8 @@ test_that("slices are drawn with the voxel spacing (#216)", {
 
   # no file, or the option is off: square voxels
   expect_equal(RMINC:::getSlice(uniformData, 5, 2)$asp, 1)
-  withr::local_options(RMINC_use_voxel_spacing = FALSE)
+  old_options <- options(RMINC_use_voxel_spacing = FALSE)
+  on.exit(options(old_options), add = TRUE)
   expect_equal(RMINC:::getSlice(vol, 5, 2)$asp, 1)
 })
 
@@ -212,7 +213,8 @@ test_that("slice ranges outside the volume are handled (#220)", {
 test_that("mesh colours and opacity are given per vertex (#274)", {
   # set before rgl is loaded (skip_if_not_installed loads it), so that rgl
   # does not try to open an X11 display
-  withr::local_options(rgl.useNULL = TRUE)
+  old_options <- options(rgl.useNULL = TRUE)
+  on.exit(options(old_options), add = TRUE)
   skip_if_not_installed("rgl")
   # two triangles that share the edge from vertex 2 to vertex 3
   bic <- list(
