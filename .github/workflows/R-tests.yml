@@ -62,7 +62,7 @@ jobs:
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install hdf5 cmake autoconf automake libtool tidy-html5
+          brew install hdf5 cmake autoconf automake libtool tidy-html5 pandoc
           brew install --cask basictex
           echo "/Library/TeX/texbin" >> $GITHUB_PATH
           eval "$(/usr/libexec/path_helper)"

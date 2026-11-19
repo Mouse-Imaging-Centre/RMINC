@@ -11,10 +11,9 @@ civet.vertexTable(vertex_files)
 produced by \link{civet.vertexFilenames}}
 }
 \value{
-A 6-element list of matrices:
-\itemize{
-\item{}
-}
+A named list of matrices, one for each measure (each column of
+\code{vertex_files} other than \code{ids}). Each matrix has one row for
+each vertex and one column for each subject, named by \code{ids}.
 }
 \description{
 Read in the vertex data results of a CIVET run
