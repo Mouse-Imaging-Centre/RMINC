@@ -194,6 +194,8 @@ test_that("slice ranges outside the volume are handled (#220)", {
   expect_equal(RMINC:::clampSliceRange(c(55, 280), 193), c(55, 193))
   expect_equal(RMINC:::clampSliceRange(c(0, 10), 15), c(1, 10))
   expect_equal(RMINC:::clampSliceRange(c(12, 3), 15), c(3, 12))
+  # all of the range is outside the volume: 20% to 80% of the slices
+  expect_equal(RMINC:::clampSliceRange(c(55, 280), 50), c(10, 40))
 
   pdf(NULL)
   on.exit(dev.off(), add = TRUE)
