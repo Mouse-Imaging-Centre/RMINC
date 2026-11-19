@@ -102,3 +102,10 @@ launch_shinyRMINC <- function(
   cat("Launching shiny\n")
   shiny::runApp(system.file("shinyRMINC/", package = "RMINC"))
 }
+
+# Keep a slice range from the shiny slider inside a volume with n_slices
+# slices along the displayed dimension (#220)
+clampSliceRange <- function(slice_range, n_slices) {
+  slice_range <- round(as.numeric(slice_range))
+  sort(pmin(pmax(slice_range, 1), n_slices))
+}

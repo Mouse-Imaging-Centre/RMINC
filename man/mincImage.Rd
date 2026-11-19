@@ -53,6 +53,12 @@ the following command:
 
 On certain systems the slices are plotted with a reflected y-axis. To fix this
 configure \code{options(RMINC_flip_image = TRUE)}
+
+Voxels are drawn with the aspect ratio of the voxel separations in the
+file named by the \code{likeVolume} (or \code{filename}) attribute of the
+volume, so that non-isotropic volumes are not stretched. If the volume has
+no such file, voxels are square. To always draw square voxels, set
+\code{options(RMINC_use_voxel_spacing = FALSE)}.
 }
 \examples{
 \dontrun{
