@@ -210,8 +210,10 @@ test_that("slice ranges outside the volume are handled (#220)", {
 })
 
 test_that("mesh colours and opacity are given per vertex (#274)", {
-  skip_if_not_installed("rgl")
+  # set before rgl is loaded (skip_if_not_installed loads it), so that rgl
+  # does not try to open an X11 display
   withr::local_options(rgl.useNULL = TRUE)
+  skip_if_not_installed("rgl")
   # two triangles that share the edge from vertex 2 to vertex 3
   bic <- list(
     vertex_matrix = matrix(c(0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0), nrow = 3),
