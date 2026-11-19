@@ -1293,7 +1293,7 @@ mincRayTraceStats <- function(
     i <- i + 1
   }
 
-  if (class(mask) != "NULL") {
+  if (!is.null(mask)) {
     path.to.mask = "init"
     if (class(mask)[1] == "character") {
       path.to.mask = mask

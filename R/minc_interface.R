@@ -127,8 +127,8 @@ simplify_masked <- function(result_list) {
 #' Internally it calls \link{simplify_masked} and then coerces the result
 #' to the appropriate volumetric class (e.g \code{mincMultiDim})
 #' @param result_list The mincApply results to collate.
-#' @return an object of class \code{mincSingleDim}, code{mincMultiDim},
-#' or code{mincList} depending on the dimensions of elements of the input
+#' @return an object of class \code{mincSingleDim}, \code{mincMultiDim},
+#' or \code{mincList} depending on the dimensions of elements of the input
 #' list, see \link{simplify_masked} for details.
 #'@export
 simplify2minc <- function(result_list) {
@@ -1534,7 +1534,7 @@ runRMINCTestbed <- function(
 #'
 #' Download the example data needed to run our examples in your /tmp directory
 #' The data can be downloaded manually from
-#' \url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
+#' \url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/main.tar.gz}
 #' @param dataPath The directory to download and unpack the test data
 #' (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
 #' can in turn be set with the environment variable RMINC_DATA_DIR. If unset a temporary directory

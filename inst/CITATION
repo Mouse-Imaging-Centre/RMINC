@@ -9,5 +9,5 @@ bibentry(bibtype = "Manual",
                     person("Daniel", "Cassel", role = "aut")),
 		     year = year,
 		     note = note,
-		     url = "http://mouse-imaging-centre.github.io/RMINC")
+		     url = "https://mouse-imaging-centre.github.io/RMINC/")
 

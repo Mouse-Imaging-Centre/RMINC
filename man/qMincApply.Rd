@@ -25,7 +25,8 @@ qMincApply(
   cleanup = TRUE,
   clobber = FALSE,
   collate = simplify2minc,
-  conf_file = getOption("RMINC_BATCH_CONF")
+  conf_file = getOption("RMINC_BATCH_CONF"),
+  ignore_incompletes = FALSE
 )
 
 qMincRegistry(
@@ -109,10 +110,10 @@ to true}
 
 \item{conf_file}{A batchtools config file, defaults to \code{option("RMINC_BATCH_CONF")}}
 
-\item{registry}{a pre-existing job registry}
-
 \item{ignore_incompletes}{Whether to reduce the results with \code{qMincReduce}
 even if all jobs are not complete.}
+
+\item{registry}{a pre-existing job registry}
 }
 \value{
 \itemize{

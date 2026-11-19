@@ -21,5 +21,5 @@ and \code{wget}}
 \description{
 Download the example data needed to run our examples in your /tmp directory
 The data can be downloaded manually from
-\url{https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz}
+\url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/main.tar.gz}
 }

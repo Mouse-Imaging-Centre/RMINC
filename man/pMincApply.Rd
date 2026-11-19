@@ -25,7 +25,9 @@ pMincApply(
   collate = simplify2minc,
   conf_file = getOption("RMINC_BATCH_CONF"),
   registry_name = new_file("pMincApply_registry"),
-  registry_dir = getwd()
+  registry_dir = getwd(),
+  wait = TRUE,
+  ignore_incompletes = FALSE
 )
 }
 \arguments{
@@ -89,6 +91,12 @@ the pMincApply. Defaults to \link{simplify2minc}.}
 \item{registry_name}{a name for the registry}
 
 \item{registry_dir}{where batchtools should create the registry}
+
+\item{wait}{Whether to wait for your results or return a registry object
+to be checked on later}
+
+\item{ignore_incompletes}{Whether to reduce the results with \code{qMincReduce}
+even if all jobs are not complete.}
 }
 \value{
 The results of applying \code{fun} to each voxel accross \code{filenames}

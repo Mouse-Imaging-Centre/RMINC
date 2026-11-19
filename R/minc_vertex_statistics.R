@@ -316,7 +316,7 @@ vertexAtlasApply <- function(
 #' @param data a data.frame containing variables in formula
 #' @param subset rows to be used, by default all are used
 #' @return Returns an array with the F-statistic for each model specified by formula with the following attributes:
-#' \itemize{
+#' \describe{
 #' \item{model}{ design matrix}
 #' \item{filenames}{ minc file names input}
 #' \item{dimensions}{ dimensions of the statistics matrix}
@@ -500,7 +500,7 @@ vertexLm <- function(formula, data, subset = NULL, column = 1) {
 #' approximation is likely correct. Be careful in using this approximation if
 #' using more complicated random effects structures.
 #'
-#' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
+#' @seealso \code{\link[lme4]{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
 #' @export
 vertexLmer <-
   function(

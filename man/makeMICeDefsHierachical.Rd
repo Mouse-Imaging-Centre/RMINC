@@ -12,7 +12,7 @@ makeMICeDefsHierachical(defs, abijson)
 \item{abijson}{The JSON file from the Allen Brain Institute}
 }
 \value{
-a \link{data.tree} object containing the full anatomical hierarchy
+a \link[data.tree]{data.tree} object containing the full anatomical hierarchy
 }
 \description{
 Makes a hierarchical tree using ontogeny from Allen Brain Institute
@@ -20,7 +20,7 @@ Makes a hierarchical tree using ontogeny from Allen Brain Institute
 \details{
 Takes the label definitions from a CSV file (same as the rest of the
   anat family of functions) and places it into a tree (using
-  \link{data.tree}). The CSV file must thus have an extra column giving the
+  \link[data.tree]{data.tree}). The CSV file must thus have an extra column giving the
   corresponding name of each structure in the Allen Institute's nomenclature.
 
   Currently the left and right structures are leaves at the end of the tree,

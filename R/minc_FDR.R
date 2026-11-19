@@ -80,7 +80,7 @@ fdr_qvalues <- function(pvals, method, column = "") {
 #'  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
 #'  postivie False Discovery Rate as found in John Storey's \code{qvalue}
 #'  package. The main interface functions are
-#'  \itemize{
+#'  \describe{
 #'  \item{mincFDR.mincMultiDim}{ The workhorse function, used to compute q-values
 #'  and thresholds for sets of minc volumes}
 #'  \item{mincFDR.logLikRatio}{ Similar to above, but calculates thresholds by parametric
@@ -639,12 +639,11 @@ anatFDR.anatLmer <-
 #'
 #' @param pvals a vector of pvalues
 #' @param qvals a vector of corrected qvalues (such as returend by p.adjust)
-#' @param thresholdFunc a function that returns the threshold given a vector of pvalues
-#' @param p.thresholds the pvalues at which to compute the threshold
-#'
-#' The function should be the quantile function for the distribution being tested. For example,
+#' @param thresholdFunc a function that returns the threshold given a vector of pvalues.
+#' It should be the quantile function for the distribution being tested. For example,
 #' for the chi squared distribution the function would be:
-#' tfunc <- function(x) { qchisq(max(x), df[[i]], lower.tail=FALSE) }
+#' \code{function(x) qchisq(max(x), df[[i]], lower.tail = FALSE)}
+#' @param p.thresholds the pvalues at which to compute the threshold
 mincFDRThresholdVector <- function(
   pvals,
   qvals,

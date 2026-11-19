@@ -253,7 +253,7 @@ hanatLmerEstimateDF <- function(buffer, n = 50) {
 #' @export
 #'
 #' @details Each node in the tree has two new attributes:
-#' \itemize{
+#' \describe{
 #' \item{volumes -}{ The matrix of volumes}
 #' \item{meanVolume -}{ The mean of the volumes of that node}
 #' }
@@ -459,14 +459,14 @@ copyABIinfo <- function(hdefs, abitree) {
 #'
 #' @details Takes the label definitions from a CSV file (same as the rest of the
 #'   anat family of functions) and places it into a tree (using
-#'   \link{data.tree}). The CSV file must thus have an extra column giving the
+#'   \link[data.tree]{data.tree}). The CSV file must thus have an extra column giving the
 #'   corresponding name of each structure in the Allen Institute's nomenclature.
 #'
 #'   Currently the left and right structures are leaves at the end of the tree,
 #'   and so are the first to be combined into the bilateral volumes. It is
 #'   possible that in the future keeping hemispheres separate will be an option.
 #'
-#' @return a \link{data.tree} object containing the full anatomical hierarchy
+#' @return a \link[data.tree]{data.tree} object containing the full anatomical hierarchy
 #' @export
 #'
 #' @examples \dontrun{

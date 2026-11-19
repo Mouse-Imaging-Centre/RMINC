@@ -225,7 +225,7 @@ mincCorrelation <- function(filenames, grouping, mask = NULL, maskval = NULL) {
 #' @param return_indices Whether to return the voxel positions of the results
 #' generally for internal use only.
 #' @param collate A function to (potentially) collapse the result list
-#' examples include link{unlist} and \link{simplify2array}, defaulting
+#' examples include \link{unlist} and \link{simplify2array}, defaulting
 #' to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
 #' \code{mincSingleDim}, or \code{mincList} depending on the result structure.
 #' \cr
@@ -518,7 +518,7 @@ mask_as_file <- function(mask, like_file) {
 #' @details This function computes a sequential ANOVA over a set of files.
 #' @return Returns an array with the F-statistic for each model specified by
 #' formula with the following attributes:
-#' \itemize{
+#' \describe{
 #' \item{model}{ design matrix}
 #' \item{filenames}{ minc file names input}
 #' \item{dimensions}{ dimensions of the statistics matrix}

@@ -20,7 +20,7 @@ paths to the civetFiles, typically generated with \link{civet.getAllFilenames}}
 }
 \value{
 Returns gf augmented with additional columns containing
-\itemize{
+\describe{
 \item{lobeArea40mm:}{ A subjects by region matrix of lobe areas parcellated by atlas region}
 \item{lobeThickness:}{ As above, but for thicknesses}
 \item{lobeVolume:}{ As above, but for volumes}

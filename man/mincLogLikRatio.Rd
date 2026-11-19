@@ -32,7 +32,7 @@ mincWriteVolume(llr, "m2vsm3.mnc", "m3")
 }
 }
 \seealso{
-\code{\link{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
+\code{\link[lme4]{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
 \code{\link{mincFDR}} for using the False Discovery Rate to correct for multiple comparisons,
 and \code{\link{mincWriteVolume}} for outputting the values to MINC files.
 }

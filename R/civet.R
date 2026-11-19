@@ -29,7 +29,7 @@ civet.checkVersion <- function(civetVersion) {
       immediate. = TRUE
     )
   }
-  return
+  invisible(NULL)
 }
 
 
@@ -1536,7 +1536,7 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
 #' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Brain Volume Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
 #' @return Returns gf augmented with additional columns containing
-#' \itemize{
+#' \describe{
 #' \item{lobeArea40mm:}{ A subjects by region matrix of lobe areas parcellated by atlas region}
 #' \item{lobeThickness:}{ As above, but for thicknesses}
 #' \item{lobeVolume:}{ As above, but for volumes}

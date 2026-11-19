@@ -65,5 +65,5 @@ Encoding: UTF-8
 OS_type: unix
 BugReports: https://github.com/Mouse-Imaging-Centre/RMINC/issues
 URL: https://github.com/Mouse-Imaging-Centre/RMINC,
-    https://wiki.mouseimaging.ca/display/MICePub/RMINC
+    https://mouse-imaging-centre.github.io/RMINC/
 RoxygenNote: 7.3.3

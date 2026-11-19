@@ -20,7 +20,7 @@ Takes a tree of anatomical hierarchies and adds volumes from
 }
 \details{
 Each node in the tree has two new attributes:
-\itemize{
+\describe{
 \item{volumes -}{ The matrix of volumes}
 \item{meanVolume -}{ The mean of the volumes of that node}
 }
