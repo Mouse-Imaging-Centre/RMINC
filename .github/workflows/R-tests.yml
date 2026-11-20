@@ -88,6 +88,47 @@ jobs:
           R CMD build .
           R CMD INSTALL RMINC*.tar.gz
 
+      # mincTFCE runs the TFCE program from minc-stuffs. TFCE is a Python
+      # script that uses pyminc, and pyminc loads a shared libminc2 from
+      # $MINC_TOOLKIT/lib. This shared libminc is separate from the static
+      # one that the RMINC configure script builds. pyminc needs
+      # miget_version, which is in the MINC1 part of libminc.
+      - name: Install TFCE from minc-stuffs
+        env:
+          LIBMINC_SHA: e71e590bc98b3fc3f05b2615dd80151a62e2fcc4
+          MINC_STUFFS_SHA: 0bfb834896e91a540774607ca7817ca8fcf41573
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get install -y --no-install-recommends libnetcdf-dev ninja-build
+            prefix_path=/usr
+          else
+            brew install netcdf ninja
+            prefix_path="$(brew --prefix)"
+          fi
+          git clone --quiet https://github.com/BIC-MNI/libminc "$RUNNER_TEMP/libminc-src"
+          git -C "$RUNNER_TEMP/libminc-src" checkout --quiet "$LIBMINC_SHA"
+          git -C "$RUNNER_TEMP/libminc-src" submodule update --quiet --init --recursive
+          cmake -G Ninja -S "$RUNNER_TEMP/libminc-src" -B "$RUNNER_TEMP/libminc-build" \
+            -DCMAKE_INSTALL_PREFIX="$HOME/libminc-shared" \
+            -DCMAKE_PREFIX_PATH="$prefix_path" \
+            -DLIBMINC_BUILD_SHARED_LIBS=ON \
+            -DLIBMINC_MINC1_SUPPORT=ON \
+            -DLIBMINC_BUILD_EZMINC=OFF \
+            -DBUILD_TESTING=OFF
+          cmake --build "$RUNNER_TEMP/libminc-build"
+          cmake --install "$RUNNER_TEMP/libminc-build"
+
+          python3 -m venv "$HOME/minc-stuffs"
+          "$HOME/minc-stuffs/bin/pip" install --quiet numpy scipy pyminc
+          curl -fsSL -o "$HOME/minc-stuffs/bin/TFCE" \
+            "https://raw.githubusercontent.com/Mouse-Imaging-Centre/minc-stuffs/$MINC_STUFFS_SHA/python/TFCE"
+          sed -i.bak "1s|.*|#!$HOME/minc-stuffs/bin/python|" "$HOME/minc-stuffs/bin/TFCE"
+          chmod +x "$HOME/minc-stuffs/bin/TFCE"
+
+          echo "MINC_TOOLKIT=$HOME/libminc-shared" >> "$GITHUB_ENV"
+          echo "$HOME/minc-stuffs/bin" >> "$GITHUB_PATH"
+          MINC_TOOLKIT="$HOME/libminc-shared" "$HOME/minc-stuffs/bin/TFCE" --help > /dev/null
+
       - name: Run R CMD check
         run: |
           R CMD check --as-cran --no-install RMINC*.tar.gz
