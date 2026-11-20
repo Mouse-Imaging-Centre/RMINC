@@ -29,7 +29,7 @@ civet.checkVersion <- function(civetVersion) {
       immediate. = TRUE
     )
   }
-  return
+  invisible(NULL)
 }
 
 
@@ -1239,10 +1239,9 @@ civet.vertexFilenames <-
 #'
 #' @param vertex_files The data frame of vertex file names
 #' produced by \link{civet.vertexFilenames}
-#' @return A 6-element list of matrices:
-#' \itemize{
-#' \item{}
-#' }
+#' @return A named list of matrices, one for each measure (each column of
+#' \code{vertex_files} other than \code{ids}). Each matrix has one row for
+#' each vertex and one column for each subject, named by \code{ids}.
 #' @export
 civet.vertexTable <- function(vertex_files) {
   columns_to_collect <- setdiff(names(vertex_files), "ids")
@@ -1536,7 +1535,7 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' This function will extract the following information from the CIVET pipeline: Lobe Area (40 mm),
 #' Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume, Brain Volume Native RMS RSL tLink (20mm), Native RMS tLink (20 mm)
 #' @return Returns gf augmented with additional columns containing
-#' \itemize{
+#' \describe{
 #' \item{lobeArea40mm:}{ A subjects by region matrix of lobe areas parcellated by atlas region}
 #' \item{lobeThickness:}{ As above, but for thicknesses}
 #' \item{lobeVolume:}{ As above, but for volumes}

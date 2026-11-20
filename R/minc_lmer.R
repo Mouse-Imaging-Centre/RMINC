@@ -60,7 +60,7 @@
 #' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
 #' a small value like 1.
 #'
-#' @seealso \code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
+#' @seealso \code{\link[lme4]{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
 #' @examples
 #' \dontrun{
 #' vs <- mincLmer(filenames ~ age + sex + (age|id), data=gf, mask="mask.mnc")
@@ -645,7 +645,7 @@ mincLmerOptimizeAndExtract <- function(
 #' @return the voxel wise log likelihood test. Will have a number of columns corresponding to the
 #' number of inputs -1. Note that it resorts the inputs from lowest to highest degrees of freedom
 #'
-#' @seealso \code{\link{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
+#' @seealso \code{\link[lme4]{lmer}} and \code{\link{mincLmer}} for description of lmer and mincLmer.
 #' \code{\link{mincFDR}} for using the False Discovery Rate to correct for multiple comparisons,
 #' and \code{\link{mincWriteVolume}} for outputting the values to MINC files.
 #' @examples

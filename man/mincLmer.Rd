@@ -129,5 +129,5 @@ mincFDR(modelCompare)
 }
 }
 \seealso{
-\code{\link{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
+\code{\link[lme4]{lmer}} for description of lmer and lmer formulas; \code{\link{mincLm}}
 }

@@ -17,7 +17,7 @@ vertexAnova(formula, data, subset = NULL, column = 1)
 }
 \value{
 Returns an array with the F-statistic for each model specified by formula with the following attributes:
-\itemize{
+\describe{
 \item{model}{ design matrix}
 \item{filenames}{ minc file names input}
 \item{dimensions}{ dimensions of the statistics matrix}

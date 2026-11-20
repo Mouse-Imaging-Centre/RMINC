@@ -160,7 +160,7 @@ anatRenameRows <- function(anat, defs = getOption("RMINC_LABEL_DEFINITIONS")) {
 #' atlas definitions. In the end it will produce one value per label
 #' in the atlas for each of the input files. How that value is
 #' computed depends on the methods argument:
-#' \itemize{
+#' \describe{
 #'   \item{jacobians -}{ Each file contains log jacobians, and the volume for
 #'   each atlas label is computed by multiplying the jacobian with
 #'   the voxel volume at each voxel.
@@ -848,7 +848,7 @@ anatSummarize <-
 #' atlas definitions. In the end it will produce one value per label
 #' in the atlas for each of the input files. How that value is
 #' computed depends on the methods argument:
-#' \itemize{
+#' \describe{
 #'   \item{jacobians -}{ Each file contains log jacobians, and the volume for
 #'   each atlas label is computed by multiplying the jacobian with
 #'   the voxel volume at each voxel.
@@ -1487,7 +1487,7 @@ anatLmerEstimateDF <- function(model, n = 50, verbose = FALSE) {
 #' @param subset rows to be used, by default all are used
 #' @return Returns an array with the F-statistic for each model specified
 #' by formula with the following attributes
-#' \itemize{
+#' \describe{
 #' \item{model}{ design matrix}
 #' \item{stat-type}{ type of statistic used}
 #' \item{df}{ degrees of freedom of each statistic}

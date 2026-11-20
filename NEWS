@@ -1,5 +1,5 @@
-New in Version 2.0.0.0 (Wilks)
-==============================
+Changes in version 2.0.0.0 (Wilks)
+==================================
 
 Infrastructure and CI:
 - Migrate CI from Travis to GitHub Actions (ubuntu + macOS, R
@@ -52,10 +52,8 @@ Documentation:
 - Add Vladimir Fonov as contributor, update Jason Lerch email
 
 
-New in Version 1.5.*.*
-=======================
-4.0
---
+Changes in version 1.5.4.0
+==========================
 - Migrate CI from Travis to GitHub Actions (ubuntu + macOS, R
   devel/release/oldrel-1/oldrel-2)
 - Add Docker-based test infrastructure with mounted source support
@@ -76,8 +74,8 @@ New in Version 1.5.*.*
 - Export print.mincVoxel S3 method (previously defined but unexported)
 
 
-3.0
---
+Changes in version 1.5.3.0
+==========================
 - Disabled buggy matrix mode of anatLm
 - Add explicit configuration file to civet.readCBRAIN
 - Fixed segfault in minc.separation.sizes
@@ -85,8 +83,8 @@ New in Version 1.5.*.*
 - Improved numerical stability in effect size code
 
 
-2.3
---
+Changes in version 1.5.2.3
+==========================
 - Fixed mincLmer reinit (formula out of scope bug)
 - Improved mac install notes (issue #261)
 - Defaults RMINC_LABEL_DEFINITIONS to null instead of empty string
@@ -104,8 +102,8 @@ New in Version 1.5.*.*
 - Fixed and streamlined the continuous integration (travis) build scripts
 - Fixed all outstanding R CMD check and test issues
 
-2.2
---
+Changes in version 1.5.2.2
+==========================
 - Improvements to vertex code (thanks @vfonov), now can
   read single columns from vertex data files
 - Hedges G effect sizes (thanks @gdevenyi), currently
@@ -113,15 +111,15 @@ New in Version 1.5.*.*
 - Better cortical figure layouting
 - vertexAtlasApply for wrapping a common `tapply` pattern.
 
-2.1
---
+Changes in version 1.5.2.1
+==========================
 - Fix resource passing in mincLmer
 - improve tag file handling
 - allow dataPath passing in testbed
 - convert RMINC github page to pkgdown (sweet)
 
-2.0
---
+Changes in version 1.5.2.0
+==========================
 - Rewrite parallel docs to reflect change to batchtools
 - Add configuration passing for parallel functions
 - Rewrite of anatGetAll for multi-mode. Subject specific
@@ -145,30 +143,28 @@ New in Version 1.5.*.*
   internals. 
 
 
-1.0
---
+Changes in version 1.5.1.0
+==========================
 - Converts parallel backend to batchtools. No more
-NFS file locks on hpf
+  NFS file locks on hpf
 - Improved vertexLmer df estimation robustness
 - Configurable legend height in slice series plots
 - Improved discrete legends in slice series plots
 - mincTFCE preserves likeVolume
 - Variety of miscellaneous bug fixes, see
-issue tracker for details.
+  issue tracker for details.
 
 
-0.0
---
+Changes in version 1.5.0.0
+==========================
 * Adds hierarchical atlas features
 * fixes pivoting bug in lm code
 * Adds weighting option to anatLm/*Lmer
 * Increases dplyr and lme4 version dependencies
 * Adds symmetric colour palettes to 3D plotting
 
-New in Version 1.4.4.*
-=======================
-0
---
+Changes in version 1.4.4.0
+==========================
 * Adds printer for anatModel
 * Adds Model comparison with AIC, BIC, and AICc for lm/lmer models
 * Lm/Lmer models now report their instance-wise log-likelihoods
@@ -187,10 +183,8 @@ New in Version 1.4.4.*
 * Adds vertexFindPeaks
 * Fixes broken column selection in mincFDR
 
-New in Version 1.4.3.*
-======================
-4
---
+Changes in version 1.4.3.4
+==========================
 * Fix banding bug in mincLm parallel with >6 cores.
 * Improve file handle and file checks
 * Add as.data.frame for anatMatrix
@@ -198,25 +192,25 @@ New in Version 1.4.3.*
 * Better error when atlas omitted in anatGetAll
 
 
-3
---
+Changes in version 1.4.3.3
+==========================
 * Fix left|right lateralization bug in anatGetAll
 * Export vertexFDR related functions and update docs.
 * Improve printing for numeric masks
 
-2
---
+Changes in version 1.4.3.2
+==========================
 * AnatGetAll errors on missing files instead of segfaulting
 * Both lmer functions now support exotic formulae (with function calls
   inside terms)
 
-1
----
+Changes in version 1.4.3.1
+==========================
 * Minor fix to anatGetAll when definitions csv contains additional columns
 * anatLmer now sets rownames to the associated structure.
 
-0
----
+Changes in version 1.4.3.0
+==========================
 * Mixed effects for all
   - added vertex and anatLmer variants along with degrees of freedom
     estimation and FDR correction
@@ -258,8 +252,8 @@ New in Version 1.4.3.*
 
 
 
-New in Version 1.4.0.0
-========================
+Changes in version 1.4.0.0
+==========================
 *** Aiming for CRAN
 * Major CRAN compatibility changes
 * Revamped build scripts
@@ -270,8 +264,8 @@ New in Version 1.4.0.0
 * Code Re-organization
 * Numerous bug fixes  
 
-New in Version 1.3.0.0
-=======================
+Changes in version 1.3.0.0
+==========================
 ***RMINC now with more Graphics***
 * mincArray - give your minc volume objects dimensionsality
 * mincImage - view a slice through a minc array
@@ -291,15 +285,15 @@ New in Version 1.3.0.0
 * doc/visualizationTutorial.html - an exploration of the new 2D tools
 * doc/RMINC_rgl.html - a brief overview of the new 3D tools
 
-New in Version 1.2.4.9
-======================
+Changes in version 1.2.4.9
+==========================
 * label definitions for the anat* functions are now set by the following 
   environment variable:
 
   RMINC_LABEL_DEFINITIONS
 
-New in Version 1.2.4.8
-======================
+Changes in version 1.2.4.8
+==========================
 * error checking in mincLm with respect to the mask size and input volume sizes
 * minc volumes are properly closed, so there is no limit in the numeber of 
   minc files that can be opened in a session anymore
@@ -308,43 +302,43 @@ New in Version 1.2.4.8
 * added anatApply analogous to mincApply/vertexApply
 * updated default paths to reflect changes at MICe
 
-New in Version 1.2.4.7
-======================
+Changes in version 1.2.4.7
+==========================
 * fixed 2 bugs in anatGetFile: 1) calls the correct program in the "labels" method, and 
                                2) provides better error message when the wrong method is called
 * some updates to the installation procedure
 
-New in Version 1.2.4.6
-======================
+Changes in version 1.2.4.6
+==========================
 * fixed the repeated use of tmp.txt in anatGetAll. Now, this can be run in parallel
   without causing issues.
 
-New in Version 1.2.4.5
-======================
+Changes in version 1.2.4.5
+==========================
 * added/updated documentation for RMINC functions
 * bug fix in mincLogLikRatio print function
 
-New in Version 1.2.4.4
-======================
+Changes in version 1.2.4.4
+==========================
 * bug fix for mincLmer: the bug fix from 1.2.4.3 was incomplete
 
-New in Version 1.2.4.3
-======================
+Changes in version 1.2.4.3
+==========================
 * bug fix for mincLmer: the indexing into the MINC files from the R vector was incorrect
 
-New in Version 1.2.4.2
-======================
+Changes in version 1.2.4.2
+==========================
 * bug fix in mincTtest. Now the grouping does not need to be passed on as a factor.
   It will convert it to a factor if it's not. Also, it will check that there are 
   only 2 levels in your grouping. Same kind of check is also done in mincPairedTtest
 
-New in Version 1.2.4.1
-======================
+Changes in version 1.2.4.1
+==========================
 * fixes a warning message in version 1.2.4 related to some pMincApply calls
   this was discovered just too late to be added to release 1.2.4
 
-New in Version 1.2.4
-====================
+Changes in version 1.2.4
+========================
 * added mincLmer funcion (based on lme4). This provides an interface 
   to running linear mixed effects models at every voxel. Deprecates mincLme.
 * also added friends of mincLmer: 
@@ -358,11 +352,12 @@ New in Version 1.2.4
 * removed attach() call removing errors/warnings related to improper detach()
 * the RMINC test bed can now be run by: runRMINCTestbed()
 
-Version 1.2.3 was only a "hotfix": exported some forgotten functions
-====================================================================
+Changes in version 1.2.3
+========================
+* Hotfix: exported some forgotten functions
 
-New in Version 1.2.2
-====================
+Changes in version 1.2.2
+========================
 * added functions mincTtest, mincPairedTtest and mincWilcoxon
 * changed pMincApply interface: "cores" has been changed to "workers" to 
   indicate the number of cpus to be used by snowfall, or the number
@@ -374,8 +369,8 @@ Missing information about previous versions... Needs to be added!
 *****************************************************************
 
 
-New in Version 1.0.5
-====================
+Changes in version 1.0.5
+========================
 * changed name of default volume calculation in anatGetFile to be 
   jacobians instead of volume.
 * added labels option for volume calculation. This enables users
@@ -389,8 +384,8 @@ New in Version 1.0.5
   and scripts needed for the anatGetFile 'labels' and 'jacobians'
   options. Both of these are available on github.
 
-New in Version 1.0.4
-====================
+Changes in version 1.0.4
+========================
 
 * added a new 'labels' argument to volume.explodeLabelVolume to permit
   specification of a subset of labels that one wants exploded out as
@@ -400,8 +395,8 @@ New in Version 1.0.4
   issues relating to use of floating point values to represent 
   integers.
 
-New in Version 1.0.3
-====================
+Changes in version 1.0.3
+========================
 
 * added a couple of civet convenience functions to 
   compute tissue volumes.
@@ -410,8 +405,8 @@ New in Version 1.0.3
   is super useful in creating volume estimates in native
   space, given icbm values as input.
 
-New in Version 1.0.2
-====================
+Changes in version 1.0.2
+========================
 
 * added a bunch of civet convenience functions. All functions
   are prefixed with civet.*
@@ -436,8 +431,8 @@ New in Version 1.0.2
   displayed using a gray-scale (really just black and white) 
   colormap.
 
-New in Version 1.0.1
-====================
+Changes in version 1.0.1
+========================
 
 * major interface change: 
 *    o mincIO routines now have a mincIO.* prefix
@@ -446,8 +441,8 @@ New in Version 1.0.1
   with best practices and bio-conductor recommendations
 * lots of Rd documentation updating to conform better to R CMD check
 
-New in Version 1.0.0
-====================
+Changes in version 1.0.0
+========================
 
 * integration of new high-level mincIO classes and functions
 * some documentation and vignette updates
@@ -456,14 +451,14 @@ New in Version 1.0.0
   can be made executable.
 * countless bits and pieces
 
-New in Version 0.5.13
-=====================
+Changes in version 0.5.13
+=========================
 
 * better C api.
 * dealing with anatomical structures (ROI)
 
-New in Version 0.5
-==================
+Changes in version 0.5
+======================
 
 * mincApply can now produce more than one output per voxel.
 * mincFDR can now compute both the False Discovery Rate (default) as

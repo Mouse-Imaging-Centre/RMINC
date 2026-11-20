@@ -74,7 +74,7 @@ This function uses the \code{qvalue} package to compute the
  implementation in \code{p.adjust}, whereas "pFDR" is a version of the
  postivie False Discovery Rate as found in John Storey's \code{qvalue}
  package. The main interface functions are
- \itemize{
+ \describe{
  \item{mincFDR.mincMultiDim}{ The workhorse function, used to compute q-values
  and thresholds for sets of minc volumes}
  \item{mincFDR.logLikRatio}{ Similar to above, but calculates thresholds by parametric

@@ -15,7 +15,7 @@ results, and much more.
 Useful links:
 \itemize{
   \item \url{https://github.com/Mouse-Imaging-Centre/RMINC}
-  \item \url{https://wiki.mouseimaging.ca/display/MICePub/RMINC}
+  \item \url{https://mouse-imaging-centre.github.io/RMINC/}
   \item Report bugs at \url{https://github.com/Mouse-Imaging-Centre/RMINC/issues}
 }
 
@@ -25,7 +25,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Jason Lerch \email{jason.lerch@sickkids.ca}
+  \item Jason Lerch \email{jason.lerch@ndcn.ox.ac.uk}
   \item Matthijs van Eede
   \item Daniel Cassel
 }
@@ -39,6 +39,7 @@ Other contributors:
   \item Gabriel Devenyi \email{gdevenyi@gmail.com} [contributor]
   \item Benjamin Darwin [contributor]
   \item Bilal Syed [contributor]
+  \item Vladimir Fonov \email{vladimir.fonov@gmail.com} [contributor]
 }
 
 }

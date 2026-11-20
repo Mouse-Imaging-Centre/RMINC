@@ -10,8 +10,8 @@ simplify2minc(result_list)
 \item{result_list}{The mincApply results to collate.}
 }
 \value{
-an object of class \code{mincSingleDim}, code{mincMultiDim},
-or code{mincList} depending on the dimensions of elements of the input
+an object of class \code{mincSingleDim}, \code{mincMultiDim},
+or \code{mincList} depending on the dimensions of elements of the input
 list, see \link{simplify_masked} for details.
 }
 \description{

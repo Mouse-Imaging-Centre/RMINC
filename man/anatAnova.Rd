@@ -18,7 +18,7 @@ anatAnova(formula, data = NULL, anat = NULL, subset = NULL)
 \value{
 Returns an array with the F-statistic for each model specified
 by formula with the following attributes
-\itemize{
+\describe{
 \item{model}{ design matrix}
 \item{stat-type}{ type of statistic used}
 \item{df}{ degrees of freedom of each statistic}

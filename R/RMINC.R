@@ -7,6 +7,7 @@
 #' @import dplyr
 #' @import tidyr
 #' @import shiny
+#' @importFrom DT datatable
 #' @import Rcpp
 #' @import lme4
 #' @import batchtools

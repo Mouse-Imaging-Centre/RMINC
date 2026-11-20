@@ -155,8 +155,8 @@ docker run -v $(pwd):/RMINC rminc-test shell           # interactive bash shell
 ## Getting Help
 
 Function documentation is available through R's `?` interface (e.g. `?mincLm`).
-The [MICePUB wiki](https://wiki.mouseimaging.ca/display/MICePub/RMINC) has
-additional background and usage notes. Report bugs or request features at the
+The [RMINC website](https://mouse-imaging-centre.github.io/RMINC/) has
+the reference manual and the vignettes. Report bugs or request features at the
 [issues page](https://github.com/Mouse-Imaging-Centre/RMINC/issues).
 
 ## Development

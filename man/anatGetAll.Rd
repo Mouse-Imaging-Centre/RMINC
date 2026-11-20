@@ -56,7 +56,7 @@ anatGetAll needs a set of files, an atlas (unless method=="labels"), and a set o
 atlas definitions. In the end it will produce one value per label
 in the atlas for each of the input files. How that value is
 computed depends on the methods argument:
-\itemize{
+\describe{
   \item{jacobians -}{ Each file contains log jacobians, and the volume for
   each atlas label is computed by multiplying the jacobian with
   the voxel volume at each voxel.

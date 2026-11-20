@@ -42,7 +42,7 @@ must be an even factor of their respective volume dimensions.}
 generally for internal use only.}
 
 \item{collate}{A function to (potentially) collapse the result list
-examples include link{unlist} and \link{simplify2array}, defaulting
+examples include \link{unlist} and \link{simplify2array}, defaulting
 to \link{simplify2minc} which creates an object of type \code{mincMultiDim},
 \code{mincSingleDim}, or \code{mincList} depending on the result structure.
 \cr

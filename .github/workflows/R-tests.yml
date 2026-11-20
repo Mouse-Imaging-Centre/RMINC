@@ -53,12 +53,16 @@ jobs:
             cmake \
             git \
             lsof \
-            autoconf
+            autoconf \
+            tidy
+          # The runner's TeX has no inconsolata.sty, so build the PDF
+          # manual with the default fonts
+          echo "R_RD4PDF=times,hyper" >> "$GITHUB_ENV"
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install hdf5 cmake autoconf automake libtool
+          brew install hdf5 cmake autoconf automake libtool tidy-html5 pandoc
           brew install --cask basictex
           echo "/Library/TeX/texbin" >> $GITHUB_PATH
           eval "$(/usr/libexec/path_helper)"

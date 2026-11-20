@@ -16,13 +16,12 @@ mincFDRThresholdVector(
 
 \item{qvals}{a vector of corrected qvalues (such as returend by p.adjust)}
 
-\item{thresholdFunc}{a function that returns the threshold given a vector of pvalues}
-
-\item{p.thresholds}{the pvalues at which to compute the threshold
-
-The function should be the quantile function for the distribution being tested. For example,
+\item{thresholdFunc}{a function that returns the threshold given a vector of pvalues.
+It should be the quantile function for the distribution being tested. For example,
 for the chi squared distribution the function would be:
-tfunc <- function(x) { qchisq(max(x), df[[i]], lower.tail=FALSE) }}
+\code{function(x) qchisq(max(x), df[[i]], lower.tail = FALSE)}}
+
+\item{p.thresholds}{the pvalues at which to compute the threshold}
 }
 \description{
 a utility function to compute thresholds
