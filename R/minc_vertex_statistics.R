@@ -260,7 +260,13 @@ vertexApply <- function(
 #' @inheritParams vertexApply
 #' @param atlas The atlas to use to summarize vertices.
 #' @param atlas_column If the atlas is a text file, which column holds the label
-#' @return  The a matrix with a row of results for each structure
+#' @return A matrix with a row for each subject (file) and a column for each
+#' structure, in the same orientation as \link{anatGetAll}. If \code{fun}
+#' returns more than one value for each structure, the result is in the form
+#' that \code{collate} gives.
+#' Before RMINC 2.0.0.0 the result had a row for each structure and a column
+#' for each subject, so code that used \code{t()} on the result must
+#' remove it (#264).
 #' @export
 vertexAtlasApply <- function(
   filenames,
@@ -295,18 +301,18 @@ vertexAtlasApply <- function(
     tapply(x, list(atlas), fun, ...)
   }
 
-  t(
-    vertexApply(
-      filenames,
-      wrapped_fun,
-      atlas = atlas,
-      ...,
-      mask = mask,
-      transpose = TRUE,
-      parallel = parallel,
-      collate = collate,
-      column = column
-    )
+  # With transpose = TRUE the rows are subjects, so the result has a row
+  # for each subject and a column for each structure (#264)
+  vertexApply(
+    filenames,
+    wrapped_fun,
+    atlas = atlas,
+    ...,
+    mask = mask,
+    transpose = TRUE,
+    parallel = parallel,
+    collate = collate,
+    column = column
   )
 }
 
