@@ -42,7 +42,13 @@ structure. Defaults to \link{simplify_masked}}
 \item{atlas_column}{If the atlas is a text file, which column holds the label}
 }
 \value{
-The a matrix with a row of results for each structure
+A matrix with a row for each subject (file) and a column for each
+structure, in the same orientation as \link{anatGetAll}. If \code{fun}
+returns more than one value for each structure, the result is in the form
+that \code{collate} gives.
+Before RMINC 2.0.0.0 the result had a row for each structure and a column
+for each subject, so code that used \code{t()} on the result must
+remove it (#264).
 }
 \description{
 This is a wrapper around vertexApply with `transpose` set to `TRUE`

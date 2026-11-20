@@ -95,6 +95,23 @@ test_that("vertexAtlasApply applies the mask to vertices and atlas (#217)", {
   verboseRun(
     vam <- vertexAtlasApply(gftest$testFilesLeft, atlas, mean, mask = msk)
   )
-  expect_equal(dim(vam), dim(expected))
-  expect_equal(as.numeric(vam), as.numeric(expected))
+  # one row for each subject, one column for each structure (#264)
+  expect_equal(dim(vam), dim(t(expected)))
+  expect_equal(as.numeric(vam), as.numeric(t(expected)))
+})
+
+test_that("vertexAtlasApply has subjects in rows and structures in columns (#264)", {
+  vt <- vertexTable(gftest$testFilesLeft)
+  n_vert <- nrow(vt)
+  atlas <- rep_len(c(5, 7, 9), n_vert)
+
+  verboseRun(vam <- vertexAtlasApply(gftest$testFilesLeft, atlas, mean))
+
+  expect_equal(nrow(vam), length(gftest$testFilesLeft))
+  expect_equal(ncol(vam), 3)
+  expect_equal(colnames(vam), c("5", "7", "9"))
+  expect_equal(
+    as.numeric(vam[2, ]),
+    as.numeric(tapply(vt[, 2], atlas, mean))
+  )
 })

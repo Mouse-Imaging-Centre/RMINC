@@ -1,6 +1,12 @@
 Changes in version 2.0.0.0 (Wilks)
 ==================================
 
+Breaking changes:
+- vertexAtlasApply returns a matrix with a row for each subject and a
+  column for each structure, as anatGetAll does. Before, the rows were
+  structures, and the result needed t(). Remove t() from code that uses
+  vertexAtlasApply (#264).
+
 Infrastructure and CI:
 - Migrate CI from Travis to GitHub Actions (ubuntu + macOS, R
   devel/release/oldrel-1/oldrel-2)
