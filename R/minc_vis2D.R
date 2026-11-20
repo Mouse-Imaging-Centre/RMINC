@@ -69,25 +69,76 @@ mincArray <- function(volume, dimIndex = 1, maskVolume = NULL) {
   return(outvol)
 }
 
+# Voxel separations of a mincArray, in array (not file) dimension order.
+# They come from the "likeVolume" or "filename" attribute. If there is no
+# readable file, or if options(RMINC_use_voxel_spacing = FALSE) is set,
+# all separations are 1 (square voxels).
+voxelSeparations <- function(volume) {
+  if (!isTRUE(getOption("RMINC_use_voxel_spacing", TRUE))) {
+    return(c(1, 1, 1))
+  }
+  file <- attr(volume, "likeVolume")
+  if (is.null(file)) {
+    file <- attr(volume, "filename")
+  }
+  if (!is.character(file) || length(file) != 1 || !file.exists(file)) {
+    return(c(1, 1, 1))
+  }
+  seps <- tryCatch(minc.separation.sizes(file), error = function(e) NULL)
+  if (length(seps) != 3 || any(!is.finite(seps)) || any(seps == 0)) {
+    return(c(1, 1, 1))
+  }
+  # mincArray reverses the file dimension order (C to Fortran)
+  rev(abs(seps))
+}
+
+# The y/x aspect ratio of one voxel in a slice from getSlice (#216)
+sliceAspect <- function(volume, dimension) {
+  seps <- voxelSeparations(volume)
+  switch(
+    as.character(dimension),
+    "1" = seps[3] / seps[2],
+    "2" = seps[3] / seps[1],
+    "3" = seps[2] / seps[1],
+    stop("Can only handle three dimensions at the moment")
+  )
+}
+
 getSlice <- function(volume, slice, dimension) {
   d <- dim(volume)
   if (length(d) != 3) {
     stop("volume must be 3 dimensional, you may be missing a call to mincArray")
   }
+  if (!(dimension %in% 1:3)) {
+    stop("Can only handle three dimensions at the moment")
+  }
+  if (is.null(slice)) {
+    slice <- ceiling(d[dimension] / 2)
+  }
+  if (
+    length(slice) != 1 ||
+      is.na(slice) ||
+      slice < 1 ||
+      slice > d[dimension]
+  ) {
+    stop(
+      "slice must be a number from 1 to ",
+      d[dimension],
+      " for dimension ",
+      dimension,
+      ", not ",
+      paste(slice, collapse = ", ")
+    )
+  }
 
   if (dimension == 1) {
     outs <- volume[slice, , ]
-    outa <- d[3] / d[2]
   } else if (dimension == 2) {
     outs <- volume[, slice, ]
-    outa <- d[3] / d[1]
-  } else if (dimension == 3) {
+  } else {
     outs <- volume[,, slice]
-    outa <- d[2] / d[1]
-  } else if (dimension > 3) {
-    stop("Can only handle three dimensions at the moment")
   }
-  return(list(slice = outs, asp = outa))
+  return(list(slice = outs, asp = sliceAspect(volume, dimension)))
 }
 
 plotLocator <- function(dimension, anatomy, indicatorLevels, slices) {
@@ -128,10 +179,20 @@ sliceSeriesLayout <-
       # use the layout function
       # create a layout matrix - sets up a matrix that is the same as par(mfrow=) would be,
       # and then adds on an extra column for the slice locator and the legend
-      layoutMatrix <- cbind(
-        matrix(1:nslices, nrow = mfrow[1], ncol = mfrow[2], byrow = T),
-        c(nslices + 1, rep(nslices + 2, mfrow[1] - 1))
-      )
+      # The locator (if any) is drawn first, then the legend (if any).
+      # Only give a cell to the plots that are drawn, so that the legend is
+      # in the tall cell also when there is no locator (#197).
+      sliceCells <- matrix(1:nslices, nrow = mfrow[1], ncol = mfrow[2], byrow = T)
+      if (locator && !is.null(legend)) {
+        if (mfrow[1] > 1) {
+          sideCells <- c(nslices + 1, rep(nslices + 2, mfrow[1] - 1))
+        } else {
+          sideCells <- cbind(nslices + 1, nslices + 2)
+        }
+      } else {
+        sideCells <- rep(nslices + 1, mfrow[1])
+      }
+      layoutMatrix <- cbind(sliceCells, sideCells)
       layout(layoutMatrix)
     } else {
       # go with standard mfrow setting
@@ -153,6 +214,18 @@ sliceSeriesLayout <-
 
     if (end < 0) {
       end <- d[dimension] + end
+    }
+    if (begin < 1 || end > d[dimension] || begin > end) {
+      stop(
+        "begin and end must give slices from 1 to ",
+        d[dimension],
+        " for dimension ",
+        dimension,
+        ", not ",
+        begin,
+        " to ",
+        end
+      )
     }
     slices <- ceiling(seq(begin, end, length = nslices))
 
@@ -198,6 +271,12 @@ sliceSeriesLayout <-
 #'
 #' On certain systems the slices are plotted with a reflected y-axis. To fix this
 #' configure \code{options(RMINC_flip_image = TRUE)}
+#'
+#' Voxels are drawn with the aspect ratio of the voxel separations in the
+#' file named by the \code{likeVolume} (or \code{filename}) attribute of the
+#' volume, so that non-isotropic volumes are not stretched. If the volume has
+#' no such file, voxels are square. To always draw square voxels, set
+#' \code{options(RMINC_use_voxel_spacing = FALSE)}.
 #' @examples
 #' \dontrun{
 #' mincPlotSliceSeries(mincArray(anatVol),           # the anatomical volume
@@ -415,7 +494,7 @@ mincPlotStatsSliceSeries <-
           0.05,
           0.5,
           0.45,
-          c(high * -1, low * -1),
+          -rev(statRange), # use the computed range, low/high can be NULL (#130)
           rev(rcol),
           gradient = "y",
           align = "rb",
@@ -426,7 +505,7 @@ mincPlotStatsSliceSeries <-
           0.55,
           0.5,
           0.95,
-          c(low, high),
+          statRange,
           col,
           gradient = "y",
           align = "rb",
@@ -758,6 +837,12 @@ mincPlotAnatAndStatsSlice <- function(
 #'
 #' On certain systems the slices are plotted with a reflected y-axis. To fix this
 #' configure \code{options(RMINC_flip_image = TRUE)}
+#'
+#' Voxels are drawn with the aspect ratio of the voxel separations in the
+#' file named by the \code{likeVolume} (or \code{filename}) attribute of the
+#' volume, so that non-isotropic volumes are not stretched. If the volume has
+#' no such file, voxels are square. To always draw square voxels, set
+#' \code{options(RMINC_use_voxel_spacing = FALSE)}.
 #' @export
 #' @examples
 #' \dontrun{
@@ -801,7 +886,7 @@ mincImage <- function(
 
   if (!add) {
     plot.special <- #override plot.defaults defaults
-      function(..., xlab = "", ylab = "", asp = 1, xaxs = "i", yaxs = "i") {
+      function(..., xlab = "", ylab = "", asp = s$asp, xaxs = "i", yaxs = "i") {
         plot.default(
           ...,
           xlab = xlab,
@@ -918,7 +1003,14 @@ mincContour <- function(volume, dimension = 2, slice = NULL, ...) {
 
   s <- getSlice(volume, slice, dimension)
   sliceDims <- dim(s$slice)
-  contour(1:sliceDims[1], 1:sliceDims[2], s$slice, asp = 1, ...)
+  contourArgs <- list(...)
+  if (is.null(contourArgs$asp)) {
+    contourArgs$asp <- s$asp
+  }
+  do.call(
+    contour,
+    c(list(1:sliceDims[1], 1:sliceDims[2], s$slice), contourArgs)
+  )
 }
 
 # simpleBrainPlot <- function(anatomy, statistics, slice, dimension=2,

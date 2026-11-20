@@ -226,7 +226,7 @@ shinyServer(function(input, output, clientData, session) {
       session,
       "sliceRange",
       max = d[dval],
-      value = c(diff20, d[dval] - diff20)
+      value = RMINC:::clampSliceRange(c(diff20, d[dval] - diff20), d[dval])
     )
   })
   observe({
@@ -280,6 +280,12 @@ shinyServer(function(input, output, clientData, session) {
 
   output$seriesPlot <- renderPlot(
     {
+      # The slider can still have the range of the old dimension (or the
+      # initial range from ui.R), so keep the slices in this volume (#220)
+      sliceRange <- RMINC:::clampSliceRange(
+        input$sliceRange,
+        d[as.integer(input$dimension)]
+      )
       mincPlotSliceSeries(
         anatVol,
         statsList[[input$statistic]]$data,
@@ -287,8 +293,8 @@ shinyServer(function(input, output, clientData, session) {
         anatHigh = anatHigh,
         low = input$range[1],
         high = input$range[2],
-        begin = input$sliceRange[1],
-        end = input$sliceRange[2],
+        begin = sliceRange[1],
+        end = sliceRange[2],
         plottitle = input$statistic,
         dim = as.integer(input$dimension),
         symmetric = statsList[[input$statistic]]$symmetric,

@@ -247,20 +247,17 @@ colour_mesh <- function(
     colour_range <- attr(colours, "colour_range")
   }
 
-  #Internally in tmesh3d, the vertex matrix is expanded
-  #Such that the vertices for each triangle appear sequentially
-  #in informal groups of three, the colours need to be triplicated
-  #and reordered to match, this is acheived by using the polygon matrix
-  #as an index to the colours
-  colours <- colours[mesh$it]
-
+  # One colour per vertex. rgl (>= 0.100) maps colours to the vertices itself
+  # when meshColor is "vertices". Do not expand the colours with mesh$it here,
+  # because rgl would then index them a second time (#274).
   mesh$legend <- list(
     colour_range = colour_range,
     palette = updated_palette,
     symmetric = symmetric
   )
 
-  mesh$material$color <- colours
+  mesh$material$color <- as.vector(colours)
+  mesh$meshColor <- "vertices"
 
   class(mesh) <- c("obj_mesh", class(mesh))
 
@@ -299,8 +296,8 @@ add_opacity <- function(mesh, a_map, a_range = c(.5, 1), a_default = 1) {
     {
       .[is.na(.)] <- a_default
       .
-    } %>% #set NAs to default
-    .[mesh$it] #convert vertex to triangle alphas
+    } #set NAs to default, one alpha per vertex (#274)
+  mesh$meshColor <- "vertices"
 
   mesh
 }
