@@ -161,6 +161,13 @@ t-stats enhanced. The return is
 
 - args: Arguments passed to the internal randomzations and TFCE code
 
+## Details
+
+mincTFCE runs the `TFCE` program from minc-stuffs
+(<https://github.com/Mouse-Imaging-Centre/minc-stuffs>), which must be
+on the `PATH`. mincTFCE stops with an error if `TFCE` is missing, exits
+with a non-zero status, or does not write its output file.
+
 ## Methods (by class)
 
 - `mincTFCE(mincSingleDim)`: mincSingleDim

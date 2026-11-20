@@ -27,7 +27,7 @@ inputs from lowest to highest degrees of freedom
 
 ## See also
 
-`lmer` and
+[`lmer`](https://rdrr.io/pkg/lme4/man/lmer.html) and
 [`mincLmer`](https://mouse-imaging-centre.github.io/RMINC/reference/mincLmer.md)
 for description of lmer and mincLmer.
 [`mincFDR`](https://mouse-imaging-centre.github.io/RMINC/reference/mincFDR.md)

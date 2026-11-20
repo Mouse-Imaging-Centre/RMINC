@@ -65,8 +65,8 @@ mincApplyRCPP(
 - collate:
 
   A function to (potentially) collapse the result list examples include
-  linkunlist and [simplify2array](https://rdrr.io/r/base/lapply.html),
-  defaulting to
+  [unlist](https://rdrr.io/r/base/unlist.html) and
+  [simplify2array](https://rdrr.io/r/base/lapply.html), defaulting to
   [simplify2minc](https://mouse-imaging-centre.github.io/RMINC/reference/simplify2minc.md)
   which creates an object of type `mincMultiDim`, `mincSingleDim`, or
   `mincList` depending on the result structure.  

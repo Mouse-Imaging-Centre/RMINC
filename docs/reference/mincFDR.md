@@ -90,19 +90,27 @@ as specified by the method argument. "FDR" uses the implementation in
 Rate as found in John Storey's `qvalue` package. The main interface
 functions are
 
-- mincFDR.mincMultiDim The workhorse function, used to compute q-values
-  and thresholds for sets of minc volumes
+- mincFDR.mincMultiDim:
 
-- mincFDR.logLikRatio Similar to above, but calculates thresholds by
-  parametric bootstrap when possible
+  The workhorse function, used to compute q-values and thresholds for
+  sets of minc volumes
 
-- mincFDR.mincSingleDim Used when
+- mincFDR.logLikRatio:
+
+  Similar to above, but calculates thresholds by parametric bootstrap
+  when possible
+
+- mincFDR.mincSingleDim:
+
+  Used when
   [mincLm](https://mouse-imaging-centre.github.io/RMINC/reference/mincLm.md)-like
   results are written out and read back in either to the same or another
   R session. In this case it loses it's `minMultiDim` class and must be
   converted back
 
-- vertexFDR Used with results of a
+- vertexFDR:
+
+  Used with results of a
   [vertexLm](https://mouse-imaging-centre.github.io/RMINC/reference/vertexLm.md)-like
   command. Results are converted internally to resemble a mincMultiDim
   and processed as normal
@@ -125,9 +133,9 @@ mincWriteVolume,mincLm,mincWilcoxon or mincTtest
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
+testdir <- getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 # run a linear model relating the data in all voxels to Genotype
 vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 # compute the False Discovery Rate

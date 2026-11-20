@@ -13,7 +13,7 @@ mcMincApply(
   mask = NULL,
   tinyMask = FALSE,
   slab_sizes = NULL,
-  temp_dir = getwd(),
+  temp_dir = tempdir(),
   cores = getOption("mc.cores", parallel::detectCores() - 1),
   return_raw = FALSE,
   cleanup = TRUE,
@@ -51,7 +51,9 @@ mcMincApply(
 
 - temp_dir:
 
-  A directory to hold mask files used in the job batching
+  A directory to hold mask files used in the job batching. Defaults to
+  the R session temporary directory,
+  [`tempdir()`](https://rdrr.io/r/base/tempfile.html).
 
 - cores:
 

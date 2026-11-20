@@ -69,8 +69,8 @@ civet.readAllCivetFiles
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+testdir <- getRMINCTestData()
+gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
 } # }
 ```

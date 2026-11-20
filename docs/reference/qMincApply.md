@@ -45,7 +45,8 @@ qMincApply(
   cleanup = TRUE,
   clobber = FALSE,
   collate = simplify2minc,
-  conf_file = getOption("RMINC_BATCH_CONF")
+  conf_file = getOption("RMINC_BATCH_CONF"),
+  ignore_incompletes = FALSE
 )
 
 qMincRegistry(
@@ -167,14 +168,14 @@ qMincReduce(
 
   A batchtools config file, defaults to `option("RMINC_BATCH_CONF")`
 
-- registry:
-
-  a pre-existing job registry
-
 - ignore_incompletes:
 
   Whether to reduce the results with `qMincReduce` even if all jobs are
   not complete.
+
+- registry:
+
+  a pre-existing job registry
 
 ## Value
 

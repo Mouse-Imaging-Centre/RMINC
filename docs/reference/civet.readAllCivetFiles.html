@@ -64,18 +64,37 @@ paths to the civetFiles, typically generated with <a href="civet.getAllFilenames
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Returns gf augmented with additional columns containing</p><ul><li><p>lobeArea40mm: A subjects by region matrix of lobe areas parcellated by atlas region</p></li>
-<li><p>lobeThickness: As above, but for thicknesses</p></li>
-<li><p>lobeVolume: As above, but for volumes</p></li>
-<li><p>GI: A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter
- surface, white matter surface, midsurface of the two, followed by the same indices for the two</p></li>
-<li><p>BrainVolume: A subjects by 3 matrix. Three columns are CSF volume, grey matter
- and white matter respectively</p></li>
-<li><p>midSurfaceNativeArea: A subjects by vertices matrix of mid-surface areas</p></li>
-<li><p>SurfaceNativeVolume: As above, but for native space volumes</p></li>
-<li><p>nativeRMS_RSLtlink20mm: As above, but for RMS_RSL tlink 20mm thicknesses</p></li>
-<li><p>nativeRMStlink20mm: As above, but for RMS tlink 20mm thicknesses</p></li>
-</ul></div>
+    <p>Returns gf augmented with additional columns containing</p><dl><dt>lobeArea40mm:</dt>
+<dd><p>A subjects by region matrix of lobe areas parcellated by atlas region</p></dd>
+
+<dt>lobeThickness:</dt>
+<dd><p>As above, but for thicknesses</p></dd>
+
+<dt>lobeVolume:</dt>
+<dd><p>As above, but for volumes</p></dd>
+
+<dt>GI:</dt>
+<dd><p>A subjects by 6 matrix. 6 columns are left hemisphere gyrification indices for the gray matter
+ surface, white matter surface, midsurface of the two, followed by the same indices for the two</p></dd>
+
+<dt>BrainVolume:</dt>
+<dd><p>A subjects by 3 matrix. Three columns are CSF volume, grey matter
+ and white matter respectively</p></dd>
+
+<dt>midSurfaceNativeArea:</dt>
+<dd><p>A subjects by vertices matrix of mid-surface areas</p></dd>
+
+<dt>SurfaceNativeVolume:</dt>
+<dd><p>As above, but for native space volumes</p></dd>
+
+<dt>nativeRMS_RSLtlink20mm:</dt>
+<dd><p>As above, but for RMS_RSL tlink 20mm thicknesses</p></dd>
+
+<dt>nativeRMStlink20mm:</dt>
+<dd><p>As above, but for RMS tlink 20mm thicknesses</p></dd>
+
+
+</dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Prior to running, civet.getAllFilenames may be called to generate the input argument gf .
@@ -90,10 +109,10 @@ Lobe Thickness, Lobe Volume, GI, Mid Surface Native Area, Surface Native Volume,
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/CIVET_TEST.csv"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="civet.getAllFilenames.html">civet.getAllFilenames</a></span><span class="op">(</span><span class="va">gf</span>,<span class="st">"ID"</span>,<span class="st">"TEST"</span>,<span class="st">"/tmp/rminctestdata/CIVET"</span>, <span class="cn">TRUE</span>, <span class="st">"1.1.12"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu">civet.readAllCivetFiles</span><span class="op">(</span><span class="st">"/tmp/rminctestdata/AAL.csv"</span>,<span class="va">gf</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">testdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"CIVET_TEST.csv"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="civet.getAllFilenames.html">civet.getAllFilenames</a></span><span class="op">(</span><span class="va">gf</span>,<span class="st">"ID"</span>,<span class="st">"TEST"</span>,<span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"CIVET"</span><span class="op">)</span>, <span class="cn">TRUE</span>, <span class="st">"1.1.12"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu">civet.readAllCivetFiles</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"AAL.csv"</span><span class="op">)</span>,<span class="va">gf</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

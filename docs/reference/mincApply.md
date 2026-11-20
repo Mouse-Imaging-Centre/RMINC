@@ -58,15 +58,13 @@ takes a single argument, which will take on the voxel values at every
 voxel, a wrapper function has to be written. The mincApply function also
 supports passing, instead of a function, a quoted expression containing
 a free variable 'x', again taking on all voxel values; this is
-illustrated in the examples. (Not this is not supported by pMincApply.)
-The output of this function also has to be a simple vector or scalar.
-Note that interpreted R can be very slow. Mindnumbingly slow. It
-therefore pays to write optimal functions or, whenever available, use
-the optimized equivalents. In other words and to give one example, use
+illustrated in the examples. pMincApply does not support this. The
+output of this function also has to be a simple vector or scalar. Note
+that interpreted R can be very slow. Mindnumbingly slow. It therefore
+pays to write optimal functions or, whenever available, use the
+optimized equivalents. In other words and to give one example, use
 mincLm rather than applying lm, and if lm must be applied, try to use
 lm.fit rather than plain lm. Also consider using parallel apply methods.
-When using the pbs method, one can also set the options –\>
-TMPDIR,MAX_NODES and WORKDIR  
 If you encounter memory issues, it could be due to minc file caching.
 Consider trying with the environment variable MINC_FILE_CACHE_MB set to
 a small value like 1.
@@ -79,44 +77,21 @@ mincWriteVolume,mincMean,mincSd,mincLm,mincAnova
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-ma <- mincApply(gf$jacobians_fixed_2,quote(mean(x)));
+testdir <- getRMINCTestData()
+gf <- read.csv(file.path(testdir, "test_data_set.csv"))
+ma <- mincApply(gf$jacobians_fixed_2, quote(mean(x)))
 mincWriteVolume(ma, "means.mnc")
+
+### pMincApply needs a function, not a quoted expression
+testFunc <- function(x) c(1, 2)
+
 ### run the whole thing in parallel on the local machine
-testFunc <- function (x) { return(c(1,2))}
-pout <- pMincApply(gf$jacobians_fixed_2,
-                   testFunc,
-                   workers = 4,
-                   global = c('gf','testFunc'))
+pout <- pMincApply(gf$jacobians_fixed_2, testFunc, local = TRUE, cores = 2)
 mincWriteVolume(pout, "pmincOut.mnc")
 
-### pbs example 1 (hpf)
-getRMINCTestData()
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-testFunc <- function (x) { return(c(1,2))}
-options(TMPDIR="/localhd/$PBS_ID")
-pout <- pMincApply(gf$jacobians_fixed_2,
-                   testFunc,
-                   workers = 4,
-                   method="pbs",
-                   global = c('gf','testFunc'))
-
-### pbs example 2 (scinet)
-getRMINCTestData()
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-testFunc <- function (x) { return(c(1,2))}
-options(WORKDIR="$SCRATCH")
-options(MAX_NODES=8)
-options(TMP_DIR="/tmp")
-pout <- pMincApply(gf$jacobians_fixed_2,
-                   testFunc,
-                   modules=c("intel","openmpi","R/3.1.1"),
-                   workers = 4,
-                   method="pbs",
-                   global = c('gf','testFunc'))
-
-#NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
-#NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
+### run the whole thing as 4 jobs on a batch queue, with a
+### batchtools configuration file
+pout <- pMincApply(gf$jacobians_fixed_2, testFunc, batches = 4,
+                   conf_file = "~/.batchtools.conf.R")
 } # }
 ```

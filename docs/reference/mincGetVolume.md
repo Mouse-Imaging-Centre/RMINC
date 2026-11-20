@@ -26,7 +26,7 @@ mincWriteVolume
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc")
+testdir <- getRMINCTestData()
+testfile <- mincGetVolume(file.path(testdir, "brain_cut_out.mnc"))
 } # }
 ```

@@ -59,14 +59,14 @@
 
 
 <dt id="arg-thresholdfunc">thresholdFunc<a class="anchor" aria-label="anchor" href="#arg-thresholdfunc"></a></dt>
-<dd><p>a function that returns the threshold given a vector of pvalues</p></dd>
+<dd><p>a function that returns the threshold given a vector of pvalues.
+It should be the quantile function for the distribution being tested. For example,
+for the chi squared distribution the function would be:
+<code>function(x) qchisq(max(x), df[[i]], lower.tail = FALSE)</code></p></dd>
 
 
 <dt id="arg-p-thresholds">p.thresholds<a class="anchor" aria-label="anchor" href="#arg-p-thresholds"></a></dt>
-<dd><p>the pvalues at which to compute the threshold</p>
-<p>The function should be the quantile function for the distribution being tested. For example,
-for the chi squared distribution the function would be:
-tfunc &lt;- function(x)  qchisq(max(x), df[[i]], lower.tail=FALSE)</p></dd>
+<dd><p>the pvalues at which to compute the threshold</p></dd>
 
 </dl></div>
 

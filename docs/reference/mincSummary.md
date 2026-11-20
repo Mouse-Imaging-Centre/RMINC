@@ -82,8 +82,8 @@ is one column.
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+testdir <- getRMINCTestData()
+gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 mm <- mincMean(gf$jacobians_0.2)
 ms <- mincSd(gf$jacobians_0.2)
 mv <- mincVar(gf$jacobians_0.2,gf$Strain)

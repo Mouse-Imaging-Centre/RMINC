@@ -147,6 +147,8 @@ Vertex-wise models for cortical surface data.
   : Get values given a set of files and an atlas
 - [`as.data.frame(`*`<anatMatrix>`*`)`](https://mouse-imaging-centre.github.io/RMINC/reference/as.data.frame.anatMatrix.md)
   : Create Anatomy data.frame
+- [`as.data.frame(`*`<anatModel>`*`)`](https://mouse-imaging-centre.github.io/RMINC/reference/as.data.frame.anatModel.md)
+  : Convert an anatModel to a data.frame
 - [`voxel_atlas_defs`](https://mouse-imaging-centre.github.io/RMINC/reference/voxel_atlas_defs.md)
   : Voxel Atlas Definitions
 - [`anatMean()`](https://mouse-imaging-centre.github.io/RMINC/reference/anatSummaries.md)

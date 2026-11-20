@@ -28,7 +28,9 @@ pMincApply(
   collate = simplify2minc,
   conf_file = getOption("RMINC_BATCH_CONF"),
   registry_name = new_file("pMincApply_registry"),
-  registry_dir = getwd()
+  registry_dir = getwd(),
+  wait = TRUE,
+  ignore_incompletes = FALSE
 )
 ```
 
@@ -119,7 +121,8 @@ pMincApply(
   A path to a temporary directory to hold the job registry created when
   using a true queuing system and for writing temporary mask files. This
   must be a location read/writable by all nodes when using a true
-  queuing system (so /tmp will not work).
+  queuing system (so /tmp will not work). When `local = TRUE` and
+  `temp_dir` is not given, the R session temporary directory is used.
 
 - cleanup:
 
@@ -142,6 +145,16 @@ pMincApply(
 - registry_dir:
 
   where batchtools should create the registry
+
+- wait:
+
+  Whether to wait for your results or return a registry object to be
+  checked on later
+
+- ignore_incompletes:
+
+  Whether to reduce the results with `qMincReduce` even if all jobs are
+  not complete.
 
 ## Value
 

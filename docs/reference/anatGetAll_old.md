@@ -67,22 +67,31 @@ definitions. In the end it will produce one value per label in the atlas
 for each of the input files. How that value is computed depends on the
 methods argument:
 
-- jacobians - Each file contains log jacobians, and the volume for each
-  atlas label is computed by multiplying the jacobian with the voxel
-  volume at each voxel.
+- jacobians -:
 
-- labels - Each file contains integer labels (i.e. same as the atlas).
-  The volume is computed by counting the number of voxels with each
-  label and multiplying by the voxel volume.
+  Each file contains log jacobians, and the volume for each atlas label
+  is computed by multiplying the jacobian with the voxel volume at each
+  voxel.
 
-- means - Each file contains an arbitrary number and the mean of all
-  voxels inside each label is computed.
+- labels -:
 
-- sums - Each file contains an aribtrary number and the sum of all
-  voxels inside each label is computed.
+  Each file contains integer labels (i.e. same as the atlas). The volume
+  is computed by counting the number of voxels with each label and
+  multiplying by the voxel volume.
 
-- text - Each file is a comma separated values text file and is simply
-  read in.
+- means -:
+
+  Each file contains an arbitrary number and the mean of all voxels
+  inside each label is computed.
+
+- sums -:
+
+  Each file contains an aribtrary number and the sum of all voxels
+  inside each label is computed.
+
+- text -:
+
+  Each file is a comma separated values text file and is simply read in.
 
 ## See also
 
@@ -92,11 +101,11 @@ anatLm,anatCombineStructures
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
+testdir <- getRMINCTestData()
+filenames <- read.csv(file.path(testdir, "filenames.csv"))
 volumes <- anatGetAll(filenames=filenames$absolute_jacobian,
-                      atlas="/tmp/rminctestdata/test_segmentation.mnc",
+                      atlas=file.path(testdir, "test_segmentation.mnc"),
                       method="jacobians",
-                      defs="/tmp/rminctestdata/test_defs.csv")
+                      defs=file.path(testdir, "test_defs.csv"))
 } # }
 ```

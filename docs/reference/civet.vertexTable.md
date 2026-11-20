@@ -17,6 +17,6 @@ civet.vertexTable(vertex_files)
 
 ## Value
 
-A 6-element list of matrices:
-
-- 
+A named list of matrices, one for each measure (each column of
+`vertex_files` other than `ids`). Each matrix has one row for each
+vertex and one column for each subject, named by `ids`.

@@ -34,29 +34,44 @@ civet.readAllCivetFiles(atlasFile, gf, civetVersion = "1.1.12")
 
 Returns gf augmented with additional columns containing
 
-- lobeArea40mm: A subjects by region matrix of lobe areas parcellated by
-  atlas region
+- lobeArea40mm::
 
-- lobeThickness: As above, but for thicknesses
+  A subjects by region matrix of lobe areas parcellated by atlas region
 
-- lobeVolume: As above, but for volumes
+- lobeThickness::
 
-- GI: A subjects by 6 matrix. 6 columns are left hemisphere gyrification
+  As above, but for thicknesses
+
+- lobeVolume::
+
+  As above, but for volumes
+
+- GI::
+
+  A subjects by 6 matrix. 6 columns are left hemisphere gyrification
   indices for the gray matter surface, white matter surface, midsurface
   of the two, followed by the same indices for the two
 
-- BrainVolume: A subjects by 3 matrix. Three columns are CSF volume,
-  grey matter and white matter respectively
+- BrainVolume::
 
-- midSurfaceNativeArea: A subjects by vertices matrix of mid-surface
-  areas
+  A subjects by 3 matrix. Three columns are CSF volume, grey matter and
+  white matter respectively
 
-- SurfaceNativeVolume: As above, but for native space volumes
+- midSurfaceNativeArea::
 
-- nativeRMS_RSLtlink20mm: As above, but for RMS_RSL tlink 20mm
-  thicknesses
+  A subjects by vertices matrix of mid-surface areas
 
-- nativeRMStlink20mm: As above, but for RMS tlink 20mm thicknesses
+- SurfaceNativeVolume::
+
+  As above, but for native space volumes
+
+- nativeRMS_RSLtlink20mm::
+
+  As above, but for RMS_RSL tlink 20mm thicknesses
+
+- nativeRMStlink20mm::
+
+  As above, but for RMS tlink 20mm thicknesses
 
 ## Details
 
@@ -74,9 +89,9 @@ civet.getAllFilenames
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET", TRUE, "1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+testdir <- getRMINCTestData()
+gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"), TRUE, "1.1.12")
+gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 } # }
 ```

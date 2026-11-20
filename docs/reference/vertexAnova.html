@@ -63,13 +63,26 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>Returns an array with the F-statistic for each model specified by formula with the following attributes:</p><ul><li><p>model design matrix</p></li>
-<li><p>filenames minc file names input</p></li>
-<li><p>dimensions dimensions of the statistics matrix</p></li>
-<li><p>dimnames names of the dimensions for the statistic matrix</p></li>
-<li><p>stat-type types of statistic used</p></li>
-<li><p>df degrees of freedom of each statistic</p></li>
-</ul></div>
+    <p>Returns an array with the F-statistic for each model specified by formula with the following attributes:</p><dl><dt>model</dt>
+<dd><p>design matrix</p></dd>
+
+<dt>filenames</dt>
+<dd><p>minc file names input</p></dd>
+
+<dt>dimensions</dt>
+<dd><p>dimensions of the statistics matrix</p></dd>
+
+<dt>dimnames</dt>
+<dd><p>names of the dimensions for the statistic matrix</p></dd>
+
+<dt>stat-type</dt>
+<dd><p>types of statistic used</p></dd>
+
+<dt>df</dt>
+<dd><p>degrees of freedom of each statistic</p></dd>
+
+
+</dl></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>mincAnova,anatAnova</p></div>
@@ -78,10 +91,10 @@
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/CIVET_TEST.csv"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="civet.getAllFilenames.html">civet.getAllFilenames</a></span><span class="op">(</span><span class="va">gf</span>,<span class="st">"ID"</span>,<span class="st">"TEST"</span>,<span class="st">"/tmp/rminctestdata/CIVET"</span>,<span class="st">"TRUE"</span>,<span class="st">"1.1.12"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="civet.readAllCivetFiles.html">civet.readAllCivetFiles</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/AAL.csv"</span>,<span class="va">gf</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">testdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"CIVET_TEST.csv"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="civet.getAllFilenames.html">civet.getAllFilenames</a></span><span class="op">(</span><span class="va">gf</span>,<span class="st">"ID"</span>,<span class="st">"TEST"</span>,<span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"CIVET"</span><span class="op">)</span>,<span class="st">"TRUE"</span>,<span class="st">"1.1.12"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">=</span> <span class="fu"><a href="civet.readAllCivetFiles.html">civet.readAllCivetFiles</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"AAL.csv"</span><span class="op">)</span>,<span class="va">gf</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">result</span> <span class="op">=</span> <span class="fu">vertexAnova</span><span class="op">(</span><span class="va">CIVETFILES</span><span class="op">$</span><span class="va">nativeRMStlink20mmleft</span><span class="op">~</span><span class="va">Primary.Diagnosis</span>,<span class="va">gf</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>

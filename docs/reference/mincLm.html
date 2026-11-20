@@ -116,9 +116,9 @@ a small value like 1.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">testdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># read the text file describing the dataset</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/test_data_set.csv"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"test_data_set.csv"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Compute a linear model at each voxel</span></span></span>
 <span class="r-in"><span><span class="va">vs</span> <span class="op">&lt;-</span> <span class="fu">mincLm</span><span class="op">(</span><span class="va">jacobians_fixed_2</span> <span class="op">~</span> <span class="va">Sex</span>, <span class="va">gf</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>

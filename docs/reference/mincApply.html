@@ -94,7 +94,7 @@ which will take on the voxel values at every voxel, a
 wrapper function has to be written.  The mincApply function also
 supports passing, instead of a function, a quoted expression containing
 a free variable 'x', again taking on all voxel values;
-this is illustrated in the examples.  (Not this is not supported by pMincApply.)
+this is illustrated in the examples. pMincApply does not support this.
 The output of this function also has to be a
 simple vector or scalar.
 Note that interpreted R can be very slow. Mindnumbingly slow. It
@@ -103,8 +103,6 @@ use the optimized equivalents. In other words and to give one
 example, use mincLm rather than applying lm, and if lm must
 be applied, try to use lm.fit rather than plain lm.
 Also consider using parallel apply methods.
-When using the pbs method, one can also set the options –&gt; TMPDIR,MAX_NODES and WORKDIR
-<br>
 If you encounter memory issues, it could be due to minc file caching.
 Consider trying with the environment variable MINC_FILE_CACHE_MB set to
 a small value like 1.</p>
@@ -117,45 +115,22 @@ a small value like 1.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/test_data_set.csv"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">ma</span> <span class="op">&lt;-</span> <span class="fu">mincApply</span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">jacobians_fixed_2</span>,<span class="fu"><a href="https://rdrr.io/r/base/substitute.html" class="external-link">quote</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>;</span></span>
+<span class="r-in"><span><span class="va">testdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">gf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"test_data_set.csv"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">ma</span> <span class="op">&lt;-</span> <span class="fu">mincApply</span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">jacobians_fixed_2</span>, <span class="fu"><a href="https://rdrr.io/r/base/substitute.html" class="external-link">quote</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="mincWriteVolume.html">mincWriteVolume</a></span><span class="op">(</span><span class="va">ma</span>, <span class="st">"means.mnc"</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co">### pMincApply needs a function, not a quoted expression</span></span></span>
+<span class="r-in"><span><span class="va">testFunc</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">### run the whole thing in parallel on the local machine</span></span></span>
-<span class="r-in"><span><span class="va">testFunc</span> <span class="op">&lt;-</span> <span class="kw">function</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="va">pout</span> <span class="op">&lt;-</span> <span class="fu"><a href="pMincApply.html">pMincApply</a></span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">jacobians_fixed_2</span>,</span></span>
-<span class="r-in"><span>                   <span class="va">testFunc</span>,</span></span>
-<span class="r-in"><span>                   workers <span class="op">=</span> <span class="fl">4</span>,</span></span>
-<span class="r-in"><span>                   global <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'gf'</span>,<span class="st">'testFunc'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">pout</span> <span class="op">&lt;-</span> <span class="fu"><a href="pMincApply.html">pMincApply</a></span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">jacobians_fixed_2</span>, <span class="va">testFunc</span>, local <span class="op">=</span> <span class="cn">TRUE</span>, cores <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="mincWriteVolume.html">mincWriteVolume</a></span><span class="op">(</span><span class="va">pout</span>, <span class="st">"pmincOut.mnc"</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">### pbs example 1 (hpf)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/test_data_set.csv"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">testFunc</span> <span class="op">&lt;-</span> <span class="kw">function</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>TMPDIR<span class="op">=</span><span class="st">"/localhd/$PBS_ID"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">pout</span> <span class="op">&lt;-</span> <span class="fu"><a href="pMincApply.html">pMincApply</a></span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">jacobians_fixed_2</span>,</span></span>
-<span class="r-in"><span>                   <span class="va">testFunc</span>,</span></span>
-<span class="r-in"><span>                   workers <span class="op">=</span> <span class="fl">4</span>,</span></span>
-<span class="r-in"><span>                   method<span class="op">=</span><span class="st">"pbs"</span>,</span></span>
-<span class="r-in"><span>                   global <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'gf'</span>,<span class="st">'testFunc'</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">### pbs example 2 (scinet)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">gf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/test_data_set.csv"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">testFunc</span> <span class="op">&lt;-</span> <span class="kw">function</span> <span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">}</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>WORKDIR<span class="op">=</span><span class="st">"$SCRATCH"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>MAX_NODES<span class="op">=</span><span class="fl">8</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>TMP_DIR<span class="op">=</span><span class="st">"/tmp"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">pout</span> <span class="op">&lt;-</span> <span class="fu"><a href="pMincApply.html">pMincApply</a></span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">jacobians_fixed_2</span>,</span></span>
-<span class="r-in"><span>                   <span class="va">testFunc</span>,</span></span>
-<span class="r-in"><span>                   modules<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"intel"</span>,<span class="st">"openmpi"</span>,<span class="st">"R/3.1.1"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                   workers <span class="op">=</span> <span class="fl">4</span>,</span></span>
-<span class="r-in"><span>                   method<span class="op">=</span><span class="st">"pbs"</span>,</span></span>
-<span class="r-in"><span>                   global <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'gf'</span>,<span class="st">'testFunc'</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">#NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time</span></span></span>
-<span class="r-in"><span><span class="co">#NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1</span></span></span>
+<span class="r-in"><span><span class="co">### run the whole thing as 4 jobs on a batch queue, with a</span></span></span>
+<span class="r-in"><span><span class="co">### batchtools configuration file</span></span></span>
+<span class="r-in"><span><span class="va">pout</span> <span class="op">&lt;-</span> <span class="fu"><a href="pMincApply.html">pMincApply</a></span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">jacobians_fixed_2</span>, <span class="va">testFunc</span>, batches <span class="op">=</span> <span class="fl">4</span>,</span></span>
+<span class="r-in"><span>                   conf_file <span class="op">=</span> <span class="st">"~/.batchtools.conf.R"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

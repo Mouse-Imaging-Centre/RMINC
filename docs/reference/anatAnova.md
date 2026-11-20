@@ -31,11 +31,17 @@ anatAnova(formula, data = NULL, anat = NULL, subset = NULL)
 Returns an array with the F-statistic for each model specified by
 formula with the following attributes
 
-- model design matrix
+- model:
 
-- stat-type type of statistic used
+  design matrix
 
-- df degrees of freedom of each statistic
+- stat-type:
+
+  type of statistic used
+
+- df:
+
+  degrees of freedom of each statistic
 
 ## See also
 
@@ -45,11 +51,11 @@ mincAnova,vertexAnova
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET",
+testdir <- getRMINCTestData()
+gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),
                            TRUE,"1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
 } # }
 ```

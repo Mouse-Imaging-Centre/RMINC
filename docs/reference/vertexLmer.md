@@ -107,5 +107,6 @@ if using more complicated random effects structures.
 
 ## See also
 
-`lmer` for description of lmer and lmer formulas;
+[`lmer`](https://rdrr.io/pkg/lme4/man/lmer.html) for description of lmer
+and lmer formulas;
 [`mincLm`](https://mouse-imaging-centre.github.io/RMINC/reference/mincLm.md)

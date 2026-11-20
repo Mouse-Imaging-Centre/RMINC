@@ -27,9 +27,13 @@ The input anatomical hierarchy with volumes added
 
 Each node in the tree has two new attributes:
 
-- volumes - The matrix of volumes
+- volumes -:
 
-- meanVolume - The mean of the volumes of that node
+  The matrix of volumes
+
+- meanVolume -:
+
+  The mean of the volumes of that node
 
 Currently propagates volumes up the tree by summing. Future versions
 will add propagating through weighted means or other functions

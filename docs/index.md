@@ -55,7 +55,7 @@ The easiest way to install is with devtools from the `develop` branch:
 ``` r
 devtools::install_github(
   "Mouse-Imaging-Centre/RMINC@develop",
-  upgrade_dependencies = FALSE
+  upgrade = "never"
 )
 ```
 
@@ -106,8 +106,8 @@ Or pass the path at install time from R:
 ``` r
 devtools::install_github(
   "Mouse-Imaging-Centre/RMINC@develop",
-  args = "--configure-args='--with-build-path=/opt/minc/1.9.18'",
-  upgrade_dependencies = FALSE
+  configure.args = "--with-build-path=/opt/minc/1.9.18",
+  upgrade = "never"
 )
 ```
 
@@ -171,9 +171,9 @@ docker run -v $(pwd):/RMINC rminc-test shell           # interactive bash shell
 
 Function documentation is available through R’s `?` interface
 (e.g. [`?mincLm`](https://mouse-imaging-centre.github.io/RMINC/reference/mincLm.md)).
-The [MICePUB wiki](https://wiki.mouseimaging.ca/display/MICePub/RMINC)
-has additional background and usage notes. Report bugs or request
-features at the [issues
+The [RMINC website](https://mouse-imaging-centre.github.io/RMINC/) has
+the reference manual and the vignettes. Report bugs or request features
+at the [issues
 page](https://github.com/Mouse-Imaging-Centre/RMINC/issues).
 
 ## Development

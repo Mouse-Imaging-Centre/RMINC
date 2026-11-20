@@ -103,7 +103,8 @@ maintaining the ability to access results when the jobs have finished.</p>
 <span>  cleanup <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  clobber <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  collate <span class="op">=</span> <span class="va">simplify2minc</span>,</span>
-<span>  conf_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"RMINC_BATCH_CONF"</span><span class="op">)</span></span>
+<span>  conf_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"RMINC_BATCH_CONF"</span><span class="op">)</span>,</span>
+<span>  ignore_incompletes <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">qMincRegistry</span><span class="op">(</span></span>
@@ -227,13 +228,13 @@ to true</p></dd>
 <dd><p>A batchtools config file, defaults to <code>option("RMINC_BATCH_CONF")</code></p></dd>
 
 
-<dt id="arg-registry">registry<a class="anchor" aria-label="anchor" href="#arg-registry"></a></dt>
-<dd><p>a pre-existing job registry</p></dd>
-
-
 <dt id="arg-ignore-incompletes">ignore_incompletes<a class="anchor" aria-label="anchor" href="#arg-ignore-incompletes"></a></dt>
 <dd><p>Whether to reduce the results with <code>qMincReduce</code>
 even if all jobs are not complete.</p></dd>
+
+
+<dt id="arg-registry">registry<a class="anchor" aria-label="anchor" href="#arg-registry"></a></dt>
+<dd><p>a pre-existing job registry</p></dd>
 
 </dl></div>
     <div class="section level2">

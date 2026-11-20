@@ -26,7 +26,7 @@ simplify2minc(result_list)
 
 ## Value
 
-an object of class `mincSingleDim`, codemincMultiDim, or codemincList
+an object of class `mincSingleDim`, `mincMultiDim`, or `mincList`
 depending on the dimensions of elements of the input list, see
 [simplify_masked](https://mouse-imaging-centre.github.io/RMINC/reference/simplify_masked.md)
 for details.

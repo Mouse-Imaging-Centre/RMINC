@@ -79,9 +79,9 @@ Currently only CIVET version 1.1.12 is supported.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">civet.CreateBrainViewROI</span><span class="op">(</span><span class="st">"/tmp/rminctestdata/AAL.csv"</span>,</span></span>
-<span class="r-in"><span>                         <span class="st">"/tmp/rminctestdata/AAL_atlas_left.txt"</span>,</span></span>
+<span class="r-in"><span><span class="va">testdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">civet.CreateBrainViewROI</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"AAL.csv"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                         <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"AAL_atlas_left.txt"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                         <span class="st">"Left Insula"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/quit.html" class="external-link">q</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co">#(The .txt file is written in the working directory and can be viewed via the command)</span></span></span>

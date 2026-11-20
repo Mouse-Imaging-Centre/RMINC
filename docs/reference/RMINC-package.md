@@ -10,7 +10,7 @@ Useful links:
 
 - <https://github.com/Mouse-Imaging-Centre/RMINC>
 
-- <https://wiki.mouseimaging.ca/display/MICePub/RMINC>
+- <https://mouse-imaging-centre.github.io/RMINC/>
 
 - Report bugs at <https://github.com/Mouse-Imaging-Centre/RMINC/issues>
 
@@ -20,7 +20,7 @@ Useful links:
 
 Authors:
 
-- Jason Lerch <jason.lerch@sickkids.ca>
+- Jason Lerch <jason.lerch@ndcn.ox.ac.uk>
 
 - Matthijs van Eede
 
@@ -41,3 +41,5 @@ Other contributors:
 - Benjamin Darwin \[contributor\]
 
 - Bilal Syed \[contributor\]
+
+- Vladimir Fonov <vladimir.fonov@gmail.com> \[contributor\]

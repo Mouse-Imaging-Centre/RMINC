@@ -161,6 +161,11 @@ the following command:
 <code>file.show(system.file("doc/visualizationTutorial.html", package="RMINC"))</code></p>
 <p>On certain systems the slices are plotted with a reflected y-axis. To fix this
 configure <code>options(RMINC_flip_image = TRUE)</code></p>
+<p>Voxels are drawn with the aspect ratio of the voxel separations in the
+file named by the <code>likeVolume</code> (or <code>filename</code>) attribute of the
+volume, so that non-isotropic volumes are not stretched. If the volume has
+no such file, voxels are square. To always draw square voxels, set
+<code>options(RMINC_use_voxel_spacing = FALSE)</code>.</p>
     </div>
 
     <div class="section level2">

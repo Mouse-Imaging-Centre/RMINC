@@ -31,17 +31,29 @@ vertexAnova(formula, data, subset = NULL, column = 1)
 Returns an array with the F-statistic for each model specified by
 formula with the following attributes:
 
-- model design matrix
+- model:
 
-- filenames minc file names input
+  design matrix
 
-- dimensions dimensions of the statistics matrix
+- filenames:
 
-- dimnames names of the dimensions for the statistic matrix
+  minc file names input
 
-- stat-type types of statistic used
+- dimensions:
 
-- df degrees of freedom of each statistic
+  dimensions of the statistics matrix
+
+- dimnames:
+
+  names of the dimensions for the statistic matrix
+
+- stat-type:
+
+  types of statistic used
+
+- df:
+
+  degrees of freedom of each statistic
 
 ## See also
 
@@ -51,10 +63,10 @@ mincAnova,anatAnova
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+testdir <- getRMINCTestData()
+gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
+gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 result = vertexAnova(CIVETFILES$nativeRMStlink20mmleft~Primary.Diagnosis,gf)
 } # }
 ```

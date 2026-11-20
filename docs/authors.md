@@ -33,12 +33,12 @@ Source:
 
 Lerch J, Hammill C, van Eede M, Cassel D (2026). *RMINC: Statistical
 Tools for Medical Imaging NetCDF (MINC) Files*. R package version
-2.0.0.0, <http://mouse-imaging-centre.github.io/RMINC>.
+2.0.0.0, <https://mouse-imaging-centre.github.io/RMINC/>.
 
     @Manual{,
       title = {{RMINC}: Statistical Tools for Medical Imaging NetCDF (MINC) Files},
       author = {Jason Lerch and Chris Hammill and Matthijs {van Eede} and Daniel Cassel},
       year = {2026},
       note = {R package version 2.0.0.0},
-      url = {http://mouse-imaging-centre.github.io/RMINC},
+      url = {https://mouse-imaging-centre.github.io/RMINC/},
     }

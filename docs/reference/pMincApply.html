@@ -62,7 +62,9 @@ the computation to multiple cores or workers on a grid computing environment</p>
 <span>  collate <span class="op">=</span> <span class="va">simplify2minc</span>,</span>
 <span>  conf_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"RMINC_BATCH_CONF"</span><span class="op">)</span>,</span>
 <span>  registry_name <span class="op">=</span> <span class="fu">new_file</span><span class="op">(</span><span class="st">"pMincApply_registry"</span><span class="op">)</span>,</span>
-<span>  registry_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">getwd</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  registry_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">getwd</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  wait <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  ignore_incompletes <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -149,7 +151,8 @@ and will overwrite <code>batches</code> if it is supplied.</p></dd>
 <dd><p>A path to a temporary directory to hold the job registry
 created when using a true queuing system and for writing temporary mask
 files. This must be a location read/writable by all nodes when using a
-true queuing system (so /tmp will not work).</p></dd>
+true queuing system (so /tmp will not work). When <code>local = TRUE</code> and
+<code>temp_dir</code> is not given, the R session temporary directory is used.</p></dd>
 
 
 <dt id="arg-cleanup">cleanup<a class="anchor" aria-label="anchor" href="#arg-cleanup"></a></dt>
@@ -171,6 +174,16 @@ the pMincApply. Defaults to <a href="simplify2minc.html">simplify2minc</a>.</p><
 
 <dt id="arg-registry-dir">registry_dir<a class="anchor" aria-label="anchor" href="#arg-registry-dir"></a></dt>
 <dd><p>where batchtools should create the registry</p></dd>
+
+
+<dt id="arg-wait">wait<a class="anchor" aria-label="anchor" href="#arg-wait"></a></dt>
+<dd><p>Whether to wait for your results or return a registry object
+to be checked on later</p></dd>
+
+
+<dt id="arg-ignore-incompletes">ignore_incompletes<a class="anchor" aria-label="anchor" href="#arg-ignore-incompletes"></a></dt>
+<dd><p>Whether to reduce the results with <code>qMincReduce</code>
+even if all jobs are not complete.</p></dd>
 
 </dl></div>
     <div class="section level2">

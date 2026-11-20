@@ -70,17 +70,29 @@ mincAnova(
 Returns an array with the F-statistic for each model specified by
 formula with the following attributes:
 
-- model design matrix
+- model:
 
-- filenames minc file names input
+  design matrix
 
-- dimensions dimensions of the statistics matrix
+- filenames:
 
-- dimnames names of the dimensions for the statistic matrix
+  minc file names input
 
-- stat-type types of statistic used
+- dimensions:
 
-- df degrees of freedom of each statistic
+  dimensions of the statistics matrix
+
+- dimnames:
+
+  names of the dimensions for the statistic matrix
+
+- stat-type:
+
+  types of statistic used
+
+- df:
+
+  degrees of freedom of each statistic
 
 ## Details
 
@@ -94,9 +106,9 @@ mincWriteVolume,mincFDR,mincMean, mincSd
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
+testdir <- getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 # run an ANOVA at each voxel
 vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 } # }

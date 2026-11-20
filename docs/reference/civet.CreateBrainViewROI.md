@@ -45,9 +45,9 @@ civet.CreateBrainViewFile
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv",
-                         "/tmp/rminctestdata/AAL_atlas_left.txt",
+testdir <- getRMINCTestData()
+civet.CreateBrainViewROI(file.path(testdir, "AAL.csv"),
+                         file.path(testdir, "AAL_atlas_left.txt"),
                          "Left Insula")
 q()
 #(The .txt file is written in the working directory and can be viewed via the command)

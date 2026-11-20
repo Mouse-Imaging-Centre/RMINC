@@ -49,15 +49,15 @@ anatLm,anatGetAll
 
 ``` r
 if (FALSE) { # \dontrun{
-getRMINCTestData()
-filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
+testdir <- getRMINCTestData()
+filenames <- read.csv(file.path(testdir, "filenames.csv"))
 volumes <- anatGetAll(filenames=filenames$absolute_jacobian,
-                      atlas="/tmp/rminctestdata/test_segmentation.mnc",
+                      atlas=file.path(testdir, "test_segmentation.mnc"),
                       method="jacobians",
-                      defs="/tmp/rminctestdata/test_defs.csv")
+                      defs=file.path(testdir, "test_defs.csv"))
 volumes_combined <-
      anatCombineStructures(vols=volumes,
                            method="jacobians",
-                           defs="/tmp/rminctestdata/test_defs.csv")
+                           defs=file.path(testdir, "test_defs.csv"))
 } # }
 ```

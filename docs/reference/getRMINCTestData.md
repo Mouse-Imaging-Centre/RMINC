@@ -1,8 +1,8 @@
 # Download Example Data
 
-Download the example data needed to run our examples in your /tmp
-directory The data can be downloaded manually from
-<https://wiki.mouseimaging.ca/download/attachments/1654/rminctestdata.tar.gz>
+Download the example data needed to run our examples. The data can be
+downloaded manually from
+<https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/main.tar.gz>
 
 ## Usage
 
@@ -27,3 +27,9 @@ getRMINCTestData(
   Argument to pass to
   [download.file](https://rdrr.io/r/utils/download.file.html) typical
   options are `libcurl` and `wget`
+
+## Value
+
+The path of the unpacked data directory (invisibly). Use it to find the
+example files, for example
+`read.csv(file.path(getRMINCTestData(), "test_data_set.csv"))`.

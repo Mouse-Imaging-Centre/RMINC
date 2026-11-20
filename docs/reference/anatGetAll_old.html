@@ -101,19 +101,30 @@ nrows equal to the number of files.</p>
     <p>anatGetAll needs a set of files along with an atlas and a set of
 atlas definitions. In the end it will produce one value per label
 in the atlas for each of the input files. How that value is
-computed depends on the methods argument:</p><ul><li><p>jacobians - Each file contains log jacobians, and the volume for
+computed depends on the methods argument:</p><dl><dt>jacobians -</dt>
+<dd><p>Each file contains log jacobians, and the volume for
   each atlas label is computed by multiplying the jacobian with
-  the voxel volume at each voxel.</p></li>
-<li><p>labels - Each file contains integer labels (i.e. same as the atlas).
+  the voxel volume at each voxel.</p></dd>
+
+  <dt>labels -</dt>
+<dd><p>Each file contains integer labels (i.e. same as the atlas).
   The volume is computed by counting the number of voxels with
-  each label and multiplying by the voxel volume.</p></li>
-<li><p>means - Each file contains an arbitrary number and the mean of all
-  voxels inside each label is computed.</p></li>
-<li><p>sums - Each file contains an aribtrary number and the sum of all
-  voxels inside each label is computed.</p></li>
-<li><p>text - Each file is a comma separated values text file and is simply
-  read in.</p></li>
-</ul></div>
+  each label and multiplying by the voxel volume.</p></dd>
+
+  <dt>means -</dt>
+<dd><p>Each file contains an arbitrary number and the mean of all
+  voxels inside each label is computed.</p></dd>
+
+  <dt>sums -</dt>
+<dd><p>Each file contains an aribtrary number and the sum of all
+  voxels inside each label is computed.</p></dd>
+
+  <dt>text -</dt>
+<dd><p>Each file is a comma separated values text file and is simply
+  read in.</p></dd>
+
+
+</dl></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>anatLm,anatCombineStructures</p></div>
@@ -122,12 +133,12 @@ computed depends on the methods argument:</p><ul><li><p>jacobians - Each file co
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">filenames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="st">"/tmp/rminctestdata/filenames.csv"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">testdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="getRMINCTestData.html">getRMINCTestData</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">filenames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/utils/read.table.html" class="external-link">read.csv</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"filenames.csv"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">volumes</span> <span class="op">&lt;-</span> <span class="fu"><a href="anatGetAll.html">anatGetAll</a></span><span class="op">(</span>filenames<span class="op">=</span><span class="va">filenames</span><span class="op">$</span><span class="va">absolute_jacobian</span>,</span></span>
-<span class="r-in"><span>                      atlas<span class="op">=</span><span class="st">"/tmp/rminctestdata/test_segmentation.mnc"</span>,</span></span>
+<span class="r-in"><span>                      atlas<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"test_segmentation.mnc"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                      method<span class="op">=</span><span class="st">"jacobians"</span>,</span></span>
-<span class="r-in"><span>                      defs<span class="op">=</span><span class="st">"/tmp/rminctestdata/test_defs.csv"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                      defs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">testdir</span>, <span class="st">"test_defs.csv"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

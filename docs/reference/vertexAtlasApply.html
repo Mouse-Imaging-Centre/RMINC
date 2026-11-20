@@ -102,7 +102,13 @@ structure. Defaults to <a href="simplify_masked.html">simplify_masked</a></p></d
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The a matrix with a row of results for each structure</p>
+    <p>A matrix with a row for each subject (file) and a column for each
+structure, in the same orientation as <a href="anatGetAll.html">anatGetAll</a>. If <code>fun</code>
+returns more than one value for each structure, the result is in the form
+that <code>collate</code> gives.
+Before RMINC 2.0.0.0 the result had a row for each structure and a column
+for each subject, so code that used <code><a href="https://rdrr.io/r/base/t.html" class="external-link">t()</a></code> on the result must
+remove it (#264).</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
