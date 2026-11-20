@@ -84,6 +84,7 @@ reference:
       - anatGetAll
       - anatGetAll_old
       - as.data.frame.anatMatrix
+      - as.data.frame.anatModel
       - voxel_atlas_defs
       - anatMean
       - anatSd
