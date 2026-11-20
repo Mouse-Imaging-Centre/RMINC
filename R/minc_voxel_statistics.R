@@ -1182,6 +1182,11 @@ mincWilcoxon <- function(filenames, grouping, mask = NULL, maskval = NULL) {
 #' Perform threshold free cluster enhancement as described in
 #' Smith and Nichols (2008). Cluster-like structures are enhanced
 #' to allow a hybrid cluster/voxel analysis to be performed.
+#'
+#' mincTFCE runs the \code{TFCE} program from minc-stuffs
+#' (\url{https://github.com/Mouse-Imaging-Centre/minc-stuffs}), which must be
+#' on the \code{PATH}. mincTFCE stops with an error if \code{TFCE} is
+#' missing, exits with a non-zero status, or does not write its output file.
 #' @param x Either a character vector with a single filename, a \code{mincSingleDim} object,
 #' or a \code{matrix} object, or \code{mincLm} object.
 #' @param d The discretization step-size for approximating the threshold integral (default .1)
@@ -1263,17 +1268,17 @@ mincTFCE.mincSingleDim <-
         `if`(side == "positive", "pos-only", "neg-only")
       )
 
-    system(
+    run_tfce(
       sprintf(
-        "TFCE -d %s -E %s -H %s --%s %s %s",
+        "-d %s -E %s -H %s --%s %s %s",
         d,
         E,
         H,
         side_flag,
-        in_file,
-        output_file
+        shQuote(in_file),
+        shQuote(output_file)
       ),
-      intern = TRUE
+      output_file
     )
 
     out_vol <- mincGetVolume(output_file)
@@ -1281,6 +1286,32 @@ mincTFCE.mincSingleDim <-
 
     out_vol
   }
+
+# Run the TFCE program from minc-stuffs. Stop with an error if TFCE is
+# missing, if it fails, or if it does not write the output file. Before,
+# a failure was ignored, and the output could be incomplete.
+run_tfce <- function(args, output_file) {
+  if (!nzchar(Sys.which("TFCE"))) {
+    stop(
+      "mincTFCE needs the TFCE program from minc-stuffs ",
+      "(https://github.com/Mouse-Imaging-Centre/minc-stuffs), ",
+      "but TFCE is not on the PATH"
+    )
+  }
+  cmd <- paste("TFCE", args)
+  output <- suppressWarnings(system(paste(cmd, "2>&1"), intern = TRUE))
+  status <- attr(output, "status")
+  if (!is.null(status) && status != 0) {
+    stop(
+      "TFCE failed with exit status ", status, ": ", cmd, "\n",
+      paste(utils::tail(output, 10), collapse = "\n")
+    )
+  }
+  if (!file.exists(output_file)) {
+    stop("TFCE did not write its output file: ", cmd)
+  }
+  invisible(output)
+}
 
 #' @describeIn mincTFCE matrix
 #' @export
