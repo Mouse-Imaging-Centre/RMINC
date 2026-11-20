@@ -176,7 +176,7 @@ SEXP per_voxel_anova(SEXP filenames, SEXP Sx, SEXP asgn,
 		  MI2_OPEN_READ, &hmask);
     
     mask_buffer = (double *) malloc(sizes[1]*sizes[2]*sizeof(double));
-    if(suc == MI_ERROR) error("Error opening mask");
+    if(suc == MI_ERROR) error("Error opening mask: %s.\n", CHAR(STRING_ELT(mask, 0)));
   }
   
   //Rprintf("Before creating slice buffer\n");

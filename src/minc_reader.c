@@ -319,7 +319,8 @@ void get_hyperslab(char **filename, int *start, int *count, double *slab) {
 				 (misize_t *) tmp_count, 
 	    			 slab)
       < 0) {
-    error("Could not get hyperslab.\n");
+    miclose_volume(hvol);
+    error("Could not get hyperslab from file: %s.\n", filename[0]);
   }
    // Close the volume, to free handle
    result = miclose_volume(hvol); 
@@ -367,7 +368,8 @@ SEXP get_hyperslab2( SEXP filename,  SEXP start,  SEXP count, SEXP slab) {
 				 tmp_count, 
 				 REAL(slab))
       < 0) {
-    error("Could not get hyperslab.\n");
+    miclose_volume(hvol);
+    error("Could not get hyperslab from file: %s.\n", CHAR(STRING_ELT(filename, 0)));
   }
   return(slab);
 }
@@ -476,7 +478,7 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
 				     (misize_t *) start, 
 				     (misize_t *) count, 
 				     full_buffer[i]) )
-	error("Error opening buffer.\n");
+	error("Error reading file: %s.\n", CHAR(STRING_ELT(filenames, i)));
     }
     /* get mask - if desired */
     if (xhave_mask[0] == 1) {
@@ -485,7 +487,7 @@ SEXP minc2_apply(SEXP filenames, SEXP fn, SEXP have_mask,
 				     (misize_t *) start, 
 				     (misize_t *) count, 
 				     mask_buffer) )
-	error("Error opening mask buffer.\n");
+	error("Error reading mask: %s.\n", CHAR(STRING_ELT(mask, 0)));
     }
 
     Rprintf(" %d ", v0);

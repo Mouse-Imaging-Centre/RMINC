@@ -873,12 +873,12 @@ anatSummarize <-
 #' @seealso anatLm,anatCombineStructures
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
+#' testdir <- getRMINCTestData()
+#' filenames <- read.csv(file.path(testdir, "filenames.csv"))
 #' volumes <- anatGetAll(filenames=filenames$absolute_jacobian,
-#'                       atlas="/tmp/rminctestdata/test_segmentation.mnc",
+#'                       atlas=file.path(testdir, "test_segmentation.mnc"),
 #'                       method="jacobians",
-#'                       defs="/tmp/rminctestdata/test_defs.csv")
+#'                       defs=file.path(testdir, "test_defs.csv"))
 #'}
 #'@export
 anatGetAll_old <- function(
@@ -975,16 +975,16 @@ anatGetAll_old <- function(
 #' @seealso anatLm,anatGetAll
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' filenames <- read.csv("/tmp/rminctestdata/filenames.csv")
+#' testdir <- getRMINCTestData()
+#' filenames <- read.csv(file.path(testdir, "filenames.csv"))
 #' volumes <- anatGetAll(filenames=filenames$absolute_jacobian,
-#'                       atlas="/tmp/rminctestdata/test_segmentation.mnc",
+#'                       atlas=file.path(testdir, "test_segmentation.mnc"),
 #'                       method="jacobians",
-#'                       defs="/tmp/rminctestdata/test_defs.csv")
+#'                       defs=file.path(testdir, "test_defs.csv"))
 #' volumes_combined <-
 #'      anatCombineStructures(vols=volumes,
 #'                            method="jacobians",
-#'                            defs="/tmp/rminctestdata/test_defs.csv")
+#'                            defs=file.path(testdir, "test_defs.csv"))
 #' }
 #' @export
 anatCombineStructures <- function(
@@ -1045,10 +1045,10 @@ anatCombineStructures <- function(
 #'          elements as there are regions in the input variable by the number of groupings
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' testdir <- getRMINCTestData()
+#' gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+#' gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 #' vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
 #' }
 #' @export
@@ -1086,10 +1086,10 @@ anatApply <- function(vols, grouping = NULL, method = mean, ...) {
 #' @seealso mincLm,anatLm,anatFDR
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' testdir <- getRMINCTestData()
+#' gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+#' gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 #' rmincLm= anatLm(~ Sex,gf,gf$lobeThickness)
 #' }
 #' @export
@@ -1495,11 +1495,11 @@ anatLmerEstimateDF <- function(model, n = 50, verbose = FALSE) {
 #' @seealso mincAnova,vertexAnova
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET",
+#' testdir <- getRMINCTestData()
+#' gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+#' gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),
 #'                            TRUE,"1.1.12")
-#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 #' rmincAnova = anatAnova(~ Sex,gf,gf$lobeThickness);
 #' }
 #' @export
@@ -1638,10 +1638,10 @@ anatToVolume <- function(
 #'          elements as there are regions in the input variable.
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' testdir <- getRMINCTestData()
+#' gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+#' gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 #' vm <- anatMean(gf$lobeThickness)
 #' }
 #' @name anatSummaries

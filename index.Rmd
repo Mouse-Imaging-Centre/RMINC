@@ -14,14 +14,14 @@ The easiest way to get up and running is by using devtools:
 
 ```{r, eval = FALSE}
 devtools::install_github("Mouse-Imaging-Centre/RMINC"
-                       , upgrade_dependencies = FALSE)
+                       , upgrade = "never")
 ```
 
 or use the most recent development version
 
 ```{r, eval = FALSE}
 devtools::install_github("Mouse-Imaging-Centre/RMINC@develop"
-                       , upgrade_dependencies = FALSE)
+                       , upgrade = "never")
 ```
 
 see the [INSTALL](https://github.com/Mouse-Imaging-Centre/RMINC/blob/develop/INSTALL) file

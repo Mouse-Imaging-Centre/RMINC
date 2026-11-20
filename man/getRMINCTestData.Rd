@@ -18,8 +18,13 @@ is created.}
 \item{method}{Argument to pass to \link{download.file} typical options are \code{libcurl}
 and \code{wget}}
 }
+\value{
+The path of the unpacked data directory (invisibly). Use it to
+find the example files, for example
+\code{read.csv(file.path(getRMINCTestData(), "test_data_set.csv"))}.
+}
 \description{
-Download the example data needed to run our examples in your /tmp directory
-The data can be downloaded manually from
+Download the example data needed to run our examples. The data
+can be downloaded manually from
 \url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/main.tar.gz}
 }

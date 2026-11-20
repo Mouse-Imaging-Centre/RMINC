@@ -64,9 +64,9 @@ can be viewed or manipulated with the standard MINC tools
 }}
 \examples{
 \dontrun{
-getRMINCTestData()
+testdir <- getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 # run a linear model relating the data in all voxels to Sex
 vs <- mincLm(gf$jacobians_fixed_2 ~ Sex, gf)
 # write the results to file

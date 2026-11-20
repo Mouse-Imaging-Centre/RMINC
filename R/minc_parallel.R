@@ -98,7 +98,8 @@ new_file <- function(name, dir = getwd()) {
 #' @param temp_dir A path to a temporary directory to hold the job registry
 #' created when using a true queuing system and for writing temporary mask
 #' files. This must be a location read/writable by all nodes when using a
-#' true queuing system (so /tmp will not work).
+#' true queuing system (so /tmp will not work). When \code{local = TRUE} and
+#' \code{temp_dir} is not given, the R session temporary directory is used.
 #' @param cleanup Whether to clean up registry after a queue parallelization job
 #' @param collate A function to be applied to collapse the results of the
 #' the pMincApply. Defaults to \link{simplify2minc}.
@@ -166,7 +167,7 @@ pMincApply <-
         slab_sizes = slab_sizes,
         mask = mask,
         cores = cores,
-        temp_dir = temp_dir,
+        temp_dir = if (missing(temp_dir)) tempdir() else temp_dir,
         collate = collate
       )
     } else {
@@ -210,7 +211,8 @@ pMincApply <-
 #' @param tinyMask Shrink the mask for testing
 #' @param slab_sizes A 3 element vector indicating large a chunk of data to read from each minc file
 #' at a time defaults to one slice along the first dimension.
-#' @param temp_dir A directory to hold mask files used in the job batching
+#' @param temp_dir A directory to hold mask files used in the job batching.
+#' Defaults to the R session temporary directory, \code{tempdir()}.
 #' @param cores the number of cores to use, defaults to the option
 #' \code{mc.cores} or one less than the number of detected cores if \code{mc.cores}
 #' is unset.
@@ -229,7 +231,7 @@ mcMincApply <-
     mask = NULL,
     tinyMask = FALSE,
     slab_sizes = NULL,
-    temp_dir = getwd(),
+    temp_dir = tempdir(),
     cores = getOption("mc.cores", parallel::detectCores() - 1),
     return_raw = FALSE,
     cleanup = TRUE,
@@ -253,6 +255,7 @@ mcMincApply <-
         sample_file = sample_file,
         mask = mask,
         n = cores,
+        temp_dir = temp_dir,
         tinyMask = tinyMask
       )
       on.exit(try(unlink(mask_file)))
@@ -439,7 +442,11 @@ qMincApply <-
 
     on.exit({
       if (cleanup && wait) {
-        try(lapply(list.files(temp_dir, pattern = "pMincMask.*\\.mnc"), unlink))
+        try(unlink(list.files(
+          temp_dir,
+          pattern = "pMincMask.*\\.mnc",
+          full.names = TRUE
+        )))
         tenacious_remove_registry(qMinc_registry)
       }
     })
@@ -526,6 +533,7 @@ qMincMap <-
       sample_file = filenames[1],
       mask = mask,
       n = batches * cores,
+      temp_dir = temp_dir,
       tinyMask = tinyMask
     )
 

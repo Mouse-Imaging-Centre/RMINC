@@ -57,9 +57,9 @@ a small value like 1.
 }
 \examples{
 \dontrun{
-getRMINCTestData()
+testdir <- getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 # Compute a linear model at each voxel
 vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 }

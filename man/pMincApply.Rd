@@ -79,7 +79,8 @@ and will overwrite \code{batches} if it is supplied.}
 \item{temp_dir}{A path to a temporary directory to hold the job registry
 created when using a true queuing system and for writing temporary mask
 files. This must be a location read/writable by all nodes when using a
-true queuing system (so /tmp will not work).}
+true queuing system (so /tmp will not work). When \code{local = TRUE} and
+\code{temp_dir} is not given, the R session temporary directory is used.}
 
 \item{cleanup}{Whether to clean up registry after a queue parallelization job}
 

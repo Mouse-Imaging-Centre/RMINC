@@ -1025,7 +1025,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
                                      start,
                                      count,
                                      mask_buffer) ) {
-        error("Error opening mask buffer.\n");
+        error("Error reading mask: %s.\n", CHAR(STRING_ELT(mask, 0)));
       }
       
       // Determine if at least one voxel isn't masked to save on IO
@@ -1044,7 +1044,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
                                        start,
                                        count, 
                                        full_buffer[i])) {
-          error("Error opening buffer.\n");
+          error("Error reading file: %s.\n", CHAR(STRING_ELT(filenames, i)));
         }
         if(!isLogical(filenames_right)) {
           if (miget_real_value_hyperslab(hvol_right[i],
@@ -1052,7 +1052,7 @@ SEXP minc2_model(SEXP filenames,SEXP filenames_right, SEXP mmatrix, SEXP asgn,
                                          start,
                                          count,
                                          full_buffer_right[i]) ) {
-            error("Error opening buffer (input file on the right hand side in the formula).\n");
+            error("Error reading file: %s.\n", CHAR(STRING_ELT(filenames_right, i)));
           }
         }
       }
