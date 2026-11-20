@@ -171,3 +171,67 @@ test_that("Vertex TFCE approximately matches mincTFCE", {
 
 # mincPlotSliceSeries(mincArray(tfce_vol))
 # mincPlotSliceSeries(mincArray(`likeVolume<-`(vtfce, first_file)))
+
+context("mincTFCE checks the TFCE program")
+
+# Put a fake TFCE program first on the PATH. `body` is the shell code
+# that runs after `input` and `output` are set from the last two
+# arguments.
+with_fake_tfce <- function(body, code) {
+  bin <- tempfile("fake_tfce_")
+  dir.create(bin)
+  writeLines(
+    c(
+      "#!/bin/sh",
+      "for a; do input=$output; output=$a; done",
+      body
+    ),
+    file.path(bin, "TFCE")
+  )
+  Sys.chmod(file.path(bin, "TFCE"), "0755")
+  old_path <- Sys.getenv("PATH")
+  Sys.setenv(PATH = paste(bin, old_path, sep = .Platform$path.sep))
+  on.exit({
+    Sys.setenv(PATH = old_path)
+    unlink(bin, recursive = TRUE)
+  })
+  force(code)
+}
+
+test_that("mincTFCE stops when TFCE fails, even with an output file", {
+  # pyminc can fail after it writes the data. Before, mincTFCE read the
+  # output and did not report the failure.
+  with_fake_tfce(
+    c('cp "$input" "$output"', 'echo "fake TFCE failure" >&2', "exit 3"),
+    expect_error(mincTFCE(first_vol), "exit status 3")
+  )
+})
+
+test_that("mincTFCE stops when TFCE writes no output file", {
+  with_fake_tfce(
+    "exit 0",
+    expect_error(mincTFCE(first_vol), "did not write its output file")
+  )
+})
+
+test_that("mincTFCE stops when TFCE is not installed", {
+  empty_bin <- tempfile("no_tfce_")
+  dir.create(empty_bin)
+  old_path <- Sys.getenv("PATH")
+  Sys.setenv(PATH = empty_bin)
+  on.exit({
+    Sys.setenv(PATH = old_path)
+    unlink(empty_bin, recursive = TRUE)
+  })
+  expect_error(mincTFCE(first_vol), "needs the TFCE program from minc-stuffs")
+})
+
+test_that("mincTFCE reads the output when TFCE succeeds", {
+  with_fake_tfce(
+    'cp "$input" "$output"',
+    {
+      out <- mincTFCE(first_vol)
+      expect_equal(as.numeric(out), as.numeric(first_vol))
+    }
+  )
+})

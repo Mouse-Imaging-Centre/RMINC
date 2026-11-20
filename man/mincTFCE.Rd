@@ -118,6 +118,12 @@ Perform threshold free cluster enhancement as described in
 Smith and Nichols (2008). Cluster-like structures are enhanced
 to allow a hybrid cluster/voxel analysis to be performed.
 }
+\details{
+mincTFCE runs the \code{TFCE} program from minc-stuffs
+(\url{https://github.com/Mouse-Imaging-Centre/minc-stuffs}), which must be
+on the \code{PATH}. mincTFCE stops with an error if \code{TFCE} is
+missing, exits with a non-zero status, or does not write its output file.
+}
 \section{Methods (by class)}{
 \itemize{
 \item \code{mincTFCE(mincSingleDim)}: mincSingleDim
