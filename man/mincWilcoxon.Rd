@@ -27,8 +27,8 @@ Perform a Mann-Whitney U test between a set of minc volumes.
 }
 \examples{
 \dontrun{
-getRMINCTestData()
-gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+testdir <- getRMINCTestData()
+gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 mw <- mincWilcoxon(gf$jacobians_0.2,gf $Strain)
 }
 }

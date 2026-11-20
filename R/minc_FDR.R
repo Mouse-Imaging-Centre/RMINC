@@ -101,9 +101,9 @@ fdr_qvalues <- function(pvals, method, column = "") {
 #' @seealso mincWriteVolume,mincLm,mincWilcoxon or mincTtest
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
+#' testdir <- getRMINCTestData()
 #' # read the text file describing the dataset
-#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 #' # run a linear model relating the data in all voxels to Genotype
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 #' # compute the False Discovery Rate

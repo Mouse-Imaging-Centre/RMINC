@@ -43,8 +43,8 @@ configure flag to the install
 
 ```
 devtools::install_github("Mouse-Imaging-Centre/RMINC"
-                        , args = "--configure-args='--with-build-path=<your-path-here>'"
-                        , upgrade_dependencies = FALSE)
+                        , configure.args = "--with-build-path=<your-path-here>"
+                        , upgrade = "never")
 ```
 
 OSX and MacOS

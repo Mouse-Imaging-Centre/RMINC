@@ -25,8 +25,8 @@ Perform an unpaired,unequal variance t-test across a set of minc volumes
 }
 \examples{
 \dontrun{
-getRMINCTestData()
-gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+testdir <- getRMINCTestData()
+gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 mtt <- mincTtest(gf$jacobians_0.2,gf$Strain)
 }
 }

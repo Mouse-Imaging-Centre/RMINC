@@ -18,8 +18,8 @@ Load a 3-dimensional MINC2 volume and returns it as a 1D array
 }
 \examples{
 \dontrun{
-getRMINCTestData()
-testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc")
+testdir <- getRMINCTestData()
+testfile <- mincGetVolume(file.path(testdir, "brain_cut_out.mnc"))
 }
 }
 \seealso{

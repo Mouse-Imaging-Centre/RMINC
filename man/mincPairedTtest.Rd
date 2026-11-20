@@ -26,8 +26,8 @@ Perform a paired t-test across a set of minc volumes
 }
 \examples{
 \dontrun{
-getRMINCTestData()
-gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+testdir <- getRMINCTestData()
+gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 gf = gf[1:20,]
 mptt <- mincPairedTtest(gf$jacobians_0.2,gf$Strain)
 }

@@ -266,6 +266,15 @@ test_that("mincLm randomize works", {
   expect_equal(dim(thresholds(rand)), c(4, 2))
 })
 
+test_that("mincRandomize gives the same result with the same seed (#212)", {
+  verboseRun(rlm <- mincLm(voxel_left_file ~ Sex, gftest))
+  set.seed(42)
+  verboseRun(rand_a <- mincRandomize(rlm, R = 3))
+  set.seed(42)
+  verboseRun(rand_b <- mincRandomize(rlm, R = 3))
+  expect_identical(rand_a$randomization_dist, rand_b$randomization_dist)
+})
+
 test_that("mincRandomize works with one column, by name or index (#318)", {
   verboseRun(rlm <- mincLm(voxel_left_file ~ Sex, gftest))
 

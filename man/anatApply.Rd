@@ -24,10 +24,10 @@ This function is used to compute an arbitrary function of every region in an ana
 }
 \examples{
 \dontrun{
-getRMINCTestData()
-gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+testdir <- getRMINCTestData()
+gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
+gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 vm <- anatApply(gf$lobeThickness,gf$Primary.Diagnosis)
 }
 }

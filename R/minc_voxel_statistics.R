@@ -26,8 +26,8 @@
 #'          given). For the other methods there is one column.
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+#' testdir <- getRMINCTestData()
+#' gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 #' mm <- mincMean(gf$jacobians_0.2)
 #' ms <- mincSd(gf$jacobians_0.2)
 #' mv <- mincVar(gf$jacobians_0.2,gf$Strain)
@@ -333,7 +333,7 @@ mincApplyRCPP <-
 #' wrapper function has to be written.  The mincApply function also
 #' supports passing, instead of a function, a quoted expression containing
 #' a free variable 'x', again taking on all voxel values;
-#' this is illustrated in the examples.  (Not this is not supported by pMincApply.)
+#' this is illustrated in the examples. pMincApply does not support this.
 #' The output of this function also has to be a
 #' simple vector or scalar.
 #' Note that interpreted R can be very slow. Mindnumbingly slow. It
@@ -342,8 +342,6 @@ mincApplyRCPP <-
 #' example, use mincLm rather than applying lm, and if lm must
 #' be applied, try to use lm.fit rather than plain lm.
 #' Also consider using parallel apply methods.
-#' When using the pbs method, one can also set the options --> TMPDIR,MAX_NODES and WORKDIR
-#' \cr
 #' If you encounter memory issues, it could be due to minc file caching.
 #' Consider trying with the environment variable MINC_FILE_CACHE_MB set to
 #' a small value like 1.
@@ -354,45 +352,22 @@ mincApplyRCPP <-
 #' @seealso mincWriteVolume,mincMean,mincSd,mincLm,mincAnova
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-#' ma <- mincApply(gf$jacobians_fixed_2,quote(mean(x)));
+#' testdir <- getRMINCTestData()
+#' gf <- read.csv(file.path(testdir, "test_data_set.csv"))
+#' ma <- mincApply(gf$jacobians_fixed_2, quote(mean(x)))
 #' mincWriteVolume(ma, "means.mnc")
+#'
+#' ### pMincApply needs a function, not a quoted expression
+#' testFunc <- function(x) c(1, 2)
+#'
 #' ### run the whole thing in parallel on the local machine
-#' testFunc <- function (x) { return(c(1,2))}
-#' pout <- pMincApply(gf$jacobians_fixed_2,
-#'                    testFunc,
-#'                    workers = 4,
-#'                    global = c('gf','testFunc'))
+#' pout <- pMincApply(gf$jacobians_fixed_2, testFunc, local = TRUE, cores = 2)
 #' mincWriteVolume(pout, "pmincOut.mnc")
 #'
-#' ### pbs example 1 (hpf)
-#' getRMINCTestData()
-#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-#' testFunc <- function (x) { return(c(1,2))}
-#' options(TMPDIR="/localhd/$PBS_ID")
-#' pout <- pMincApply(gf$jacobians_fixed_2,
-#'                    testFunc,
-#'                    workers = 4,
-#'                    method="pbs",
-#'                    global = c('gf','testFunc'))
-#'
-#' ### pbs example 2 (scinet)
-#' getRMINCTestData()
-#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
-#' testFunc <- function (x) { return(c(1,2))}
-#' options(WORKDIR="$SCRATCH")
-#' options(MAX_NODES=8)
-#' options(TMP_DIR="/tmp")
-#' pout <- pMincApply(gf$jacobians_fixed_2,
-#'                    testFunc,
-#'                    modules=c("intel","openmpi","R/3.1.1"),
-#'                    workers = 4,
-#'                    method="pbs",
-#'                    global = c('gf','testFunc'))
-#'
-#' #NOTE 1: On SCINET jobs are limited to 32*48 hours of cpu time
-#' #NOTE 2: On SCINET the Rmpi library must be compiled for use with R 3.1.1
+#' ### run the whole thing as 4 jobs on a batch queue, with a
+#' ### batchtools configuration file
+#' pout <- pMincApply(gf$jacobians_fixed_2, testFunc, batches = 4,
+#'                    conf_file = "~/.batchtools.conf.R")
 #' }
 #' @export
 mincApply <-
@@ -529,9 +504,9 @@ mask_as_file <- function(mask, like_file) {
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
+#' testdir <- getRMINCTestData()
 #' # read the text file describing the dataset
-#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 #' # run an ANOVA at each voxel
 #' vs <- mincAnova(jacobians_fixed_2 ~ Sex, gf)
 #' }
@@ -654,7 +629,8 @@ mincAnova <- function(
     new_mask_file <- create_parallel_mask(
       sample_file = filenames[1],
       mask = mask,
-      n = n_groups
+      n = n_groups,
+      temp_dir = if (run_local) tempdir() else getwd()
     )
 
     on.exit(
@@ -795,9 +771,9 @@ mincLm_c_wrapper <-
 #' @seealso mincWriteVolume,mincFDR,mincMean, mincSd
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
+#' testdir <- getRMINCTestData()
 #' # read the text file describing the dataset
-#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 #' # Compute a linear model at each voxel
 #' vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 #' }
@@ -913,7 +889,8 @@ mincLm <- function(
     new_mask_file <- create_parallel_mask(
       sample_file = parseLmOutput$data.matrix.left[1],
       mask = mask,
-      n = n_groups
+      n = n_groups,
+      temp_dir = if (run_local) tempdir() else getwd()
     )
 
     on.exit(
@@ -1025,8 +1002,8 @@ mincLm <- function(
 #'          elements as there are voxels in the input files, with that voxel's t-statistic
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+#' testdir <- getRMINCTestData()
+#' gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 #' mtt <- mincTtest(gf$jacobians_0.2,gf$Strain)
 #' }
 #' @export
@@ -1075,8 +1052,8 @@ mincTtest <- function(filenames, grouping, mask = NULL, maskval = NULL) {
 #'          elements as there are voxels in the input files, with that voxel's t-statistic
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+#' testdir <- getRMINCTestData()
+#' gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 #' gf = gf[1:20,]
 #' mptt <- mincPairedTtest(gf$jacobians_0.2,gf$Strain)
 #' }
@@ -1154,8 +1131,8 @@ mincPairedTtest <- function(filenames, grouping, mask = NULL, maskval = NULL) {
 #' can be passed into mincFDR.
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf <- read.csv("/tmp/rminctestdata/minc_summary_test_data.csv")
+#' testdir <- getRMINCTestData()
+#' gf <- read.csv(file.path(testdir, "minc_summary_test_data.csv"))
 #' mw <- mincWilcoxon(gf$jacobians_0.2,gf $Strain)
 #' }
 #' @export

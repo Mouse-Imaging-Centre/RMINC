@@ -109,7 +109,8 @@ void fill_slice_buffer(SEXP filenames,
 					buffer[i]);
     //Rprintf("hs results: %d\n", result);
     if (result != MI_NOERROR) {
-      error("Error getting data from slice %d.\n", slice_number);
+      error("Error reading slice %d from file: %s.\n", slice_number,
+            CHAR(STRING_ELT(filenames, i)));
     }
   }
 }

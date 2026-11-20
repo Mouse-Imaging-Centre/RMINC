@@ -584,9 +584,9 @@ civet.getFilenameNonlinearTransform <- function(
 #' @seealso civet.readAllCivetFiles
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
+#' testdir <- getRMINCTestData()
+#' gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+#' gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
 #' }
 #' @export
 civet.getAllFilenames <- function(
@@ -1551,10 +1551,10 @@ civet.organizeCivetTxtFilesVertex <- function(dataFiles) {
 #' @seealso  civet.getAllFilenames
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET", TRUE, "1.1.12")
-#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' testdir <- getRMINCTestData()
+#' gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+#' gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"), TRUE, "1.1.12")
+#' gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 #' }
 #' @export
 civet.readAllCivetFiles = function(atlasFile, gf, civetVersion = "1.1.12") {
@@ -2139,9 +2139,9 @@ civet.CreateBrainViewFile = function(
 #' @seealso civet.CreateBrainViewFile
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' civet.CreateBrainViewROI("/tmp/rminctestdata/AAL.csv",
-#'                          "/tmp/rminctestdata/AAL_atlas_left.txt",
+#' testdir <- getRMINCTestData()
+#' civet.CreateBrainViewROI(file.path(testdir, "AAL.csv"),
+#'                          file.path(testdir, "AAL_atlas_left.txt"),
 #'                          "Left Insula")
 #' q()
 #' #(The .txt file is written in the working directory and can be viewed via the command)

@@ -549,8 +549,8 @@ mincConvertWorldMatrix <-
 #' @seealso mincWriteVolume
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' testfile <- mincGetVolume("/tmp/rminctestdata/brain_cut_out.mnc")
+#' testdir <- getRMINCTestData()
+#' testfile <- mincGetVolume(file.path(testdir, "brain_cut_out.mnc"))
 #' }
 #' @export
 mincGetVolume <- function(filename) {
@@ -700,9 +700,9 @@ summary.mincQvals <- function(object, ...) {
 #' @seealso mincWriteVolume,mincLm,mincFDR,mincMean,mincSd
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
+#' testdir <- getRMINCTestData()
 #' # read the text file describing the dataset
-#' gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+#' gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 #' # run a linear model relating the data in all voxels to Sex
 #' vs <- mincLm(gf$jacobians_fixed_2 ~ Sex, gf)
 #' # write the results to file
@@ -1160,10 +1160,10 @@ vertexTable <- function(filenames, column = 1) {
 #' @return A file is generated with the vertex data and optional headers
 #' @examples
 #' \dontrun{
-#' getRMINCTestData()
-#' gf = read.csv("/tmp/rminctestdata/CIVET_TEST.csv")
-#' gf = civet.getAllFilenames(gf,"ID","TEST","/tmp/rminctestdata/CIVET","TRUE","1.1.12")
-#' gf = civet.readAllCivetFiles("/tmp/rminctestdata/AAL.csv",gf)
+#' testdir <- getRMINCTestData()
+#' gf = read.csv(file.path(testdir, "CIVET_TEST.csv"))
+#' gf = civet.getAllFilenames(gf,"ID","TEST",file.path(testdir, "CIVET"),"TRUE","1.1.12")
+#' gf = civet.readAllCivetFiles(file.path(testdir, "AAL.csv"),gf)
 #' writeVertex(gf$nativeRMStlink20mm,"~/RMStlink20mm.txt",FALSE,NULL,NULL)
 #' }
 #' @export
@@ -1532,8 +1532,8 @@ runRMINCTestbed <- function(
 
 #' Download Example Data
 #'
-#' Download the example data needed to run our examples in your /tmp directory
-#' The data can be downloaded manually from
+#' Download the example data needed to run our examples. The data
+#' can be downloaded manually from
 #' \url{https://github.com/Mouse-Imaging-Centre/RMINC-test-data/archive/main.tar.gz}
 #' @param dataPath The directory to download and unpack the test data
 #' (unpacks in dataPath/rminctestdata). Default can be set with the option RMINC_DATA_DIR which
@@ -1541,6 +1541,9 @@ runRMINCTestbed <- function(
 #' is created.
 #' @param method Argument to pass to \link{download.file} typical options are \code{libcurl}
 #' and \code{wget}
+#' @return The path of the unpacked data directory (invisibly). Use it to
+#' find the example files, for example
+#' \code{read.csv(file.path(getRMINCTestData(), "test_data_set.csv"))}.
 #' @export
 getRMINCTestData <- function(
   dataPath = getOption("RMINC_DATA_DIR", tempdir()),

@@ -51,9 +51,9 @@ treatment coded factor to use as a predictor.
 }}
 \examples{
 \dontrun{
-getRMINCTestData()
+testdir <- getRMINCTestData()
 # read the text file describing the dataset
-gf <- read.csv("/tmp/rminctestdata/test_data_set.csv")
+gf <- read.csv(file.path(testdir, "test_data_set.csv"))
 # run a linear model relating the data in all voxels to Genotype
 vs <- mincLm(jacobians_fixed_2 ~ Sex, gf)
 effectsize <- mincEffectSize(vs)
