@@ -73,7 +73,7 @@ A matrix with a row for each subject (file) and a column for each
 structure, in the same orientation as
 [anatGetAll](https://mouse-imaging-centre.github.io/RMINC/reference/anatGetAll.md).
 If `fun` returns more than one value for each structure, the result is
-in the form that `collate` gives. Before RMINC 2.0.0.0 the result had a
+in the form that `collate` gives. Before RMINC 3.0.0 the result had a
 row for each structure and a column for each subject, so code that used
 [`t()`](https://rdrr.io/r/base/t.html) on the result must remove it
 (#264).
