@@ -9,7 +9,7 @@ and `fun` wrapped in with `tapply` over atlas."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">RMINC</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">3.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,7 +30,7 @@ and `fun` wrapped in with `tapply` over atlas."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Apply a structure summary function across vertices</h1>
-      <small class="dont-index">Source: <a href="https://github.com/Mouse-Imaging-Centre/RMINC/blob/develop/R/minc_vertex_statistics.R" class="external-link"><code>R/minc_vertex_statistics.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/Mouse-Imaging-Centre/RMINC/blob/master/R/minc_vertex_statistics.R" class="external-link"><code>R/minc_vertex_statistics.R</code></a></small>
       <div class="d-none name"><code>vertexAtlasApply.Rd</code></div>
     </div>
 
@@ -106,7 +106,7 @@ structure. Defaults to <a href="simplify_masked.html">simplify_masked</a></p></d
 structure, in the same orientation as <a href="anatGetAll.html">anatGetAll</a>. If <code>fun</code>
 returns more than one value for each structure, the result is in the form
 that <code>collate</code> gives.
-Before RMINC 2.0.0.0 the result had a row for each structure and a column
+Before RMINC 3.0.0 the result had a row for each structure and a column
 for each subject, so code that used <code><a href="https://rdrr.io/r/base/t.html" class="external-link">t()</a></code> on the result must
 remove it (#264).</p>
     </div>
