@@ -1,11 +1,93 @@
-Changes in version 2.0.0.0 (Wilks)
-==================================
+Changes in version 3.0.0 (Benjamini-Hochberg)
+=============================================
 
 Breaking changes:
 - vertexAtlasApply returns a matrix with a row for each subject and a
   column for each structure, as anatGetAll does. Before, the rows were
   structures, and the result needed t(). Remove t() from code that uses
-  vertexAtlasApply (#264).
+  vertexAtlasApply (#264, #370).
+- mincWriteVolume writes float volumes, not unsigned short. Values are
+  no longer scaled into 0-65535, so they keep their precision. Files are
+  about twice as large (#78, #289, #361).
+- anatCreateVolume writes a file only when filename is given, and
+  returns a mincArray, not a mincSingleDim. It handles bilateral and
+  left/right structure names (#266, #365).
+- Subsetting an anatModel keeps the class when one row is selected. Only
+  a single column gives a plain vector (#187, #282, #365).
+- An unknown parallel backend name, or a worker count that is not a
+  positive whole number, is now an error (#215, #364).
+- anatLm stops on a two-sided formula (#269, #364).
+- mincFDR stops on an unknown method name. mincSummary accepts only the
+  methods that the C code computes (method = "median" is now an error)
+  (#309, #363).
+- mcMincApply and local pMincApply, mincLm and mincAnova write their
+  temporary mask files to tempdir(), not getwd() (#211, #368).
+- mincTFCE stops with an error when the TFCE program is missing, fails,
+  or writes no output file (#371).
+- 2D plots (mincImage, mincContour, mincPlotSliceSeries) use the voxel
+  spacing of the file for the aspect ratio. Use
+  options(RMINC_use_voxel_spacing = FALSE) to get square voxels (#216,
+  #366).
+- Some C read errors have new text, which names the file (#53, #368).
+
+New features:
+- as.data.frame.anatModel, with an optional structure_column (#125,
+  #365).
+- mincRandomize accepts one column, by name (for example
+  "F-statistic") or by index (#318, #363).
+- pMincApply and qMincApply have wait and ignore_incompletes arguments
+  (#355).
+- mincLm and mincAnova accept a mask as a numeric vector, an array or a
+  mincGetVolume result (#258, #364).
+
+Bug fixes:
+- mincSummary counts groups correctly. Before, some group orders gave a
+  wrong count and a segfault (#241, #361).
+- mincFDR: one helper computes the q-values for all methods.
+  mincFDR.mincSingleDim works again, mincFDR.mincLmer accepts the same
+  methods, and a column where qvalue or pFDR fails gets NA with a
+  warning (#359, #319, #95, #363).
+- vertexApply with transpose = TRUE applies the mask to vertices, not to
+  subjects. vertexAtlasApply removes the masked vertices from the atlas
+  (#217, #363).
+- The EffectSize functions do not evaluate the model call again (#305,
+  #363).
+- minc2_model sets all output columns of masked voxels to 0 (#364).
+- makeMICeDefsHierachical works with R >= 4.2 and data.tree < 1.2.0,
+  checks its CSV columns, and lists the ABI names that are not in the
+  JSON (#335, #268, #221, #304, #352, #364).
+- anatLmer and mincLmer work with weights under current lme4 (#357).
+- anatLm gives a clear error for a matrix term (#295, #364).
+- anatEffectSize, anatFDR and print work for one-structure models (#282,
+  #365).
+- mincPlotSliceSeries: symmetric legends show the correct range, and the
+  legend is in the correct cell without a locator (#130, #197, #366).
+- shinyRMINC clamps the slice range to the volume (#220, #366).
+- 3D mesh colours and opacity work with rgl >= 1.3 (#274, #366).
+- C read errors name the file that failed (#53, #368).
+- qMincApply cleanup removes the mask files in temp_dir (#368).
+
+Testing and CI:
+- configure works with HDF5 2.x (#360). configure is regenerated with
+  Autoconf 2.71.
+- macOS R-devel CI builds its source dependencies (#362).
+- CI runs on master and skips docs-only changes (#356).
+- CI installs TFCE from minc-stuffs, so the TFCE tests run (#368).
+- R CMD check has no WARNINGs (#367).
+- The TFCE randomization test uses a fixed seed (#212, #290, #368).
+- New tests for temporary files, corrupt files and read errors (#368).
+
+Documentation:
+- Examples use the path that getRMINCTestData() returns (#300, #368).
+- The mincApply and pMincApply examples are correct (#299, #368).
+- INSTALL and README use the current install_github arguments (#291,
+  #368).
+- NEWS headings use the "Changes in version" form (#367).
+- New README and pkgdown site (#353, #354, #369).
+
+
+Changes in version 2.0.0.0 (Wilks)
+==================================
 
 Infrastructure and CI:
 - Migrate CI from Travis to GitHub Actions (ubuntu + macOS, R
